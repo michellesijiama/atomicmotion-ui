@@ -2,6 +2,8 @@
 
 AtomicMotion UI is an open-source micro-interaction component library built for copy-paste distribution. Each core interaction lives in a focused single file so developers and AI coding agents can read, adapt, and ship it quickly.
 
+Repository: https://github.com/michellesijiama/atomicmotion-ui
+
 ## Stack
 
 - Next.js App Router

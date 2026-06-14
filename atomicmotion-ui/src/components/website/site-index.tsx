@@ -45,11 +45,11 @@ export function SiteIndex() {
 
         <div className="mt-9 space-y-3 border-t border-white/15 pt-5">
           <a
-            href="https://github.com"
+            href="https://github.com/michellesijiama/atomicmotion-ui"
             className="flex items-center gap-2 text-sm text-zinc-300 transition-colors hover:text-white"
           >
             <GitBranch className="h-4 w-4" />
-            Private repo pending
+            Private GitHub repo
             <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
           <div className="flex items-center gap-2 font-mono text-xs text-zinc-500">
