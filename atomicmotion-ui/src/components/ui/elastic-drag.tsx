@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useAnimationControls, useReducedMotion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,7 @@ export function ElasticDrag({
 }: ElasticDragProps) {
   const constraintsRef = React.useRef<HTMLDivElement | null>(null);
   const reduceMotion = useReducedMotion();
+  const controls = useAnimationControls();
 
   return (
     <div
@@ -34,6 +35,21 @@ export function ElasticDrag({
         dragConstraints={constraintsRef}
         dragElastic={0.42}
         dragMomentum={false}
+        animate={controls}
+        onDragStart={() => controls.stop()}
+        onDragEnd={() => {
+          void controls.start({
+            x: 0,
+            y: 0,
+            rotate: 0,
+            transition: {
+              type: "spring",
+              stiffness: 360,
+              damping: 22,
+              mass: 0.65,
+            },
+          });
+        }}
         className="relative grid h-28 w-28 cursor-grab place-items-center rounded-md border border-white/20 bg-white text-center text-black shadow-[0_30px_80px_rgba(255,255,255,0.16)] active:cursor-grabbing"
         whileDrag={
           reduceMotion
