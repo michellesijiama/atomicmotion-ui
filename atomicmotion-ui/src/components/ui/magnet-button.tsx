@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  type HTMLMotionProps,
   motion,
   useMotionTemplate,
   useMotionValue,
@@ -12,7 +13,8 @@ import {
 
 import { cn } from "@/lib/utils";
 
-type MagnetButtonProps = React.ComponentPropsWithoutRef<"button"> & {
+type MagnetButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
+  children?: React.ReactNode;
   strength?: number;
 };
 
