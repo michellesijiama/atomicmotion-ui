@@ -32,22 +32,29 @@ type SliderProps = {
 };
 
 function Slider({ label, value, min, max, step, onChange }: SliderProps) {
+  const inputId = React.useId();
+
   return (
-    <label className="grid gap-2 border border-white/10 p-3">
-      <span className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase text-zinc-500">
+    <div className="grid gap-2 border border-white/10 p-3">
+      <label
+        htmlFor={inputId}
+        className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase text-zinc-500"
+      >
         {label}
         <span className="text-zinc-300">{value.toFixed(step < 1 ? 2 : 0)}</span>
-      </span>
+      </label>
       <input
+        id={inputId}
         type="range"
         min={min}
         max={max}
         step={step}
         value={value}
+        onInput={(event) => onChange(Number(event.currentTarget.value))}
         onChange={(event) => onChange(Number(event.target.value))}
         className="h-1 w-full accent-white"
       />
-    </label>
+    </div>
   );
 }
 

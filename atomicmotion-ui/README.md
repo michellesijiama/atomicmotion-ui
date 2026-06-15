@@ -33,6 +33,7 @@ Open `http://localhost:3000`.
 - `MagnetButton`: a spring-loaded button that follows pointer intent.
 - `FluidTabs`: compact tabs with a liquid active indicator.
 - `ElasticDrag`: a draggable object with elastic return physics.
+- `NoisyAnalogCard`: a frosted analog card with generated grain, tint, glow, and hover depth.
 
 ## Copy-Paste Example
 
