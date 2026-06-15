@@ -10,3 +10,4 @@ Rules for consumers:
 - Keep public props small and explicit.
 - Preserve keyboard access and visible focus states.
 - Keep motion graceful when users prefer reduced motion.
+- Material components such as `NoisyAnalogCard` should generate grain/noise with CSS or inline SVG data, not external image assets.
