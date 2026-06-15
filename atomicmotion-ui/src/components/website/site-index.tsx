@@ -4,6 +4,7 @@ const components = [
   { name: "Magnet Button", year: "001", href: "#magnet-button" },
   { name: "Fluid Tabs", year: "002", href: "#fluid-tabs" },
   { name: "Elastic Drag", year: "003", href: "#elastic-drag" },
+  { name: "Noisy Analog Card", year: "004", href: "#noisy-analog-card" },
 ];
 
 export function SiteIndex() {
