@@ -2,6 +2,7 @@ import { ElasticDrag } from "@/components/ui/elastic-drag";
 import { FluidTabs } from "@/components/ui/fluid-tabs";
 import { MagnetButton } from "@/components/ui/magnet-button";
 import { ComponentPlate } from "@/components/website/component-plate";
+import { NoisyCardPlayground } from "@/components/website/noisy-card-playground";
 import { SiteIndex } from "@/components/website/site-index";
 
 const tabs = [
@@ -99,6 +100,16 @@ export default function Home() {
               </ElasticDrag>
             </div>
           </div>
+        </ComponentPlate>
+
+        <ComponentPlate
+          id="noisy-analog-card"
+          index="004"
+          title="Noisy Analog Card"
+          description="A frosted analog card with generated grain, adjustable transparency, tint, highlight, and hover depth."
+          command="copy noisy-analog-card.tsx"
+        >
+          <NoisyCardPlayground />
         </ComponentPlate>
       </div>
     </main>
