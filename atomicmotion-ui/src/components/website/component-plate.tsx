@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Download, ExternalLink } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -8,6 +9,10 @@ type ComponentPlateProps = {
   title: string;
   description: string;
   command: string;
+  codePath: string;
+  codeHref: string;
+  downloadHref: string;
+  downloadLabel: string;
   children: ReactNode;
   className?: string;
   category?: string;
@@ -21,6 +26,10 @@ export function ComponentPlate({
   title,
   description,
   command,
+  codePath,
+  codeHref,
+  downloadHref,
+  downloadLabel,
   children,
   className,
   category = "Component",
@@ -36,7 +45,7 @@ export function ComponentPlate({
       )}
     >
       <div className="grid gap-4 rounded-[22px] bg-white p-3 shadow-[0_18px_60px_rgba(14,16,17,0.06)] ring-1 ring-black/5 sm:p-4">
-        <div className="grid gap-3 border-b border-black/8 pb-3 text-xs text-[var(--jitter-gray-600)] sm:grid-cols-[auto_1fr_auto] sm:items-start">
+        <div className="grid gap-3 border-b border-black/8 pb-3 text-xs text-[var(--jitter-gray-600)] xl:grid-cols-[auto_1fr_minmax(300px,380px)] xl:items-start">
           <span className="font-mono text-[var(--jitter-gray-600)]">{index}</span>
           <div>
             <div className="mb-2 flex flex-wrap gap-1.5">
@@ -55,9 +64,53 @@ export function ComponentPlate({
             <h2 className="text-lg font-semibold text-[var(--jitter-ink)]">{title}</h2>
             <p className="mt-1 max-w-xl leading-5">{description}</p>
           </div>
-          <code className="w-fit rounded-full bg-[var(--jitter-surface)] px-3 py-1.5 font-mono text-[11px] text-[var(--jitter-gray-800)] ring-1 ring-black/5">
-            {command}
-          </code>
+          <div className="grid gap-2 rounded-[16px] bg-[var(--jitter-surface)] p-3 text-[11px] ring-1 ring-black/5">
+            <div className="grid gap-1">
+              <span className="font-mono uppercase text-[10px] text-[var(--jitter-gray-600)]">
+                Name
+              </span>
+              <span className="font-medium text-[var(--jitter-ink)]">{title}</span>
+            </div>
+            <div className="grid gap-1">
+              <span className="font-mono uppercase text-[10px] text-[var(--jitter-gray-600)]">
+                What it is
+              </span>
+              <span className="leading-4 text-[var(--jitter-gray-800)]">{description}</span>
+            </div>
+            <div className="grid gap-1">
+              <span className="font-mono uppercase text-[10px] text-[var(--jitter-gray-600)]">
+                Source
+              </span>
+              <code className="break-all font-mono text-[10px] text-[var(--jitter-gray-800)]">
+                {codePath}
+              </code>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <a
+                href={codeHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 font-medium text-[var(--jitter-ink)] ring-1 ring-black/10 transition hover:bg-[var(--jitter-gray-100)]"
+              >
+                <ExternalLink className="size-3.5" aria-hidden="true" />
+                View code
+              </a>
+              <a
+                href={downloadHref}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={downloadLabel}
+                title={downloadLabel}
+                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--jitter-ink)] px-3 font-medium text-white transition hover:bg-black"
+              >
+                <Download className="size-3.5" aria-hidden="true" />
+                Download component
+              </a>
+              <code className="inline-flex h-8 items-center rounded-full bg-white px-3 font-mono text-[10px] text-[var(--jitter-gray-800)] ring-1 ring-black/10">
+                {command}
+              </code>
+            </div>
+          </div>
         </div>
 
         <div className="min-h-[430px] overflow-hidden rounded-[18px] bg-[var(--jitter-surface)] text-black ring-1 ring-black/5 sm:min-h-[500px]">

@@ -26,10 +26,33 @@ const checks = [
   ["site index uses archive language", files.siteIndex.includes("Entire Archive")],
   ["site index shows all status tags", ["FREE", "PRO", "RE-MADE", "NEW"].every((tag) => files.siteIndex.includes(tag))],
   ["component plate accepts status metadata", files.componentPlate.includes("statusClassName")],
+  ["component plate accepts code path metadata", files.componentPlate.includes("codePath")],
+  ["component plate accepts code link metadata", files.componentPlate.includes("codeHref")],
+  ["component plate accepts download metadata", files.componentPlate.includes("downloadHref")],
+  ["component plate renders view code action", files.componentPlate.includes("View code")],
+  ["component plate renders download action", files.componentPlate.includes("Download component")],
   ["page maps Magnet Button to FREE", files.page.includes('status="FREE"')],
   ["page maps Fluid Tabs to PRO", files.page.includes('status="PRO"')],
   ["page maps Elastic Drag to RE-MADE", files.page.includes('status="RE-MADE"')],
   ["page maps Noisy Analog Card to NEW", files.page.includes('status="NEW"')],
+  [
+    "page lists every source component path",
+    [
+      "src/components/ui/magnet-button.tsx",
+      "src/components/ui/fluid-tabs.tsx",
+      "src/components/ui/elastic-drag.tsx",
+      "src/components/ui/noisy-analog-card.tsx",
+    ].every((path) => files.page.includes(path)),
+  ],
+  [
+    "page lists every download label",
+    [
+      "Download magnet-button.tsx",
+      "Download fluid-tabs.tsx",
+      "Download elastic-drag.tsx",
+      "Download noisy-analog-card.tsx",
+    ].every((label) => files.page.includes(label)),
+  ],
   ["noisy playground uses Jitter accent swatches", ["#15bc64", "#7a40ed", "#1377e4", "#ff8316"].every((color) => files.noisyPlayground.includes(color))],
 ];
 
