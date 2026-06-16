@@ -13,12 +13,12 @@ const defaults = {
   grainScale: 1.2,
   borderOpacity: 0.24,
   hoverTilt: 5,
-  tint: "#b8fff1",
+  tint: "#15bc64",
   highlight: "#ffffff",
 };
 
-const tintSwatches = ["#b8fff1", "#d8d4ff", "#ffd3b8", "#d8ffb8"];
-const highlightSwatches = ["#ffffff", "#8fffe1", "#c9b7ff", "#ffd36b"];
+const tintSwatches = ["#15bc64", "#7a40ed", "#1377e4", "#ff8316"];
+const highlightSwatches = ["#ffffff", "#d0f1e0", "#cee4fb", "#e4d8fb"];
 
 type SettingKey = keyof typeof defaults;
 
@@ -35,13 +35,15 @@ function Slider({ label, value, min, max, step, onChange }: SliderProps) {
   const inputId = React.useId();
 
   return (
-    <div className="grid gap-2 border border-black/10 bg-white p-3">
+    <div className="grid gap-2 rounded-2xl bg-white p-3 ring-1 ring-black/5">
       <label
         htmlFor={inputId}
-        className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase text-zinc-500"
+        className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase text-[var(--jitter-gray-600)]"
       >
         {label}
-        <span className="text-zinc-800">{value.toFixed(step < 1 ? 2 : 0)}</span>
+        <span className="text-[var(--jitter-ink)]">
+          {value.toFixed(step < 1 ? 2 : 0)}
+        </span>
       </label>
       <input
         id={inputId}
@@ -52,7 +54,7 @@ function Slider({ label, value, min, max, step, onChange }: SliderProps) {
         value={value}
         onInput={(event) => onChange(Number(event.currentTarget.value))}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="h-1 w-full accent-zinc-950"
+        className="h-1 w-full accent-[var(--jitter-ink)]"
       />
     </div>
   );
@@ -67,8 +69,10 @@ type SwatchGroupProps = {
 
 function SwatchGroup({ label, value, swatches, onChange }: SwatchGroupProps) {
   return (
-    <div className="border border-black/10 bg-white p-3">
-      <p className="mb-3 font-mono text-[10px] uppercase text-zinc-500">{label}</p>
+    <div className="rounded-2xl bg-white p-3 ring-1 ring-black/5">
+      <p className="mb-3 font-mono text-[10px] uppercase text-[var(--jitter-gray-600)]">
+        {label}
+      </p>
       <div className="flex flex-wrap gap-2">
         {swatches.map((swatch) => (
           <button
@@ -77,8 +81,10 @@ function SwatchGroup({ label, value, swatches, onChange }: SwatchGroupProps) {
             aria-label={`${label} ${swatch}`}
             onClick={() => onChange(swatch)}
             className={cn(
-              "h-7 w-7 rounded border border-black/15 outline-none transition-transform focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
-              value === swatch ? "scale-110 ring-1 ring-zinc-950" : "hover:scale-105",
+              "h-8 w-8 rounded-lg border border-black/10 outline-none transition-transform focus-visible:ring-2 focus-visible:ring-[var(--jitter-ink)] focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+              value === swatch
+                ? "scale-110 ring-2 ring-[var(--jitter-ink)]"
+                : "hover:scale-105",
             )}
             style={{ backgroundColor: swatch }}
           />
@@ -96,8 +102,8 @@ export function NoisyCardPlayground() {
   }
 
   return (
-    <div className="grid min-h-[430px] gap-4 bg-white p-4 text-zinc-950 sm:min-h-[560px] lg:grid-cols-[1fr_290px]">
-      <div className="grid place-items-center overflow-hidden rounded-md bg-zinc-950 p-5">
+    <div className="grid min-h-[430px] gap-4 bg-[var(--jitter-surface)] p-4 text-[var(--jitter-ink)] sm:min-h-[560px] lg:grid-cols-[1fr_290px]">
+      <div className="grid place-items-center overflow-hidden rounded-[18px] bg-[var(--jitter-ink)] p-5">
         <div className="w-full max-w-xl">
           <div className="mb-4 grid grid-cols-[1fr_auto] border-b border-white/10 pb-3 font-mono text-[10px] uppercase text-zinc-500">
             <span>analog material</span>
@@ -128,11 +134,21 @@ export function NoisyCardPlayground() {
         </div>
       </div>
 
-      <div className="grid content-start gap-3 border border-black/10 bg-[#f7f6f2] p-4">
+      <div className="grid content-start gap-3 rounded-[18px] bg-[var(--jitter-bg)] p-4 ring-1 ring-black/5">
         <div className="flex items-start justify-between gap-3 border-b border-black/10 pb-3">
           <div>
-            <p className="text-sm font-medium text-zinc-950">Noisy controls</p>
-            <p className="mt-1 text-xs leading-5 text-zinc-500">
+            <div className="mb-2 flex gap-1.5">
+              <span className="rounded-full bg-[var(--jitter-orange)]/12 px-2 py-1 text-[10px] font-semibold uppercase text-[var(--jitter-orange)]">
+                NEW
+              </span>
+              <span className="rounded-full bg-white px-2 py-1 text-[10px] font-semibold uppercase text-[var(--jitter-gray-800)] ring-1 ring-black/5">
+                Material
+              </span>
+            </div>
+            <p className="text-sm font-semibold text-[var(--jitter-ink)]">
+              Noisy controls
+            </p>
+            <p className="mt-1 text-xs leading-5 text-[var(--jitter-gray-600)]">
               Adjust material properties in real time.
             </p>
           </div>
@@ -140,7 +156,7 @@ export function NoisyCardPlayground() {
             type="button"
             aria-label="Reset noisy card controls"
             onClick={() => setSettings(defaults)}
-            className="grid h-8 w-8 place-items-center rounded border border-black/10 text-zinc-500 outline-none transition-colors hover:text-zinc-950 focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            className="grid h-8 w-8 place-items-center rounded-full bg-white text-[var(--jitter-gray-600)] outline-none ring-1 ring-black/5 transition-colors hover:text-[var(--jitter-ink)] focus-visible:ring-2 focus-visible:ring-[var(--jitter-ink)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             <RotateCcw className="h-3.5 w-3.5" />
           </button>
