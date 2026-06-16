@@ -1,6 +1,7 @@
 export const REPO_OWNER = "michellesijiama";
 export const REPO_NAME = "atomicmotion-ui";
 export const REPO_BRANCH = "codex/aircenter-design-system";
+export const REPO_PROJECT_ROOT = "atomicmotion-ui";
 
 const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REPO_BRANCH}`;
 const REPO_RAW_BASE = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/refs/heads/${REPO_BRANCH}`;
@@ -29,8 +30,9 @@ type ComponentMetaInput = Omit<
 
 function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
   const fileName = meta.codePath.split("/").at(-1) ?? meta.codePath;
-  const codeHref = `${REPO_BLOB_BASE}/${meta.codePath}`;
-  const downloadHref = `${REPO_RAW_BASE}/${meta.codePath}`;
+  const repoPath = `${REPO_PROJECT_ROOT}/${meta.codePath}`;
+  const codeHref = `${REPO_BLOB_BASE}/${repoPath}`;
+  const downloadHref = `${REPO_RAW_BASE}/${repoPath}`;
 
   return {
     ...meta,
