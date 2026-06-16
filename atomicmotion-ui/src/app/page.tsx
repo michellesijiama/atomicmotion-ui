@@ -11,6 +11,38 @@ const tabs = [
   { value: "drag", label: "Drag", meta: "elastic" },
 ];
 
+const repoBlobBase =
+  "https://github.com/michellesijiama/atomicmotion-ui/blob/codex/aircenter-design-system";
+const repoRawBase =
+  "https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/refs/heads/codex/aircenter-design-system";
+
+const sourceLinks = {
+  magnetButton: {
+    codePath: "src/components/ui/magnet-button.tsx",
+    codeHref: `${repoBlobBase}/src/components/ui/magnet-button.tsx`,
+    downloadHref: `${repoRawBase}/src/components/ui/magnet-button.tsx`,
+    downloadLabel: "Download magnet-button.tsx",
+  },
+  fluidTabs: {
+    codePath: "src/components/ui/fluid-tabs.tsx",
+    codeHref: `${repoBlobBase}/src/components/ui/fluid-tabs.tsx`,
+    downloadHref: `${repoRawBase}/src/components/ui/fluid-tabs.tsx`,
+    downloadLabel: "Download fluid-tabs.tsx",
+  },
+  elasticDrag: {
+    codePath: "src/components/ui/elastic-drag.tsx",
+    codeHref: `${repoBlobBase}/src/components/ui/elastic-drag.tsx`,
+    downloadHref: `${repoRawBase}/src/components/ui/elastic-drag.tsx`,
+    downloadLabel: "Download elastic-drag.tsx",
+  },
+  noisyAnalogCard: {
+    codePath: "src/components/ui/noisy-analog-card.tsx",
+    codeHref: `${repoBlobBase}/src/components/ui/noisy-analog-card.tsx`,
+    downloadHref: `${repoRawBase}/src/components/ui/noisy-analog-card.tsx`,
+    downloadLabel: "Download noisy-analog-card.tsx",
+  },
+};
+
 export default function Home() {
   return (
     <main id="top" className="min-h-screen bg-[var(--jitter-bg)] text-[var(--jitter-ink)]">
@@ -25,6 +57,7 @@ export default function Home() {
           category="Component"
           status="FREE"
           statusClassName="bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]"
+          {...sourceLinks.magnetButton}
         >
           <div className="grid min-h-[430px] place-items-center bg-[var(--jitter-surface)] p-6 sm:min-h-[500px]">
             <div className="grid w-full max-w-2xl gap-10">
@@ -64,6 +97,7 @@ export default function Home() {
           category="Template"
           status="PRO"
           statusClassName="bg-[var(--jitter-purple)]/12 text-[var(--jitter-purple)]"
+          {...sourceLinks.fluidTabs}
         >
           <div className="grid min-h-[430px] place-items-center bg-[var(--jitter-surface)] p-6 sm:min-h-[500px]">
             <div className="w-full max-w-3xl rounded-[18px] bg-[var(--jitter-ink)] p-5 text-white">
@@ -97,6 +131,7 @@ export default function Home() {
           category="Interaction"
           status="RE-MADE"
           statusClassName="bg-[var(--jitter-blue)]/12 text-[var(--jitter-blue)]"
+          {...sourceLinks.elasticDrag}
         >
           <div className="grid min-h-[430px] place-items-center bg-[var(--jitter-surface)] p-6 sm:min-h-[500px]">
             <div className="w-full max-w-3xl">
@@ -120,6 +155,7 @@ export default function Home() {
           category="Material"
           status="NEW"
           statusClassName="bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]"
+          {...sourceLinks.noisyAnalogCard}
         >
           <NoisyCardPlayground />
         </ComponentPlate>
