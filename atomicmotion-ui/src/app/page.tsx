@@ -4,6 +4,7 @@ import { MagnetButton } from "@/components/ui/magnet-button";
 import { ComponentPlate } from "@/components/website/component-plate";
 import { NoisyCardPlayground } from "@/components/website/noisy-card-playground";
 import { SiteIndex } from "@/components/website/site-index";
+import { componentRegistry } from "@/lib/component-registry";
 
 const tabs = [
   { value: "button", label: "Button", meta: "magnet" },
@@ -11,53 +12,13 @@ const tabs = [
   { value: "drag", label: "Drag", meta: "elastic" },
 ];
 
-const repoBlobBase =
-  "https://github.com/michellesijiama/atomicmotion-ui/blob/codex/aircenter-design-system";
-const repoRawBase =
-  "https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/refs/heads/codex/aircenter-design-system";
-
-const sourceLinks = {
-  magnetButton: {
-    codePath: "src/components/ui/magnet-button.tsx",
-    codeHref: `${repoBlobBase}/src/components/ui/magnet-button.tsx`,
-    downloadHref: `${repoRawBase}/src/components/ui/magnet-button.tsx`,
-    downloadLabel: "Download magnet-button.tsx",
-  },
-  fluidTabs: {
-    codePath: "src/components/ui/fluid-tabs.tsx",
-    codeHref: `${repoBlobBase}/src/components/ui/fluid-tabs.tsx`,
-    downloadHref: `${repoRawBase}/src/components/ui/fluid-tabs.tsx`,
-    downloadLabel: "Download fluid-tabs.tsx",
-  },
-  elasticDrag: {
-    codePath: "src/components/ui/elastic-drag.tsx",
-    codeHref: `${repoBlobBase}/src/components/ui/elastic-drag.tsx`,
-    downloadHref: `${repoRawBase}/src/components/ui/elastic-drag.tsx`,
-    downloadLabel: "Download elastic-drag.tsx",
-  },
-  noisyAnalogCard: {
-    codePath: "src/components/ui/noisy-analog-card.tsx",
-    codeHref: `${repoBlobBase}/src/components/ui/noisy-analog-card.tsx`,
-    downloadHref: `${repoRawBase}/src/components/ui/noisy-analog-card.tsx`,
-    downloadLabel: "Download noisy-analog-card.tsx",
-  },
-};
-
 export default function Home() {
   return (
     <main id="top" className="min-h-screen bg-[var(--jitter-bg)] text-[var(--jitter-ink)]">
       <SiteIndex />
       <div className="lg:ml-[35vw]">
         <ComponentPlate
-          id="magnet-button"
-          index="001"
-          title="Magnet Button"
-          description="A pointer-aware command surface with subtle spring pull and a reactive highlight field."
-          command="copy magnet-button.tsx"
-          category="Component"
-          status="FREE"
-          statusClassName="bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]"
-          {...sourceLinks.magnetButton}
+          {...componentRegistry.magnetButton}
         >
           <div className="grid min-h-[430px] place-items-center bg-[var(--jitter-surface)] p-6 sm:min-h-[500px]">
             <div className="grid w-full max-w-2xl gap-10">
@@ -89,15 +50,7 @@ export default function Home() {
         </ComponentPlate>
 
         <ComponentPlate
-          id="fluid-tabs"
-          index="002"
-          title="Fluid Tabs"
-          description="A compact tab primitive with a liquid active indicator and keyboard-accessible roving selection."
-          command="copy fluid-tabs.tsx"
-          category="Template"
-          status="PRO"
-          statusClassName="bg-[var(--jitter-purple)]/12 text-[var(--jitter-purple)]"
-          {...sourceLinks.fluidTabs}
+          {...componentRegistry.fluidTabs}
         >
           <div className="grid min-h-[430px] place-items-center bg-[var(--jitter-surface)] p-6 sm:min-h-[500px]">
             <div className="w-full max-w-3xl rounded-[18px] bg-[var(--jitter-ink)] p-5 text-white">
@@ -123,15 +76,7 @@ export default function Home() {
         </ComponentPlate>
 
         <ComponentPlate
-          id="elastic-drag"
-          index="003"
-          title="Elastic Drag"
-          description="A draggable motion object tuned for tactile resistance, visual stretch, and spring return."
-          command="copy elastic-drag.tsx"
-          category="Interaction"
-          status="RE-MADE"
-          statusClassName="bg-[var(--jitter-blue)]/12 text-[var(--jitter-blue)]"
-          {...sourceLinks.elasticDrag}
+          {...componentRegistry.elasticDrag}
         >
           <div className="grid min-h-[430px] place-items-center bg-[var(--jitter-surface)] p-6 sm:min-h-[500px]">
             <div className="w-full max-w-3xl">
@@ -147,15 +92,7 @@ export default function Home() {
         </ComponentPlate>
 
         <ComponentPlate
-          id="noisy-analog-card"
-          index="004"
-          title="Noisy Analog Card"
-          description="A frosted analog card with generated grain, adjustable transparency, tint, highlight, and hover depth."
-          command="copy noisy-analog-card.tsx"
-          category="Material"
-          status="NEW"
-          statusClassName="bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]"
-          {...sourceLinks.noisyAnalogCard}
+          {...componentRegistry.noisyAnalogCard}
         >
           <NoisyCardPlayground />
         </ComponentPlate>

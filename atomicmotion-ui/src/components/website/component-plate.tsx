@@ -1,5 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
-import { Download, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { Check, Copy, Download, ExternalLink } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -13,6 +16,7 @@ type ComponentPlateProps = {
   codeHref: string;
   downloadHref: string;
   downloadLabel: string;
+  aiPrompt: string;
   children: ReactNode;
   className?: string;
   category?: string;
@@ -30,12 +34,47 @@ export function ComponentPlate({
   codeHref,
   downloadHref,
   downloadLabel,
+  aiPrompt,
   children,
   className,
   category = "Component",
   status = "FREE",
   statusClassName = "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
 }: ComponentPlateProps) {
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+
+  async function writeClipboardText(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      textarea.setSelectionRange(0, textarea.value.length);
+      const copied = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return copied;
+    }
+  }
+
+  async function copyForAi() {
+    const copied = await writeClipboardText(aiPrompt);
+
+    if (copied) {
+      setCopyState("copied");
+      window.setTimeout(() => setCopyState("idle"), 1800);
+      return;
+    }
+
+    setCopyState("failed");
+  }
+
   return (
     <section
       id={id}
@@ -104,12 +143,34 @@ export function ComponentPlate({
                 className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--jitter-ink)] px-3 font-medium text-white transition hover:bg-black"
               >
                 <Download className="size-3.5" aria-hidden="true" />
-                Download component
+                Download TSX
               </a>
+              <button
+                type="button"
+                onClick={copyForAi}
+                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--jitter-green)] px-3 font-medium text-white transition hover:brightness-95"
+              >
+                {copyState === "copied" ? (
+                  <Check className="size-3.5" aria-hidden="true" />
+                ) : (
+                  <Copy className="size-3.5" aria-hidden="true" />
+                )}
+                {copyState === "copied" ? "Copied" : "Copy for AI"}
+              </button>
               <code className="inline-flex h-8 items-center rounded-full bg-white px-3 font-mono text-[10px] text-[var(--jitter-gray-800)] ring-1 ring-black/10">
                 {command}
               </code>
             </div>
+            {copyState === "failed" ? (
+              <div className="grid gap-1">
+                <p className="text-[10px] text-[var(--jitter-orange)]">
+                  Copy failed. AI prompt is below.
+                </p>
+                <pre className="max-h-28 overflow-auto whitespace-pre-wrap rounded-xl bg-white p-2 font-mono text-[10px] leading-4 text-[var(--jitter-gray-800)] ring-1 ring-black/10">
+                  {aiPrompt}
+                </pre>
+              </div>
+            ) : null}
           </div>
         </div>
 

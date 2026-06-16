@@ -1,7 +1,11 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 function read(path) {
   return readFileSync(path, "utf8");
+}
+
+function readIfExists(path) {
+  return existsSync(path) ? read(path) : "";
 }
 
 const files = {
@@ -12,6 +16,7 @@ const files = {
   siteIndex: read("src/components/website/site-index.tsx"),
   componentPlate: read("src/components/website/component-plate.tsx"),
   noisyPlayground: read("src/components/website/noisy-card-playground.tsx"),
+  componentRegistry: readIfExists("src/lib/component-registry.ts"),
 };
 
 const checks = [
@@ -29,29 +34,37 @@ const checks = [
   ["component plate accepts code path metadata", files.componentPlate.includes("codePath")],
   ["component plate accepts code link metadata", files.componentPlate.includes("codeHref")],
   ["component plate accepts download metadata", files.componentPlate.includes("downloadHref")],
+  ["component plate accepts AI prompt metadata", files.componentPlate.includes("aiPrompt")],
   ["component plate renders view code action", files.componentPlate.includes("View code")],
-  ["component plate renders download action", files.componentPlate.includes("Download component")],
-  ["page maps Magnet Button to FREE", files.page.includes('status="FREE"')],
-  ["page maps Fluid Tabs to PRO", files.page.includes('status="PRO"')],
-  ["page maps Elastic Drag to RE-MADE", files.page.includes('status="RE-MADE"')],
-  ["page maps Noisy Analog Card to NEW", files.page.includes('status="NEW"')],
+  ["component plate renders copy for AI action", files.componentPlate.includes("Copy for AI")],
+  ["component plate renders copied state", files.componentPlate.includes("Copied")],
+  ["component plate renders AI prompt fallback", files.componentPlate.includes("AI prompt is below")],
+  ["component plate renders TSX download action", files.componentPlate.includes("Download TSX")],
+  ["component registry maps Magnet Button to FREE", files.componentRegistry.includes('status: "FREE"')],
+  ["component registry maps Fluid Tabs to PRO", files.componentRegistry.includes('status: "PRO"')],
+  ["component registry maps Elastic Drag to RE-MADE", files.componentRegistry.includes('status: "RE-MADE"')],
+  ["component registry maps Noisy Analog Card to NEW", files.componentRegistry.includes('status: "NEW"')],
+  ["page imports component registry", files.page.includes("componentRegistry")],
+  ["component registry exists", files.componentRegistry.length > 0],
+  ["component registry exports metadata", files.componentRegistry.includes("componentRegistry")],
+  ["component registry defines repo owner", files.componentRegistry.includes("REPO_OWNER")],
+  ["component registry defines repo name", files.componentRegistry.includes("REPO_NAME")],
+  ["component registry defines repo branch", files.componentRegistry.includes("REPO_BRANCH")],
+  ["component registry includes AI prompts", files.componentRegistry.includes("aiPrompt")],
+  ["component registry includes dependency hint", files.componentRegistry.includes("framer-motion, lucide-react, clsx, tailwind-merge")],
   [
-    "page lists every source component path",
+    "component registry lists every source component path",
     [
       "src/components/ui/magnet-button.tsx",
       "src/components/ui/fluid-tabs.tsx",
       "src/components/ui/elastic-drag.tsx",
       "src/components/ui/noisy-analog-card.tsx",
-    ].every((path) => files.page.includes(path)),
+    ].every((path) => files.componentRegistry.includes(path)),
   ],
   [
-    "page lists every download label",
-    [
-      "Download magnet-button.tsx",
-      "Download fluid-tabs.tsx",
-      "Download elastic-drag.tsx",
-      "Download noisy-analog-card.tsx",
-    ].every((label) => files.page.includes(label)),
+    "component registry generates download labels",
+    files.componentRegistry.includes("downloadLabel") &&
+      files.componentRegistry.includes("Download ${fileName}"),
   ],
   ["noisy playground uses Jitter accent swatches", ["#15bc64", "#7a40ed", "#1377e4", "#ff8316"].every((color) => files.noisyPlayground.includes(color))],
 ];
