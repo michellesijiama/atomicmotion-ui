@@ -16,27 +16,27 @@ export function SiteIndex() {
   }).format(new Date("2026-06-14T00:00:00-05:00"));
 
   return (
-    <aside className="border-white/15 bg-black px-6 py-8 text-white lg:fixed lg:inset-y-0 lg:left-0 lg:w-[35vw] lg:border-r">
+    <aside className="border-black/15 bg-[#f7f6f2] px-6 py-8 text-zinc-950 lg:fixed lg:inset-y-0 lg:left-0 lg:w-[35vw] lg:border-r">
       <div className="flex min-h-[calc(100vh-4rem)] flex-col">
         <a href="#top" className="w-fit text-2xl font-medium tracking-normal">
           AtomicMotion UI
         </a>
 
-        <div className="mt-7 border-t border-white/15 pt-5 text-sm leading-5 text-zinc-200">
+        <div className="mt-7 border-t border-black/15 pt-5 text-sm leading-5 text-zinc-800">
           <p>Premium micro-interactions for copy-paste React interfaces.</p>
-          <p className="mt-3 text-zinc-400">Next.js / TypeScript / Framer Motion</p>
+          <p className="mt-3 text-zinc-500">Next.js / TypeScript / Framer Motion</p>
         </div>
 
-        <nav className="mt-8 border-t border-white/15 pt-5" aria-label="Component index">
+        <nav className="mt-8 border-t border-black/15 pt-5" aria-label="Component index">
           <div className="space-y-1">
             {components.map((component) => (
               <a
                 key={component.name}
                 href={component.href}
-                className="group grid grid-cols-[1fr_auto] gap-6 py-2 text-sm text-zinc-300 transition-colors hover:text-white"
+                className="group grid grid-cols-[1fr_auto] gap-6 py-2 text-sm text-zinc-700 transition-colors hover:text-black"
               >
                 <span>{component.name}</span>
-                <span className="font-mono text-xs text-zinc-500 group-hover:text-zinc-200">
+                <span className="font-mono text-xs text-zinc-500 group-hover:text-zinc-900">
                   {component.year}
                 </span>
               </a>
@@ -44,10 +44,10 @@ export function SiteIndex() {
           </div>
         </nav>
 
-        <div className="mt-9 space-y-3 border-t border-white/15 pt-5">
+        <div className="mt-9 space-y-3 border-t border-black/15 pt-5">
           <a
             href="https://github.com/michellesijiama/atomicmotion-ui"
-            className="flex items-center gap-2 text-sm text-zinc-300 transition-colors hover:text-white"
+            className="flex items-center gap-2 text-sm text-zinc-700 transition-colors hover:text-black"
           >
             <GitBranch className="h-4 w-4" />
             Private GitHub repo
@@ -57,12 +57,12 @@ export function SiteIndex() {
             <Package className="h-3.5 w-3.5" />
             npx shadcn-style copy-paste architecture
           </div>
-          <pre className="overflow-x-auto rounded border border-white/10 bg-white/[0.03] p-3 font-mono text-xs text-zinc-300">
+          <pre className="overflow-x-auto rounded border border-black/10 bg-white p-3 font-mono text-xs text-zinc-700">
             npm install framer-motion clsx tailwind-merge
           </pre>
         </div>
 
-        <div className="mt-auto pt-16 font-mono text-xs leading-6 text-zinc-400">
+        <div className="mt-auto pt-16 font-mono text-xs leading-6 text-zinc-500">
           <p>{now}</p>
           <p>San Jose, California</p>
         </div>

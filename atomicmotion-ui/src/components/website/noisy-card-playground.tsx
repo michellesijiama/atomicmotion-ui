@@ -35,13 +35,13 @@ function Slider({ label, value, min, max, step, onChange }: SliderProps) {
   const inputId = React.useId();
 
   return (
-    <div className="grid gap-2 border border-white/10 p-3">
+    <div className="grid gap-2 border border-black/10 bg-white p-3">
       <label
         htmlFor={inputId}
         className="flex items-center justify-between gap-3 font-mono text-[10px] uppercase text-zinc-500"
       >
         {label}
-        <span className="text-zinc-300">{value.toFixed(step < 1 ? 2 : 0)}</span>
+        <span className="text-zinc-800">{value.toFixed(step < 1 ? 2 : 0)}</span>
       </label>
       <input
         id={inputId}
@@ -52,7 +52,7 @@ function Slider({ label, value, min, max, step, onChange }: SliderProps) {
         value={value}
         onInput={(event) => onChange(Number(event.currentTarget.value))}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="h-1 w-full accent-white"
+        className="h-1 w-full accent-zinc-950"
       />
     </div>
   );
@@ -67,7 +67,7 @@ type SwatchGroupProps = {
 
 function SwatchGroup({ label, value, swatches, onChange }: SwatchGroupProps) {
   return (
-    <div className="border border-white/10 p-3">
+    <div className="border border-black/10 bg-white p-3">
       <p className="mb-3 font-mono text-[10px] uppercase text-zinc-500">{label}</p>
       <div className="flex flex-wrap gap-2">
         {swatches.map((swatch) => (
@@ -77,8 +77,8 @@ function SwatchGroup({ label, value, swatches, onChange }: SwatchGroupProps) {
             aria-label={`${label} ${swatch}`}
             onClick={() => onChange(swatch)}
             className={cn(
-              "h-7 w-7 rounded border border-white/15 outline-none transition-transform focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black",
-              value === swatch ? "scale-110 ring-1 ring-white" : "hover:scale-105",
+              "h-7 w-7 rounded border border-black/15 outline-none transition-transform focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+              value === swatch ? "scale-110 ring-1 ring-zinc-950" : "hover:scale-105",
             )}
             style={{ backgroundColor: swatch }}
           />
@@ -96,8 +96,8 @@ export function NoisyCardPlayground() {
   }
 
   return (
-    <div className="grid min-h-[430px] gap-4 bg-white p-4 text-white sm:min-h-[560px] lg:grid-cols-[1fr_290px]">
-      <div className="grid place-items-center overflow-hidden rounded-md bg-black p-5">
+    <div className="grid min-h-[430px] gap-4 bg-white p-4 text-zinc-950 sm:min-h-[560px] lg:grid-cols-[1fr_290px]">
+      <div className="grid place-items-center overflow-hidden rounded-md bg-zinc-950 p-5">
         <div className="w-full max-w-xl">
           <div className="mb-4 grid grid-cols-[1fr_auto] border-b border-white/10 pb-3 font-mono text-[10px] uppercase text-zinc-500">
             <span>analog material</span>
@@ -128,10 +128,10 @@ export function NoisyCardPlayground() {
         </div>
       </div>
 
-      <div className="grid content-start gap-3 bg-black p-4">
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+      <div className="grid content-start gap-3 border border-black/10 bg-[#f7f6f2] p-4">
+        <div className="flex items-start justify-between gap-3 border-b border-black/10 pb-3">
           <div>
-            <p className="text-sm font-medium text-white">Noisy controls</p>
+            <p className="text-sm font-medium text-zinc-950">Noisy controls</p>
             <p className="mt-1 text-xs leading-5 text-zinc-500">
               Adjust material properties in real time.
             </p>
@@ -140,7 +140,7 @@ export function NoisyCardPlayground() {
             type="button"
             aria-label="Reset noisy card controls"
             onClick={() => setSettings(defaults)}
-            className="grid h-8 w-8 place-items-center rounded border border-white/10 text-zinc-400 outline-none transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="grid h-8 w-8 place-items-center rounded border border-black/10 text-zinc-500 outline-none transition-colors hover:text-zinc-950 focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             <RotateCcw className="h-3.5 w-3.5" />
           </button>
