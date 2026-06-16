@@ -24,7 +24,7 @@ Add checks that require:
 - registry has `REPO_OWNER`, `REPO_NAME`, and `REPO_BRANCH`.
 - registry includes all four source paths.
 - registry includes `aiPrompt`.
-- `ComponentPlate` renders `Copy for AI`, `Copied`, and `Download TSX`.
+- `ComponentPlate` renders `Copy for AI`, `Copied`, and `Raw file`.
 - homepage imports `componentRegistry`.
 
 - [x] **Step 2: Run RED**
@@ -97,9 +97,9 @@ Button states:
 - success label: `Copied`
 - failure helper text: `Copy failed. Use View code.`
 
-- [x] **Step 4: Rename download action**
+- [x] **Step 4: Rename raw file action**
 
-Change the visible download link text from `Download component` to `Download TSX`.
+Change the visible download link text from `Download component` to `Raw file`.
 
 ### Task 4: Verification
 
@@ -141,7 +141,7 @@ Expected: PASS.
 Open `http://localhost:3000/`.
 
 Verify:
-- every component section shows `View code`, `Copy for AI`, and `Download TSX`,
+- every component section shows `View code`, `Copy for AI`, and `Raw file`,
 - clicking `Copy for AI` changes the button text to `Copied`,
 - component source paths still render.
 

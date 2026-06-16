@@ -47,7 +47,7 @@ Each component detail header should show:
 - source path,
 - `View code` link to GitHub,
 - `Copy for AI` button,
-- `Download TSX` link to the raw file.
+- `Raw file` link to the GitHub raw file.
 
 `Copy for AI` copies a concise prompt like:
 
@@ -85,7 +85,7 @@ External links should open in a new tab and use `rel="noreferrer"`.
 Extend the existing design verification script to check:
 
 - all components are represented in the registry,
-- all component actions exist: `View code`, `Copy for AI`, `Download TSX`,
+- all component actions exist: `View code`, `Copy for AI`, `Raw file`,
 - links use the shared repository base and branch constants,
 - AI prompt text includes the GitHub source URL, raw URL, and dependency hint.
 

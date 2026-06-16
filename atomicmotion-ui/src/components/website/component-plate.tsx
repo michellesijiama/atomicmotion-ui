@@ -143,7 +143,7 @@ export function ComponentPlate({
                 className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--jitter-ink)] px-3 font-medium text-white transition hover:bg-black"
               >
                 <Download className="size-3.5" aria-hidden="true" />
-                Download TSX
+                Raw file
               </a>
               <button
                 type="button"
