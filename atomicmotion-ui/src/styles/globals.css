@@ -1,8 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f6f2;
-  --foreground: #111111;
+  --jitter-bg: #f5f5f5;
+  --jitter-ink: #0e1011;
+  --jitter-white: #ffffff;
+  --jitter-surface: #fafafa;
+  --jitter-gray-100: #e6e6e6;
+  --jitter-gray-200: #cccccc;
+  --jitter-gray-400: #999999;
+  --jitter-gray-600: #666666;
+  --jitter-gray-800: #333333;
+  --jitter-gray-900: #191919;
+  --jitter-green: #15bc64;
+  --jitter-purple: #7a40ed;
+  --jitter-blue: #1377e4;
+  --jitter-orange: #ff8316;
+  --background: var(--jitter-bg);
+  --foreground: var(--jitter-ink);
 }
 
 @theme inline {
@@ -29,7 +43,7 @@ body {
 }
 
 ::selection {
-  background: #111111;
+  background: var(--jitter-ink);
   color: #ffffff;
 }
 
