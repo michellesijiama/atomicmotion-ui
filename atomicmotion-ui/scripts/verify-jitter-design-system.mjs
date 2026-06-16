@@ -50,6 +50,8 @@ const checks = [
   ["component registry defines repo owner", files.componentRegistry.includes("REPO_OWNER")],
   ["component registry defines repo name", files.componentRegistry.includes("REPO_NAME")],
   ["component registry defines repo branch", files.componentRegistry.includes("REPO_BRANCH")],
+  ["component registry defines repo project root", files.componentRegistry.includes("REPO_PROJECT_ROOT")],
+  ["component registry prefixes GitHub links with project root", files.componentRegistry.includes("`${REPO_PROJECT_ROOT}/${meta.codePath}`")],
   ["component registry includes AI prompts", files.componentRegistry.includes("aiPrompt")],
   ["component registry includes dependency hint", files.componentRegistry.includes("framer-motion, lucide-react, clsx, tailwind-merge")],
   [
