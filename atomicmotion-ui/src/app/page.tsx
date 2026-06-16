@@ -13,7 +13,7 @@ const tabs = [
 
 export default function Home() {
   return (
-    <main id="top" className="min-h-screen bg-black text-white">
+    <main id="top" className="min-h-screen bg-[#f7f6f2] text-zinc-950">
       <SiteIndex />
       <div className="lg:ml-[35vw]">
         <ComponentPlate
@@ -60,7 +60,7 @@ export default function Home() {
           command="copy fluid-tabs.tsx"
         >
           <div className="grid min-h-[430px] place-items-center bg-white p-6 sm:min-h-[500px]">
-            <div className="w-full max-w-3xl border border-black/10 bg-black p-5 text-white">
+            <div className="w-full max-w-3xl border border-black/10 bg-zinc-950 p-5 text-white">
               <div className="mb-16 grid gap-3 border-b border-white/15 pb-4 text-xs text-zinc-400 sm:grid-cols-[1fr_auto]">
                 <p>AtomicMotion UI</p>
                 <p className="font-mono">layoutId / spring / tablist</p>
