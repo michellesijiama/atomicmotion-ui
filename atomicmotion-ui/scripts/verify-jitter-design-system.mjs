@@ -39,7 +39,7 @@ const checks = [
   ["component plate renders copy for AI action", files.componentPlate.includes("Copy for AI")],
   ["component plate renders copied state", files.componentPlate.includes("Copied")],
   ["component plate renders AI prompt fallback", files.componentPlate.includes("AI prompt is below")],
-  ["component plate renders TSX download action", files.componentPlate.includes("Download TSX")],
+  ["component plate renders raw file action", files.componentPlate.includes("Raw file")],
   ["component registry maps Magnet Button to FREE", files.componentRegistry.includes('status: "FREE"')],
   ["component registry maps Fluid Tabs to PRO", files.componentRegistry.includes('status: "PRO"')],
   ["component registry maps Elastic Drag to RE-MADE", files.componentRegistry.includes('status: "RE-MADE"')],
@@ -64,7 +64,7 @@ const checks = [
   [
     "component registry generates download labels",
     files.componentRegistry.includes("downloadLabel") &&
-      files.componentRegistry.includes("Download ${fileName}"),
+      files.componentRegistry.includes("Open raw ${fileName} on GitHub"),
   ],
   ["noisy playground uses Jitter accent swatches", ["#15bc64", "#7a40ed", "#1377e4", "#ff8316"].every((color) => files.noisyPlayground.includes(color))],
 ];

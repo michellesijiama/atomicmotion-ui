@@ -36,7 +36,7 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
     ...meta,
     codeHref,
     downloadHref,
-    downloadLabel: `Download ${fileName}`,
+    downloadLabel: `Open raw ${fileName} on GitHub`,
     aiPrompt: [
       `Use AtomicMotion UI's ${meta.title} component.`,
       `Source: ${codeHref}`,
