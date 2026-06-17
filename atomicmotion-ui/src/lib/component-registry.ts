@@ -1,6 +1,6 @@
 export const REPO_OWNER = "michellesijiama";
 export const REPO_NAME = "atomicmotion-ui";
-export const REPO_BRANCH = "codex/aircenter-design-system";
+export const REPO_BRANCH = "codex/website/window-shade";
 export const REPO_PROJECT_ROOT = "atomicmotion-ui";
 
 const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REPO_BRANCH}`;
@@ -98,5 +98,17 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     codePath: "src/components/ui/noisy-analog-card.tsx",
+  }),
+  botanicalShadowBackground: createComponentMeta({
+    id: "botanical-shadow-background",
+    index: "005",
+    title: "Botanical Shadow Background",
+    description:
+      "A pure CSS/SVG atmospheric background with blurred botanical shadows, analog grain, and soft film falloff.",
+    command: "copy botanical-shadow-bg.tsx",
+    category: "Atmosphere",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
+    codePath: "src/components/ui/botanical-shadow-bg.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;

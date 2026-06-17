@@ -1,3 +1,4 @@
+import { BotanicalShadowBackground } from "@/components/ui/botanical-shadow-bg";
 import { ElasticDrag } from "@/components/ui/elastic-drag";
 import { FluidTabs } from "@/components/ui/fluid-tabs";
 import { MagnetButton } from "@/components/ui/magnet-button";
@@ -95,6 +96,29 @@ export default function Home() {
           {...componentRegistry.noisyAnalogCard}
         >
           <NoisyCardPlayground />
+        </ComponentPlate>
+
+        <ComponentPlate
+          {...componentRegistry.botanicalShadowBackground}
+        >
+          <BotanicalShadowBackground className="grid min-h-[430px] items-end p-6 sm:min-h-[500px] sm:p-8">
+            <div className="grid max-w-xl gap-5 text-white">
+              <div className="grid grid-cols-3 gap-2 font-mono text-[10px] uppercase tracking-normal text-white/68">
+                <span>pure css</span>
+                <span>svg grain</span>
+                <span>no images</span>
+              </div>
+              <div>
+                <p className="text-3xl font-semibold tracking-normal text-white sm:text-5xl">
+                  Botanical Shadow
+                </p>
+                <p className="mt-3 max-w-md text-sm leading-6 text-white/72">
+                  Layered radial gradients create soft floral silhouettes, then inline SVG
+                  turbulence adds analog grain.
+                </p>
+              </div>
+            </div>
+          </BotanicalShadowBackground>
         </ComponentPlate>
       </div>
     </main>

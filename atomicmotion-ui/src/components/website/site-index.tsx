@@ -29,6 +29,13 @@ const components = [
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
   },
+  {
+    name: "Botanical Shadow Background",
+    year: "005",
+    href: "#botanical-shadow-background",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
+  },
 ];
 
 export function SiteIndex() {
@@ -85,7 +92,7 @@ export function SiteIndex() {
             className="flex items-center gap-2 text-sm text-[var(--jitter-gray-800)] transition-colors hover:text-[var(--jitter-ink)]"
           >
             <GitBranch className="h-4 w-4" />
-            Private GitHub repo
+            Public GitHub repo
             <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
           <div className="flex items-center gap-2 font-mono text-xs text-[var(--jitter-gray-600)]">
