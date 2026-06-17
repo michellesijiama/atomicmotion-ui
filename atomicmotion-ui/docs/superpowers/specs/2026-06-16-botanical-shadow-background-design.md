@@ -21,6 +21,8 @@ export type WindowLeafShadowProps = {
   blur?: number;
   shadeOpacity?: number;
   shadowOpacity?: number;
+  interactive?: boolean;
+  wind?: boolean;
   className?: string;
   children?: React.ReactNode;
 };
@@ -28,20 +30,25 @@ export type WindowLeafShadowProps = {
 
 Default props should produce the reference look:
 
-- `tone="linen"`
+- `tone="mist"`
 - `grain=0.12`
 - `blur=9`
 - `shadeOpacity=0`
-- `shadowOpacity=0.66`
+- `shadowOpacity=0.52`
+- `interactive=true`
+- `wind=true`
 
 ## Visual System
 
 The component should be built from CSS/SVG layers:
 
-- base layer: warm off-white, pale mist, or light sage tone,
-- light layer: soft cream daylight gradients,
+- base layer: cool gray mist by default, with optional warm linen or light sage tones,
+- light layer: soft gray-white daylight gradients,
 - botanical layer: inline SVG branches and leaf silhouettes drawn with paths and ellipses,
+- branch details must stay embedded inside leaf clusters; avoid standalone thick branch strokes that read as visible lines,
 - blur layer: the botanical SVG is blurred so the leaves feel behind a shade or glass,
+- wind layer: leaf clusters and branches move slowly by default with independent, asynchronous sway animations,
+- interaction layer: pointer movement increases the natural motion intensity and adds small per-depth offsets, without moving the whole scene as one flat image,
 - shade layer: subtle horizontal/vertical light bands that suggest a window shade or sheer curtain,
 - grain layer: low-strength inline SVG noise data URI using `feTurbulence`,
 - vignette layer: extremely soft edge falloff.
@@ -82,7 +89,10 @@ Extend `scripts/verify-jitter-design-system.mjs` to verify:
 - the UI component file exists,
 - it exports `WindowLeafShadow`,
 - it defines `WindowLeafShadowTone`,
-- it includes `grain`, `blur`, `shadeOpacity`, and `shadowOpacity` props,
+- it includes `grain`, `blur`, `shadeOpacity`, `shadowOpacity`, and `interactive` props,
+- it includes a `wind` prop for autonomous motion,
+- it responds to pointer movement by increasing subtle per-branch and per-leaf-cluster motion,
+- it avoids standalone thick branch lines,
 - it includes SVG leaf/branch primitives,
 - it uses inline SVG turbulence for grain,
 - it does not reference external image URLs,

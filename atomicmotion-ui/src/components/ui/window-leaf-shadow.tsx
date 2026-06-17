@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -10,6 +12,8 @@ export type WindowLeafShadowProps = {
   blur?: number;
   shadeOpacity?: number;
   shadowOpacity?: number;
+  interactive?: boolean;
+  wind?: boolean;
   className?: string;
   children?: React.ReactNode;
 };
@@ -32,11 +36,11 @@ const tones: Record<
     leafSoft: "#8d977f",
   },
   mist: {
-    base: "#e8ece9",
-    light: "#fbfbf4",
-    shade: "#cdd8d4",
-    leaf: "#526c63",
-    leafSoft: "#879d94",
+    base: "#e3e7e7",
+    light: "#f7f8f4",
+    shade: "#bfc9c8",
+    leaf: "#4f6161",
+    leafSoft: "#858f90",
   },
   sage: {
     base: "#ecebdc",
@@ -57,12 +61,16 @@ function LeafCluster({
   rotate = 0,
   scale = 1,
   opacity = 1,
+  motion = "mid",
+  sway = "a",
 }: {
   x: number;
   y: number;
   rotate?: number;
   scale?: number;
   opacity?: number;
+  motion?: "near" | "mid" | "far";
+  sway?: "a" | "b" | "c";
 }) {
   const leaves = [
     [-18, -56, -42, 20, 9],
@@ -79,38 +87,83 @@ function LeafCluster({
       transform={`translate(${x} ${y}) rotate(${rotate}) scale(${scale})`}
       opacity={opacity}
     >
-      <path
-        d="M0 -70 C-12 -32 -12 18 3 76"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="5"
-      />
-      {leaves.map(([leafX, leafY, leafRotate, rx, ry]) => (
-        <ellipse
-          key={`${leafX}-${leafY}`}
-          cx={leafX}
-          cy={leafY}
-          rx={rx}
-          ry={ry}
-          fill="currentColor"
-          transform={`rotate(${leafRotate} ${leafX} ${leafY})`}
-        />
-      ))}
+      <g className={`window-leaf-wind window-leaf-wind-${sway}`}>
+        <g
+          className="transition-transform duration-300 ease-out"
+          style={{
+            transformBox: "fill-box",
+            transformOrigin: "center",
+            transform: `translate3d(var(--window-leaf-${motion}-x), var(--window-leaf-${motion}-y), 0) rotate(var(--window-leaf-${motion}-rotate))`,
+          }}
+        >
+          <path
+            d="M0 -70 C-12 -32 -12 18 3 76"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="5"
+          />
+          {leaves.map(([leafX, leafY, leafRotate, rx, ry]) => (
+            <ellipse
+              key={`${leafX}-${leafY}`}
+              cx={leafX}
+              cy={leafY}
+              rx={rx}
+              ry={ry}
+              fill="currentColor"
+              transform={`rotate(${leafRotate} ${leafX} ${leafY})`}
+            />
+          ))}
+        </g>
+      </g>
     </g>
   );
 }
 
 export function WindowLeafShadow({
-  tone = "linen",
+  tone = "mist",
   grain = 0.12,
   blur = 9,
   shadeOpacity = 0,
-  shadowOpacity = 0.66,
+  shadowOpacity = 0.52,
+  interactive = true,
+  wind = true,
   className,
   children,
 }: WindowLeafShadowProps) {
   const palette = tones[tone];
+  const resetPointer = React.useCallback(
+    (node: HTMLDivElement) => {
+      if (!interactive) return;
+      node.style.setProperty("--window-cursor-wind", "0");
+      for (const depth of ["near", "mid", "far"]) {
+        node.style.setProperty(`--window-leaf-${depth}-x`, "0px");
+        node.style.setProperty(`--window-leaf-${depth}-y`, "0px");
+        node.style.setProperty(`--window-leaf-${depth}-rotate`, "0deg");
+      }
+    },
+    [interactive],
+  );
+  const handlePointerMove = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!interactive) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x = clamp((event.clientX - rect.left) / rect.width - 0.5, -0.5, 0.5);
+      const y = clamp((event.clientY - rect.top) / rect.height - 0.5, -0.5, 0.5);
+
+      event.currentTarget.style.setProperty("--window-cursor-wind", "1");
+      event.currentTarget.style.setProperty("--window-leaf-near-x", `${(x * -10).toFixed(2)}px`);
+      event.currentTarget.style.setProperty("--window-leaf-near-y", `${(y * -7).toFixed(2)}px`);
+      event.currentTarget.style.setProperty("--window-leaf-near-rotate", `${(x * 1.4).toFixed(2)}deg`);
+      event.currentTarget.style.setProperty("--window-leaf-mid-x", `${(x * 7).toFixed(2)}px`);
+      event.currentTarget.style.setProperty("--window-leaf-mid-y", `${(y * -5).toFixed(2)}px`);
+      event.currentTarget.style.setProperty("--window-leaf-mid-rotate", `${(x * -0.9).toFixed(2)}deg`);
+      event.currentTarget.style.setProperty("--window-leaf-far-x", `${(x * -4).toFixed(2)}px`);
+      event.currentTarget.style.setProperty("--window-leaf-far-y", `${(y * 3).toFixed(2)}px`);
+      event.currentTarget.style.setProperty("--window-leaf-far-rotate", `${(x * 0.5).toFixed(2)}deg`);
+    },
+    [interactive],
+  );
   const visualStyle = {
     "--window-base": palette.base,
     "--window-light": palette.light,
@@ -121,6 +174,16 @@ export function WindowLeafShadow({
     "--window-blur": `${clamp(blur, 8, 44)}px`,
     "--window-shade-opacity": clamp(shadeOpacity, 0, 0.7),
     "--window-shadow-opacity": clamp(shadowOpacity, 0, 0.8),
+    "--window-cursor-wind": 0,
+    "--window-leaf-near-x": "0px",
+    "--window-leaf-near-y": "0px",
+    "--window-leaf-near-rotate": "0deg",
+    "--window-leaf-mid-x": "0px",
+    "--window-leaf-mid-y": "0px",
+    "--window-leaf-mid-rotate": "0deg",
+    "--window-leaf-far-x": "0px",
+    "--window-leaf-far-y": "0px",
+    "--window-leaf-far-rotate": "0deg",
   } as React.CSSProperties;
 
   return (
@@ -130,44 +193,95 @@ export function WindowLeafShadow({
         className,
       )}
       style={visualStyle}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={(event) => resetPointer(event.currentTarget)}
     >
+      <style>
+        {`
+          @keyframes window-leaf-sway-a {
+            0%, 100% { transform: translate3d(-1px, 0, 0) rotate(-0.45deg); }
+            32% { transform: translate3d(calc(4px + var(--window-cursor-wind) * 5px), -2px, 0) rotate(calc(0.75deg + var(--window-cursor-wind) * 0.9deg)); }
+            67% { transform: translate3d(calc(-3px - var(--window-cursor-wind) * 3px), 1px, 0) rotate(calc(-0.25deg - var(--window-cursor-wind) * 0.6deg)); }
+          }
+
+          @keyframes window-leaf-sway-b {
+            0%, 100% { transform: translate3d(1px, 1px, 0) rotate(0.35deg); }
+            38% { transform: translate3d(calc(-5px - var(--window-cursor-wind) * 6px), 2px, 0) rotate(calc(-0.9deg - var(--window-cursor-wind) * 0.8deg)); }
+            72% { transform: translate3d(calc(3px + var(--window-cursor-wind) * 4px), -1px, 0) rotate(calc(0.2deg + var(--window-cursor-wind) * 0.5deg)); }
+          }
+
+          @keyframes window-leaf-sway-c {
+            0%, 100% { transform: translate3d(0, -1px, 0) rotate(-0.2deg); }
+            45% { transform: translate3d(calc(2px + var(--window-cursor-wind) * 3px), 2px, 0) rotate(calc(0.45deg + var(--window-cursor-wind) * 0.5deg)); }
+            76% { transform: translate3d(calc(-2px - var(--window-cursor-wind) * 4px), -2px, 0) rotate(calc(-0.65deg - var(--window-cursor-wind) * 0.7deg)); }
+          }
+
+          .window-leaf-wind {
+            animation-duration: 8.8s;
+            animation-iteration-count: infinite;
+            animation-timing-function: ease-in-out;
+            transform-box: fill-box;
+            transform-origin: center;
+            will-change: transform;
+          }
+
+          .window-leaf-wind-a {
+            animation-name: window-leaf-sway-a;
+            animation-delay: -1.4s;
+          }
+
+          .window-leaf-wind-b {
+            animation-name: window-leaf-sway-b;
+            animation-delay: -4.1s;
+            animation-duration: 10.6s;
+          }
+
+          .window-leaf-wind-c {
+            animation-name: window-leaf-sway-c;
+            animation-delay: -6.8s;
+            animation-duration: 12.2s;
+          }
+
+          .window-leaf-shadow-still .window-leaf-wind {
+            animation-play-state: paused;
+          }
+        `}
+      </style>
       <span
         aria-hidden="true"
         className="absolute inset-0 -z-50 bg-[radial-gradient(circle_at_18%_18%,color-mix(in_srgb,var(--window-light)_95%,transparent)_0_24%,transparent_46%),radial-gradient(circle_at_82%_76%,color-mix(in_srgb,var(--window-light)_76%,transparent)_0_20%,transparent_42%),linear-gradient(140deg,var(--window-light)_0%,var(--window-base)_48%,color-mix(in_srgb,var(--window-shade)_28%,var(--window-base))_100%)]"
       />
       <svg
         aria-hidden="true"
-        className="absolute -inset-[13%] -z-40 h-[126%] w-[126%] text-[var(--window-leaf)] opacity-[var(--window-shadow-opacity)] mix-blend-multiply blur-[var(--window-blur)]"
+        className={cn(
+          "absolute -inset-[13%] -z-40 h-[126%] w-[126%] text-[var(--window-leaf)] opacity-[var(--window-shadow-opacity)] mix-blend-multiply blur-[calc(var(--window-blur)*1.35)]",
+          !wind && "window-leaf-shadow-still",
+        )}
         viewBox="0 0 1200 760"
         preserveAspectRatio="none"
       >
-        <LeafCluster x={205} y={280} rotate={-27} scale={2.45} opacity={0.92} />
-        <LeafCluster x={390} y={245} rotate={18} scale={2.05} opacity={0.72} />
-        <LeafCluster x={640} y={255} rotate={-12} scale={2.35} opacity={0.86} />
-        <LeafCluster x={870} y={350} rotate={34} scale={2.05} opacity={0.72} />
-        <LeafCluster x={520} y={510} rotate={-48} scale={2.45} opacity={0.82} />
-        <LeafCluster x={755} y={565} rotate={20} scale={1.85} opacity={0.62} />
-        <LeafCluster x={1040} y={600} rotate={-18} scale={1.65} opacity={0.5} />
-        <LeafCluster x={65} y={450} rotate={42} scale={1.6} opacity={0.46} />
-        <path
-          d="M-40 500 C155 430 270 600 448 540 C638 474 725 330 920 374 C1050 398 1135 478 1260 430"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="28"
-          opacity="0.48"
-        />
+        <LeafCluster x={205} y={280} rotate={-27} scale={2.45} opacity={0.78} motion="near" sway="a" />
+        <LeafCluster x={390} y={245} rotate={18} scale={2.05} opacity={0.58} motion="mid" sway="b" />
+        <LeafCluster x={640} y={255} rotate={-12} scale={2.35} opacity={0.72} motion="near" sway="c" />
+        <LeafCluster x={870} y={350} rotate={34} scale={2.05} opacity={0.58} motion="mid" sway="a" />
+        <LeafCluster x={520} y={510} rotate={-48} scale={2.45} opacity={0.66} motion="near" sway="b" />
+        <LeafCluster x={755} y={565} rotate={20} scale={1.85} opacity={0.48} motion="far" sway="c" />
+        <LeafCluster x={1040} y={600} rotate={-18} scale={1.65} opacity={0.4} motion="far" sway="a" />
+        <LeafCluster x={65} y={450} rotate={42} scale={1.6} opacity={0.38} motion="mid" sway="b" />
       </svg>
       <svg
         aria-hidden="true"
-        className="absolute -inset-[10%] -z-30 h-[120%] w-[120%] text-[var(--window-leaf-soft)] opacity-[calc(var(--window-shadow-opacity)*0.82)] mix-blend-multiply blur-[calc(var(--window-blur)*1.2)]"
+        className={cn(
+          "absolute -inset-[10%] -z-30 h-[120%] w-[120%] text-[var(--window-leaf-soft)] opacity-[calc(var(--window-shadow-opacity)*0.68)] mix-blend-multiply blur-[calc(var(--window-blur)*1.85)]",
+          !wind && "window-leaf-shadow-still",
+        )}
         viewBox="0 0 1200 760"
         preserveAspectRatio="none"
       >
-        <LeafCluster x={105} y={620} rotate={22} scale={2.8} opacity={0.44} />
-        <LeafCluster x={1020} y={130} rotate={-36} scale={2.2} opacity={0.36} />
-        <LeafCluster x={680} y={500} rotate={12} scale={1.5} opacity={0.42} />
-        <LeafCluster x={290} y={95} rotate={-10} scale={1.55} opacity={0.34} />
+        <LeafCluster x={105} y={620} rotate={22} scale={2.8} opacity={0.36} motion="far" sway="b" />
+        <LeafCluster x={1020} y={130} rotate={-36} scale={2.2} opacity={0.3} motion="far" sway="c" />
+        <LeafCluster x={680} y={500} rotate={12} scale={1.5} opacity={0.34} motion="mid" sway="a" />
+        <LeafCluster x={290} y={95} rotate={-10} scale={1.55} opacity={0.28} motion="far" sway="b" />
       </svg>
       <span
         aria-hidden="true"
@@ -188,7 +302,7 @@ export function WindowLeafShadow({
       />
       <span
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_45%,transparent_0_62%,rgba(120,106,88,.14)_100%),linear-gradient(180deg,rgba(255,255,255,.42),transparent_18%,rgba(120,106,88,.12)_100%)]"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_45%,transparent_0_62%,rgba(80,92,92,.14)_100%),linear-gradient(180deg,rgba(255,255,255,.38),transparent_18%,rgba(80,92,92,.12)_100%)]"
       />
       {children}
     </div>
