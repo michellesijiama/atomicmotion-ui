@@ -30,9 +30,9 @@ const components = [
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
   },
   {
-    name: "Botanical Shadow Background",
+    name: "Window Leaf Shadow",
     year: "005",
-    href: "#botanical-shadow-background",
+    href: "#window-leaf-shadow",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
   },

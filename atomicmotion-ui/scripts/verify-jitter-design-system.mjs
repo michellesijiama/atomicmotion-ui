@@ -17,7 +17,7 @@ const files = {
   componentPlate: read("src/components/website/component-plate.tsx"),
   noisyPlayground: read("src/components/website/noisy-card-playground.tsx"),
   componentRegistry: readIfExists("src/lib/component-registry.ts"),
-  botanicalShadow: readIfExists("src/components/ui/botanical-shadow-bg.tsx"),
+  windowLeafShadow: readIfExists("src/components/ui/window-leaf-shadow.tsx"),
 };
 
 const checks = [
@@ -70,18 +70,21 @@ const checks = [
       files.componentRegistry.includes("Open raw ${fileName} on GitHub"),
   ],
   ["noisy playground uses Jitter accent swatches", ["#15bc64", "#7a40ed", "#1377e4", "#ff8316"].every((color) => files.noisyPlayground.includes(color))],
-  ["botanical shadow component exists", files.botanicalShadow.length > 0],
-  ["botanical shadow exports component", files.botanicalShadow.includes("export function BotanicalShadowBackground")],
-  ["botanical shadow exports tone type", files.botanicalShadow.includes("export type BotanicalShadowTone")],
-  ["botanical shadow exposes grain prop", files.botanicalShadow.includes("grain = 0.24")],
-  ["botanical shadow exposes blur prop", files.botanicalShadow.includes("blur = 28")],
-  ["botanical shadow exposes contrast prop", files.botanicalShadow.includes("contrast = 1")],
-  ["botanical shadow uses SVG turbulence grain", files.botanicalShadow.includes("feTurbulence")],
-  ["botanical shadow avoids external image URLs", !/url\([\"']?https?:\/\//.test(files.botanicalShadow)],
-  ["component registry includes botanical shadow", files.componentRegistry.includes("botanicalShadowBackground")],
-  ["component registry lists botanical source path", files.componentRegistry.includes("src/components/ui/botanical-shadow-bg.tsx")],
-  ["page imports botanical shadow background", files.page.includes("BotanicalShadowBackground")],
-  ["site index lists botanical shadow background", files.siteIndex.includes("Botanical Shadow Background")],
+  ["window leaf shadow component exists", files.windowLeafShadow.length > 0],
+  ["window leaf shadow exports component", files.windowLeafShadow.includes("export function WindowLeafShadow")],
+  ["window leaf shadow exports tone type", files.windowLeafShadow.includes("export type WindowLeafShadowTone")],
+  ["window leaf shadow exposes grain prop", files.windowLeafShadow.includes("grain = 0.12")],
+  ["window leaf shadow exposes blur prop", files.windowLeafShadow.includes("blur = 9")],
+  ["window leaf shadow exposes shade opacity prop", files.windowLeafShadow.includes("shadeOpacity = 0.22")],
+  ["window leaf shadow exposes shadow opacity prop", files.windowLeafShadow.includes("shadowOpacity = 0.58")],
+  ["window leaf shadow draws SVG leaves", files.windowLeafShadow.includes("<ellipse") && files.windowLeafShadow.includes("<path")],
+  ["window leaf shadow includes shade bands", files.windowLeafShadow.includes("--window-shade-opacity") && files.windowLeafShadow.includes("repeating-linear-gradient")],
+  ["window leaf shadow uses SVG turbulence grain", files.windowLeafShadow.includes("feTurbulence")],
+  ["window leaf shadow avoids external image URLs", !/url\([\"']?https?:\/\//.test(files.windowLeafShadow)],
+  ["component registry includes window leaf shadow", files.componentRegistry.includes("windowLeafShadow")],
+  ["component registry lists window leaf source path", files.componentRegistry.includes("src/components/ui/window-leaf-shadow.tsx")],
+  ["page imports window leaf shadow", files.page.includes("WindowLeafShadow")],
+  ["site index lists window leaf shadow", files.siteIndex.includes("Window Leaf Shadow")],
 ];
 
 const failures = checks.filter(([, passed]) => !passed);

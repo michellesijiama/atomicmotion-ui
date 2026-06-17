@@ -1,10 +1,10 @@
-# Botanical Shadow Background Implementation Plan
+# Window Leaf Shadow Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a pure-code botanical film-shadow background component and expose it as a copyable AtomicMotion UI entry.
+**Goal:** Add a pure-code light window-shade leaf-shadow background component and expose it as a copyable AtomicMotion UI entry.
 
-**Architecture:** Create one distributable UI file at `src/components/ui/botanical-shadow-bg.tsx`. Register it in `src/lib/component-registry.ts`, render it from `src/app/page.tsx`, list it in `src/components/website/site-index.tsx`, and protect behavior with `scripts/verify-jitter-design-system.mjs`.
+**Architecture:** Create one distributable UI file at `src/components/ui/window-leaf-shadow.tsx`. Register it in `src/lib/component-registry.ts`, render it from `src/app/page.tsx`, list it in `src/components/website/site-index.tsx`, and protect behavior with `scripts/verify-jitter-design-system.mjs`.
 
 **Tech Stack:** Next.js App Router, React, TypeScript, Tailwind CSS utility classes, inline SVG data URI noise, existing Node design verification script.
 
@@ -20,7 +20,7 @@
 Add:
 
 ```js
-botanicalShadow: readIfExists("src/components/ui/botanical-shadow-bg.tsx"),
+windowLeafShadow: readIfExists("src/components/ui/window-leaf-shadow.tsx"),
 ```
 
 to the `files` object.
@@ -30,18 +30,21 @@ to the `files` object.
 Add checks requiring:
 
 ```js
-["botanical shadow component exists", files.botanicalShadow.length > 0],
-["botanical shadow exports component", files.botanicalShadow.includes("export function BotanicalShadowBackground")],
-["botanical shadow exports tone type", files.botanicalShadow.includes("export type BotanicalShadowTone")],
-["botanical shadow exposes grain prop", files.botanicalShadow.includes("grain = 0.24")],
-["botanical shadow exposes blur prop", files.botanicalShadow.includes("blur = 28")],
-["botanical shadow exposes contrast prop", files.botanicalShadow.includes("contrast = 1")],
-["botanical shadow uses SVG turbulence grain", files.botanicalShadow.includes("feTurbulence")],
-["botanical shadow avoids external image URLs", !/https?:\\/\\//.test(files.botanicalShadow)],
-["component registry includes botanical shadow", files.componentRegistry.includes("botanicalShadowBackground")],
-["component registry lists botanical source path", files.componentRegistry.includes("src/components/ui/botanical-shadow-bg.tsx")],
-["page imports botanical shadow background", files.page.includes("BotanicalShadowBackground")],
-["site index lists botanical shadow background", files.siteIndex.includes("Botanical Shadow Background")],
+["window leaf shadow component exists", files.windowLeafShadow.length > 0],
+["window leaf shadow exports component", files.windowLeafShadow.includes("export function WindowLeafShadow")],
+["window leaf shadow exports tone type", files.windowLeafShadow.includes("export type WindowLeafShadowTone")],
+["window leaf shadow exposes grain prop", files.windowLeafShadow.includes("grain = 0.12")],
+["window leaf shadow exposes blur prop", files.windowLeafShadow.includes("blur = 9")],
+["window leaf shadow exposes shade opacity prop", files.windowLeafShadow.includes("shadeOpacity = 0.22")],
+["window leaf shadow exposes shadow opacity prop", files.windowLeafShadow.includes("shadowOpacity = 0.58")],
+["window leaf shadow draws SVG leaves", files.windowLeafShadow.includes("<ellipse") && files.windowLeafShadow.includes("<path")],
+["window leaf shadow includes shade bands", files.windowLeafShadow.includes("--window-shade-opacity") && files.windowLeafShadow.includes("repeating-linear-gradient")],
+["window leaf shadow uses SVG turbulence grain", files.windowLeafShadow.includes("feTurbulence")],
+["window leaf shadow avoids external image URLs", !/url\\([\\"']?https?:\\/\\//.test(files.windowLeafShadow)],
+["component registry includes window leaf shadow", files.componentRegistry.includes("windowLeafShadow")],
+["component registry lists window leaf source path", files.componentRegistry.includes("src/components/ui/window-leaf-shadow.tsx")],
+["page imports window leaf shadow", files.page.includes("WindowLeafShadow")],
+["site index lists window leaf shadow", files.siteIndex.includes("Window Leaf Shadow")],
 ```
 
 - [x] **Step 3: Run RED**
@@ -57,26 +60,27 @@ Expected: FAIL because the component, registry entry, and page usage do not exis
 ### Task 2: Distributable UI Component
 
 **Files:**
-- Create: `src/components/ui/botanical-shadow-bg.tsx`
+- Create: `src/components/ui/window-leaf-shadow.tsx`
 
 - [x] **Step 1: Implement pure-code component**
 
 Create a self-contained React component that exports:
 
 ```ts
-export type BotanicalShadowTone = "slate" | "warm" | "moss";
-export type BotanicalShadowBackgroundProps = {
-  tone?: BotanicalShadowTone;
+export type WindowLeafShadowTone = "linen" | "mist" | "sage";
+export type WindowLeafShadowProps = {
+  tone?: WindowLeafShadowTone;
   grain?: number;
   blur?: number;
-  contrast?: number;
+  shadeOpacity?: number;
+  shadowOpacity?: number;
   className?: string;
   children?: React.ReactNode;
 };
-export function BotanicalShadowBackground(...)
+export function WindowLeafShadow(...)
 ```
 
-Use layered spans for base tone, cream blooms, dark organic shadow clusters, inline SVG `feTurbulence` grain, and vignette.
+Use layered spans and inline SVG for a light base tone, natural leaf silhouettes, shade bands, inline SVG `feTurbulence` grain, and soft falloff.
 
 ### Task 3: Registry And Navigation
 
@@ -86,23 +90,23 @@ Use layered spans for base tone, cream blooms, dark organic shadow clusters, inl
 
 - [x] **Step 1: Add registry entry**
 
-Add `botanicalShadowBackground` with:
+Add `windowLeafShadow` with:
 
 ```ts
-id: "botanical-shadow-background",
+id: "window-leaf-shadow",
 index: "005",
-title: "Botanical Shadow Background",
-description: "A pure CSS/SVG atmospheric background with blurred botanical shadows, analog grain, and soft film falloff.",
-command: "copy botanical-shadow-bg.tsx",
+title: "Window Leaf Shadow",
+description: "A light CSS/SVG background with natural leaf shadows softened behind a window shade.",
+command: "copy window-leaf-shadow.tsx",
 category: "Atmosphere",
 status: "NEW",
 statusClassName: "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
-codePath: "src/components/ui/botanical-shadow-bg.tsx",
+codePath: "src/components/ui/window-leaf-shadow.tsx",
 ```
 
 - [x] **Step 2: Add site index row**
 
-Add a row to `components` in `src/components/website/site-index.tsx` with name, year `005`, href `#botanical-shadow-background`, status `NEW`, and green status class.
+Add a row to `components` in `src/components/website/site-index.tsx` with name, year `005`, href `#window-leaf-shadow`, status `NEW`, and green status class.
 
 ### Task 4: Homepage Showcase
 
@@ -114,14 +118,14 @@ Add a row to `components` in `src/components/website/site-index.tsx` with name, 
 Add:
 
 ```ts
-import { BotanicalShadowBackground } from "@/components/ui/botanical-shadow-bg";
+import { WindowLeafShadow } from "@/components/ui/window-leaf-shadow";
 ```
 
 - [x] **Step 2: Render component plate**
 
-Render a new `ComponentPlate` after `Noisy Analog Card` using `componentRegistry.botanicalShadowBackground`.
+Render a new `ComponentPlate` after `Noisy Analog Card` using `componentRegistry.windowLeafShadow`.
 
-Preview content should use `BotanicalShadowBackground` with minimal overlay labels so users can inspect the texture.
+Preview content should use `WindowLeafShadow` with minimal overlay labels so users can inspect the leaves and shade layer.
 
 ### Task 5: Verification
 
@@ -160,8 +164,8 @@ Expected: PASS.
 
 - [x] **Step 4: Browser verification**
 
-Open `http://localhost:3000/#botanical-shadow-background` and confirm:
+Open `http://localhost:3000/#window-leaf-shadow` and confirm:
 
-- the Botanical Shadow Background section exists,
+- the Window Leaf Shadow section exists,
 - the preview is not blank,
 - `View code`, `Copy for AI`, and `Raw file` actions are visible.

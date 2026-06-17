@@ -99,16 +99,16 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     codePath: "src/components/ui/noisy-analog-card.tsx",
   }),
-  botanicalShadowBackground: createComponentMeta({
-    id: "botanical-shadow-background",
+  windowLeafShadow: createComponentMeta({
+    id: "window-leaf-shadow",
     index: "005",
-    title: "Botanical Shadow Background",
+    title: "Window Leaf Shadow",
     description:
-      "A pure CSS/SVG atmospheric background with blurred botanical shadows, analog grain, and soft film falloff.",
-    command: "copy botanical-shadow-bg.tsx",
+      "A light CSS/SVG background with natural leaf shadows softened behind a window shade.",
+    command: "copy window-leaf-shadow.tsx",
     category: "Atmosphere",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
-    codePath: "src/components/ui/botanical-shadow-bg.tsx",
+    codePath: "src/components/ui/window-leaf-shadow.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
