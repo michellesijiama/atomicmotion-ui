@@ -105,8 +105,8 @@ export function WindowLeafShadow({
   tone = "linen",
   grain = 0.12,
   blur = 9,
-  shadeOpacity = 0.22,
-  shadowOpacity = 0.58,
+  shadeOpacity = 0,
+  shadowOpacity = 0.66,
   className,
   children,
 }: WindowLeafShadowProps) {
@@ -147,6 +147,8 @@ export function WindowLeafShadow({
         <LeafCluster x={870} y={350} rotate={34} scale={2.05} opacity={0.72} />
         <LeafCluster x={520} y={510} rotate={-48} scale={2.45} opacity={0.82} />
         <LeafCluster x={755} y={565} rotate={20} scale={1.85} opacity={0.62} />
+        <LeafCluster x={1040} y={600} rotate={-18} scale={1.65} opacity={0.5} />
+        <LeafCluster x={65} y={450} rotate={42} scale={1.6} opacity={0.46} />
         <path
           d="M-40 500 C155 430 270 600 448 540 C638 474 725 330 920 374 C1050 398 1135 478 1260 430"
           fill="none"
@@ -165,6 +167,7 @@ export function WindowLeafShadow({
         <LeafCluster x={105} y={620} rotate={22} scale={2.8} opacity={0.44} />
         <LeafCluster x={1020} y={130} rotate={-36} scale={2.2} opacity={0.36} />
         <LeafCluster x={680} y={500} rotate={12} scale={1.5} opacity={0.42} />
+        <LeafCluster x={290} y={95} rotate={-10} scale={1.55} opacity={0.34} />
       </svg>
       <span
         aria-hidden="true"

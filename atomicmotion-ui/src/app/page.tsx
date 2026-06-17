@@ -101,24 +101,7 @@ export default function Home() {
         <ComponentPlate
           {...componentRegistry.windowLeafShadow}
         >
-          <WindowLeafShadow className="grid min-h-[430px] items-end p-6 sm:min-h-[500px] sm:p-8">
-            <div className="grid max-w-xl gap-5 text-[var(--jitter-ink)]">
-              <div className="grid grid-cols-3 gap-2 font-mono text-[10px] uppercase tracking-normal text-black/45">
-                <span>svg leaves</span>
-                <span>shade light</span>
-                <span>no images</span>
-              </div>
-              <div>
-                <p className="text-3xl font-semibold tracking-normal text-[var(--jitter-ink)] sm:text-5xl">
-                  Window Leaf Shadow
-                </p>
-                <p className="mt-3 max-w-md text-sm leading-6 text-black/58">
-                  Natural leaf silhouettes sit behind a pale shade layer, softened with blur,
-                  daylight, and a small amount of analog grain.
-                </p>
-              </div>
-            </div>
-          </WindowLeafShadow>
+          <WindowLeafShadow className="min-h-[430px] sm:min-h-[500px]" />
         </ComponentPlate>
       </div>
     </main>

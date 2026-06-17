@@ -31,8 +31,8 @@ Default props should produce the reference look:
 - `tone="linen"`
 - `grain=0.12`
 - `blur=9`
-- `shadeOpacity=0.22`
-- `shadowOpacity=0.58`
+- `shadeOpacity=0`
+- `shadowOpacity=0.66`
 
 ## Visual System
 
@@ -73,7 +73,7 @@ Registry metadata:
 - status: `NEW`
 - code path: `src/components/ui/window-leaf-shadow.tsx`
 
-The showcase should display the background as the main surface, with minimal overlay content so users can inspect the leaves and shade bands.
+The showcase should display only the generated background surface, without text overlays, so users can inspect the leaves directly.
 
 ## Testing
 
