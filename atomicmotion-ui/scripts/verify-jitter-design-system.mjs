@@ -75,8 +75,8 @@ const checks = [
   ["window leaf shadow exports tone type", files.windowLeafShadow.includes("export type WindowLeafShadowTone")],
   ["window leaf shadow exposes grain prop", files.windowLeafShadow.includes("grain = 0.12")],
   ["window leaf shadow exposes blur prop", files.windowLeafShadow.includes("blur = 9")],
-  ["window leaf shadow exposes shade opacity prop", files.windowLeafShadow.includes("shadeOpacity = 0.22")],
-  ["window leaf shadow exposes shadow opacity prop", files.windowLeafShadow.includes("shadowOpacity = 0.58")],
+  ["window leaf shadow exposes shade opacity prop", files.windowLeafShadow.includes("shadeOpacity = 0")],
+  ["window leaf shadow exposes shadow opacity prop", files.windowLeafShadow.includes("shadowOpacity = 0.66")],
   ["window leaf shadow draws SVG leaves", files.windowLeafShadow.includes("<ellipse") && files.windowLeafShadow.includes("<path")],
   ["window leaf shadow includes shade bands", files.windowLeafShadow.includes("--window-shade-opacity") && files.windowLeafShadow.includes("repeating-linear-gradient")],
   ["window leaf shadow uses SVG turbulence grain", files.windowLeafShadow.includes("feTurbulence")],
@@ -84,6 +84,7 @@ const checks = [
   ["component registry includes window leaf shadow", files.componentRegistry.includes("windowLeafShadow")],
   ["component registry lists window leaf source path", files.componentRegistry.includes("src/components/ui/window-leaf-shadow.tsx")],
   ["page imports window leaf shadow", files.page.includes("WindowLeafShadow")],
+  ["page preview removes window leaf overlay copy", !files.page.includes("svg leaves") && !files.page.includes("shade light")],
   ["site index lists window leaf shadow", files.siteIndex.includes("Window Leaf Shadow")],
 ];
 
