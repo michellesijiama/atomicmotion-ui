@@ -17,6 +17,7 @@ const files = {
   componentPlate: read("src/components/website/component-plate.tsx"),
   noisyPlayground: read("src/components/website/noisy-card-playground.tsx"),
   componentRegistry: readIfExists("src/lib/component-registry.ts"),
+  botanicalShadow: readIfExists("src/components/ui/botanical-shadow-bg.tsx"),
 };
 
 const checks = [
@@ -69,6 +70,18 @@ const checks = [
       files.componentRegistry.includes("Open raw ${fileName} on GitHub"),
   ],
   ["noisy playground uses Jitter accent swatches", ["#15bc64", "#7a40ed", "#1377e4", "#ff8316"].every((color) => files.noisyPlayground.includes(color))],
+  ["botanical shadow component exists", files.botanicalShadow.length > 0],
+  ["botanical shadow exports component", files.botanicalShadow.includes("export function BotanicalShadowBackground")],
+  ["botanical shadow exports tone type", files.botanicalShadow.includes("export type BotanicalShadowTone")],
+  ["botanical shadow exposes grain prop", files.botanicalShadow.includes("grain = 0.24")],
+  ["botanical shadow exposes blur prop", files.botanicalShadow.includes("blur = 28")],
+  ["botanical shadow exposes contrast prop", files.botanicalShadow.includes("contrast = 1")],
+  ["botanical shadow uses SVG turbulence grain", files.botanicalShadow.includes("feTurbulence")],
+  ["botanical shadow avoids external image URLs", !/url\([\"']?https?:\/\//.test(files.botanicalShadow)],
+  ["component registry includes botanical shadow", files.componentRegistry.includes("botanicalShadowBackground")],
+  ["component registry lists botanical source path", files.componentRegistry.includes("src/components/ui/botanical-shadow-bg.tsx")],
+  ["page imports botanical shadow background", files.page.includes("BotanicalShadowBackground")],
+  ["site index lists botanical shadow background", files.siteIndex.includes("Botanical Shadow Background")],
 ];
 
 const failures = checks.filter(([, passed]) => !passed);
