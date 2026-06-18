@@ -35,7 +35,7 @@ const files = {
 
 const checks = [
   ["test script is wired", files.packageJson.includes("verify-jitter-design-system.mjs")],
-  ["page background token is Jitter neutral", files.globals.includes("--jitter-bg: #f5f5f5")],
+  ["page background token is Jitter white", files.globals.includes("--jitter-bg: #ffffff")],
   ["ink token is Jitter ink", files.globals.includes("--jitter-ink: #0e1011")],
   ["green status token exists", files.globals.includes("--jitter-green: #15bc64")],
   ["purple status token exists", files.globals.includes("--jitter-purple: #7a40ed")],
@@ -51,9 +51,9 @@ const checks = [
   ["component card renders animated previews", files.componentCard.includes("componentMap") && files.componentCard.includes("pointer-events-none")],
   ["component card preview is prominent", files.componentCard.includes("aspect-[3/2]") && files.componentCard.includes("scale-[0.52]")],
   ["component card avoids long descriptions", !files.componentCard.includes("component.description")],
-  ["component card hides title and index", !files.componentCard.includes("component.title") && !files.componentCard.includes("component.index")],
-  ["component card removes stroke", !files.componentCard.includes("ring-1")],
-  ["component card avoids status badges", !files.componentCard.includes("component.status") && !files.componentCard.includes("statusClassName")],
+  ["component card renders title without index", files.componentCard.includes("component.title") && !files.componentCard.includes("component.index")],
+  ["component card keeps subtle preview frame", files.componentCard.includes("ring-1 ring-black/5")],
+  ["component card uses hover category and status tags", files.componentCard.includes("component.category") && files.componentCard.includes("component.status")],
   ["component actions owns copy buttons", files.componentActions.includes("View code") && files.componentActions.includes("Copy for AI")],
   ["component actions uses black CTA", files.componentActions.includes("bg-[var(--jitter-ink)]")],
   ["component map renders sunlit book page", files.componentMap.includes('"sunlit-book-page"') && files.componentMap.includes("SunlitBookPage")],

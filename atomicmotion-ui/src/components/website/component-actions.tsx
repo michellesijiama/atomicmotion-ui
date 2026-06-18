@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, ExternalLink } from "lucide-react";
+import { Check, ClipboardCopy, ExternalLink, Link2 } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
+import { writeClipboardText } from "@/lib/clipboard";
 
 type ComponentActionsProps = {
   component: ComponentMeta;
@@ -11,24 +12,14 @@ type ComponentActionsProps = {
 
 export function ComponentActions({ component }: ComponentActionsProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [linkCopyState, setLinkCopyState] = useState<"idle" | "copied">("idle");
 
-  async function writeClipboardText(text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-      textarea.setSelectionRange(0, textarea.value.length);
-      const copied = document.execCommand("copy");
-      document.body.removeChild(textarea);
-      return copied;
+  async function copyLink() {
+    const copied = await writeClipboardText(component.codeHref);
+
+    if (copied) {
+      setLinkCopyState("copied");
+      window.setTimeout(() => setLinkCopyState("idle"), 1800);
     }
   }
 
@@ -58,13 +49,25 @@ export function ComponentActions({ component }: ComponentActionsProps) {
         </a>
         <button
           type="button"
+          onClick={copyLink}
+          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-sm font-medium text-[var(--jitter-ink)] ring-1 ring-black/10 transition hover:bg-[var(--jitter-gray-100)]"
+        >
+          {linkCopyState === "copied" ? (
+            <Check className="size-3.5" aria-hidden="true" />
+          ) : (
+            <Link2 className="size-3.5" aria-hidden="true" />
+          )}
+          {linkCopyState === "copied" ? "Copied" : "Copy link"}
+        </button>
+        <button
+          type="button"
           onClick={copyForAi}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--jitter-ink)] px-3 text-sm font-medium text-white transition hover:bg-black"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--jitter-ink)] px-3 text-sm font-medium text-white shadow-[0_8px_22px_rgba(14,16,17,0.12)] transition-all hover:scale-[1.02] hover:bg-black hover:shadow-[0_12px_28px_rgba(14,16,17,0.16)] active:scale-[0.98]"
         >
           {copyState === "copied" ? (
             <Check className="size-3.5" aria-hidden="true" />
           ) : (
-            <Copy className="size-3.5" aria-hidden="true" />
+            <ClipboardCopy className="size-3.5" aria-hidden="true" />
           )}
           {copyState === "copied" ? "Copied" : "Copy for AI"}
         </button>

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --jitter-bg: #f5f5f5;
+  --jitter-bg: #ffffff;
   --jitter-ink: #0e1011;
   --jitter-white: #ffffff;
   --jitter-surface: #fafafa;

@@ -1,6 +1,6 @@
 export const REPO_OWNER = "michellesijiama";
 export const REPO_NAME = "atomicmotion-ui";
-export const REPO_BRANCH = "codex/website/window-shade";
+export const REPO_BRANCH = "main";
 export const REPO_PROJECT_ROOT = "atomicmotion-ui";
 
 const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REPO_BRANCH}`;
@@ -47,13 +47,43 @@ export const componentRegistry = {
   sunlitBookPage: createComponentMeta({
     id: "sunlit-book-page",
     index: "001",
-    title: "Sunlit Book Page",
+    title: "Natural Light Shadow",
     description:
       "Centered reading text on the site background with soft natural leaf shadows drifting behind the content.",
     category: "Scene",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     codePath: "src/components/ui/sunlit-book-page.tsx",
+  }),
+  placeholderOne: createComponentMeta({
+    id: "placeholder-one",
+    index: "002",
+    title: "Placeholder",
+    description: "Coming soon.",
+    category: "UI",
+    status: "SOON",
+    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    codePath: "src/components/ui/placeholder.tsx",
+  }),
+  placeholderTwo: createComponentMeta({
+    id: "placeholder-two",
+    index: "003",
+    title: "Placeholder",
+    description: "Coming soon.",
+    category: "UI",
+    status: "SOON",
+    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    codePath: "src/components/ui/placeholder.tsx",
+  }),
+  placeholderThree: createComponentMeta({
+    id: "placeholder-three",
+    index: "004",
+    title: "Placeholder",
+    description: "Coming soon.",
+    category: "UI",
+    status: "SOON",
+    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    codePath: "src/components/ui/placeholder.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
 
