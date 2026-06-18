@@ -122,7 +122,7 @@ export function SunlitBookPage({
   return (
     <div
       className={cn(
-        "relative isolate min-h-[620px] overflow-hidden bg-transparent text-[var(--jitter-ink)]",
+        "relative isolate min-h-[inherit] overflow-visible bg-transparent text-[var(--jitter-ink)]",
         className,
       )}
       style={visualStyle}
@@ -170,7 +170,7 @@ export function SunlitBookPage({
 
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-[8%] z-0 h-[116%] w-[116%] text-[var(--jitter-ink)]/55 opacity-[.16] mix-blend-multiply blur-[9px]"
+        className="pointer-events-none absolute -inset-[18%] z-0 h-[136%] w-[136%] text-[var(--jitter-ink)]/55 opacity-[.16] mix-blend-multiply blur-[9px]"
         viewBox="0 0 1200 780"
         preserveAspectRatio="none"
       >
