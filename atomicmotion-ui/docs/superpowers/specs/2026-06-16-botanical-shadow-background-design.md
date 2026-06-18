@@ -43,6 +43,7 @@ Default props should produce the reference look:
 The component should be built from CSS/SVG layers:
 
 - base layer: cool gray mist by default, with optional warm linen or light sage tones,
+- the default mist base should blend with the host page background using `var(--jitter-bg, #f5f5f5)` instead of drawing a separate filled rectangle,
 - light layer: soft gray-white daylight gradients,
 - botanical layer: inline SVG branches and leaf silhouettes drawn with paths and ellipses,
 - branch details must stay embedded inside leaf clusters; avoid standalone thick branch strokes that read as visible lines,

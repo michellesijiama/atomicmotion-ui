@@ -111,4 +111,16 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
     codePath: "src/components/ui/window-leaf-shadow.tsx",
   }),
+  sunlitBookPage: createComponentMeta({
+    id: "sunlit-book-page",
+    index: "006",
+    title: "Sunlit Book Page",
+    description:
+      "Centered reading text on the site background with soft natural leaf shadows drifting behind the content.",
+    command: "copy sunlit-book-page.tsx",
+    category: "Scene",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    codePath: "src/components/ui/sunlit-book-page.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;

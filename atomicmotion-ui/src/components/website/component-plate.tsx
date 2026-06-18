@@ -22,6 +22,8 @@ type ComponentPlateProps = {
   category?: string;
   status?: string;
   statusClassName?: string;
+  framelessPlate?: boolean;
+  framelessPreview?: boolean;
 };
 
 export function ComponentPlate({
@@ -40,6 +42,8 @@ export function ComponentPlate({
   category = "Component",
   status = "FREE",
   statusClassName = "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
+  framelessPlate = false,
+  framelessPreview = false,
 }: ComponentPlateProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
 
@@ -83,7 +87,14 @@ export function ComponentPlate({
         className,
       )}
     >
-      <div className="grid gap-4 rounded-[22px] bg-white p-3 shadow-[0_18px_60px_rgba(14,16,17,0.06)] ring-1 ring-black/5 sm:p-4">
+      <div
+        className={cn(
+          "grid gap-4",
+          framelessPlate
+            ? "bg-transparent p-0 shadow-none ring-0"
+            : "rounded-[22px] bg-white p-3 shadow-[0_18px_60px_rgba(14,16,17,0.06)] ring-1 ring-black/5 sm:p-4",
+        )}
+      >
         <div className="grid gap-3 border-b border-black/8 pb-3 text-xs text-[var(--jitter-gray-600)] xl:grid-cols-[auto_1fr_minmax(300px,380px)] xl:items-start">
           <span className="font-mono text-[var(--jitter-gray-600)]">{index}</span>
           <div>
@@ -174,7 +185,14 @@ export function ComponentPlate({
           </div>
         </div>
 
-        <div className="min-h-[430px] overflow-hidden rounded-[18px] bg-[var(--jitter-surface)] text-black ring-1 ring-black/5 sm:min-h-[500px]">
+        <div
+          className={cn(
+            "min-h-[430px] text-black sm:min-h-[500px]",
+            framelessPreview
+              ? "overflow-visible bg-transparent"
+              : "overflow-hidden rounded-[18px] bg-[var(--jitter-surface)] ring-1 ring-black/5",
+          )}
+        >
           {children}
         </div>
       </div>

@@ -18,6 +18,7 @@ const files = {
   noisyPlayground: read("src/components/website/noisy-card-playground.tsx"),
   componentRegistry: readIfExists("src/lib/component-registry.ts"),
   windowLeafShadow: readIfExists("src/components/ui/window-leaf-shadow.tsx"),
+  sunlitBookPage: readIfExists("src/components/ui/sunlit-book-page.tsx"),
 };
 
 const checks = [
@@ -62,6 +63,7 @@ const checks = [
       "src/components/ui/fluid-tabs.tsx",
       "src/components/ui/elastic-drag.tsx",
       "src/components/ui/noisy-analog-card.tsx",
+      "src/components/ui/sunlit-book-page.tsx",
     ].every((path) => files.componentRegistry.includes(path)),
   ],
   [
@@ -76,6 +78,7 @@ const checks = [
   ["window leaf shadow exposes grain prop", files.windowLeafShadow.includes("grain = 0.12")],
   ["window leaf shadow exposes blur prop", files.windowLeafShadow.includes("blur = 9")],
   ["window leaf shadow defaults to mist tone", files.windowLeafShadow.includes('tone = "mist"')],
+  ["window leaf shadow blends with site background", files.windowLeafShadow.includes("var(--jitter-bg, #f5f5f5)") && files.windowLeafShadow.includes("bg-transparent")],
   ["window leaf shadow exposes shade opacity prop", files.windowLeafShadow.includes("shadeOpacity = 0")],
   ["window leaf shadow exposes shadow opacity prop", files.windowLeafShadow.includes("shadowOpacity = 0.52")],
   ["window leaf shadow exposes interaction prop", files.windowLeafShadow.includes("interactive = true")],
@@ -91,8 +94,20 @@ const checks = [
   ["component registry includes window leaf shadow", files.componentRegistry.includes("windowLeafShadow")],
   ["component registry lists window leaf source path", files.componentRegistry.includes("src/components/ui/window-leaf-shadow.tsx")],
   ["page imports window leaf shadow", files.page.includes("WindowLeafShadow")],
+  ["page renders window leaf shadow frameless", files.page.includes("framelessPlate") && files.page.includes("framelessPreview")],
   ["page preview removes window leaf overlay copy", !files.page.includes("svg leaves") && !files.page.includes("shade light")],
   ["site index lists window leaf shadow", files.siteIndex.includes("Window Leaf Shadow")],
+  ["sunlit book page component exists", files.sunlitBookPage.length > 0],
+  ["sunlit book page exports component", files.sunlitBookPage.includes("export function SunlitBookPage")],
+  ["sunlit book page exposes scene props", ["windIntensity", "leafDensity", "interactive"].every((prop) => files.sunlitBookPage.includes(prop))],
+  ["sunlit book page renders centered text", files.sunlitBookPage.includes("max-w-xl") && files.sunlitBookPage.includes("text-[var(--jitter-ink)]/70")],
+  ["sunlit book page avoids yellow book chrome", !files.sunlitBookPage.includes("#f9e8bf") && !files.sunlitBookPage.includes("#faeac3")],
+  ["sunlit book page uses transparent site background", files.sunlitBookPage.includes("bg-transparent")],
+  ["sunlit book page includes serif reading content", files.sunlitBookPage.includes("font-serif") && files.sunlitBookPage.includes("PlaceholderText")],
+  ["sunlit book page includes leaf shadow animation", files.sunlitBookPage.includes("@keyframes sunlit-book-sway-a") && files.sunlitBookPage.includes("LeafShadow")],
+  ["component registry includes sunlit book page", files.componentRegistry.includes("sunlitBookPage")],
+  ["page imports sunlit book page", files.page.includes("SunlitBookPage")],
+  ["site index lists sunlit book page", files.siteIndex.includes("Sunlit Book Page")],
 ];
 
 const failures = checks.filter(([, passed]) => !passed);

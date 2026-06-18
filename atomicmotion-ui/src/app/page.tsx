@@ -1,6 +1,7 @@
 import { ElasticDrag } from "@/components/ui/elastic-drag";
 import { FluidTabs } from "@/components/ui/fluid-tabs";
 import { MagnetButton } from "@/components/ui/magnet-button";
+import { SunlitBookPage } from "@/components/ui/sunlit-book-page";
 import { WindowLeafShadow } from "@/components/ui/window-leaf-shadow";
 import { ComponentPlate } from "@/components/website/component-plate";
 import { NoisyCardPlayground } from "@/components/website/noisy-card-playground";
@@ -100,8 +101,32 @@ export default function Home() {
 
         <ComponentPlate
           {...componentRegistry.windowLeafShadow}
+          framelessPlate
+          framelessPreview
         >
           <WindowLeafShadow className="min-h-[430px] sm:min-h-[500px]" />
+        </ComponentPlate>
+
+        <ComponentPlate
+          {...componentRegistry.sunlitBookPage}
+          framelessPreview
+        >
+          <SunlitBookPage>
+            <div className="grid gap-3 font-serif text-[13px] leading-7 text-[var(--jitter-ink)] sm:text-sm">
+              <p>
+                Sunlight gathered on the page, warm enough to make the paper feel
+                almost alive beneath the sentence.
+              </p>
+              <p>
+                The shadow of a branch moved across the margin and briefly covered
+                three words before the wind gave them back.
+              </p>
+              <p>
+                Reading became slower there, not because the book asked for it, but
+                because the afternoon did.
+              </p>
+            </div>
+          </SunlitBookPage>
         </ComponentPlate>
       </div>
     </main>

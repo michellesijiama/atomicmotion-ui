@@ -36,6 +36,7 @@ Add checks requiring:
 ["window leaf shadow exposes grain prop", files.windowLeafShadow.includes("grain = 0.12")],
 ["window leaf shadow exposes blur prop", files.windowLeafShadow.includes("blur = 9")],
 ["window leaf shadow defaults to mist tone", files.windowLeafShadow.includes('tone = "mist"')],
+["window leaf shadow blends with site background", files.windowLeafShadow.includes("var(--jitter-bg, #f5f5f5)") && files.windowLeafShadow.includes("bg-transparent")],
 ["window leaf shadow exposes shade opacity prop", files.windowLeafShadow.includes("shadeOpacity = 0")],
 ["window leaf shadow exposes shadow opacity prop", files.windowLeafShadow.includes("shadowOpacity = 0.52")],
 ["window leaf shadow exposes interaction prop", files.windowLeafShadow.includes("interactive = true")],

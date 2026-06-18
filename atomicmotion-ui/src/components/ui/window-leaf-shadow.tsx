@@ -36,7 +36,7 @@ const tones: Record<
     leafSoft: "#8d977f",
   },
   mist: {
-    base: "#e3e7e7",
+    base: "var(--jitter-bg, #f5f5f5)",
     light: "#f7f8f4",
     shade: "#bfc9c8",
     leaf: "#4f6161",
@@ -189,7 +189,7 @@ export function WindowLeafShadow({
   return (
     <div
       className={cn(
-        "relative isolate min-h-[430px] overflow-hidden bg-[var(--window-base)] text-[var(--jitter-ink)] sm:min-h-[500px]",
+        "relative isolate min-h-[430px] overflow-hidden bg-transparent text-[var(--jitter-ink)] sm:min-h-[500px]",
         className,
       )}
       style={visualStyle}
@@ -249,7 +249,7 @@ export function WindowLeafShadow({
       </style>
       <span
         aria-hidden="true"
-        className="absolute inset-0 -z-50 bg-[radial-gradient(circle_at_18%_18%,color-mix(in_srgb,var(--window-light)_95%,transparent)_0_24%,transparent_46%),radial-gradient(circle_at_82%_76%,color-mix(in_srgb,var(--window-light)_76%,transparent)_0_20%,transparent_42%),linear-gradient(140deg,var(--window-light)_0%,var(--window-base)_48%,color-mix(in_srgb,var(--window-shade)_28%,var(--window-base))_100%)]"
+        className="absolute inset-0 -z-50 bg-[radial-gradient(circle_at_18%_18%,color-mix(in_srgb,var(--window-light)_76%,transparent)_0_20%,transparent_46%),radial-gradient(circle_at_82%_76%,color-mix(in_srgb,var(--window-light)_58%,transparent)_0_18%,transparent_44%),linear-gradient(140deg,transparent_0%,color-mix(in_srgb,var(--window-light)_36%,transparent)_34%,transparent_78%)]"
       />
       <svg
         aria-hidden="true"
@@ -302,7 +302,7 @@ export function WindowLeafShadow({
       />
       <span
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_45%,transparent_0_62%,rgba(80,92,92,.14)_100%),linear-gradient(180deg,rgba(255,255,255,.38),transparent_18%,rgba(80,92,92,.12)_100%)]"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_45%,transparent_0_64%,rgba(80,92,92,.08)_100%),linear-gradient(180deg,rgba(255,255,255,.28),transparent_20%,rgba(80,92,92,.06)_100%)]"
       />
       {children}
     </div>
