@@ -2,9 +2,13 @@ import type { ComponentType } from "react";
 
 import { SunlitBookPage } from "@/components/ui/sunlit-book-page";
 
-function SunlitBookPagePreview() {
+export type ComponentPreviewProps = {
+  isHovered?: boolean;
+};
+
+function SunlitBookPagePreview({ isHovered = false }: ComponentPreviewProps) {
   return (
-    <SunlitBookPage>
+    <SunlitBookPage windIntensity={isHovered ? 0.95 : 0.54}>
       <div className="grid gap-3 font-serif text-[13px] leading-7 text-[var(--jitter-ink)] sm:text-sm">
         <p>
           Sunlight gathered on the page, warm enough to make the paper feel almost alive
@@ -23,6 +27,6 @@ function SunlitBookPagePreview() {
   );
 }
 
-export const componentMap: Record<string, ComponentType> = {
+export const componentMap: Record<string, ComponentType<ComponentPreviewProps>> = {
   "sunlit-book-page": SunlitBookPagePreview,
 };
