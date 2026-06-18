@@ -36,6 +36,13 @@ const components = [
     status: "NEW",
     statusClassName: "bg-[var(--jitter-green)]/12 text-[var(--jitter-green)]",
   },
+  {
+    name: "Sunlit Book Page",
+    year: "006",
+    href: "#sunlit-book-page",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+  },
 ];
 
 export function SiteIndex() {
