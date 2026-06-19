@@ -53,7 +53,7 @@ export const componentRegistry = {
     category: "Scene",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
-    codePath: "src/components/ui/sunlit-book-page.tsx",
+    codePath: "src/components/sunlit-book-page/sunlit-book-page.tsx",
   }),
   placeholderOne: createComponentMeta({
     id: "placeholder-one",
@@ -63,7 +63,7 @@ export const componentRegistry = {
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/ui/placeholder.tsx",
+    codePath: "src/components/placeholder/placeholder.tsx",
   }),
   placeholderTwo: createComponentMeta({
     id: "placeholder-two",
@@ -73,7 +73,7 @@ export const componentRegistry = {
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/ui/placeholder.tsx",
+    codePath: "src/components/placeholder/placeholder.tsx",
   }),
   placeholderThree: createComponentMeta({
     id: "placeholder-three",
@@ -83,7 +83,7 @@ export const componentRegistry = {
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/ui/placeholder.tsx",
+    codePath: "src/components/placeholder/placeholder.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
 

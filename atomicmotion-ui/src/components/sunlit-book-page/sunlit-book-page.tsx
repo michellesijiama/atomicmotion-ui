@@ -16,6 +16,9 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+// Baseline "wind" so the light/shadow keeps drifting on its own, no hover required.
+const AMBIENT_WIND = 0.6;
+
 function LeafShadow({
   x,
   y,
@@ -108,13 +111,14 @@ export function SunlitBookPage({
   const handlePointerLeave = React.useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     event.currentTarget.style.setProperty("--sunlit-x", "74%");
     event.currentTarget.style.setProperty("--sunlit-y", "14%");
-    event.currentTarget.style.setProperty("--sunlit-cursor-wind", "0");
+    // Fall back to the ambient baseline, not 0 — the light/shadow keeps drifting on its own.
+    event.currentTarget.style.setProperty("--sunlit-cursor-wind", String(AMBIENT_WIND));
   }, []);
 
   const density = clamp(leafDensity, 1, 3);
   const visualStyle = {
     "--sunlit-wind": clamp(windIntensity, 0, 1),
-    "--sunlit-cursor-wind": 0,
+    "--sunlit-cursor-wind": AMBIENT_WIND,
     "--sunlit-x": "74%",
     "--sunlit-y": "14%",
   } as React.CSSProperties;
@@ -162,15 +166,28 @@ export function SunlitBookPage({
           .sunlit-book-leaf-b { animation-name: sunlit-book-sway-b; animation-delay: -5.4s; animation-duration: calc(11s - var(--sunlit-wind) * 2s); }
           .sunlit-book-leaf-c { animation-name: sunlit-book-sway-c; animation-delay: -7.1s; animation-duration: calc(12.6s - var(--sunlit-wind) * 2s); }
 
+          @keyframes sunlit-book-drift {
+            0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+            33% { transform: translate3d(13px, 7px, 0) rotate(0.6deg); }
+            66% { transform: translate3d(-9px, -5px, 0) rotate(-0.5deg); }
+          }
+
+          .sunlit-book-canopy {
+            animation: sunlit-book-drift calc(20s - var(--sunlit-wind) * 4s) ease-in-out infinite;
+            transform-origin: 60% 30%;
+            will-change: transform;
+          }
+
           @media (prefers-reduced-motion: reduce) {
-            .sunlit-book-leaf { animation: none; }
+            .sunlit-book-leaf,
+            .sunlit-book-canopy { animation: none; }
           }
         `}
       </style>
 
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-[18%] z-0 h-[136%] w-[136%] text-[var(--jitter-ink)]/55 opacity-[.16] mix-blend-multiply blur-[9px]"
+        className="sunlit-book-canopy pointer-events-none absolute -inset-[18%] z-0 h-[136%] w-[136%] text-[var(--jitter-ink)]/55 opacity-[.16] mix-blend-multiply blur-[9px]"
         viewBox="0 0 1200 780"
         preserveAspectRatio="none"
       >
