@@ -24,6 +24,36 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Typography scale — adapted from rico.supply: weight 400 across the board,
+     larger sizes carry tighter negative tracking, headings keep tight leading. */
+  --text-display: 2rem; /* 32px */
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.04em;
+  --text-display--font-weight: 400;
+
+  --text-title: 1.375rem; /* 22px */
+  --text-title--line-height: 1.4;
+  --text-title--letter-spacing: -0.02em;
+  --text-title--font-weight: 400;
+
+  --text-heading: 1.25rem; /* 20px */
+  --text-heading--line-height: 1.2;
+  --text-heading--letter-spacing: -0.02em;
+  --text-heading--font-weight: 400;
+
+  --text-base--letter-spacing: -0.02em; /* 16px — logo / nav / links */
+  --text-base--font-weight: 400;
+
+  --text-body: 0.875rem; /* 14px */
+  --text-body--line-height: 1.4;
+  --text-body--letter-spacing: -0.015em;
+  --text-body--font-weight: 400;
+
+  --text-caption: 0.75rem; /* 12px */
+  --text-caption--line-height: 1.2;
+  --text-caption--letter-spacing: 0em;
+  --text-caption--font-weight: 400;
 }
 
 * {
@@ -39,6 +69,15 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Monospace stays at natural spacing — negative tracking hurts code legibility. */
+code,
+kbd,
+samp,
+pre {
   letter-spacing: 0;
 }
 
