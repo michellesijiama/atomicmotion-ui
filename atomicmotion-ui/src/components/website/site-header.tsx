@@ -1,18 +1,35 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowUpRight, Info } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { ComponentActions } from "@/components/website/component-actions";
+import { RevealPanel } from "@/components/website/reveal-panel";
 
 const navLinkClass =
   "inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-body text-[var(--jitter-gray-800)] ring-1 ring-black/10 transition hover:bg-[var(--jitter-gray-100)] hover:text-[var(--jitter-ink)]";
 
-export function SiteHeader({ component }: { component?: ComponentMeta }) {
+export function SiteHeader({
+  component,
+  tagline,
+}: {
+  component?: ComponentMeta;
+  tagline?: string;
+}) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-      <Link href="/" className="text-display text-[var(--jitter-ink)]">
-        AtomicMotion UI
-      </Link>
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <Link
+          href="/"
+          className="text-[24px] tracking-[-0.02em] text-[var(--jitter-ink)]"
+        >
+          AtomicMotion
+        </Link>
+        {tagline ? (
+          <span className="text-body text-[var(--jitter-gray-600)]">{tagline}</span>
+        ) : null}
+      </div>
 
       <nav className="flex items-center gap-2" aria-label="Primary">
         {component ? (
@@ -42,9 +59,34 @@ export function SiteHeader({ component }: { component?: ComponentMeta }) {
           </div>
         ) : null}
 
-        <Link href="/about" className={navLinkClass}>
-          About
-        </Link>
+        <RevealPanel
+          label="About"
+          header={(onClose) => (
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+              <Link href="/" className="text-[24px] tracking-[-0.02em] text-[var(--jitter-ink)]">
+                AtomicMotion
+              </Link>
+              <nav className="flex items-center gap-2" aria-label="Panel">
+                <button type="button" onClick={onClose} className={navLinkClass}>
+                  About
+                </button>
+                <a
+                  href="https://github.com/michellesijiama/atomicmotion-ui"
+                  className={navLinkClass}
+                >
+                  Github
+                  <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                </a>
+              </nav>
+            </div>
+          )}
+        >
+          <p className="max-w-3xl text-title text-[var(--jitter-ink)]">
+            AtomicMotion UI is an open-source collection of copy-paste
+            micro-interactions for React — each one a self-contained component you can
+            drop into your project.
+          </p>
+        </RevealPanel>
         <a
           href="https://github.com/michellesijiama/atomicmotion-ui"
           className={navLinkClass}

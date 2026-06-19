@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { ComponentPlate } from "@/components/website/component-plate";
 import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
 import { componentList, getComponentById } from "@/lib/component-registry";
@@ -50,16 +49,15 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
     notFound();
   }
 
+  // Single screen, no scrolling: fixed-height header + preview fills the rest.
   return (
-    <div className="min-h-screen">
-      <div className="border-b border-black/10 px-5 py-6 sm:px-8 lg:px-12">
+    <div className="flex h-screen flex-col overflow-hidden">
+      <div className="relative z-50 shrink-0 border-b border-black/10 px-5 py-6 sm:px-8 lg:px-12">
         <SiteHeader component={component} />
       </div>
 
-      <div className="px-5 sm:px-8 lg:px-12">
-        <ComponentPlate id={component.id} framelessPlate framelessPreview>
-          <Preview />
-        </ComponentPlate>
+      <div className="grid min-h-0 flex-1 place-items-center overflow-hidden px-5 sm:px-8 lg:px-12">
+        <Preview />
       </div>
     </div>
   );

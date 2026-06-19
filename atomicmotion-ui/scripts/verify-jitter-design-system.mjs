@@ -60,7 +60,7 @@ const checks = [
   ["detail route exists", files.detailPage.length > 0 && files.detailLayout.length > 0],
   ["detail route has static params", files.detailPage.includes("generateStaticParams")],
   ["detail route handles 404", files.detailPage.includes("notFound")],
-  ["detail route renders actions and preview", files.detailPage.includes("SiteHeader") && files.siteHeader.includes("ComponentActions") && files.detailPage.includes("ComponentPlate")],
+  ["detail route renders actions and preview", files.detailPage.includes("SiteHeader") && files.siteHeader.includes("ComponentActions") && files.detailPage.includes("Preview")],
   ["detail route avoids metadata footer", !files.detailPage.includes("{component.category}") && !files.detailPage.includes("{component.codePath}")],
   ["component plate only frames previews", !files.componentPlate.includes("View code") && !files.componentPlate.includes("Copy for AI")],
   ["component plate does not render raw file action", !files.componentPlate.includes("Raw file")],

@@ -91,10 +91,64 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* rico-style entrance: fade + subtle slide-up, staggered via animation-delay. */
+@keyframes am-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.am-reveal {
+  animation: am-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Dropdown surface animation: fade + subtle scale-up from the top. */
+@keyframes am-dropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.am-dropdown {
+  animation: am-dropdown 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top right;
+}
+
+/* Full-width panel reveal: opacity-only fade (no transform — a transformed
+   ancestor would break the inner backdrop-filter blur). */
+@keyframes am-panel {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.am-panel {
+  animation: am-panel 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     scroll-behavior: auto !important;
+  }
+
+  .am-reveal,
+  .am-dropdown,
+  .am-panel {
+    animation: none;
   }
 }
