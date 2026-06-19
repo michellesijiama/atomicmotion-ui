@@ -27,10 +27,11 @@ const files = {
   detailLayout: readIfExists("src/app/components/[id]/layout.tsx"),
   componentPlate: read("src/components/website/component-plate.tsx"),
   componentActions: readIfExists("src/components/website/component-actions.tsx"),
+  siteHeader: readIfExists("src/components/website/site-header.tsx"),
   componentCard: readIfExists("src/components/website/component-card.tsx"),
   componentMap: readIfExists("src/lib/component-map.tsx"),
   componentRegistry: readIfExists("src/lib/component-registry.ts"),
-  sunlitBookPage: readIfExists("src/components/ui/sunlit-book-page.tsx"),
+  sunlitBookPage: readIfExists("src/components/sunlit-book-page/sunlit-book-page.tsx"),
 };
 
 const checks = [
@@ -44,15 +45,14 @@ const checks = [
   ["layout uses Jitter shell background", files.layout.includes("bg-[var(--jitter-bg)]")],
   ["home page is a gallery", files.page.includes("ComponentCard") && files.page.includes("componentList")],
   ["home page does not render live preview", !files.page.includes("SunlitBookPage") && !files.page.includes("ComponentPlate")],
-  ["home page keeps minimal copy", files.page.includes("Copy-paste micro-interactions for React.") && !files.page.includes("ready for AI-assisted reuse")],
+  ["home page keeps minimal copy", files.page.includes("Micro-interactions designed for your agent to grab and share") && !files.page.includes("ready for AI-assisted reuse")],
   ["home page removes footer repo copy", !files.page.includes("Public GitHub repo") && !files.page.includes("npx shadcn-style copy-paste architecture")],
   ["home page uses visual grid", files.page.includes("grid-cols-1") && files.page.includes("sm:grid-cols-2")],
   ["component card links to detail pages", files.componentCard.includes("next/link") && files.componentCard.includes("/components/${component.id}")],
   ["component card renders animated previews", files.componentCard.includes("componentMap") && files.componentCard.includes("pointer-events-none")],
-  ["component card preview is prominent", files.componentCard.includes("aspect-[3/2]") && files.componentCard.includes("scale-[0.52]")],
+  ["component card preview is prominent", files.componentCard.includes("aspect-[4/5]") && files.componentCard.includes("scale-[0.52]")],
   ["component card avoids long descriptions", !files.componentCard.includes("component.description")],
   ["component card renders title without index", files.componentCard.includes("component.title") && !files.componentCard.includes("component.index")],
-  ["component card keeps subtle preview frame", files.componentCard.includes("ring-1 ring-black/5")],
   ["component card uses hover category and status tags", files.componentCard.includes("component.category") && files.componentCard.includes("component.status")],
   ["component actions owns copy buttons", files.componentActions.includes("View code") && files.componentActions.includes("Copy for AI")],
   ["component actions uses black CTA", files.componentActions.includes("bg-[var(--jitter-ink)]")],
@@ -60,7 +60,7 @@ const checks = [
   ["detail route exists", files.detailPage.length > 0 && files.detailLayout.length > 0],
   ["detail route has static params", files.detailPage.includes("generateStaticParams")],
   ["detail route handles 404", files.detailPage.includes("notFound")],
-  ["detail route renders actions and preview", files.detailPage.includes("ComponentActions") && files.detailPage.includes("ComponentPlate")],
+  ["detail route renders actions and preview", files.detailPage.includes("SiteHeader") && files.siteHeader.includes("ComponentActions") && files.detailPage.includes("ComponentPlate")],
   ["detail route avoids metadata footer", !files.detailPage.includes("{component.category}") && !files.detailPage.includes("{component.codePath}")],
   ["component plate only frames previews", !files.componentPlate.includes("View code") && !files.componentPlate.includes("Copy for AI")],
   ["component plate does not render raw file action", !files.componentPlate.includes("Raw file")],
@@ -76,7 +76,7 @@ const checks = [
   ["component registry keeps only sunlit book page", files.componentRegistry.includes("sunlitBookPage") && !files.componentRegistry.includes("magnetButton")],
   [
     "component registry lists only sunlit book source path",
-    files.componentRegistry.includes("src/components/ui/sunlit-book-page.tsx") &&
+    files.componentRegistry.includes("src/components/sunlit-book-page/sunlit-book-page.tsx") &&
       !removedComponentPaths.some((path) => files.componentRegistry.includes(path)),
   ],
   ["component registry does not expose raw file metadata", !files.componentRegistry.includes("downloadHref") && !files.componentRegistry.includes("downloadLabel")],
