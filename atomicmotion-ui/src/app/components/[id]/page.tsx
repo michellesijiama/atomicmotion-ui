@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ComponentActions } from "@/components/website/component-actions";
 import { ComponentPlate } from "@/components/website/component-plate";
+import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
 import { componentList, getComponentById } from "@/lib/component-registry";
 
@@ -52,36 +51,16 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-[360px_1fr] xl:grid-cols-[420px_1fr]">
-      <aside className="border-black/10 px-6 py-8 lg:border-r">
-        <div className="flex min-h-full flex-col">
-          <Link
-            href="/"
-            className="w-fit font-mono text-xs uppercase text-[var(--jitter-gray-600)] transition-colors hover:text-[var(--jitter-ink)]"
-          >
-            Back
-          </Link>
+    <div className="min-h-screen">
+      <div className="border-b border-black/10 px-5 py-6 sm:px-8 lg:px-12">
+        <SiteHeader component={component} />
+      </div>
 
-          <div className="mt-12 border-t border-black/10 pt-6">
-            <span className="font-mono text-xs text-[var(--jitter-gray-600)]">
-              {component.index}
-            </span>
-            <h1 className="mt-8 text-2xl font-semibold tracking-normal">{component.title}</h1>
-            <p className="mt-4 max-w-sm text-sm leading-6 text-[var(--jitter-gray-600)]">
-              {component.description}
-            </p>
-            <div className="mt-6">
-              <ComponentActions component={component} />
-            </div>
-          </div>
-
-          <div className="mt-auto" />
-        </div>
-      </aside>
-
-      <ComponentPlate id={component.id} framelessPlate framelessPreview>
-        <Preview />
-      </ComponentPlate>
+      <div className="px-5 sm:px-8 lg:px-12">
+        <ComponentPlate id={component.id} framelessPlate framelessPreview>
+          <Preview />
+        </ComponentPlate>
+      </div>
     </div>
   );
 }
