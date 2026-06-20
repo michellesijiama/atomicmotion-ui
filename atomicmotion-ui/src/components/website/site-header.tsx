@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Expand } from "lucide-react";
+import { ArrowUpRight, Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { AnimatedGithubLink } from "@/components/website/animated-github-link";
@@ -64,6 +64,23 @@ export function SiteHeader({
               {component.title}
             </span>
             <p>{component.description}</p>
+            {component.inspiredBy ? (
+              <p className="text-body text-[var(--jitter-gray-600)]">
+                Inspired by{" "}
+                <a
+                  href={component.inspiredBy.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group/insp inline-flex items-center gap-0.5 text-[var(--jitter-ink)] underline decoration-transparent underline-offset-4 transition-colors hover:decoration-[var(--jitter-ink)]"
+                >
+                  {component.inspiredBy.label}
+                  <ArrowUpRight
+                    className="size-3.5 -translate-x-1 opacity-0 transition-all duration-200 group-hover/insp:translate-x-0 group-hover/insp:opacity-100"
+                    aria-hidden="true"
+                  />
+                </a>
+              </p>
+            ) : null}
           </div>
         ) : (
           <>

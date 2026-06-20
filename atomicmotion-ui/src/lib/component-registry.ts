@@ -17,6 +17,8 @@ export type ComponentMeta = {
   codePath: string;
   codeHref: string;
   aiPrompt: string;
+  /** Credit + link to the site/work that inspired this component. */
+  inspiredBy?: { label: string; href: string };
 };
 
 type ComponentMetaInput = Omit<
@@ -54,16 +56,19 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     codePath: "src/components/emoji-sketch/emoji-sketch.tsx",
+    inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
-  placeholderOne: createComponentMeta({
-    id: "placeholder-one",
+  expandedNavigation: createComponentMeta({
+    id: "expanded-navigation",
     index: "002",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/placeholder/placeholder.tsx",
+    title: "Expanded Navigation",
+    description:
+      "A frosted mega-menu that expands over the page — the nav row wraps inside the panel and the glass blurs the content behind it. Click to open, outside-click or Escape to close.",
+    category: "Navigation",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    codePath: "src/components/expanded-navigation/expanded-navigation.tsx",
+    inspiredBy: { label: "Jitter", href: "https://madewithjitter.com" },
   }),
   placeholderTwo: createComponentMeta({
     id: "placeholder-two",
