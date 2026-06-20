@@ -1,6 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { navIconClass } from "@/components/website/styles";
 
 const githubHref = "https://github.com/michellesijiama/atomicmotion-ui";
 
@@ -14,10 +14,10 @@ export function AnimatedGithubLink({
   label?: string;
 }) {
   return (
-    <a href={href} className={cn(className, "group/github")}>
+    <a href={href} className={`${className ?? ""} group/github`.trim()}>
       {label}
       <ArrowUpRight
-        className="size-3.5 transition-transform duration-300 ease-out group-hover/github:-translate-y-0.5 group-hover/github:translate-x-0.5 group-hover/github:rotate-6"
+        className={`${navIconClass} transition-transform duration-300 ease-out group-hover/github:-translate-y-0.5 group-hover/github:translate-x-0.5 group-hover/github:rotate-6`}
         aria-hidden="true"
       />
     </a>

@@ -5,7 +5,10 @@ import { Check, ClipboardCopy, Code } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { writeClipboardText } from "@/lib/clipboard";
-import { IconActionButton } from "@/components/website/icon-action-button";
+import {
+  actionPrimaryClass,
+  actionSecondaryClass,
+} from "@/components/website/styles";
 
 type ComponentActionsProps = {
   component: ComponentMeta;
@@ -39,21 +42,23 @@ export function ComponentActions({ component }: ComponentActionsProps) {
   return (
     <div className="grid gap-3">
       <div className="flex flex-wrap gap-2">
-        <IconActionButton
+        <button
+          type="button"
           onClick={copyLink}
           aria-label={linkCopyState === "copied" ? "Copied link" : "Copy link"}
           title={linkCopyState === "copied" ? "Copied" : "Copy link"}
+          className={actionSecondaryClass}
         >
           {linkCopyState === "copied" ? (
             <Check className="size-3.5" aria-hidden="true" />
           ) : (
             <Code className="size-3.5" aria-hidden="true" />
           )}
-        </IconActionButton>
+        </button>
         <button
           type="button"
           onClick={copyForAi}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--jitter-ink)] px-3 text-body text-white shadow-[0_8px_22px_rgba(14,16,17,0.12)] transition-all hover:scale-[1.02] hover:bg-black hover:shadow-[0_12px_28px_rgba(14,16,17,0.16)] active:scale-[0.98]"
+          className={actionPrimaryClass}
         >
           {copyState === "copied" ? (
             <Check className="size-3.5" aria-hidden="true" />

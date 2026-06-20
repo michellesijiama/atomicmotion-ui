@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 import { DesignerCreditLink } from "@/components/website/designer-credit-link";
+import { actionGhostClass } from "@/components/website/styles";
 
 const panelTransition = {
   duration: 0.56,
@@ -54,11 +55,7 @@ export function ExpandingAboutPanel({
 
         <div className="mt-auto flex items-end justify-between gap-6 text-body text-[var(--jitter-gray-800)]">
           {footer ?? <DesignerCreditLink />}
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-[var(--jitter-gray-800)] transition hover:text-[var(--jitter-ink)]"
-          >
+          <button type="button" onClick={onClose} className={actionGhostClass}>
             Close
           </button>
         </div>
