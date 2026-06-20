@@ -1,14 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowUpRight, Info } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
+import { AnimatedGithubLink } from "@/components/website/animated-github-link";
+import { AnimatedLogoLink } from "@/components/website/animated-logo-link";
 import { ComponentActions } from "@/components/website/component-actions";
-import { RevealPanel } from "@/components/website/reveal-panel";
+import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
 
 const navLinkClass =
-  "inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-body text-[var(--jitter-gray-800)] ring-1 ring-black/10 transition hover:bg-[var(--jitter-gray-100)] hover:text-[var(--jitter-ink)]";
+  "inline-flex h-8 items-center gap-1.5 rounded-full bg-[#f5f5f5]/75 px-3 text-body text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[#eeeeee]/85 hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10";
+
+const navIconButtonClass =
+  "inline-flex size-8 items-center justify-center rounded-full bg-[#f5f5f5]/75 text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[#eeeeee]/85 hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10";
+
+type ActivePanel = "about" | "component" | null;
 
 export function SiteHeader({
   component,
@@ -17,84 +24,99 @@ export function SiteHeader({
   component?: ComponentMeta;
   tagline?: string;
 }) {
+  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const panelOpen = activePanel !== null;
+
+  useEffect(() => {
+    if (!panelOpen) return;
+
+    function onPointerDown(event: PointerEvent) {
+      if (containerRef.current?.contains(event.target as Node)) return;
+      setActivePanel(null);
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setActivePanel(null);
+    }
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [panelOpen]);
+
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <Link
-          href="/"
-          className="text-[24px] tracking-[-0.02em] text-[var(--jitter-ink)]"
-        >
-          AtomicMotion
-        </Link>
-        {tagline ? (
-          <span className="text-body text-[var(--jitter-gray-600)]">{tagline}</span>
-        ) : null}
-      </div>
-
-      <nav className="flex items-center gap-2" aria-label="Primary">
-        {component ? (
-          <div className="group/info relative">
-            <button
-              type="button"
-              aria-label={`Details about ${component.title}`}
-              className="inline-flex size-8 items-center justify-center rounded-full text-[var(--jitter-gray-800)] ring-1 ring-black/10 transition hover:bg-[var(--jitter-gray-100)] hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jitter-ink)]"
-            >
-              <Info className="size-4" aria-hidden="true" />
-            </button>
-
-            {/* Hover/focus popover — pt-2 bridges the gap so the pointer can reach it. */}
-            <div className="invisible absolute right-0 top-full z-30 w-80 max-w-[90vw] pt-2 opacity-0 transition duration-200 group-hover/info:visible group-hover/info:opacity-100 group-focus-within/info:visible group-focus-within/info:opacity-100">
-              <div className="grid gap-3 rounded-2xl bg-white p-4 text-left shadow-[0_18px_50px_rgba(14,16,17,0.12)] ring-1 ring-black/5">
-                <div className="grid gap-1">
-                  <span className="font-mono text-caption text-[var(--jitter-gray-600)]">
-                    {component.index} · {component.category}
-                  </span>
-                  <p className="text-body text-[var(--jitter-gray-600)]">
-                    {component.description}
-                  </p>
-                </div>
-                <ComponentActions component={component} />
-              </div>
-            </div>
+    <div ref={containerRef} className="relative z-50">
+      <ExpandingAboutPanel
+        open={panelOpen}
+        onClose={() => setActivePanel(null)}
+        footer={
+          activePanel === "component" && component ? (
+            <ComponentActions component={component} />
+          ) : undefined
+        }
+      >
+        {activePanel === "component" && component ? (
+          <div className="grid gap-3">
+            <span className="font-mono text-body text-[var(--jitter-gray-600)]">
+              {component.title}
+            </span>
+            <p>{component.description}</p>
           </div>
-        ) : null}
-
-        <RevealPanel
-          label="About"
-          header={(onClose) => (
-            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-              <Link href="/" className="text-[24px] tracking-[-0.02em] text-[var(--jitter-ink)]">
-                AtomicMotion
-              </Link>
-              <nav className="flex items-center gap-2" aria-label="Panel">
-                <button type="button" onClick={onClose} className={navLinkClass}>
-                  About
-                </button>
-                <a
-                  href="https://github.com/michellesijiama/atomicmotion-ui"
-                  className={navLinkClass}
-                >
-                  Github
-                  <ArrowUpRight className="size-3.5" aria-hidden="true" />
-                </a>
-              </nav>
-            </div>
-          )}
-        >
-          <p className="max-w-3xl text-title text-[var(--jitter-ink)]">
+        ) : (
+          <>
             AtomicMotion UI is an open-source collection of copy-paste
-            micro-interactions for React — each one a self-contained component you can
-            drop into your project.
-          </p>
-        </RevealPanel>
-        <a
-          href="https://github.com/michellesijiama/atomicmotion-ui"
-          className={navLinkClass}
-        >
-          Github
-          <ArrowUpRight className="size-3.5" aria-hidden="true" />
-        </a>
-      </nav>
+            micro-interactions for React — each one a self-contained component you
+            can drop into your project.
+          </>
+        )}
+      </ExpandingAboutPanel>
+
+      <div className="relative z-50 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <AnimatedLogoLink />
+          {tagline ? (
+            <span className="text-body text-[var(--jitter-gray-600)]">
+              {tagline}
+            </span>
+          ) : null}
+        </div>
+
+        <nav className="flex items-center gap-2" aria-label="Primary">
+          {component ? (
+            <div className="group/info relative">
+              <button
+                type="button"
+                aria-label={`Details about ${component.title}`}
+                onClick={() =>
+                  setActivePanel((value) => (value === "component" ? null : "component"))
+                }
+                aria-expanded={activePanel === "component"}
+                aria-haspopup="true"
+                className={navIconButtonClass}
+              >
+                <Expand className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() =>
+              setActivePanel((value) => (value === "about" ? null : "about"))
+            }
+            aria-expanded={activePanel === "about"}
+            aria-haspopup="true"
+            className={navLinkClass}
+          >
+            About
+          </button>
+          <AnimatedGithubLink className={navLinkClass} />
+        </nav>
+      </div>
     </div>
   );
 }

@@ -79,10 +79,23 @@ function PlaceholderText() {
   ];
 
   return (
-    <div className="grid gap-3 font-serif text-[13px] leading-7 text-[var(--jitter-ink)]/70 sm:text-sm">
+    <div className="grid gap-3 text-[13px] leading-7 text-[var(--jitter-ink)]/70 sm:text-sm">
       {rows.map((row) => (
         <p key={row}>{row}</p>
       ))}
+    </div>
+  );
+}
+
+function AmbientSunShadow() {
+  return (
+    <div
+      className="sunlit-book-ambient pointer-events-none absolute -inset-[28%] z-0 overflow-visible"
+      aria-hidden="true"
+    >
+      <div className="sunlit-book-shadow-field absolute -right-[18%] -top-[12%] h-[124%] w-[78%] rotate-[14deg] rounded-[48%] bg-[radial-gradient(ellipse_at_center,rgba(14,16,17,0.105)_0%,rgba(14,16,17,0.065)_36%,rgba(14,16,17,0.028)_58%,transparent_76%)] blur-[38px] mix-blend-multiply" />
+      <div className="sunlit-book-shadow-band absolute -right-[8%] top-[4%] h-[92%] w-[68%] rotate-[18deg] bg-[linear-gradient(105deg,transparent_0%,rgba(14,16,17,0.026)_18%,rgba(14,16,17,0.078)_42%,rgba(14,16,17,0.038)_58%,transparent_78%)] blur-[26px] mix-blend-multiply" />
+      <div className="sunlit-book-paper-grain absolute -right-[12%] top-[2%] h-[105%] w-[72%] rotate-[14deg] opacity-15 mix-blend-multiply blur-[1px]" />
     </div>
   );
 }
@@ -126,7 +139,7 @@ export function SunlitBookPage({
   return (
     <div
       className={cn(
-        "relative isolate min-h-[inherit] overflow-visible bg-transparent text-[var(--jitter-ink)]",
+        "relative isolate h-full min-h-full w-full overflow-visible bg-transparent font-[family-name:var(--am-reader-font)] text-[var(--jitter-ink)]",
         className,
       )}
       style={visualStyle}
@@ -178,16 +191,53 @@ export function SunlitBookPage({
             will-change: transform;
           }
 
+          @keyframes sunlit-book-ambient-drift {
+            0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+            45% { transform: translate3d(-14px, 8px, 0) rotate(0.5deg); }
+            72% { transform: translate3d(10px, -6px, 0) rotate(-0.4deg); }
+          }
+
+          .sunlit-book-ambient {
+            animation: sunlit-book-ambient-drift calc(26s - var(--sunlit-wind) * 4s) ease-in-out infinite;
+            will-change: transform;
+          }
+
+          .sunlit-book-paper-grain {
+            background-image:
+              radial-gradient(circle at 18% 14%, rgba(14,16,17,0.05) 0 1px, transparent 1.4px),
+              radial-gradient(circle at 52% 38%, rgba(14,16,17,0.036) 0 1px, transparent 1.6px),
+              radial-gradient(circle at 78% 62%, rgba(14,16,17,0.04) 0 1px, transparent 1.5px);
+            background-size: 18px 18px, 23px 23px, 29px 29px;
+          }
+
+          .sunlit-book-shadow-field,
+          .sunlit-book-shadow-band,
+          .sunlit-book-paper-grain {
+            -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, #000 52%, transparent 78%);
+            mask-image: radial-gradient(ellipse at center, #000 0%, #000 52%, transparent 78%);
+          }
+
+          .sunlit-book-scroll {
+            scrollbar-width: none;
+          }
+
+          .sunlit-book-scroll::-webkit-scrollbar {
+            display: none;
+          }
+
           @media (prefers-reduced-motion: reduce) {
             .sunlit-book-leaf,
-            .sunlit-book-canopy { animation: none; }
+            .sunlit-book-canopy,
+            .sunlit-book-ambient { animation: none; }
           }
         `}
       </style>
 
+      <AmbientSunShadow />
+
       <svg
         aria-hidden="true"
-        className="sunlit-book-canopy pointer-events-none absolute -inset-[18%] z-0 h-[136%] w-[136%] text-[var(--jitter-ink)]/55 opacity-[.16] mix-blend-multiply blur-[9px]"
+        className="sunlit-book-canopy pointer-events-none absolute -inset-[18%] z-[1] h-[136%] w-[136%] text-[var(--jitter-ink)]/55 opacity-[.14] mix-blend-multiply blur-[10px]"
         viewBox="0 0 1200 780"
         preserveAspectRatio="none"
       >
@@ -207,7 +257,7 @@ export function SunlitBookPage({
         ) : null}
       </svg>
 
-      <div className="relative z-10 mx-auto max-w-xl px-8 py-16 sm:py-20">
+      <div className="sunlit-book-scroll relative z-10 mx-auto max-h-[72vh] max-w-xl overflow-y-auto px-8 py-16 sm:py-20">
         {children ?? <PlaceholderText />}
       </div>
     </div>
