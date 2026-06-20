@@ -47,7 +47,7 @@ export const componentRegistry = {
   sunlitBookPage: createComponentMeta({
     id: "sunlit-book-page",
     index: "001",
-    title: "Natural Light Shadow",
+    title: "Natural Reader",
     description:
       "Centered reading text on the site background with soft natural leaf shadows drifting behind the content.",
     category: "Scene",

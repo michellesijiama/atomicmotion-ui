@@ -15,6 +15,9 @@
   --jitter-purple: #7a40ed;
   --jitter-blue: #1377e4;
   --jitter-orange: #ff8316;
+  --am-header-bg: transparent;
+  --am-header-border: rgba(14, 16, 17, 0.1);
+  --am-reader-font: var(--font-plus-jakarta-sans);
   --background: var(--jitter-bg);
   --foreground: var(--jitter-ink);
 }

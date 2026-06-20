@@ -52,11 +52,11 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   // Single screen, no scrolling: fixed-height header + preview fills the rest.
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-      <div className="relative z-50 shrink-0 border-b border-black/10 px-5 py-6 sm:px-8 lg:px-12">
+      <div className="relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
         <SiteHeader component={component} />
       </div>
 
-      <div className="grid min-h-0 flex-1 place-items-center overflow-hidden px-5 sm:px-8 lg:px-12">
+      <div className="grid min-h-0 flex-1 place-items-center overflow-visible px-6 sm:px-8 lg:px-12">
         <Preview />
       </div>
     </div>

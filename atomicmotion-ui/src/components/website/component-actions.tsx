@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ClipboardCopy, ExternalLink, Link2 } from "lucide-react";
+import { Check, ClipboardCopy, Code } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { writeClipboardText } from "@/lib/clipboard";
+import { IconActionButton } from "@/components/website/icon-action-button";
 
 type ComponentActionsProps = {
   component: ComponentMeta;
@@ -38,27 +39,17 @@ export function ComponentActions({ component }: ComponentActionsProps) {
   return (
     <div className="grid gap-3">
       <div className="flex flex-wrap gap-2">
-        <a
-          href={component.codeHref}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-body text-[var(--jitter-ink)] ring-1 ring-black/10 transition hover:bg-[var(--jitter-gray-100)]"
-        >
-          <ExternalLink className="size-3.5" aria-hidden="true" />
-          View code
-        </a>
-        <button
-          type="button"
+        <IconActionButton
           onClick={copyLink}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-body text-[var(--jitter-ink)] ring-1 ring-black/10 transition hover:bg-[var(--jitter-gray-100)]"
+          aria-label={linkCopyState === "copied" ? "Copied link" : "Copy link"}
+          title={linkCopyState === "copied" ? "Copied" : "Copy link"}
         >
           {linkCopyState === "copied" ? (
             <Check className="size-3.5" aria-hidden="true" />
           ) : (
-            <Link2 className="size-3.5" aria-hidden="true" />
+            <Code className="size-3.5" aria-hidden="true" />
           )}
-          {linkCopyState === "copied" ? "Copied" : "Copy link"}
-        </button>
+        </IconActionButton>
         <button
           type="button"
           onClick={copyForAi}
