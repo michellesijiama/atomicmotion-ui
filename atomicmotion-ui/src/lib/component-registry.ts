@@ -44,16 +44,16 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
-  sunlitBookPage: createComponentMeta({
-    id: "sunlit-book-page",
+  emojiSketch: createComponentMeta({
+    id: "emoji-sketch",
     index: "001",
-    title: "Natural Reader",
+    title: "Emoji Sketch",
     description:
-      "Centered reading text on the site background with soft natural leaf shadows drifting behind the content.",
-    category: "Scene",
+      "Pick an emoji and watch it drawn on, stroke by stroke, as a hand-sketched line animation — real OpenMoji vector paths self-drawing with a subtle pencil wobble.",
+    category: "Tool",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
-    codePath: "src/components/sunlit-book-page/sunlit-book-page.tsx",
+    codePath: "src/components/emoji-sketch/emoji-sketch.tsx",
   }),
   placeholderOne: createComponentMeta({
     id: "placeholder-one",

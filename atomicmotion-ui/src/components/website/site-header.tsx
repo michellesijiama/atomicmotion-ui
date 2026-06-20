@@ -8,12 +8,11 @@ import { AnimatedGithubLink } from "@/components/website/animated-github-link";
 import { AnimatedLogoLink } from "@/components/website/animated-logo-link";
 import { ComponentActions } from "@/components/website/component-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
-
-const navLinkClass =
-  "inline-flex h-8 items-center gap-1.5 rounded-full bg-[#f5f5f5]/75 px-3 text-body text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[#eeeeee]/85 hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10";
-
-const navIconButtonClass =
-  "inline-flex size-8 items-center justify-center rounded-full bg-[#f5f5f5]/75 text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[#eeeeee]/85 hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10";
+import {
+  navIconButtonClass,
+  navIconClass,
+  navLinkClass,
+} from "@/components/website/styles";
 
 type ActivePanel = "about" | "component" | null;
 
@@ -98,7 +97,7 @@ export function SiteHeader({
                 aria-haspopup="true"
                 className={navIconButtonClass}
               >
-                <Expand className="size-4" aria-hidden="true" />
+                <Expand className={navIconClass} aria-hidden="true" />
               </button>
             </div>
           ) : null}
