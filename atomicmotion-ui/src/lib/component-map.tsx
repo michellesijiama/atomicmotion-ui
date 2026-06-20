@@ -7,8 +7,8 @@ function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
 }
 
-function ExpandedNavigationPreview() {
-  return <ExpandedNavigation />;
+function ExpandedNavigationPreview({ loop }: { loop?: boolean }) {
+  return <ExpandedNavigation loop={loop} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {

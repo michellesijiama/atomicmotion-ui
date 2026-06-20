@@ -61,9 +61,9 @@ export const componentRegistry = {
   expandedNavigation: createComponentMeta({
     id: "expanded-navigation",
     index: "002",
-    title: "Expanded Navigation",
+    title: "Soft Menu Reveal",
     description:
-      "A frosted mega-menu that expands over the page — the nav row wraps inside the panel and the glass blurs the content behind it. Click to open, outside-click or Escape to close.",
+      "A frosted menu that unfolds from a stable nav row with a smooth bell-curve transition",
     category: "Navigation",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

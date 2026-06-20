@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { ArrowRight, Plus } from "lucide-react";
 import { getStroke } from "perfect-freehand";
 
 import { cn } from "@/lib/utils";
@@ -17,7 +16,7 @@ export type EmojiSketchProps = {
 type EmojiDef = { char: string; hex: string; label: string };
 type Stroke = { outline: string; center: string; len: number };
 
-// Quick-pick set — bundled in /public/emoji; any typed emoji falls back to CDN.
+// Quick-pick set. A subset is bundled in /public/emoji; the rest falls back to OpenMoji CDN.
 const EMOJIS: EmojiDef[] = [
   { char: "❤️", hex: "2764", label: "Heart" },
   { char: "⭐", hex: "2B50", label: "Star" },
@@ -31,28 +30,34 @@ const EMOJIS: EmojiDef[] = [
   { char: "⚡", hex: "26A1", label: "Bolt" },
   { char: "🦋", hex: "1F98B", label: "Butterfly" },
   { char: "☕", hex: "2615", label: "Coffee" },
+  { char: "🙂", hex: "1F642", label: "Smile" },
+  { char: "😂", hex: "1F602", label: "Joy" },
+  { char: "😎", hex: "1F60E", label: "Sunglasses" },
+  { char: "😉", hex: "1F609", label: "Wink" },
+  { char: "🥳", hex: "1F973", label: "Party" },
+  { char: "👍", hex: "1F44D", label: "Thumbs up" },
+  { char: "👏", hex: "1F44F", label: "Clap" },
+  { char: "👀", hex: "1F440", label: "Eyes" },
+  { char: "🧠", hex: "1F9E0", label: "Brain" },
+  { char: "🤖", hex: "1F916", label: "Robot" },
+  { char: "👻", hex: "1F47B", label: "Ghost" },
+  { char: "👽", hex: "1F47D", label: "Alien" },
+  { char: "🍕", hex: "1F355", label: "Pizza" },
+  { char: "🍔", hex: "1F354", label: "Burger" },
+  { char: "🍩", hex: "1F369", label: "Donut" },
+  { char: "🎵", hex: "1F3B5", label: "Music" },
+  { char: "🎨", hex: "1F3A8", label: "Palette" },
+  { char: "📷", hex: "1F4F7", label: "Camera" },
+  { char: "💎", hex: "1F48E", label: "Gem" },
+  { char: "🎈", hex: "1F388", label: "Balloon" },
 ];
 
 const GEOMETRY = "path, circle, ellipse, line, polyline, polygon, rect";
 const BRUSH = 0.45;
 const MASK_W = 3;
-const INK = "#0e1011";
 const CDN = "https://cdn.jsdelivr.net/npm/openmoji@15.0.0/black/svg";
 
 const average = (a: number, b: number) => (a + b) / 2;
-
-// A typed emoji string → OpenMoji filename code (uppercase hex, FE0F stripped).
-function emojiToCode(input: string): string | null {
-  const match = input
-    .trim()
-    .match(/\p{Extended_Pictographic}(‍\p{Extended_Pictographic}|[️\u{1F3FB}-\u{1F3FF}])*/u);
-  const emoji = match?.[0] ?? input.trim();
-  const cps = Array.from(emoji)
-    .map((c) => c.codePointAt(0) ?? 0)
-    .filter((cp) => cp && cp !== 0xfe0f);
-  if (!cps.length) return null;
-  return cps.map((cp) => cp.toString(16).toUpperCase()).join("-");
-}
 
 async function fetchEmojiSvg(code: string): Promise<string | null> {
   for (const url of [`/emoji/${code}.svg`, `${CDN}/${code}.svg`]) {
@@ -146,44 +151,13 @@ function computeStrokes(svgText: string): Stroke[] {
   return strokes;
 }
 
-// The textured-ink filter, as a standalone string for rasterizing to PNG.
-const INK_FILTER = `<filter id="ink" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="10" numOctaves="2" seed="8" result="grain"/><feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0.4" result="grainA"/><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="3" result="rough"/><feDisplacementMap in="SourceGraphic" in2="rough" scale="1.3" result="disp"/><feComposite in="disp" in2="grainA" operator="in"/></filter>`;
-
-function strokesToSvgString(strokes: Stroke[], size: number): string {
-  const paths = strokes.map((s) => `<path d="${s.outline}" fill="${INK}"/>`).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="${size}" height="${size}"><defs>${INK_FILTER}</defs><g filter="url(#ink)">${paths}</g></svg>`;
-}
-
-function rasterize(strokes: Stroke[], size: number): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return resolve("");
-      ctx.drawImage(img, 0, 0, size, size);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = () => resolve("");
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(strokesToSvgString(strokes, size))}`;
-  });
-}
-
 export function EmojiSketch({ initial = "2764", loop = false, className }: EmojiSketchProps) {
   const uid = React.useId().replace(/[:]/g, "");
   const [active, setActive] = React.useState(initial);
-  const [input, setInput] = React.useState("");
   const [strokes, setStrokes] = React.useState<Stroke[]>([]);
   const [runId, setRunId] = React.useState(0);
   const [notFound, setNotFound] = React.useState(false);
-  const [pickerOpen, setPickerOpen] = React.useState(false);
-  const [copied, setCopied] = React.useState(false);
-  const [cursorOn, setCursorOn] = React.useState(false);
-  const [cursorUrl, setCursorUrl] = React.useState<string | null>(null);
   const svgRef = React.useRef<SVGSVGElement>(null);
-  const cursorOnRef = React.useRef(false);
 
   // Load + trace whenever the active emoji changes.
   React.useEffect(() => {
@@ -198,7 +172,6 @@ export function EmojiSketch({ initial = "2764", loop = false, className }: Emoji
       setNotFound(false);
       setStrokes(s);
       setRunId((r) => r + 1);
-      if (cursorOnRef.current) rasterize(s, 64).then((u) => !cancelled && setCursorUrl(u));
     });
     return () => {
       cancelled = true;
@@ -241,181 +214,179 @@ export function EmojiSketch({ initial = "2764", loop = false, className }: Emoji
     }
   }, [strokes, runId, uid, loop]);
 
-  const submitTyped = (event: React.FormEvent) => {
-    event.preventDefault();
-    const code = emojiToCode(input);
-    if (!code) return;
-    setPickerOpen(false);
-    if (code === active) setRunId((r) => r + 1);
-    else setActive(code);
-  };
-
   const pick = (e: EmojiDef) => {
-    setInput(e.char);
-    setPickerOpen(false);
     if (e.hex === active) setRunId((r) => r + 1);
     else setActive(e.hex);
   };
 
-  const copySticker = async () => {
-    if (strokes.length === 0) return;
-    try {
-      const url = await rasterize(strokes, 256);
-      const blob = await (await fetch(url)).blob();
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable */
-    }
+  const handleStagePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+
+    event.currentTarget.style.setProperty("--emoji-tilt-x", `${(-y * 9).toFixed(2)}deg`);
+    event.currentTarget.style.setProperty("--emoji-tilt-y", `${(x * 11).toFixed(2)}deg`);
+    event.currentTarget.style.setProperty("--emoji-pan-x", `${(x * 10).toFixed(2)}px`);
+    event.currentTarget.style.setProperty("--emoji-pan-y", `${(y * 8).toFixed(2)}px`);
+    event.currentTarget.style.setProperty("--emoji-lift", "18px");
+    event.currentTarget.style.setProperty("--emoji-shadow-x", `${(-x * 18).toFixed(2)}px`);
+    event.currentTarget.style.setProperty("--emoji-shadow-y", `${(12 - y * 10).toFixed(2)}px`);
+    event.currentTarget.style.setProperty("--emoji-shadow-opacity", "0.2");
   };
 
-  const toggleCursor = async () => {
-    const next = !cursorOn;
-    setCursorOn(next);
-    cursorOnRef.current = next;
-    if (next && strokes.length) setCursorUrl(await rasterize(strokes, 64));
-    else setCursorUrl(null);
+  const handleStagePointerLeave = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.style.setProperty("--emoji-tilt-x", "0deg");
+    event.currentTarget.style.setProperty("--emoji-tilt-y", "0deg");
+    event.currentTarget.style.setProperty("--emoji-pan-x", "0px");
+    event.currentTarget.style.setProperty("--emoji-pan-y", "0px");
+    event.currentTarget.style.setProperty("--emoji-lift", "0px");
+    event.currentTarget.style.setProperty("--emoji-shadow-x", "0px");
+    event.currentTarget.style.setProperty("--emoji-shadow-y", "16px");
+    event.currentTarget.style.setProperty("--emoji-shadow-opacity", "0.08");
   };
 
   return (
     <div
       className={cn(
-        "relative isolate flex h-full min-h-full w-full flex-col items-center justify-between gap-6 px-6 py-8",
+        "relative isolate grid h-full min-h-full w-full grid-cols-[minmax(0,1fr)_112px] items-center gap-5 px-6 py-8",
         className,
       )}
       style={{
         "--emoji-ink": "var(--jitter-ink, #0e1011)",
-        ...(cursorOn && cursorUrl ? { cursor: `url(${cursorUrl}) 32 32, auto` } : null),
+        "--emoji-tilt-x": "0deg",
+        "--emoji-tilt-y": "0deg",
+        "--emoji-pan-x": "0px",
+        "--emoji-pan-y": "0px",
+        "--emoji-lift": "0px",
+        "--emoji-shadow-x": "0px",
+        "--emoji-shadow-y": "16px",
+        "--emoji-shadow-opacity": "0.08",
       } as React.CSSProperties}
     >
       {/* Sticker stage */}
-      <div className="flex w-full flex-1 items-center justify-center">
+      <div
+        className="relative flex w-full flex-1 items-center justify-center [perspective:900px]"
+        onPointerMove={handleStagePointerMove}
+        onPointerLeave={handleStagePointerLeave}
+      >
         {strokes.length > 0 ? (
-          <svg
-            ref={svgRef}
-            viewBox="0 0 72 72"
-            className="h-auto max-h-[40vh] w-full max-w-[280px]"
-            aria-label="Emoji sticker"
-          >
-            <defs>
-              <filter
-                id={`emoji-ink-${uid}`}
-                x="-6%"
-                y="-6%"
-                width="112%"
-                height="112%"
-                colorInterpolationFilters="sRGB"
-              >
-                <feTurbulence type="fractalNoise" baseFrequency="10" numOctaves={2} seed={8} result="grain" />
-                <feColorMatrix
-                  in="grain"
-                  type="matrix"
-                  values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0.4"
-                  result="grainA"
-                />
-                <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves={2} seed={3} result="rough" />
-                <feDisplacementMap in="SourceGraphic" in2="rough" scale={1.3} result="disp" />
-                <feComposite in="disp" in2="grainA" operator="in" />
-              </filter>
-              {strokes.map((s, i) => (
-                <mask key={i} id={`em-${uid}-${i}`} maskUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
-                  <path
-                    className={`emoji-draw-${uid}`}
-                    d={s.center}
-                    fill="none"
-                    stroke="#fff"
-                    strokeWidth={MASK_W}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-1/2 h-28 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/20 blur-2xl transition-[opacity,transform] duration-500 ease-out"
+              style={{
+                opacity: "var(--emoji-shadow-opacity)",
+                transform:
+                  "translate3d(calc(-50% + var(--emoji-shadow-x)), calc(-50% + var(--emoji-shadow-y)), 0) scale(0.92)",
+              }}
+            />
+            <svg
+              ref={svgRef}
+              viewBox="0 0 72 72"
+              className="relative z-10 h-auto max-h-[40vh] w-full max-w-[280px] origin-center transition-[filter,transform] duration-500 ease-out [transform-style:preserve-3d]"
+              style={{
+                filter:
+                  "drop-shadow(calc(var(--emoji-shadow-x) * 0.16) calc(var(--emoji-shadow-y) * 0.18) 4px rgba(14,16,17,0.14))",
+                transform:
+                  "translate3d(var(--emoji-pan-x), var(--emoji-pan-y), var(--emoji-lift)) rotateX(var(--emoji-tilt-x)) rotateY(var(--emoji-tilt-y))",
+              }}
+              aria-label="Emoji sticker"
+            >
+              <defs>
+                <filter
+                  id={`emoji-ink-${uid}`}
+                  x="-6%"
+                  y="-6%"
+                  width="112%"
+                  height="112%"
+                  colorInterpolationFilters="sRGB"
+                >
+                  <feTurbulence type="fractalNoise" baseFrequency="10" numOctaves={2} seed={8} result="grain" />
+                  <feColorMatrix
+                    in="grain"
+                    type="matrix"
+                    values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.6 0.4"
+                    result="grainA"
                   />
-                </mask>
-              ))}
-            </defs>
-            <g filter={`url(#emoji-ink-${uid})`}>
-              {strokes.map((s, i) => (
-                <path key={i} d={s.outline} fill="var(--emoji-ink)" mask={`url(#em-${uid}-${i})`} />
-              ))}
-            </g>
-          </svg>
+                  <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves={2} seed={3} result="rough" />
+                  <feDisplacementMap in="SourceGraphic" in2="rough" scale={1.3} result="disp" />
+                  <feComposite in="disp" in2="grainA" operator="in" />
+                </filter>
+                <filter
+                  id={`emoji-depth-${uid}`}
+                  x="-12%"
+                  y="-12%"
+                  width="124%"
+                  height="124%"
+                  colorInterpolationFilters="sRGB"
+                >
+                  <feGaussianBlur stdDeviation="0.55" />
+                </filter>
+                {strokes.map((s, i) => (
+                  <mask key={i} id={`em-${uid}-${i}`} maskUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+                    <path
+                      className={`emoji-draw-${uid}`}
+                      d={s.center}
+                      fill="none"
+                      stroke="#fff"
+                      strokeWidth={MASK_W}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </mask>
+                ))}
+              </defs>
+              <g
+                filter={`url(#emoji-depth-${uid})`}
+                opacity="0.18"
+                transform="translate(1.35 1.8)"
+              >
+                {strokes.map((s, i) => (
+                  <path key={i} d={s.outline} fill="var(--emoji-ink)" mask={`url(#em-${uid}-${i})`} />
+                ))}
+              </g>
+              <g filter={`url(#emoji-ink-${uid})`}>
+                {strokes.map((s, i) => (
+                  <path key={i} d={s.outline} fill="var(--emoji-ink)" mask={`url(#em-${uid}-${i})`} />
+                ))}
+              </g>
+            </svg>
+          </>
         ) : (
           <p className="text-body text-[var(--jitter-gray-400)]">
-            {notFound ? "Couldn't sketch that one — try another emoji." : "Pick or type an emoji below."}
+            {notFound ? "Couldn't sketch that one — try another emoji." : "Pick an emoji."}
           </p>
         )}
       </div>
 
-      {/* Actions */}
-      {strokes.length > 0 ? (
-        <div className="flex items-center gap-2 text-caption">
-          <button
-            type="button"
-            onClick={copySticker}
-            className="inline-flex h-8 items-center rounded-full bg-[var(--jitter-ink)] px-4 text-white transition-colors hover:bg-[var(--jitter-gray-800)]"
-          >
-            {copied ? "Copied!" : "Copy sticker"}
-          </button>
-          <button
-            type="button"
-            onClick={toggleCursor}
-            aria-pressed={cursorOn}
-            className={cn(
-              "inline-flex h-8 items-center rounded-full px-4 ring-1 ring-[var(--jitter-ink)] transition-colors",
-              cursorOn ? "bg-[var(--jitter-ink)] text-white" : "hover:bg-[var(--jitter-gray-100)]",
-            )}
-          >
-            {cursorOn ? "Cursor on" : "Use as cursor"}
-          </button>
-        </div>
-      ) : null}
-
-      {/* Chat-style input bar */}
-      <form
-        onSubmit={submitTyped}
-        className="relative flex w-full max-w-xl items-center gap-2 rounded-[28px] bg-white p-2 shadow-[0_10px_34px_rgba(0,0,0,0.07)] ring-1 ring-black/5"
+      <aside
+        className="grid max-h-[520px] grid-cols-2 gap-2 overflow-y-auto rounded-[26px] bg-white/65 p-2 shadow-[0_14px_45px_rgba(0,0,0,0.06)] ring-1 ring-black/5 backdrop-blur-xl"
+        aria-label="Emoji choices"
       >
-        <button
-          type="button"
-          aria-label="Pick an emoji"
-          aria-expanded={pickerOpen}
-          onClick={() => setPickerOpen((v) => !v)}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--jitter-gray-100)] text-[var(--jitter-gray-600)] transition-colors hover:bg-[#e6e6e6]"
-        >
-          <Plus className="size-5" aria-hidden="true" />
-        </button>
-
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type or pick an emoji…"
-          aria-label="Emoji"
-          className="min-w-0 flex-1 bg-transparent px-2 text-base text-[var(--jitter-gray-800)] outline-none placeholder:text-[var(--jitter-gray-400)]"
-        />
-
-        <button
-          type="submit"
-          aria-label="Sketch it"
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--jitter-gray-100)] text-[var(--jitter-ink)] transition-colors hover:bg-[#e6e6e6]"
-        >
-          <ArrowRight className="size-5" aria-hidden="true" />
-        </button>
-
-        {pickerOpen ? (
-          <div className="absolute bottom-[calc(100%+8px)] left-0 z-10 grid grid-cols-6 gap-1 rounded-3xl bg-white p-3 shadow-[0_12px_40px_rgba(0,0,0,0.12)] ring-1 ring-black/5">
-            {EMOJIS.map((e) => (
-              <button
-                key={e.hex}
-                type="button"
-                aria-label={e.label}
-                onClick={() => pick(e)}
-                className="inline-flex size-10 items-center justify-center rounded-xl text-[20px] leading-none transition-colors hover:bg-[var(--jitter-gray-100)]"
-              >
-                <span aria-hidden="true">{e.char}</span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </form>
+        {EMOJIS.map((emoji) => {
+          const selected = emoji.hex === active;
+          return (
+            <button
+              key={emoji.hex}
+              type="button"
+              aria-label={emoji.label}
+              aria-pressed={selected}
+              onClick={() => pick(emoji)}
+              className={cn(
+                "inline-flex aspect-square items-center justify-center rounded-2xl text-[22px] leading-none transition-colors",
+                selected
+                  ? "bg-[var(--jitter-ink)] text-white"
+                  : "text-[var(--jitter-ink)] hover:bg-[var(--jitter-gray-100)]",
+              )}
+            >
+              <span aria-hidden="true">{emoji.char}</span>
+            </button>
+          );
+        })}
+      </aside>
     </div>
   );
 }
