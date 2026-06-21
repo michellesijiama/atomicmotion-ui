@@ -232,9 +232,6 @@ export function EmojiSketch({ initial = "2764", loop = false, className }: Emoji
     event.currentTarget.style.setProperty("--emoji-pan-x", `${(x * 10).toFixed(2)}px`);
     event.currentTarget.style.setProperty("--emoji-pan-y", `${(y * 8).toFixed(2)}px`);
     event.currentTarget.style.setProperty("--emoji-lift", "18px");
-    event.currentTarget.style.setProperty("--emoji-shadow-x", `${(-x * 18).toFixed(2)}px`);
-    event.currentTarget.style.setProperty("--emoji-shadow-y", `${(12 - y * 10).toFixed(2)}px`);
-    event.currentTarget.style.setProperty("--emoji-shadow-opacity", "0.2");
   };
 
   const handleStagePointerLeave = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -243,9 +240,6 @@ export function EmojiSketch({ initial = "2764", loop = false, className }: Emoji
     event.currentTarget.style.setProperty("--emoji-pan-x", "0px");
     event.currentTarget.style.setProperty("--emoji-pan-y", "0px");
     event.currentTarget.style.setProperty("--emoji-lift", "0px");
-    event.currentTarget.style.setProperty("--emoji-shadow-x", "0px");
-    event.currentTarget.style.setProperty("--emoji-shadow-y", "16px");
-    event.currentTarget.style.setProperty("--emoji-shadow-opacity", "0.08");
   };
 
   return (
@@ -261,9 +255,6 @@ export function EmojiSketch({ initial = "2764", loop = false, className }: Emoji
         "--emoji-pan-x": "0px",
         "--emoji-pan-y": "0px",
         "--emoji-lift": "0px",
-        "--emoji-shadow-x": "0px",
-        "--emoji-shadow-y": "16px",
-        "--emoji-shadow-opacity": "0.08",
       } as React.CSSProperties}
     >
       {/* Sticker stage */}
@@ -274,22 +265,11 @@ export function EmojiSketch({ initial = "2764", loop = false, className }: Emoji
       >
         {strokes.length > 0 ? (
           <>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 h-28 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/20 blur-2xl transition-[opacity,transform] duration-500 ease-out"
-              style={{
-                opacity: "var(--emoji-shadow-opacity)",
-                transform:
-                  "translate3d(calc(-50% + var(--emoji-shadow-x)), calc(-50% + var(--emoji-shadow-y)), 0) scale(0.92)",
-              }}
-            />
             <svg
               ref={svgRef}
               viewBox="0 0 72 72"
               className="relative z-10 h-auto max-h-[40vh] w-full max-w-[280px] origin-center transition-[filter,transform] duration-500 ease-out [transform-style:preserve-3d]"
               style={{
-                filter:
-                  "drop-shadow(calc(var(--emoji-shadow-x) * 0.16) calc(var(--emoji-shadow-y) * 0.18) 4px rgba(14,16,17,0.14))",
                 transform:
                   "translate3d(var(--emoji-pan-x), var(--emoji-pan-y), var(--emoji-lift)) rotateX(var(--emoji-tilt-x)) rotateY(var(--emoji-tilt-y))",
               }}
