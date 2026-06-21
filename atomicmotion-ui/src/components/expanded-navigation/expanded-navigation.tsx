@@ -152,12 +152,20 @@ export function ExpandedNavigation({ className, loop = false }: ExpandedNavigati
             </div>
 
             <div className="mt-auto flex items-center justify-between text-[13px] text-[var(--jitter-gray-800)]">
-              <a
-                href="mailto:hello@atomicmotion.dev"
-                className="transition-colors hover:text-[var(--expnav-ink)]"
-              >
-                hello@atomicmotion.dev
-              </a>
+              {/* In loop/card mode the panel renders inside the card's <Link>,
+                  so avoid a nested <a> — show plain text there, real link elsewhere. */}
+              {loop ? (
+                <span className="transition-colors hover:text-[var(--expnav-ink)]">
+                  hello@atomicmotion.dev
+                </span>
+              ) : (
+                <a
+                  href="mailto:hello@atomicmotion.dev"
+                  className="transition-colors hover:text-[var(--expnav-ink)]"
+                >
+                  hello@atomicmotion.dev
+                </a>
+              )}
               <button
                 type="button"
                 onClick={() => setOpen(false)}
