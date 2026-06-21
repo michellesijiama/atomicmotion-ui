@@ -56,7 +56,7 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
         <SiteHeader component={component} />
       </div>
 
-      <div className="grid min-h-0 flex-1 place-items-center overflow-visible px-6 sm:px-8 lg:px-12">
+      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden px-6 pb-6 sm:px-8 lg:px-12">
         <Preview />
       </div>
     </div>
