@@ -163,7 +163,7 @@ export function ScrollScrubbedTypography({
       {!loop && (
         <motion.div
           aria-hidden="true"
-          className="pointer-events-none fixed left-0 top-0 z-50 rounded-full bg-black px-3 py-1.5 text-[13px] font-medium text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+          className="pointer-events-none fixed left-0 top-0 z-50 rounded-full bg-black px-3 py-1.5 text-[13px] font-medium text-white"
           initial={false}
           animate={{
             opacity: cursor.visible ? 1 : 0,

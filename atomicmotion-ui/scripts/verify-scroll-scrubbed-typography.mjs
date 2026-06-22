@@ -82,6 +82,10 @@ const checks = [
       !files.component.includes('addEventListener("mousemove"'),
   ],
   [
+    "scroll down cursor has no drop shadow",
+    files.component.includes("Scroll down") && !files.component.includes("shadow-["),
+  ],
+  [
     "component removes Getty-style chrome labels",
     !["Chapter I", "Ship in the Box", "Sound", "[Menu]"].some((label) =>
       files.component.includes(label),
