@@ -24,8 +24,9 @@ const GEOMETRY = "path, circle, ellipse, line, polyline, polygon, rect";
 const BRUSH = 0.45;
 const MASK_W = 3;
 const CDN = "https://cdn.jsdelivr.net/npm/openmoji@15.0.0/black/svg";
-const CELL = 250;
-const INNER = 150;
+// Target cell size — the grid picks the column/row count closest to this so
+// whole stickers tile the frame exactly.
+const CELL = 185;
 
 const average = (a: number, b: number) => (a + b) / 2;
 
@@ -152,6 +153,7 @@ const StickerCell = React.memo(function StickerCell({
   color,
   x,
   y,
+  size,
   rot,
   phase,
   cycle,
@@ -160,6 +162,7 @@ const StickerCell = React.memo(function StickerCell({
   color: string;
   x: number;
   y: number;
+  size: number;
   rot: number;
   phase: number;
   cycle: number;
@@ -203,8 +206,8 @@ const StickerCell = React.memo(function StickerCell({
       onMouseEnter={() => setReplay((n) => n + 1)}
       style={
         {
-          width: INNER,
-          height: INNER,
+          width: size,
+          height: size,
           left: x,
           top: y,
           "--rot": `${rot}deg`,
@@ -244,13 +247,10 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
   const [traces, setTraces] = React.useState<Trace[]>([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [vp, setVp] = React.useState({ w: 0, h: 0 });
-  const [offset, setOffset] = React.useState({ x: -40, y: -30 });
   const [cycle, setCycle] = React.useState(0);
-  const drag = React.useRef({ down: false, x: 0, y: 0, vx: 0, vy: 0 });
-  const raf = React.useRef(0);
 
   // On the gallery card (loop), replay the self-draw on a timer so the stickers
-  // keep animating — without moving the canvas.
+  // keep animating.
   React.useEffect(() => {
     if (!loop || prefersReducedMotion() || traces.length === 0) return;
     const id = window.setInterval(() => setCycle((c) => c + 1), 4500);
@@ -283,64 +283,45 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
     return () => ro.disconnect();
   }, []);
 
-  React.useEffect(() => () => cancelAnimationFrame(raf.current), []);
-
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    cancelAnimationFrame(raf.current);
-    drag.current = { down: true, x: e.clientX, y: e.clientY, vx: 0, vy: 0 };
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      /* capture unavailable */
-    }
-  };
-
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drag.current.down) return;
-    const dx = e.clientX - drag.current.x;
-    const dy = e.clientY - drag.current.y;
-    drag.current.x = e.clientX;
-    drag.current.y = e.clientY;
-    drag.current.vx = dx;
-    drag.current.vy = dy;
-    setOffset((o) => ({ x: o.x - dx, y: o.y - dy }));
-  };
-
-  const onPointerUp = () => {
-    if (!drag.current.down) return;
-    drag.current.down = false;
-    let vx = drag.current.vx;
-    let vy = drag.current.vy;
-    const step = () => {
-      vx *= 0.93;
-      vy *= 0.93;
-      if (Math.hypot(vx, vy) < 0.3) return;
-      setOffset((o) => ({ x: o.x - vx, y: o.y - vy }));
-      raf.current = requestAnimationFrame(step);
-    };
-    raf.current = requestAnimationFrame(step);
-  };
-
-  const cells: { key: string; c: number; r: number }[] = [];
+  // Contained packed grid: pick the column/row count whose cells land closest to
+  // the target cell size, then tile whole stickers to fit the frame exactly. The
+  // sticker (plus its small rotation + jitter) stays inside its cell, so nothing
+  // ever touches the container edge — no cropping, fills edge to edge.
+  type Placed = { key: string; trace: Trace; color: string; x: number; y: number; size: number; rot: number; phase: number };
+  const placed: Placed[] = [];
   if (traces.length && vp.w && vp.h) {
-    const c0 = Math.floor(offset.x / CELL) - 1;
-    const c1 = Math.floor((offset.x + vp.w) / CELL) + 1;
-    const r0 = Math.floor(offset.y / CELL) - 1;
-    const r1 = Math.floor((offset.y + vp.h) / CELL) + 1;
-    for (let c = c0; c <= c1; c++) {
-      for (let r = r0; r <= r1; r++) cells.push({ key: `${c}:${r}`, c, r });
+    const cols = Math.max(1, Math.round(vp.w / CELL));
+    const rows = Math.max(1, Math.round(vp.h / CELL));
+    const cw = vp.w / cols;
+    const ch = vp.h / rows;
+    const size = Math.min(cw, ch) * 0.82;
+    const jitter = Math.min(cw, ch) * 0.05;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const trace = traces[hash2(c, r) % traces.length];
+        const color = PALETTE[hash2(c + 5, r + 9) % PALETTE.length];
+        const rot = (unit(c + 131, r + 57) - 0.5) * 12;
+        const jx = (unit(c + 11, r + 3) - 0.5) * 2 * jitter;
+        const jy = (unit(c + 7, r + 19) - 0.5) * 2 * jitter;
+        placed.push({
+          key: `${c}:${r}`,
+          trace,
+          color,
+          x: c * cw + cw / 2 - size / 2 + jx,
+          y: r * ch + ch / 2 - size / 2 + jy,
+          size,
+          rot,
+          phase: unit(c + 3, r + 8),
+        });
+      }
     }
   }
 
   return (
     <div
       ref={containerRef}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
       className={cn(
-        "relative isolate size-full min-h-[420px] touch-none select-none justify-self-stretch self-stretch overflow-hidden [cursor:grab] active:[cursor:grabbing]",
+        "relative isolate size-full min-h-[420px] select-none justify-self-stretch self-stretch overflow-hidden",
         className,
       )}
       style={{ "--emoji-ink": "var(--jitter-ink, #0e1011)" } as React.CSSProperties}
@@ -372,29 +353,20 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
           inking stickers…
         </span>
       ) : (
-        <div
-          className="absolute inset-0 will-change-transform"
-          style={{ transform: `translate3d(${(-offset.x).toFixed(1)}px, ${(-offset.y).toFixed(1)}px, 0)` }}
-        >
-          {cells.map(({ key, c, r }) => {
-            const trace = traces[hash2(c, r) % traces.length];
-            const color = PALETTE[hash2(c + 5, r + 9) % PALETTE.length];
-            const rot = (unit(c + 131, r + 57) - 0.5) * 22;
-            const jx = (unit(c + 11, r + 3) - 0.5) * (CELL - INNER) * 0.7;
-            const jy = (unit(c + 7, r + 19) - 0.5) * (CELL - INNER) * 0.7;
-            return (
-              <StickerCell
-                key={key}
-                trace={trace}
-                color={color}
-                x={c * CELL + (CELL - INNER) / 2 + jx}
-                y={r * CELL + (CELL - INNER) / 2 + jy}
-                rot={rot}
-                phase={unit(c + 3, r + 8)}
-                cycle={cycle}
-              />
-            );
-          })}
+        <div className="absolute inset-0">
+          {placed.map((p) => (
+            <StickerCell
+              key={p.key}
+              trace={p.trace}
+              color={p.color}
+              x={p.x}
+              y={p.y}
+              size={p.size}
+              rot={p.rot}
+              phase={p.phase}
+              cycle={cycle}
+            />
+          ))}
         </div>
       )}
     </div>

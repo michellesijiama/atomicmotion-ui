@@ -12,7 +12,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
   const componentHref = `/components/${component.id}`;
   const cardClassName = Preview
     ? "group relative block text-[var(--jitter-ink)]"
-    : "block text-[var(--jitter-ink)]";
+    : "group block text-[var(--jitter-ink)]";
   const previewClassName =
     "relative aspect-[4/5] overflow-hidden rounded-[15px] bg-[#f2f2f4]";
 
@@ -25,7 +25,9 @@ export function ComponentCard({ component }: ComponentCardProps) {
           </div>
         </div>
         <div className="px-1 pt-3">
-          <p className="text-heading text-[var(--jitter-ink)]">{component.title}</p>
+          <p className="text-heading text-[var(--jitter-ink)] transition-transform duration-200 ease-out will-change-transform group-hover:translate-x-1.5">
+            {component.title}
+          </p>
         </div>
       </div>
     );
@@ -44,12 +46,14 @@ export function ComponentCard({ component }: ComponentCardProps) {
           <span className="rounded-full bg-gray-500/40 px-2.5 py-1 text-caption text-white backdrop-blur-sm">
             {component.category}
           </span>
-          <span className="rounded-full bg-gray-500/40 px-2.5 py-1 text-caption text-white backdrop-blur-sm">
+          <span className="rounded-full bg-gray-500/40 px-2.5 py-1 text-caption lowercase first-letter:uppercase text-white backdrop-blur-sm">
             {component.status}
           </span>
         </div>
       </div>
-      <p className="mt-3 px-1 text-heading text-[var(--jitter-ink)]">{component.title}</p>
+      <p className="mt-3 px-1 text-heading text-[var(--jitter-ink)] transition-transform duration-200 ease-out will-change-transform group-hover:translate-x-1.5">
+        {component.title}
+      </p>
     </Link>
   );
 }
