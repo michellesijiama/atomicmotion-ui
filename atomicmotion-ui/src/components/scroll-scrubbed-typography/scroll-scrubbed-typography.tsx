@@ -24,6 +24,8 @@ export function ScrollScrubbedTypography({
 }: ScrollScrubbedTypographyProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const targetRef = React.useRef<HTMLDivElement>(null);
+  const surfaceRef = React.useRef<HTMLDivElement>(null);
+  const [cursor, setCursor] = React.useState({ x: 0, y: 0, visible: false });
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     container: scrollRef,
@@ -47,6 +49,37 @@ export function ScrollScrubbedTypography({
           scaleY: shouldReduceMotion ? 1 : undefined,
         };
 
+  React.useEffect(() => {
+    if (loop) return;
+
+    const syncCursor = (event: PointerEvent) => {
+      const rect = surfaceRef.current?.getBoundingClientRect();
+      const visible = Boolean(
+        rect &&
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom,
+      );
+
+      setCursor({ x: event.clientX, y: event.clientY, visible });
+    };
+
+    const hideCursor = () => {
+      setCursor((current) => ({ ...current, visible: false }));
+    };
+
+    window.addEventListener("pointermove", syncCursor, { passive: true });
+    window.addEventListener("pointerleave", hideCursor);
+    window.addEventListener("blur", hideCursor);
+
+    return () => {
+      window.removeEventListener("pointermove", syncCursor);
+      window.removeEventListener("pointerleave", hideCursor);
+      window.removeEventListener("blur", hideCursor);
+    };
+  }, [loop]);
+
   return (
     <div
       className={cn(
@@ -55,6 +88,20 @@ export function ScrollScrubbedTypography({
       )}
     >
       <div
+        ref={surfaceRef}
+        onPointerEnter={
+          loop
+            ? undefined
+            : (event) => setCursor({ x: event.clientX, y: event.clientY, visible: true })
+        }
+        onPointerLeave={
+          loop ? undefined : () => setCursor((current) => ({ ...current, visible: false }))
+        }
+        onPointerMove={
+          loop
+            ? undefined
+            : (event) => setCursor({ x: event.clientX, y: event.clientY, visible: true })
+        }
         className={cn(
           "relative h-[min(64vh,620px)] max-h-[620px] overflow-hidden bg-[#16a147]",
           loop
@@ -83,7 +130,14 @@ export function ScrollScrubbedTypography({
                   repeatDelay: 0.4,
                 }}
               >
-                <div className="text-[clamp(42px,8vw,92px)] font-black uppercase leading-[0.74] tracking-[-0.075em]">
+                <div
+                  className={cn(
+                    "font-black uppercase",
+                    loop
+                      ? "text-[clamp(34px,6.2vw,70px)] leading-[0.66] tracking-[-0.055em]"
+                      : "text-[clamp(42px,8vw,92px)] leading-[0.74] tracking-[-0.075em]",
+                  )}
+                >
                   {TITLE_LINES.map((line) => (
                     <div key={line} className="whitespace-nowrap">
                       {line}
@@ -105,6 +159,22 @@ export function ScrollScrubbedTypography({
 
         </div>
       </div>
+
+      {!loop && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none fixed left-0 top-0 z-50 rounded-full bg-black px-3 py-1.5 text-[13px] font-medium text-white shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+          initial={false}
+          animate={{
+            opacity: cursor.visible ? 1 : 0,
+            x: cursor.x + 16,
+            y: cursor.y + 16,
+          }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
+        >
+          Scroll down
+        </motion.div>
+      )}
 
       <style jsx>{`
         div::-webkit-scrollbar {
