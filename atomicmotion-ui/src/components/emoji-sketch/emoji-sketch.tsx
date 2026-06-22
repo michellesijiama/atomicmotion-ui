@@ -24,7 +24,7 @@ const GEOMETRY = "path, circle, ellipse, line, polyline, polygon, rect";
 const BRUSH = 0.45;
 const MASK_W = 3;
 const CDN = "https://cdn.jsdelivr.net/npm/openmoji@15.0.0/black/svg";
-const CELL = 210;
+const CELL = 250;
 const INNER = 150;
 
 const average = (a: number, b: number) => (a + b) / 2;
@@ -149,7 +149,6 @@ const PALETTE = [
 // cells render and animate themselves on.
 const StickerCell = React.memo(function StickerCell({
   trace,
-  filterId,
   color,
   x,
   y,
@@ -158,7 +157,6 @@ const StickerCell = React.memo(function StickerCell({
   cycle,
 }: {
   trace: Trace;
-  filterId: string;
   color: string;
   x: number;
   y: number;
@@ -233,7 +231,7 @@ const StickerCell = React.memo(function StickerCell({
       {/* White die-cut base (the border) + colored body on top of it. */}
       <g className="am-body-white" dangerouslySetInnerHTML={{ __html: trace.markup }} />
       <g className="am-body-color" dangerouslySetInnerHTML={{ __html: trace.markup }} />
-      <g filter={`url(#${filterId})`}>
+      <g>
         {trace.strokes.map((s, i) => (
           <path key={i} d={s.outline} fill="var(--emoji-ink)" mask={`url(#cm-${uid}-${i})`} />
         ))}
@@ -243,7 +241,6 @@ const StickerCell = React.memo(function StickerCell({
 });
 
 export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
-  const uid = React.useId().replace(/[:]/g, "");
   const [traces, setTraces] = React.useState<Trace[]>([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [vp, setVp] = React.useState({ w: 0, h: 0 });
@@ -324,7 +321,6 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
     raf.current = requestAnimationFrame(step);
   };
 
-  const filterId = `wob-${uid}`;
   const cells: { key: string; c: number; r: number }[] = [];
   if (traces.length && vp.w && vp.h) {
     const c0 = Math.floor(offset.x / CELL) - 1;
@@ -371,16 +367,6 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
         `}
       </style>
 
-      {/* Shared hand-drawn wobble filter (light: no grain), referenced by all cells. */}
-      <svg className="pointer-events-none absolute size-0" aria-hidden="true">
-        <defs>
-          <filter id={filterId} x="-12%" y="-12%" width="124%" height="124%" colorInterpolationFilters="sRGB">
-            <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves={2} seed={3} result="n" />
-            <feDisplacementMap in="SourceGraphic" in2="n" scale={1.4} />
-          </filter>
-        </defs>
-      </svg>
-
       {traces.length === 0 ? (
         <span className="absolute inset-0 grid place-items-center text-body text-[var(--jitter-gray-400)]">
           inking stickers…
@@ -400,7 +386,6 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
               <StickerCell
                 key={key}
                 trace={trace}
-                filterId={filterId}
                 color={color}
                 x={c * CELL + (CELL - INNER) / 2 + jx}
                 y={r * CELL + (CELL - INNER) / 2 + jy}

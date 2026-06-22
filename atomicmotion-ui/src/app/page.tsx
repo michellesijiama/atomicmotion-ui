@@ -1,5 +1,6 @@
 import { ComponentCard } from "@/components/website/component-card";
 import { Reveal } from "@/components/website/reveal";
+import { RotatingWord } from "@/components/website/rotating-word";
 import { SiteFooter } from "@/components/website/site-footer";
 import { SiteHeader } from "@/components/website/site-header";
 import { componentList } from "@/lib/component-registry";
@@ -16,7 +17,8 @@ export default function Home() {
           <section className="py-20 sm:py-28 lg:py-32" aria-label="Introduction">
             <Reveal>
               <h1 className="mx-auto max-w-none whitespace-nowrap text-center text-[24px] leading-[1.3] tracking-[-0.02em] text-[var(--jitter-ink)]">
-                Micro-interactions designed for your agent to grab and share
+                Open-sourced interaction inspirations designed for{" "}
+                <RotatingWord words={["designers", "agents"]} />
               </h1>
             </Reveal>
           </section>
