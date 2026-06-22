@@ -59,9 +59,28 @@ const checks = [
     files.component.includes("text-[clamp(42px,8vw,92px)]") &&
       files.component.includes("tracking-[-0.075em]"),
   ],
+  [
+    "home card loop title uses smaller fit-safe typography",
+    files.component.includes('? "text-[clamp(34px,6.2vw,70px)] leading-[0.66] tracking-[-0.055em]"') &&
+      files.component.includes(': "text-[clamp(42px,8vw,92px)] leading-[0.74] tracking-[-0.075em]"'),
+  ],
   ["component uses scroll progress", files.component.includes("useScroll") && files.component.includes("useTransform")],
   ["scroll container is positioned for useScroll", files.component.includes('"relative h-full overflow-y-auto')],
   ["component has reduced motion fallback", files.component.includes("useReducedMotion")],
+  [
+    "detail page shows scroll down cursor only on green surface hover",
+    files.component.includes("Scroll down") &&
+      files.component.includes("surfaceRef") &&
+      files.component.includes("getBoundingClientRect") &&
+      files.component.includes('addEventListener("pointermove"') &&
+      files.component.includes("onPointerMove") &&
+      files.component.includes("onPointerEnter") &&
+      files.component.includes("onPointerLeave") &&
+      files.component.includes("pointer-events-none fixed") &&
+      !files.component.includes("scroll-scrubbed-cursor-page") &&
+      !files.component.includes("cursor-none") &&
+      !files.component.includes('addEventListener("mousemove"'),
+  ],
   [
     "component removes Getty-style chrome labels",
     !["Chapter I", "Ship in the Box", "Sound", "[Menu]"].some((label) =>
@@ -86,7 +105,7 @@ const checks = [
   ],
   [
     "component keeps the scroll experience on one green surface",
-    !files.component.includes("bg-black") && !files.component.includes("text-white"),
+    !files.component.includes("<section") && !files.component.includes("place-items-center bg-black"),
   ],
   [
     "component keeps the description on the green surface under the typography",
