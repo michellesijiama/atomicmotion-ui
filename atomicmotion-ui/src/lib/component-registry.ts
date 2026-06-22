@@ -70,15 +70,18 @@ export const componentRegistry = {
     codePath: "src/components/expanded-navigation/expanded-navigation.tsx",
     inspiredBy: { label: "Jitter", href: "https://madewithjitter.com" },
   }),
-  placeholderTwo: createComponentMeta({
-    id: "placeholder-two",
+  scrollScrubbedTypography: createComponentMeta({
+    id: "scroll-scrubbed-typography",
     index: "003",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/placeholder/placeholder.tsx",
+    title: "Scroll-Scrubbed Typography",
+    description:
+      "A sticky editorial title that stretches tall, then compresses as scroll progress scrubs its vertical scale",
+    category: "Typography",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    codePath:
+      "src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx",
+    inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
   placeholderThree: createComponentMeta({
     id: "placeholder-three",

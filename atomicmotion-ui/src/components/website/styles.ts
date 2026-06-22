@@ -3,10 +3,11 @@
 export const navTextClass = "text-base"; // 16px — nav typography
 export const navIconClass = "size-4"; // 16px — nav icons
 
-// Frosted pill fill — gray wash that darkens on hover.
-export const navLinkClass = `inline-flex h-8 items-center gap-1.5 rounded-full bg-[#f5f5f5]/75 px-3 ${navTextClass} text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[#eeeeee]/85 hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10`;
+// Nav surface tokens live in globals.css so the shell can remove or tune fills
+// without touching individual navigation components.
+export const navLinkClass = `inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--am-nav-bg)] px-3 ${navTextClass} text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[var(--am-nav-hover-bg)] hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--am-nav-focus-ring)]`;
 
-export const navIconButtonClass = `inline-flex size-8 items-center justify-center rounded-full bg-[#f5f5f5]/75 text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[#eeeeee]/85 hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10`;
+export const navIconButtonClass = `inline-flex size-8 items-center justify-center rounded-full bg-[var(--am-nav-bg)] text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[var(--am-nav-hover-bg)] hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--am-nav-focus-ring)]`;
 
 // Shared action-button tokens — no zoom/scale; hover communicates state
 // purely through color, in keeping with the rest of the system.
