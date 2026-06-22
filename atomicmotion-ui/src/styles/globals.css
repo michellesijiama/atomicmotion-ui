@@ -94,20 +94,29 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* rico-style entrance: fade + subtle slide-up, staggered via animation-delay. */
+/* Jitter-style entrance: content settles up from below with a soft blur that
+   resolves, on a long expo ease-out. Staggered via animation-delay so blocks
+   cascade in rather than appearing all at once. */
 @keyframes am-reveal {
   from {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(34px);
+    filter: blur(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+    filter: blur(0);
   }
 }
 
 .am-reveal {
-  animation: am-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* `backwards` (not `both`): applies the from-state before the delay, but
+     reverts to the element's natural styles once finished — leaving NO
+     lingering transform/filter that would permanently break a descendant's
+     backdrop-filter (e.g. the frosted Soft Menu Reveal card). The `to`
+     keyframe equals the resting state, so the revert is seamless. */
+  animation: am-reveal 1.15s cubic-bezier(0.62, 0, 0.32, 1) backwards;
 }
 
 /* Dropdown surface animation: fade + subtle scale-up from the top. */

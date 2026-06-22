@@ -50,13 +50,18 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   }
 
   // Single screen, no scrolling: fixed-height header + preview fills the rest.
+  // Same Jitter-style cascade as the home page so entering any component page
+  // reveals the header then the preview.
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-      <div className="relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
+      <div className="am-reveal relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
         <SiteHeader component={component} />
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden px-6 pb-6 sm:px-8 lg:px-12">
+      <div
+        className="am-reveal grid min-h-0 flex-1 grid-cols-1 overflow-hidden px-6 pb-6 sm:px-8 lg:px-12"
+        style={{ animationDelay: "0.1s" }}
+      >
         <Preview />
       </div>
     </div>
