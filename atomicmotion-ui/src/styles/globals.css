@@ -17,6 +17,9 @@
   --jitter-orange: #ff8316;
   --am-header-bg: transparent;
   --am-header-border: rgba(14, 16, 17, 0.1);
+  --am-nav-bg: transparent;
+  --am-nav-hover-bg: rgba(14, 16, 17, 0.06);
+  --am-nav-focus-ring: rgba(14, 16, 17, 0.1);
   --am-reader-font: var(--font-plus-jakarta-sans);
   --background: var(--jitter-bg);
   --foreground: var(--jitter-ink);
