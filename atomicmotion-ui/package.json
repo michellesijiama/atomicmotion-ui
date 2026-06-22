@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:design": "node scripts/verify-jitter-design-system.mjs"
+    "test:design": "node scripts/verify-jitter-design-system.mjs",
+    "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

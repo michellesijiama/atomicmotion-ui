@@ -70,9 +70,21 @@ export const componentRegistry = {
     codePath: "src/components/expanded-navigation/expanded-navigation.tsx",
     inspiredBy: { label: "Jitter", href: "https://madewithjitter.com" },
   }),
+  filterDropdownReveal: createComponentMeta({
+    id: "filter-dropdown-reveal",
+    index: "003",
+    title: "Filter Dropdown Reveal",
+    description:
+      "A project filter bar with a soft gray dropdown and clipped text reveal",
+    category: "Navigation",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    codePath: "src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx",
+    inspiredBy: { label: "MAD", href: "https://www.i-mad.com/projects?page=2" },
+  }),
   scrollScrubbedTypography: createComponentMeta({
     id: "scroll-scrubbed-typography",
-    index: "003",
+    index: "004",
     title: "Scroll-Scrubbed Typography",
     description:
       "A sticky editorial title that stretches tall, then compresses as scroll progress scrubs its vertical scale",
@@ -85,7 +97,7 @@ export const componentRegistry = {
   }),
   placeholderThree: createComponentMeta({
     id: "placeholder-three",
-    index: "004",
+    index: "005",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
@@ -95,7 +107,7 @@ export const componentRegistry = {
   }),
   placeholderFour: createComponentMeta({
     id: "placeholder-four",
-    index: "005",
+    index: "006",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
@@ -105,7 +117,7 @@ export const componentRegistry = {
   }),
   placeholderFive: createComponentMeta({
     id: "placeholder-five",
-    index: "006",
+    index: "007",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
@@ -115,7 +127,7 @@ export const componentRegistry = {
   }),
   placeholderSix: createComponentMeta({
     id: "placeholder-six",
-    index: "007",
+    index: "008",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
@@ -125,7 +137,7 @@ export const componentRegistry = {
   }),
   placeholderSeven: createComponentMeta({
     id: "placeholder-seven",
-    index: "008",
+    index: "009",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
