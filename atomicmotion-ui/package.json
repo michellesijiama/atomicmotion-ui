@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:design": "node scripts/verify-jitter-design-system.mjs",
-    "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs"
+    "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs",
+    "test:codex-sidebar": "node scripts/verify-codex-sidebar-reveal.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

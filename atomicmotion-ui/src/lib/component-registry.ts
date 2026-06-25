@@ -95,15 +95,17 @@ export const componentRegistry = {
       "src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx",
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
-  placeholderThree: createComponentMeta({
-    id: "placeholder-three",
+  codexSidebarReveal: createComponentMeta({
+    id: "codex-sidebar-reveal",
     index: "005",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/placeholder/placeholder.tsx",
+    title: "Codex Sidebar Reveal",
+    description:
+      "A compact app shell where a top-left icon press expands the left sidebar and shifts the workspace",
+    category: "Navigation",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    codePath: "src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx",
+    inspiredBy: { label: "Codex", href: "https://openai.com/codex" },
   }),
   placeholderFour: createComponentMeta({
     id: "placeholder-four",
