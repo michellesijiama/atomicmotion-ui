@@ -10,7 +10,8 @@
     "test:design": "node scripts/verify-jitter-design-system.mjs",
     "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs",
     "test:codex-sidebar": "node scripts/verify-codex-sidebar-reveal.mjs",
-    "test:card-padding": "node scripts/verify-component-card-padding.mjs"
+    "test:card-padding": "node scripts/verify-component-card-padding.mjs",
+    "test:home-filter": "node scripts/verify-home-filter.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
