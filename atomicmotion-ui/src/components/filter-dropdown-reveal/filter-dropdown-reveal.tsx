@@ -61,22 +61,45 @@ const panelTransition = {
 
 export function FilterDropdownReveal({ className, loop = false }: FilterDropdownRevealProps) {
   const [activeGroup, setActiveGroup] = React.useState<FilterGroup | null>(null);
+  const [loopPressedGroup, setLoopPressedGroup] = React.useState<FilterGroup | null>(null);
   const rootRef = React.useRef<HTMLDivElement>(null);
+  const panelClassName = cn(
+    "absolute top-[calc(100%+12px)] z-50 overflow-hidden rounded-xl bg-[rgba(1,1,1,0.4)] text-white shadow-none backdrop-blur-[2px] will-change-transform",
+    loop
+      ? "left-[calc(50%-328px)] w-[336px] p-5"
+      : "left-0 w-[min(360px,calc(100vw-48px))] p-6",
+  );
+  const contentClassName = cn(
+    "relative w-full",
+    loop ? "max-w-[560px] -translate-y-24" : "max-w-[620px] -translate-y-24",
+  );
+  const filterRowClassName = cn(
+    "relative z-10 flex items-start justify-center gap-3",
+    loop ? "flex-nowrap" : "flex-wrap",
+  );
 
   React.useEffect(() => {
     if (!loop) return;
 
+    let openTimer: ReturnType<typeof setTimeout> | undefined;
     let closeTimer: ReturnType<typeof setTimeout> | undefined;
     const openPanel = () => {
-      setActiveGroup("Typology");
-      closeTimer = setTimeout(() => setActiveGroup(null), 2300);
+      setActiveGroup(null);
+      setLoopPressedGroup("Typology");
+
+      openTimer = setTimeout(() => {
+        setLoopPressedGroup(null);
+        setActiveGroup("Typology");
+        closeTimer = setTimeout(() => setActiveGroup(null), 2300);
+      }, 190);
     };
 
-    const startTimer = setTimeout(openPanel, 650);
+    const pressTimer = setTimeout(openPanel, 2000);
     const interval = setInterval(openPanel, 5000);
 
     return () => {
-      clearTimeout(startTimer);
+      if (pressTimer) clearTimeout(pressTimer);
+      if (openTimer) clearTimeout(openTimer);
       clearInterval(interval);
       if (closeTimer) clearTimeout(closeTimer);
     };
@@ -113,18 +136,28 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
         } as React.CSSProperties
       }
     >
-      <div className="relative w-full max-w-[620px] -translate-y-24">
-        <div className="relative z-10 flex flex-wrap items-start gap-3">
+      <div className={contentClassName}>
+        <div className={filterRowClassName}>
           {FILTER_GROUPS.map((group) => {
             const isActive = activeGroup === group.label;
+            const isLoopPressed = loopPressedGroup === group.label;
 
             return (
               <div key={group.label} className="relative">
-                <button
+                <motion.button
                   type="button"
                   onClick={() => setActiveGroup(isActive ? null : group.label)}
                   aria-expanded={isActive}
                   aria-haspopup="true"
+                  animate={{
+                    scale: isLoopPressed ? 0.96 : 1,
+                    y: isLoopPressed ? 1 : 0,
+                  }}
+                  transition={{
+                    duration: 0.18,
+                    ease: bellCurveEase,
+                  }}
+                  whileTap={{ scale: 0.96, y: 1 }}
                   className={cn(
                     "group inline-flex h-[42px] min-w-[112px] items-center justify-between gap-5 rounded-xl px-5 font-mono text-[13px] font-semibold uppercase tracking-[0.14em] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10",
                     isActive
@@ -136,7 +169,7 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                   <span className="text-[25px] font-normal leading-none">
                     {isActive ? "-" : "+"}
                   </span>
-                </button>
+                </motion.button>
 
                 <motion.div
                   initial={false}
@@ -145,7 +178,7 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                     y: isActive ? 0 : 20,
                   }}
                   transition={panelTransition}
-                  className="absolute left-0 top-[calc(100%+12px)] z-50 w-[min(360px,calc(100vw-48px))] overflow-hidden rounded-xl bg-[rgba(1,1,1,0.4)] p-6 text-white shadow-none backdrop-blur-[2px] will-change-transform"
+                  className={panelClassName}
                   aria-hidden={!isActive}
                   style={{ pointerEvents: isActive ? "auto" : "none" }}
                 >
@@ -156,7 +189,10 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                         type="button"
                         tabIndex={isActive ? 0 : -1}
                         onClick={() => setActiveGroup(null)}
-                        className="relative z-10 flex min-h-[31px] w-[150px] items-center overflow-hidden py-1.5 text-left text-[16px] leading-[1.2] text-white/50 transition-all duration-150 ease-out hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                        className={cn(
+                          "relative z-10 flex min-h-[31px] items-center overflow-hidden py-1.5 text-left text-[16px] leading-[1.2] text-white/50 transition-all duration-150 ease-out hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30",
+                          loop ? "w-[136px]" : "w-[150px]",
+                        )}
                       >
                         <span className="block overflow-hidden">
                           <motion.span
