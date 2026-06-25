@@ -14,6 +14,7 @@ export type ComponentMeta = {
   category: string;
   status: string;
   statusClassName: string;
+  createdAt: string;
   codePath: string;
   codeHref: string;
   aiPrompt: string;
@@ -55,6 +56,7 @@ export const componentRegistry = {
     category: "Tool",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-20",
     codePath: "src/components/emoji-sketch/emoji-sketch.tsx",
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
@@ -67,6 +69,7 @@ export const componentRegistry = {
     category: "Navigation",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-20",
     codePath: "src/components/expanded-navigation/expanded-navigation.tsx",
     inspiredBy: { label: "Jitter", href: "https://madewithjitter.com" },
   }),
@@ -79,6 +82,7 @@ export const componentRegistry = {
     category: "Navigation",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-22",
     codePath: "src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx",
     inspiredBy: { label: "MAD", href: "https://www.i-mad.com/projects?page=2" },
   }),
@@ -91,6 +95,7 @@ export const componentRegistry = {
     category: "Typography",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-22",
     codePath:
       "src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx",
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
@@ -104,6 +109,7 @@ export const componentRegistry = {
     category: "Navigation",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-25",
     codePath: "src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx",
     inspiredBy: { label: "Codex", href: "https://openai.com/codex" },
   }),
@@ -115,6 +121,7 @@ export const componentRegistry = {
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    createdAt: "2026-06-16",
     codePath: "src/components/placeholder/placeholder.tsx",
   }),
   placeholderFive: createComponentMeta({
@@ -125,6 +132,7 @@ export const componentRegistry = {
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    createdAt: "2026-06-16",
     codePath: "src/components/placeholder/placeholder.tsx",
   }),
   placeholderSix: createComponentMeta({
@@ -135,6 +143,7 @@ export const componentRegistry = {
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    createdAt: "2026-06-16",
     codePath: "src/components/placeholder/placeholder.tsx",
   }),
   placeholderSeven: createComponentMeta({
@@ -145,6 +154,7 @@ export const componentRegistry = {
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    createdAt: "2026-06-16",
     codePath: "src/components/placeholder/placeholder.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
