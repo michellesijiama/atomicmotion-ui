@@ -1,4 +1,4 @@
-import { ComponentCard } from "@/components/website/component-card";
+import { HomeComponentBrowser } from "@/components/website/home-component-browser";
 import { Reveal } from "@/components/website/reveal";
 import { RotatingWord } from "@/components/website/rotating-word";
 import { SiteFooter } from "@/components/website/site-footer";
@@ -23,16 +23,12 @@ export default function Home() {
                 <RotatingWord words={["designers", "agents"]} />
               </h1>
             </Reveal>
-          </section>
 
-          <section className="pb-10" aria-label="UI components">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {componentList.map((component, index) => (
-                <Reveal key={component.id} delay={0.2 + index * 0.07}>
-                  <ComponentCard component={component} />
-                </Reveal>
-              ))}
-            </div>
+            <Reveal delay={0.18}>
+              <div className="mt-10">
+                <HomeComponentBrowser components={componentList} />
+              </div>
+            </Reveal>
           </section>
         </div>
 

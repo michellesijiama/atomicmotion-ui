@@ -14,6 +14,7 @@ export type ComponentMeta = {
   category: string;
   status: string;
   statusClassName: string;
+  createdAt: string;
   codePath: string;
   codeHref: string;
   aiPrompt: string;
@@ -55,6 +56,7 @@ export const componentRegistry = {
     category: "Tool",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-20",
     codePath: "src/components/emoji-sketch/emoji-sketch.tsx",
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
@@ -67,67 +69,92 @@ export const componentRegistry = {
     category: "Navigation",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-20",
     codePath: "src/components/expanded-navigation/expanded-navigation.tsx",
     inspiredBy: { label: "Jitter", href: "https://madewithjitter.com" },
   }),
-  placeholderTwo: createComponentMeta({
-    id: "placeholder-two",
+  filterDropdownReveal: createComponentMeta({
+    id: "filter-dropdown-reveal",
     index: "003",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/placeholder/placeholder.tsx",
+    title: "Filter Dropdown Reveal",
+    description:
+      "A project filter bar with a soft gray dropdown and clipped text reveal",
+    category: "Navigation",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-22",
+    codePath: "src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx",
+    inspiredBy: { label: "MAD", href: "https://www.i-mad.com/projects?page=2" },
   }),
-  placeholderThree: createComponentMeta({
-    id: "placeholder-three",
+  scrollScrubbedTypography: createComponentMeta({
+    id: "scroll-scrubbed-typography",
     index: "004",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/placeholder/placeholder.tsx",
+    title: "Scroll-Scrubbed Typography",
+    description:
+      "A sticky editorial title that stretches tall, then compresses as scroll progress scrubs its vertical scale",
+    category: "Typography",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-22",
+    codePath:
+      "src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx",
+    inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
+  }),
+  codexSidebarReveal: createComponentMeta({
+    id: "codex-sidebar-reveal",
+    index: "005",
+    title: "Codex Sidebar Reveal",
+    description:
+      "A compact app shell where a top-left icon press expands the left sidebar and shifts the workspace",
+    category: "Navigation",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-25",
+    codePath: "src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx",
+    inspiredBy: { label: "Codex", href: "https://openai.com/codex" },
   }),
   placeholderFour: createComponentMeta({
     id: "placeholder-four",
-    index: "005",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    codePath: "src/components/placeholder/placeholder.tsx",
-  }),
-  placeholderFive: createComponentMeta({
-    id: "placeholder-five",
     index: "006",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    createdAt: "2026-06-16",
     codePath: "src/components/placeholder/placeholder.tsx",
   }),
-  placeholderSix: createComponentMeta({
-    id: "placeholder-six",
+  placeholderFive: createComponentMeta({
+    id: "placeholder-five",
     index: "007",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    createdAt: "2026-06-16",
     codePath: "src/components/placeholder/placeholder.tsx",
   }),
-  placeholderSeven: createComponentMeta({
-    id: "placeholder-seven",
+  placeholderSix: createComponentMeta({
+    id: "placeholder-six",
     index: "008",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
     status: "SOON",
     statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    createdAt: "2026-06-16",
+    codePath: "src/components/placeholder/placeholder.tsx",
+  }),
+  placeholderSeven: createComponentMeta({
+    id: "placeholder-seven",
+    index: "009",
+    title: "Placeholder",
+    description: "Coming soon.",
+    category: "UI",
+    status: "SOON",
+    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
+    createdAt: "2026-06-16",
     codePath: "src/components/placeholder/placeholder.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
