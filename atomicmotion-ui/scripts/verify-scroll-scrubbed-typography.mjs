@@ -124,7 +124,7 @@ const checks = [
         files.component.indexOf('aria-label="Scroll-Scrubbed Typography description"') &&
       !files.component.includes("scrubs its vertical scale."),
   ],
-  ["nav background token is transparent", files.globals.includes("--am-nav-bg: transparent")],
+  ["nav background token restores gray fill", files.globals.includes("--am-nav-bg: rgba(14, 16, 17, 0.06)")],
   ["nav hover background token exists", files.globals.includes("--am-nav-hover-bg:")],
   [
     "top navigation fill is tokenized",
