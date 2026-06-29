@@ -4,6 +4,7 @@ import { CodexSidebarReveal } from "@/components/codex-sidebar-reveal";
 import { EmojiSketch } from "@/components/emoji-sketch";
 import { ExpandedNavigation } from "@/components/expanded-navigation";
 import { FilterDropdownReveal } from "@/components/filter-dropdown-reveal";
+import { GeminiLive } from "@/components/gemini-live";
 import { ScrollScrubbedTypography } from "@/components/scroll-scrubbed-typography";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
@@ -22,6 +23,10 @@ function CodexSidebarRevealPreview({ loop }: { loop?: boolean }) {
   return <CodexSidebarReveal loop={loop} />;
 }
 
+function GeminiLivePreview({ loop }: { loop?: boolean }) {
+  return <GeminiLive loop={loop} />;
+}
+
 function ScrollScrubbedTypographyPreview({ loop }: { loop?: boolean }) {
   return <ScrollScrubbedTypography loop={loop} className={loop ? "px-16" : undefined} />;
 }
@@ -32,4 +37,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "filter-dropdown-reveal": FilterDropdownRevealPreview,
   "scroll-scrubbed-typography": ScrollScrubbedTypographyPreview,
   "codex-sidebar-reveal": CodexSidebarRevealPreview,
+  "gemini-live": GeminiLivePreview,
 };
