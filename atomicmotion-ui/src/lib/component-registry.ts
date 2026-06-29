@@ -113,9 +113,22 @@ export const componentRegistry = {
     codePath: "src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx",
     inspiredBy: { label: "Codex", href: "https://openai.com/codex" },
   }),
+  geminiLive: createComponentMeta({
+    id: "gemini-live",
+    index: "006",
+    title: "Gemini Live",
+    description:
+      "A floating live-assistant panel with source chips, blue edge glow, listening pulses, and compact pause and keyboard controls",
+    category: "AI",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-06-28",
+    codePath: "src/components/gemini-live/gemini-live.tsx",
+    inspiredBy: { label: "Gemini", href: "https://gemini.google.com" },
+  }),
   placeholderFour: createComponentMeta({
     id: "placeholder-four",
-    index: "006",
+    index: "007",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
@@ -126,7 +139,7 @@ export const componentRegistry = {
   }),
   placeholderFive: createComponentMeta({
     id: "placeholder-five",
-    index: "007",
+    index: "008",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
@@ -137,7 +150,7 @@ export const componentRegistry = {
   }),
   placeholderSix: createComponentMeta({
     id: "placeholder-six",
-    index: "008",
+    index: "009",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",
@@ -148,7 +161,7 @@ export const componentRegistry = {
   }),
   placeholderSeven: createComponentMeta({
     id: "placeholder-seven",
-    index: "009",
+    index: "010",
     title: "Placeholder",
     description: "Coming soon.",
     category: "UI",

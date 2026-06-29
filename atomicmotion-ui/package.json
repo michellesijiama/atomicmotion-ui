@@ -11,6 +11,7 @@
     "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs",
     "test:codex-sidebar": "node scripts/verify-codex-sidebar-reveal.mjs",
     "test:card-padding": "node scripts/verify-component-card-padding.mjs",
+    "test:gemini-live": "node scripts/verify-gemini-live.mjs",
     "test:home-filter": "node scripts/verify-home-filter.mjs"
   },
   "dependencies": {
