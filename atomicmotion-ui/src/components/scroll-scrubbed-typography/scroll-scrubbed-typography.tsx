@@ -25,6 +25,8 @@ export function ScrollScrubbedTypography({
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const targetRef = React.useRef<HTMLDivElement>(null);
   const surfaceRef = React.useRef<HTMLDivElement>(null);
+  const titleRef = React.useRef<HTMLDivElement>(null);
+  const [titleHeight, setTitleHeight] = React.useState(0);
   const [cursor, setCursor] = React.useState({ x: 0, y: 0, visible: false });
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
@@ -32,12 +34,36 @@ export function ScrollScrubbedTypography({
     target: targetRef,
     offset: ["start start", "end start"],
   });
-  const compressedScale = useTransform(scrollYProgress, [0, 0.72], [1.95, 0.42]);
+  const compressedScale = useTransform(scrollYProgress, [0, 1], [1.95, 0.42]);
   const springScale = useSpring(compressedScale, {
     stiffness: 160,
     damping: 32,
     mass: 0.7,
   });
+
+  // The title scales with `transform: scaleY` (origin-top), which doesn't change
+  // its layout box. So the description below would keep a fixed layout gap while
+  // the *visual* gap grows/shrinks. We measure the title's layout height and
+  // translate the description by titleHeight*(scale-1) so it tracks the
+  // compressed bottom edge with a constant 24px gap as scroll scrubs.
+  const descriptionShift = useTransform(
+    springScale,
+    // Title scales from its center (origin-center), so its visual bottom moves
+    // by half the height delta — match that so the 24px gap stays constant.
+    (scale) => (titleHeight / 2) * (scale - 1),
+  );
+
+  // Measure the title's natural (unscaled) layout height — offsetHeight ignores
+  // transforms, so this stays the layout height regardless of the scaleY scrub.
+  React.useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    const measure = () => setTitleHeight(el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const titleStyle = loop || shouldReduceMotion ? undefined : { scaleY: springScale };
   const titleAnimate =
@@ -103,7 +129,10 @@ export function ScrollScrubbedTypography({
             : (event) => setCursor({ x: event.clientX, y: event.clientY, visible: true })
         }
         className={cn(
-          "relative h-[min(64vh,620px)] max-h-[620px] overflow-hidden bg-[#16a147]",
+          // container-type:inline-size → the title can size its type to THIS
+          // box's width (cqw) instead of the viewport, so it always fits and is
+          // never cropped, at any screen size.
+          "relative h-[min(64vh,620px)] max-h-[620px] overflow-hidden bg-[#16a147] [container-type:inline-size]",
           loop
             ? "w-[min(68vw,620px)] max-w-[620px]"
             : "w-[min(86vw,760px)] max-w-[760px]",
@@ -116,12 +145,13 @@ export function ScrollScrubbedTypography({
             loop && "pointer-events-none overflow-hidden",
           )}
         >
-          <div ref={targetRef} className="relative h-[175vh] min-h-[920px]">
-            <div className="sticky top-0 flex h-full max-h-screen flex-col items-start overflow-hidden px-5 pt-16 sm:px-7 sm:pt-20">
+          <div ref={targetRef} className="relative h-[135vh] min-h-[700px]">
+            <div className="sticky top-0 flex h-[min(64vh,620px)] max-h-[620px] flex-col items-start justify-center overflow-hidden px-5 sm:px-7">
               <motion.div
+                ref={titleRef}
                 aria-label="Scroll-Scrubbed Compression"
                 animate={titleAnimate}
-                className="origin-top [font-stretch:condensed] will-change-transform"
+                className="origin-center [font-stretch:condensed] will-change-transform"
                 style={titleStyle}
                 transition={{
                   duration: 5.2,
@@ -134,8 +164,8 @@ export function ScrollScrubbedTypography({
                   className={cn(
                     "font-black uppercase",
                     loop
-                      ? "text-[clamp(34px,6.2vw,70px)] leading-[0.66] tracking-[-0.055em]"
-                      : "text-[clamp(42px,8vw,92px)] leading-[0.74] tracking-[-0.075em]",
+                      ? "text-[clamp(24px,9.5cqw,70px)] leading-[0.66] tracking-[-0.055em]"
+                      : "text-[clamp(28px,9.5cqw,92px)] leading-[0.74] tracking-[-0.075em]",
                   )}
                 >
                   {TITLE_LINES.map((line) => (
@@ -146,13 +176,14 @@ export function ScrollScrubbedTypography({
                 </div>
               </motion.div>
               {!loop && (
-                <p
+                <motion.p
                   aria-label="Scroll-Scrubbed Typography description"
-                  className="mt-28 max-w-[520px] text-[clamp(16px,2.4vw,24px)] font-medium leading-[1.08] tracking-[-0.035em] text-black/75"
+                  style={shouldReduceMotion ? undefined : { y: descriptionShift }}
+                  className="mt-6 max-w-[520px] text-[clamp(16px,2.4vw,24px)] font-medium leading-[1.08] tracking-[-0.035em] text-black/75"
                 >
                   A sticky title compresses against the top edge as scroll
                   progress scrubs its vertical scale
-                </p>
+                </motion.p>
               )}
             </div>
           </div>

@@ -18,7 +18,7 @@ export default function Home() {
 
           <section className="py-20 sm:py-28 lg:py-32" aria-label="Introduction">
             <Reveal delay={0.1}>
-              <h1 className="mx-auto max-w-none whitespace-nowrap text-center text-[26px] leading-[1.3] tracking-[-0.02em] text-[var(--jitter-ink)]">
+              <h1 className="mx-auto max-w-3xl text-balance text-center text-[26px] leading-[1.3] tracking-[-0.02em] text-[var(--jitter-ink)]">
                 Open-sourced interaction inspirations designed for{" "}
                 <RotatingWord words={["designers", "agents"]} />
               </h1>
