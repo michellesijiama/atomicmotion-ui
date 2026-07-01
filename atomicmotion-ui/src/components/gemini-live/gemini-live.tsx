@@ -10,7 +10,6 @@ export type GeminiLiveProps = {
   loop?: boolean;
 };
 
-const ease = [0.45, 0, 0.55, 1] as const;
 const m3ColorScheme = {
   surface: "#141218",
   surfaceContainerLow: "#1d1b20",
@@ -50,7 +49,7 @@ const edgeWaveFrequencyPaths = {
 const m3IconButtonClassName =
   "inline-flex size-10 items-center justify-center rounded-full text-[var(--m3-on-surface-variant)] transition-colors hover:bg-white/8 hover:text-[var(--m3-on-surface)] focus-visible:outline-none";
 const m3BottomControlButtonClassName =
-  "group relative inline-flex h-8 w-[43px] items-center justify-center rounded-[10px] text-[var(--m3-on-surface-variant)] transition-colors hover:bg-white/10 hover:text-[var(--m3-on-surface)] focus-visible:outline-none";
+  "inline-flex h-8 w-[43px] items-center justify-center rounded-[10px] text-[var(--m3-on-surface-variant)] focus-visible:outline-none";
 const sourceChipClassName =
   "inline-flex h-10 items-center gap-2 rounded-[7px] bg-[#243a61] px-3 text-[15px] font-medium text-[#d8e3f8] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
 
@@ -60,8 +59,7 @@ type MaterialSymbolName =
   | "info"
   | "keyboard"
   | "more_vert"
-  | "pause"
-  | "play_arrow";
+  | "pause";
 
 function MaterialSymbolIcon({
   name,
@@ -91,14 +89,6 @@ function MaterialSymbolIcon({
     return (
       <svg {...commonProps}>
         <path d="M7 19c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h2.5c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1H7Zm7.5 0c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1H17c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1h-2.5Z" />
-      </svg>
-    );
-  }
-
-  if (name === "play_arrow") {
-    return (
-      <svg {...commonProps}>
-        <path d="M8 18.3V5.7c0-.78.86-1.25 1.52-.83l9.9 6.3c.61.39.61 1.27 0 1.66l-9.9 6.3C8.86 19.55 8 19.08 8 18.3Z" />
       </svg>
     );
   }
@@ -316,18 +306,6 @@ function AnimatedListeningGlow({ active }: { active: boolean }) {
 }
 
 export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
-  const [isListening, setIsListening] = React.useState(true);
-
-  React.useEffect(() => {
-    if (!loop) return;
-
-    const interval = setInterval(() => {
-      setIsListening((value) => !value);
-    }, 2600);
-
-    return () => clearInterval(interval);
-  }, [loop]);
-
   return (
     <div
       className={cn(
@@ -340,11 +318,6 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
       }}
     >
       <motion.div
-        initial={false}
-        animate={{
-          scale: isListening ? 1 : 0.992,
-        }}
-        transition={{ duration: 0.5, ease }}
         className={cn(
           "relative aspect-[1.95/1] w-full max-w-[920px] overflow-hidden rounded-[28px] ring-1",
           activeListeningRestrictedEdgeGlow,
@@ -365,7 +338,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
               "linear-gradient(135deg, rgba(138,180,248,0.08), rgba(66,133,244,0.04) 42%, rgba(29,27,32,0) 72%)",
           }}
         />
-        <AnimatedListeningGlow active={isListening} />
+        <AnimatedListeningGlow active={true} />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-4 z-[2] rounded-[22px] blur-md"
@@ -375,15 +348,12 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
         />
         <div className="relative z-10 flex h-full flex-col px-4 py-4 sm:px-8 sm:py-5">
           <div className="flex items-start justify-between gap-4">
-            <motion.p
-              initial={false}
-              animate={{ opacity: isListening ? 1 : 0.62 }}
-              transition={{ duration: 0.28, ease }}
+            <p
               className="text-[20px] font-normal leading-none sm:text-[22px]"
               style={{ color: m3ColorScheme.onSurface }}
             >
-              {isListening ? "Listening..." : "Live is paused"}
-            </motion.p>
+              Listening...
+            </p>
 
             <div className="flex items-center gap-1 sm:gap-3">
               <button
@@ -441,24 +411,11 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
             >
               <button
                 type="button"
-                aria-label={isListening ? "Stop listening" : "Start listening"}
-                onClick={() => setIsListening((value) => !value)}
+                aria-label="Pause"
                 className={m3BottomControlButtonClassName}
               >
-                {isListening ? (
-                  <MaterialSymbolIcon name="pause" className="size-[22px]" />
-                ) : (
-                  <MaterialSymbolIcon name="play_arrow" className="size-[22px]" />
-                )}
-                <span className="sr-only">
-                  {isListening ? "Stop listening" : "Start listening"}
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute bottom-[calc(100%+12px)] left-0 z-20 whitespace-nowrap rounded-[6px] bg-[#f4f2f0] px-4 py-2 text-[14px] font-normal leading-none text-[#34302f] opacity-0 shadow-[0_2px_4px_rgba(0,0,0,0.18)] transition-opacity duration-150 group-hover:opacity-100"
-                >
-                  {isListening ? "Stop listening" : "Start listening"}
-                </span>
+                <MaterialSymbolIcon name="pause" className="size-[22px]" />
+                <span className="sr-only">Pause</span>
               </button>
               <span
                 className="h-7 w-px"
@@ -471,12 +428,6 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
                 className={m3BottomControlButtonClassName}
               >
                 <MaterialSymbolIcon name="keyboard" className="size-[22px]" />
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute bottom-[calc(100%+12px)] right-0 z-20 whitespace-nowrap rounded-[6px] bg-[#f4f2f0] px-4 py-2 text-[14px] font-normal leading-none text-[#34302f] opacity-0 shadow-[0_2px_4px_rgba(0,0,0,0.18)] transition-opacity duration-150 group-hover:opacity-100"
-                >
-                  Switch to text mode
-                </span>
               </button>
             </div>
           </div>
