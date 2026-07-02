@@ -270,13 +270,13 @@ function EdgeWave({ active, side }: { active: boolean; side: EdgeWaveSide }) {
                 ],
                 opacity: opacity.map((value) => value * 0.42),
                 pathLength: [0.52, 0.86, 0.64, 0.94, 0.46, 0.78, 0.58],
-                strokeWidth: [10, 16, 11, 18, 8, 14, 10],
+                strokeWidth: [7, 10, 8, 11, 6, 9, 7],
                 ...translate,
               }
-            : { opacity: 0.03, pathLength: 0.42, strokeWidth: 10 }
+            : { opacity: 0.03, pathLength: 0.42, strokeWidth: 7 }
         }
         fill="none"
-        filter="blur(7px) drop-shadow(0 0 26px rgba(66,133,244,0.92))"
+        filter="blur(15px) drop-shadow(0 0 30px rgba(66,133,244,0.85))"
         initial={false}
         stroke={`url(#edge-wave-${side})`}
         strokeLinecap="round"
