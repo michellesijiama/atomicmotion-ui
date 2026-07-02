@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { componentMap } from "@/lib/component-map";
+import { PreviewStage } from "@/components/website/preview-stage";
 
 type ComponentCardProps = {
   component: ComponentMeta;
@@ -42,11 +43,9 @@ export function ComponentCard({ component }: ComponentCardProps) {
   return (
     <Link href={componentHref} className={cardClassName}>
       <div className={previewClassName}>
-        <div className={previewSafeAreaClassName}>
-          <div className="absolute left-1/2 top-1/2 h-[760px] w-[960px] -translate-x-1/2 -translate-y-1/2 scale-[0.52]">
-            <Preview loop />
-          </div>
-        </div>
+        <PreviewStage>
+          <Preview loop />
+        </PreviewStage>
         <div className="pointer-events-none absolute left-4 top-4 z-20 flex flex-wrap gap-1 opacity-0 transition duration-300 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
           <span className="rounded-full bg-gray-500/40 px-2.5 py-1 text-caption text-white backdrop-blur-sm">
             {component.category}
