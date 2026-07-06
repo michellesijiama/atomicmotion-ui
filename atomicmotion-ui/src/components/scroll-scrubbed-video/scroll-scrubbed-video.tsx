@@ -14,8 +14,12 @@ const VIDEO_SRC = "/videos/pinterest-floral-scroll.mp4";
 const CAPTION_LINES = [
   "A quiet bloom opens in slow motion",
   "Light moves across the petal like water",
-  "The stem bends gently as the frame breathes",
   "The timeline becomes a small natural current, guided by the wheel under your hand",
+];
+const CAPTION_PLACEMENTS = [
+  "left-5 right-9 top-8 text-left",
+  "left-1/2 top-1/2 w-[82%] -translate-x-1/2 -translate-y-1/2 text-center",
+  "bottom-7 left-6 right-5 text-right",
 ];
 
 function clampProgress(value: number) {
@@ -141,6 +145,8 @@ export function ScrollScrubbedVideo({
     return () => window.removeEventListener("blur", hideCursor);
   }, [loop]);
 
+  const captionPlacement = CAPTION_PLACEMENTS[activeCaptionIndex % CAPTION_PLACEMENTS.length];
+
   return (
     <div
       className={cn(
@@ -192,30 +198,32 @@ export function ScrollScrubbedVideo({
                 }}
               />
 
-              <div className="absolute inset-x-4 bottom-7 z-20 text-right font-serif text-[17px] leading-[1.08] tracking-[0] text-black [text-shadow:0_1px_12px_rgba(255,255,255,0.6)] sm:text-[20px]">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.p
-                    key={CAPTION_LINES[activeCaptionIndex]}
-                    initial={
-                      shouldReduceMotion
-                        ? false
-                        : { opacity: 0, y: 10, filter: "blur(6px)" }
-                    }
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    exit={
-                      shouldReduceMotion
-                        ? undefined
-                        : { opacity: 0, y: -8, filter: "blur(5px)" }
-                    }
-                    transition={{
-                      duration: 0.55,
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                  >
-                    {CAPTION_LINES[activeCaptionIndex]}
-                  </motion.p>
-                </AnimatePresence>
-              </div>
+              <AnimatePresence mode="sync" initial={false}>
+                <motion.div
+                  key={`${activeCaptionIndex}-${CAPTION_LINES[activeCaptionIndex]}`}
+                  className={cn(
+                    "absolute z-20 font-serif text-[17px] leading-[1.08] tracking-[0] text-black sm:text-[20px]",
+                    captionPlacement,
+                  )}
+                  initial={
+                    shouldReduceMotion
+                      ? false
+                      : { opacity: 0, x: activeCaptionIndex === 0 ? -6 : 6, y: 8 }
+                  }
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  exit={
+                    shouldReduceMotion
+                      ? undefined
+                      : { opacity: 0, x: activeCaptionIndex === 1 ? -4 : 4, y: -6 }
+                  }
+                  transition={{
+                    duration: 0.78,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                >
+                  {CAPTION_LINES[activeCaptionIndex]}
+                </motion.div>
+              </AnimatePresence>
             </div>
 
             {shouldReduceMotion && (
