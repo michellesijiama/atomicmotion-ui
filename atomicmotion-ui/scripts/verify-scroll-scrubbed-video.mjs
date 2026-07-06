@@ -16,6 +16,10 @@ const cursorSnippet = files.component.slice(
   files.component.indexOf('aria-label="Scroll cursor label"'),
   files.component.indexOf("</motion.div>", files.component.indexOf('aria-label="Scroll cursor label"')),
 );
+const captionLinesMatch = files.component.match(/const CAPTION_LINES = \[([\s\S]*?)\];/);
+const captionLineCount = captionLinesMatch
+  ? (captionLinesMatch[1].match(/^\s*"/gm) || []).length
+  : 0;
 
 const checks = [
   ["component file exists", files.component.length > 0],
@@ -33,7 +37,10 @@ const checks = [
   ["component supports loop preview", files.component.includes("loop = false") && files.component.includes("requestAnimationFrame")],
   ["component removes dark stage background", files.component.includes("bg-transparent") && !files.component.includes("overflow-hidden bg-black") && !files.component.includes("linear-gradient(90deg,rgba(0,0,0")],
   ["component keeps video visually smaller than stage", files.component.includes("videoFrameRef") && files.component.includes("h-[76%]") && files.component.includes("aspect-[9/16]") && files.component.includes("max-w-[76%]")],
-  ["component animates changing narrative captions without period", files.component.includes("CAPTION_LINES") && files.component.includes("activeCaptionIndex") && files.component.includes("setActiveCaptionIndex") && files.component.includes("AnimatePresence") && files.component.includes("motion.p") && files.component.includes("guided by the wheel under your hand") && files.component.includes("A quiet bloom opens in slow motion") && !files.component.includes("guided by the wheel under your hand.") && !files.component.includes("A quiet bloom opens in slow motion.") && !files.component.includes("Floral Current") && !files.component.includes("Bloom") && !files.component.includes("by scroll") && !files.component.includes("padStart(2") && !files.component.includes("scaleX: progress")],
+  ["component uses exactly three animated captions", captionLineCount === 3],
+  ["component places captions in top middle and bottom positions", files.component.includes("CAPTION_PLACEMENTS") && files.component.includes("top-8") && files.component.includes("top-1/2") && files.component.includes("bottom-7") && files.component.includes("captionPlacement")],
+  ["component animates changing narrative captions without period", files.component.includes("CAPTION_LINES") && files.component.includes("activeCaptionIndex") && files.component.includes("setActiveCaptionIndex") && files.component.includes("AnimatePresence") && files.component.includes("motion.div") && files.component.includes("guided by the wheel under your hand") && files.component.includes("A quiet bloom opens in slow motion") && !files.component.includes("guided by the wheel under your hand.") && !files.component.includes("A quiet bloom opens in slow motion.") && !files.component.includes("Floral Current") && !files.component.includes("Bloom") && !files.component.includes("by scroll") && !files.component.includes("padStart(2") && !files.component.includes("scaleX: progress")],
+  ["component removes caption shadow and blur effects", !files.component.includes("text-shadow") && !files.component.includes("filter: \"blur")],
   ["component shows scroll text beside default cursor", !files.component.includes("cursor-none") && files.component.includes("cursor.visible") && files.component.includes("setCursor") && files.component.includes("onPointerEnter") && files.component.includes("onPointerMove") && files.component.includes("onPointerLeave") && cursorSnippet.includes("Scroll cursor label") && cursorSnippet.includes("scroll") && !cursorSnippet.includes("rounded-full") && !cursorSnippet.includes("border") && !cursorSnippet.includes("bg-")],
   ["component removes top video chrome", !files.component.includes("Scroll down") && !files.component.includes("Scroll up") && !files.component.includes("[ Menu ]") && !files.component.includes("<header")],
   ["index re-exports component", files.index.includes("ScrollScrubbedVideo")],
