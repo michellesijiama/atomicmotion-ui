@@ -12,7 +12,8 @@
     "test:codex-sidebar": "node scripts/verify-codex-sidebar-reveal.mjs",
     "test:card-padding": "node scripts/verify-component-card-padding.mjs",
     "test:gemini-live": "node scripts/verify-gemini-live.mjs",
-    "test:home-filter": "node scripts/verify-home-filter.mjs"
+    "test:home-filter": "node scripts/verify-home-filter.mjs",
+    "test:scroll-scrubbed-video": "node scripts/verify-scroll-scrubbed-video.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
