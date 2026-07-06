@@ -6,6 +6,7 @@ import { ExpandedNavigation } from "@/components/expanded-navigation";
 import { FilterDropdownReveal } from "@/components/filter-dropdown-reveal";
 import { GeminiLive } from "@/components/gemini-live";
 import { ScrollScrubbedTypography } from "@/components/scroll-scrubbed-typography";
+import { ScrollScrubbedVideo } from "@/components/scroll-scrubbed-video";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
@@ -31,6 +32,10 @@ function ScrollScrubbedTypographyPreview({ loop }: { loop?: boolean }) {
   return <ScrollScrubbedTypography loop={loop} className={loop ? "px-16" : undefined} />;
 }
 
+function ScrollScrubbedVideoPreview({ loop }: { loop?: boolean }) {
+  return <ScrollScrubbedVideo loop={loop} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "expanded-navigation": ExpandedNavigationPreview,
@@ -38,4 +43,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "scroll-scrubbed-typography": ScrollScrubbedTypographyPreview,
   "codex-sidebar-reveal": CodexSidebarRevealPreview,
   "gemini-live": GeminiLivePreview,
+  "scroll-scrubbed-video": ScrollScrubbedVideoPreview,
 };

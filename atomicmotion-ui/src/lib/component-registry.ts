@@ -126,16 +126,18 @@ export const componentRegistry = {
     codePath: "src/components/gemini-live/gemini-live.tsx",
     inspiredBy: { label: "Gemini", href: "https://gemini.google.com" },
   }),
-  placeholderFour: createComponentMeta({
-    id: "placeholder-four",
+  scrollScrubbedVideo: createComponentMeta({
+    id: "scroll-scrubbed-video",
     index: "007",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    createdAt: "2026-06-16",
-    codePath: "src/components/placeholder/placeholder.tsx",
+    title: "Scroll-Scrubbed Video",
+    description:
+      "A full-bleed editorial video stage where wheel direction scrubs the film forward or backward through a sticky timeline",
+    category: "Video",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-07-06",
+    codePath: "src/components/scroll-scrubbed-video/scroll-scrubbed-video.tsx",
+    inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
   placeholderFive: createComponentMeta({
     id: "placeholder-five",
