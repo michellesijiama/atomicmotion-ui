@@ -115,6 +115,10 @@ to `src/lib/component-registry.ts` so it appears in the gallery.
 Designed and built by [Sijia Ma](https://www.linkedin.com/in/michellesijiama/).
 Each component credits the site or work that inspired it.
 
+**Third-party assets:** the Gradient Gummy Bear uses the "Gummy Bear" 3D model
+by Poly by Google (Google Poly), licensed [CC-BY](https://creativecommons.org/licenses/by/3.0/),
+sourced via [Poly Pizza](https://poly.pizza/m/5zl16PPAItW).
+
 ## License
 
 [MIT](LICENSE) © 2026 Sijia Ma
