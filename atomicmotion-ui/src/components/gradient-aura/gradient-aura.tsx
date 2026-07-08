@@ -100,11 +100,15 @@ function paintGradient(geometry: THREE.BufferGeometry) {
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 }
 
-export function GradientAura({ className }: GradientAuraProps) {
+export function GradientAura({ className, loop = false }: GradientAuraProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const pointer = React.useRef({ x: 0, y: 0, cx: 0, cy: 0 });
 
   React.useEffect(() => {
+    // The gallery card (loop) shows a lightweight static poster instead of
+    // running the heavy WebGL/transmission scene; the full interactive 3D
+    // only mounts on the component detail page.
+    if (loop) return;
     const container = containerRef.current;
     if (!container) return;
 
@@ -324,7 +328,26 @@ export function GradientAura({ className }: GradientAuraProps) {
       pmrem.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [loop]);
+
+  if (loop) {
+    return (
+      <div
+        className={cn(
+          "relative isolate flex h-full min-h-full w-full items-center justify-center overflow-hidden bg-transparent",
+          className,
+        )}
+      >
+        {/* Static poster for the gallery card — no WebGL runs in the grid. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/gummy-bear-poster.png"
+          alt="Translucent pink gummy bear"
+          className="h-[88%] w-auto max-w-[85%] object-contain"
+        />
+      </div>
+    );
+  }
 
   return (
     <div
