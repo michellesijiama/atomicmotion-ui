@@ -139,16 +139,18 @@ export const componentRegistry = {
     codePath: "src/components/scroll-scrubbed-video/scroll-scrubbed-video.tsx",
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
-  placeholderFive: createComponentMeta({
-    id: "placeholder-five",
+  geometricLogoReveal: createComponentMeta({
+    id: "geometric-logo-reveal",
     index: "008",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    createdAt: "2026-06-16",
-    codePath: "src/components/placeholder/placeholder.tsx",
+    title: "Geometric Logo Reveal",
+    description:
+      "A geometric wordmark assembles from a gray ghost — letters fill to ink in a staggered left-to-right cascade, settling into the solid logo",
+    category: "Typography",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-07-08",
+    codePath: "src/components/geometric-logo-reveal/geometric-logo-reveal.tsx",
+    inspiredBy: { label: "Form&Fun", href: "https://www.formandfun.co" },
   }),
   placeholderSix: createComponentMeta({
     id: "placeholder-six",
