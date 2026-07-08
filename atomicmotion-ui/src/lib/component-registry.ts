@@ -155,9 +155,9 @@ export const componentRegistry = {
   gradientAura: createComponentMeta({
     id: "gradient-aura",
     index: "009",
-    title: "Gradient Aura",
+    title: "Gradient Gummy Bear",
     description:
-      "A glossy 3D blob (Three.js) that morphs circle → heart → rectangle on a loop, with real environment reflections, a multi-color gradient, and cursor parallax",
+      "A translucent 3D gummy bear (Three.js) with a soft pink gradient, light glowing through the jelly, and cursor parallax",
     category: "3D",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

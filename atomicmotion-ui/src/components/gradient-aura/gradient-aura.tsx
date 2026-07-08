@@ -2,7 +2,10 @@
 
 import * as React from "react";
 import * as THREE from "three";
+import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { LoopSubdivision } from "three-subdivide";
 
 import { cn } from "@/lib/utils";
 
@@ -11,60 +14,90 @@ export type GradientAuraProps = {
   loop?: boolean;
 };
 
-// A single glossy 3D blob that morphs circle → heart → rectangle and loops.
-// Built from one sphere whose vertices carry two morph targets (a heart and a
-// rounded rectangle); the influences cross-fade on a timeline. Physically-based
-// glossy material with real environment reflections, multi-color vertex gradient,
-// transparent background, and cursor parallax.
+// A single glossy, translucent 3D gummy bear that idles with a gentle sway
+// and bob. Physically-based translucent material with real environment
+// reflections, a multi-color vertex gradient, transparent background, and
+// cursor parallax.
+//
+// Model: "Gummy Bear" by Poly by Google (Google Poly), licensed CC-BY,
+// sourced via poly.pizza. Served locally from public/models/gummy-bear.glb.
 
-const PALETTE = ["#6ee7c7", "#5b8cff", "#a86bf0", "#ff7eb3", "#b6f06a", "#ffd15c", "#ff8a5c"];
+// Pink-red candy gradient: deep rose-red → soft pink.
+const PALETTE = ["#d43f5f", "#e85777", "#f4728c", "#fa8ea5", "#ffabc0"];
 
-// Implicit "Taubin heart": lobes along +z, cusp at -z, thin along y.
-function heartField(x: number, y: number, z: number) {
-  const a = x * x + 2.25 * y * y + z * z - 1;
-  return a * a * a - x * x * z * z * z - 0.1125 * y * y * z * z * z;
-}
-
-// Solve for the heart-surface radius along a view direction (heart faces camera:
-// its thin axis maps to view-z, lobes point up in view-y).
-function heartRadius(dx: number, dy: number, dz: number) {
-  const ex = dx;
-  const ey = dz; // thin axis
-  const ez = dy; // vertical (lobes/cusp)
-  let lo = 0.001;
-  let hi = 3;
-  for (let i = 0; i < 40; i++) {
-    const mid = (lo + hi) / 2;
-    if (heartField(ex * mid, ey * mid, ez * mid) > 0) hi = mid;
-    else lo = mid;
+// Procedural grayscale noise (coarse blotches + fine grain) for the roughness /
+// bump maps, so the surface isn't a uniform glossy mirror.
+function makeNoiseTexture() {
+  const size = 256;
+  const grid = 40;
+  const coarse = new Float32Array((grid + 1) * (grid + 1));
+  for (let i = 0; i < coarse.length; i++) coarse[i] = Math.random();
+  const sample = (u: number, v: number) => {
+    const x = u * grid;
+    const y = v * grid;
+    const x0 = Math.floor(x);
+    const y0 = Math.floor(y);
+    const fx = x - x0;
+    const fy = y - y0;
+    const a = coarse[y0 * (grid + 1) + x0];
+    const b = coarse[y0 * (grid + 1) + x0 + 1];
+    const c = coarse[(y0 + 1) * (grid + 1) + x0];
+    const d = coarse[(y0 + 1) * (grid + 1) + x0 + 1];
+    return (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
+  };
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const val = sample(x / size, y / size) * 0.55 + Math.random() * 0.45;
+      const g = Math.max(0, Math.min(255, Math.floor(val * 255)));
+      const idx = (y * size + x) * 4;
+      data[idx] = data[idx + 1] = data[idx + 2] = g;
+      data[idx + 3] = 255;
+    }
   }
-  return (lo + hi) / 2;
+  const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+  tex.generateMipmaps = true;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.needsUpdate = true;
+  return tex;
 }
 
-// Superellipsoid → rounded rectangular slab (wide x, medium y, thin z).
-function rectRadius(dx: number, dy: number, dz: number) {
-  const n = 6;
-  const ax = Math.abs(dx / 1.25);
-  const ay = Math.abs(dy / 0.95);
-  const az = Math.abs(dz / 0.58);
-  return 1 / Math.pow(ax ** n + ay ** n + az ** n, 1 / n);
-}
+// Paints a diagonal rose → lavender → cyan sweep across a mesh's (already
+// centered) local-space vertices, matching the palette used elsewhere.
+function paintGradient(geometry: THREE.BufferGeometry) {
+  const posAttr = geometry.attributes.position as THREE.BufferAttribute;
+  const count = posAttr.count;
+  const colors = new Float32Array(count * 3);
+  const stops = PALETTE.map((c) => new THREE.Color(c));
+  const col = new THREE.Color();
 
-function smoothstep(a: number, b: number, x: number) {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-}
+  const box = new THREE.Box3().setFromBufferAttribute(posAttr);
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const spanX = Math.max(size.x, 1e-6);
+  const spanY = Math.max(size.y, 1e-6);
 
-// [rectInfluence, heartInfluence] over a normalized cycle phase.
-function influences(ph: number): [number, number] {
-  if (ph < 0.3) return [0, smoothstep(0.03, 0.27, ph)];
-  if (ph < 0.4) return [0, 1];
-  if (ph < 0.66) {
-    const k = smoothstep(0.4, 0.63, ph);
-    return [k, 1 - k];
+  for (let i = 0; i < count; i++) {
+    const px = posAttr.getX(i);
+    const py = posAttr.getY(i);
+
+    // Normalize into 0..1 across each axis before blending, so the sweep
+    // works regardless of the mesh's native unit scale.
+    const nx = (px - box.min.x) / spanX - 0.5; // -0.5..0.5, left → right
+    const ny = (py - box.min.y) / spanY; // 0..1, feet → head
+
+    // Mostly-vertical sweep (feet → head): rose at the base, cyan up top,
+    // with a gentle diagonal tilt.
+    const t = Math.min(1, Math.max(0, ny + nx * 0.25)) * (stops.length - 1);
+    const idx = Math.floor(t);
+    col.copy(stops[idx]).lerp(stops[Math.min(idx + 1, stops.length - 1)], t - idx);
+    colors[i * 3] = col.r;
+    colors[i * 3 + 1] = col.g;
+    colors[i * 3 + 2] = col.b;
   }
-  if (ph < 0.76) return [1, 0];
-  return [1 - smoothstep(0.76, 0.99, ph), 0];
+
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 }
 
 export function GradientAura({ className }: GradientAuraProps) {
@@ -95,7 +128,7 @@ export function GradientAura({ className }: GradientAuraProps) {
     scene.environment = envTexture;
 
     const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    camera.position.set(0, 0, 4.2);
+    camera.position.set(0, 0, 4.9);
 
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.3);
     keyLight.position.set(2, 3, 4);
@@ -106,104 +139,119 @@ export function GradientAura({ className }: GradientAuraProps) {
     const rimB = new THREE.PointLight(0xff8ad0, 18, 14);
     rimB.position.set(3, 2, -1);
     scene.add(rimB);
+    // Backlight behind the gummy so light glows through the translucent body.
+    const backLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    backLight.position.set(-1.5, 2, -5);
+    scene.add(backLight);
 
-    // Base sphere ("circle") + heart & rectangle morph targets from the same
-    // vertices, so they deform smoothly into one another.
-    const base = new THREE.SphereGeometry(1.05, 128, 128);
-    const posAttr = base.attributes.position as THREE.BufferAttribute;
-    const normAttr = base.attributes.normal as THREE.BufferAttribute;
-    const count = posAttr.count;
+    const noiseTex = makeNoiseTexture();
+    noiseTex.wrapS = THREE.RepeatWrapping;
+    noiseTex.wrapT = THREE.RepeatWrapping;
+    noiseTex.repeat.set(3, 3);
 
-    const heartPos = new Float32Array(count * 3);
-    const rectPos = new Float32Array(count * 3);
-    const colors = new Float32Array(count * 3);
-    const stops = PALETTE.map((c) => new THREE.Color(c));
-    const col = new THREE.Color();
+    // The gummy "specimen" — populated once the GLB finishes loading.
+    const group = new THREE.Group();
+    scene.add(group);
 
-    for (let i = 0; i < count; i++) {
-      // Unit direction (base is a radius-1.05 sphere → normalize).
-      const px = posAttr.getX(i);
-      const py = posAttr.getY(i);
-      const pz = posAttr.getZ(i);
-      const inv = 1 / Math.hypot(px, py, pz);
-      const dx = px * inv;
-      const dy = py * inv;
-      const dz = pz * inv;
+    let cancelled = false;
+    const loadedGeometries: THREE.BufferGeometry[] = [];
+    const loadedMaterials: THREE.Material[] = [];
 
-      const hr = heartRadius(dx, dy, dz) * 0.92;
-      heartPos[i * 3] = dx * hr;
-      heartPos[i * 3 + 1] = dy * hr + 0.15; // lift so the heart sits centered
-      heartPos[i * 3 + 2] = dz * hr;
+    const loader = new GLTFLoader();
+    loader.load(
+      "/models/gummy-bear.glb",
+      (gltf: GLTF) => {
+        if (cancelled) {
+          // Effect was torn down before the load resolved — dispose and bail.
+          gltf.scene.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              child.geometry.dispose();
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((m) => m.dispose());
+            }
+          });
+          return;
+        }
 
-      const rr = rectRadius(dx, dy, dz);
-      rectPos[i * 3] = dx * rr;
-      rectPos[i * 3 + 1] = dy * rr;
-      rectPos[i * 3 + 2] = dz * rr;
+        const model = gltf.scene;
 
-      // Multi-color gradient across the blob (diagonal sweep through palette).
-      const t = Math.min(1, Math.max(0, (dx * 0.45 + dy * 0.55) * 0.5 + 0.5)) * (stops.length - 1);
-      const idx = Math.floor(t);
-      col.copy(stops[idx]).lerp(stops[Math.min(idx + 1, stops.length - 1)], t - idx);
-      colors[i * 3] = col.r;
-      colors[i * 3 + 1] = col.g;
-      colors[i * 3 + 2] = col.b;
-    }
+        // Measure the model's native (unscaled) size to compute a fitting
+        // scale so the bear reads at a comfortable size in-frame.
+        const rawBox = new THREE.Box3().setFromObject(model);
+        const rawSize = new THREE.Vector3();
+        rawBox.getSize(rawSize);
+        const targetHeight = 1.6;
+        const scale = targetHeight / Math.max(rawSize.y, 1e-6);
+        model.scale.setScalar(scale);
 
-    base.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+        // glTF is Y-up and this bear already faces +Z toward the camera, so
+        // no base yaw is needed (the idle sway adds gentle rotation).
 
-    const rectGeom = base.clone();
-    rectGeom.setAttribute("position", new THREE.BufferAttribute(rectPos, 3));
-    rectGeom.computeVertexNormals();
-    const heartGeom = base.clone();
-    heartGeom.setAttribute("position", new THREE.BufferAttribute(heartPos, 3));
-    heartGeom.computeVertexNormals();
+        // Recenter to the origin using the bounding box AFTER scale is
+        // applied, so the offset is correct in the transformed space.
+        model.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(model);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        model.position.sub(center);
 
-    // Relative morphs = target minus base, for both position and normal.
-    const rectPD = new Float32Array(count * 3);
-    const rectND = new Float32Array(count * 3);
-    const heartPD = new Float32Array(count * 3);
-    const heartND = new Float32Array(count * 3);
-    const rectN = rectGeom.attributes.normal as THREE.BufferAttribute;
-    const heartN = heartGeom.attributes.normal as THREE.BufferAttribute;
-    for (let i = 0; i < count; i++) {
-      for (let k = 0; k < 3; k++) {
-        const bi = posAttr.array[i * 3 + k];
-        const bn = normAttr.array[i * 3 + k];
-        rectPD[i * 3 + k] = rectPos[i * 3 + k] - bi;
-        heartPD[i * 3 + k] = heartPos[i * 3 + k] - bi;
-        rectND[i * 3 + k] = rectN.array[i * 3 + k] - bn;
-        heartND[i * 3 + k] = heartN.array[i * 3 + k] - bn;
-      }
-    }
-    base.morphAttributes.position = [
-      new THREE.BufferAttribute(rectPD, 3),
-      new THREE.BufferAttribute(heartPD, 3),
-    ];
-    base.morphAttributes.normal = [
-      new THREE.BufferAttribute(rectND, 3),
-      new THREE.BufferAttribute(heartND, 3),
-    ];
-    base.morphTargetsRelative = true;
-    rectGeom.dispose();
-    heartGeom.dispose();
+        model.traverse((child) => {
+          if (!(child instanceof THREE.Mesh)) return;
+          const mesh = child;
+          const original = mesh.geometry;
 
-    const material = new THREE.MeshPhysicalMaterial({
-      vertexColors: true,
-      color: 0xffffff,
-      metalness: 0.0,
-      roughness: 0.16,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.14,
-      envMapIntensity: 1.5,
-      iridescence: 0.3,
-      iridescenceIOR: 1.3,
-      sheen: 0.4,
-    });
+          // Weld coincident vertices, then Loop-subdivide to round the
+          // low-poly silhouette into a smooth, pillowy gummy, and recompute
+          // smooth normals. The bump map is dropped too — it added shimmery
+          // micro-normals across the translucent surface.
+          const welded = mergeVertices(original);
+          const geometry = LoopSubdivision.modify(welded, 5);
+          geometry.computeVertexNormals();
+          original.dispose();
+          welded.dispose();
+          mesh.geometry = geometry;
 
-    const mesh = new THREE.Mesh(base, material);
-    scene.add(mesh);
+          paintGradient(geometry);
 
-    const CYCLE = 9; // seconds for circle → heart → rectangle → circle
+          const oldMaterial = mesh.material;
+          const gummyMaterial = new THREE.MeshPhysicalMaterial({
+            vertexColors: true,
+            color: 0xffffff,
+            metalness: 0.0,
+            roughness: 0.2,
+            roughnessMap: noiseTex,
+            // Clear translucent jelly — light passes through the thin volume,
+            // colour deepens toward the thicker edges.
+            transmission: 0.96,
+            thickness: 0.9,
+            ior: 1.35,
+            attenuationColor: new THREE.Color("#ef5f7e"),
+            attenuationDistance: 3.2,
+            clearcoat: 0.0,
+            envMapIntensity: 0.28,
+            specularIntensity: 0.3,
+            sheen: 0.1,
+            transparent: true,
+          });
+          mesh.material = gummyMaterial;
+
+          loadedGeometries.push(geometry);
+          loadedMaterials.push(gummyMaterial);
+          if (Array.isArray(oldMaterial)) {
+            oldMaterial.forEach((m) => m.dispose());
+          } else {
+            oldMaterial.dispose();
+          }
+        });
+
+        group.add(model);
+      },
+      undefined,
+      (error) => {
+        console.error("Failed to load gummy-bear.glb", error);
+      },
+    );
+
     let raf = 0;
     const clock = new THREE.Clock();
 
@@ -215,15 +263,9 @@ export function GradientAura({ className }: GradientAuraProps) {
       const cx = pointer.current.cx;
       const cy = pointer.current.cy;
 
-      const [rectInf, heartInf] = influences((t % CYCLE) / CYCLE);
-      if (mesh.morphTargetInfluences) {
-        mesh.morphTargetInfluences[0] = rectInf;
-        mesh.morphTargetInfluences[1] = heartInf;
-      }
-
-      // Gentle oscillating tilt (not a full spin, so heart/rect stay readable).
-      mesh.rotation.y = Math.sin(t * 0.2) * 0.35 + cx * 0.4;
-      mesh.rotation.x = Math.sin(t * 0.16) * 0.12 - cy * 0.3;
+      // Gentle idle sway + bob, no full spin, plus a nudge toward the cursor.
+      group.rotation.y = Math.sin(t * 0.4) * 0.35 + cx * 0.5;
+      group.position.y = Math.sin(t * 0.8) * 0.04;
 
       camera.position.x += (cx * 0.5 - camera.position.x) * 0.05;
       camera.position.y += (-cy * 0.5 - camera.position.y) * 0.05;
@@ -256,13 +298,15 @@ export function GradientAura({ className }: GradientAuraProps) {
     resizeObserver.observe(container);
 
     return () => {
+      cancelled = true;
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
       container.removeEventListener("pointermove", handlePointerMove);
       container.removeEventListener("pointerleave", handlePointerLeave);
       renderer.domElement.remove();
-      base.dispose();
-      material.dispose();
+      loadedGeometries.forEach((g) => g.dispose());
+      loadedMaterials.forEach((m) => m.dispose());
+      noiseTex.dispose();
       envTexture.dispose();
       pmrem.dispose();
       renderer.dispose();
