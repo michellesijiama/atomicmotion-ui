@@ -7,12 +7,12 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 // Header logo — the same ghost→ink assembly as the Geometric Logo Reveal
-// component, tuned smaller/snappier and playing once on mount. The wordmark
-// sits as a light-gray ghost, then each letter's ink wipes in from a different
-// edge (top/bottom/left/right, cycling) with a soft fade + slide on a smooth
-// cubic-bezier ease. Link + hover behaviour is preserved.
+// component, tuned smaller/snappier. It plays once on mount and re-plays on
+// hover / focus: the wordmark sits as a light-gray ghost, then each letter's
+// ink wipes in from a different edge (top/bottom/left/right, cycling) with a
+// soft fade + slide on a smooth cubic-bezier ease.
 const revealEase = [0.22, 1, 0.36, 1] as const;
-const WORD_START = 0.08;
+const WORD_START = 0.06;
 const LETTER_STAGGER = 0.045;
 const LETTER_DUR = 0.5;
 
@@ -25,37 +25,30 @@ const REVEAL_DIRECTIONS = [
 
 export function AnimatedLogoLink({
   className,
-  emoji = "🖤",
   href = "/",
   label = "AtomicMotion",
 }: {
   className?: string;
-  emoji?: string;
   href?: string;
   label?: string;
 }) {
   const letters = React.useMemo(() => Array.from(label), [label]);
+  // Bumping playId re-keys the letters so the reveal replays from the ghost.
+  const [playId, setPlayId] = React.useState(0);
+  const replay = React.useCallback(() => setPlayId((id) => id + 1), []);
 
   return (
     <Link
       href={href}
       aria-label={label}
+      onMouseEnter={replay}
+      onFocus={replay}
       className={cn(
-        "group/logo relative inline-flex h-9 min-w-[210px] items-center overflow-hidden font-[family-name:var(--font-plus-jakarta-sans)] text-[24px] font-medium tracking-[-0.02em] text-[var(--jitter-ink)] outline-none",
+        "group/logo relative inline-flex h-9 items-center font-[family-name:var(--font-plus-jakarta-sans)] text-[24px] font-medium tracking-[-0.02em] text-[var(--jitter-ink)] outline-none",
         className,
       )}
     >
-      <span
-        aria-hidden="true"
-        className="absolute left-0 top-1/2 -translate-x-8 -translate-y-1/2 opacity-0 transition-all duration-500 ease-out group-hover/logo:translate-x-0 group-hover/logo:opacity-100 group-focus-visible/logo:translate-x-0 group-focus-visible/logo:opacity-100"
-      >
-        {emoji}
-      </span>
-
-      <span
-        aria-hidden="true"
-        className="relative inline-flex transition-transform duration-500 ease-out group-hover/logo:translate-x-8 group-focus-visible/logo:translate-x-8"
-      >
+      <span key={playId} aria-hidden="true" className="relative inline-flex">
         {letters.map((ch, i) => {
           const from = REVEAL_DIRECTIONS[i % REVEAL_DIRECTIONS.length];
           const delay = WORD_START + i * LETTER_STAGGER;
