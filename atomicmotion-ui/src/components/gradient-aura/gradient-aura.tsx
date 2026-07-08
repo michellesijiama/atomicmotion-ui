@@ -112,7 +112,7 @@ export function GradientAura({ className }: GradientAuraProps) {
     let height = container.clientHeight || 1;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -205,7 +205,7 @@ export function GradientAura({ className }: GradientAuraProps) {
           // smooth normals. The bump map is dropped too — it added shimmery
           // micro-normals across the translucent surface.
           const welded = mergeVertices(original);
-          const geometry = LoopSubdivision.modify(welded, 5);
+          const geometry = LoopSubdivision.modify(welded, 3);
           geometry.computeVertexNormals();
           original.dispose();
           welded.dispose();
@@ -253,9 +253,13 @@ export function GradientAura({ className }: GradientAuraProps) {
     );
 
     let raf = 0;
+    let visible = true;
     const clock = new THREE.Clock();
 
     const render = () => {
+      raf = requestAnimationFrame(render);
+      // Skip the heavy transmission render while the canvas is off-screen.
+      if (!visible) return;
       const t = clock.getElapsedTime();
 
       pointer.current.cx += (pointer.current.x - pointer.current.cx) * 0.06;
@@ -272,7 +276,6 @@ export function GradientAura({ className }: GradientAuraProps) {
       camera.lookAt(0, 0, 0);
 
       renderer.render(scene, camera);
-      raf = requestAnimationFrame(render);
     };
     raf = requestAnimationFrame(render);
 
@@ -297,10 +300,20 @@ export function GradientAura({ className }: GradientAuraProps) {
     });
     resizeObserver.observe(container);
 
+    // Pause rendering entirely when the canvas scrolls out of view.
+    const visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        visible = entries[0]?.isIntersecting ?? true;
+      },
+      { threshold: 0 },
+    );
+    visibilityObserver.observe(container);
+
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
+      visibilityObserver.disconnect();
       container.removeEventListener("pointermove", handlePointerMove);
       container.removeEventListener("pointerleave", handlePointerLeave);
       renderer.domElement.remove();
