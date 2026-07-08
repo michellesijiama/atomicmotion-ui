@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "capture:home-previews": "node scripts/capture-home-previews.mjs",
+    "render:gummy-xiaohongshu": "node scripts/render-gummy-xiaohongshu.mjs",
     "lint": "eslint",
     "test:design": "node scripts/verify-jitter-design-system.mjs",
     "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs",
@@ -13,6 +15,8 @@
     "test:card-padding": "node scripts/verify-component-card-padding.mjs",
     "test:gemini-live": "node scripts/verify-gemini-live.mjs",
     "test:home-filter": "node scripts/verify-home-filter.mjs",
+    "test:gradient-gummy": "node scripts/verify-gradient-gummy-material.mjs",
+    "test:home-previews": "node scripts/verify-static-home-previews.mjs",
     "test:scroll-scrubbed-video": "node scripts/verify-scroll-scrubbed-video.mjs"
   },
   "dependencies": {
@@ -35,6 +39,7 @@
     "@types/three": "^0.169.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
