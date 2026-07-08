@@ -6,6 +6,7 @@ import { ExpandedNavigation } from "@/components/expanded-navigation";
 import { FilterDropdownReveal } from "@/components/filter-dropdown-reveal";
 import { GeminiLive } from "@/components/gemini-live";
 import { GeometricLogoReveal } from "@/components/geometric-logo-reveal";
+import { GradientAura } from "@/components/gradient-aura";
 import { ScrollScrubbedTypography } from "@/components/scroll-scrubbed-typography";
 import { ScrollScrubbedVideo } from "@/components/scroll-scrubbed-video";
 
@@ -33,6 +34,10 @@ function GeometricLogoRevealPreview({ loop }: { loop?: boolean }) {
   return <GeometricLogoReveal loop={loop} />;
 }
 
+function GradientAuraPreview({ loop }: { loop?: boolean }) {
+  return <GradientAura loop={loop} />;
+}
+
 function ScrollScrubbedTypographyPreview({ loop }: { loop?: boolean }) {
   return <ScrollScrubbedTypography loop={loop} className={loop ? "px-16" : undefined} />;
 }
@@ -49,5 +54,6 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "codex-sidebar-reveal": CodexSidebarRevealPreview,
   "gemini-live": GeminiLivePreview,
   "geometric-logo-reveal": GeometricLogoRevealPreview,
+  "gradient-aura": GradientAuraPreview,
   "scroll-scrubbed-video": ScrollScrubbedVideoPreview,
 };

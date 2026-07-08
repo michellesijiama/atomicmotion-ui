@@ -152,6 +152,18 @@ export const componentRegistry = {
     codePath: "src/components/geometric-logo-reveal/geometric-logo-reveal.tsx",
     inspiredBy: { label: "Form&Fun", href: "https://www.formandfun.co" },
   }),
+  gradientAura: createComponentMeta({
+    id: "gradient-aura",
+    index: "009",
+    title: "Gradient Aura",
+    description:
+      "A glossy 3D blob (Three.js) that morphs circle → heart → rectangle on a loop, with real environment reflections, a multi-color gradient, and cursor parallax",
+    category: "3D",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-07-08",
+    codePath: "src/components/gradient-aura/gradient-aura.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
