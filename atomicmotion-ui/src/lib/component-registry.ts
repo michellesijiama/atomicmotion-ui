@@ -152,28 +152,6 @@ export const componentRegistry = {
     codePath: "src/components/geometric-logo-reveal/geometric-logo-reveal.tsx",
     inspiredBy: { label: "Form&Fun", href: "https://www.formandfun.co" },
   }),
-  placeholderSix: createComponentMeta({
-    id: "placeholder-six",
-    index: "009",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    createdAt: "2026-06-16",
-    codePath: "src/components/placeholder/placeholder.tsx",
-  }),
-  placeholderSeven: createComponentMeta({
-    id: "placeholder-seven",
-    index: "010",
-    title: "Placeholder",
-    description: "Coming soon.",
-    category: "UI",
-    status: "SOON",
-    statusClassName: "bg-black/5 text-[var(--jitter-gray-600)]",
-    createdAt: "2026-06-16",
-    codePath: "src/components/placeholder/placeholder.tsx",
-  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
