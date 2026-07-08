@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 // Header logo — the same ghost→ink assembly as the Geometric Logo Reveal
-// component, tuned smaller/snappier. It plays once on mount and re-plays on
-// hover / focus: the wordmark sits as a light-gray ghost, then each letter's
+// component, tuned smaller/snappier. It plays once on mount: the wordmark sits
+// as a light-gray ghost, then each letter's
 // ink wipes in from a different edge (top/bottom/left/right, cycling) with a
 // soft fade + slide on a smooth cubic-bezier ease.
 const revealEase = [0.22, 1, 0.36, 1] as const;
@@ -33,22 +33,17 @@ export function AnimatedLogoLink({
   label?: string;
 }) {
   const letters = React.useMemo(() => Array.from(label), [label]);
-  // Bumping playId re-keys the letters so the reveal replays from the ghost.
-  const [playId, setPlayId] = React.useState(0);
-  const replay = React.useCallback(() => setPlayId((id) => id + 1), []);
 
   return (
     <Link
       href={href}
       aria-label={label}
-      onMouseEnter={replay}
-      onFocus={replay}
       className={cn(
         "group/logo relative inline-flex h-9 items-center font-[family-name:var(--font-plus-jakarta-sans)] text-[24px] font-medium tracking-[-0.02em] text-[var(--jitter-ink)] outline-none",
         className,
       )}
     >
-      <span key={playId} aria-hidden="true" className="relative inline-flex">
+      <span aria-hidden="true" className="relative inline-flex">
         {letters.map((ch, i) => {
           const from = REVEAL_DIRECTIONS[i % REVEAL_DIRECTIONS.length];
           const delay = WORD_START + i * LETTER_STAGGER;

@@ -17,17 +17,43 @@ export type GradientAuraProps = {
 // A single glossy, translucent 3D gummy bear that idles with a gentle sway
 // and bob. Physically-based translucent material with real environment
 // reflections, a multi-color vertex gradient, transparent background, and
-// cursor parallax.
+// cursor-responsive gummy motion.
 //
 // Model: "Gummy Bear" by Poly by Google (Google Poly), licensed CC-BY,
 // sourced via poly.pizza. Served locally from public/models/gummy-bear.glb.
 
-// Pink-red candy gradient: deep rose-red → soft pink.
-const PALETTE = ["#d43f5f", "#e85777", "#f4728c", "#fa8ea5", "#ffabc0"];
+const GUMMY_COLOR = "#ff789a";
+const BACKDROP_SCREEN_RATIO = 3.35 / 5.03;
+const BACKDROP_HALF_SIZE = 3.35 / 2;
+const LENS_EDGE_PADDING = 0.16;
+const LENS_TRAVEL_FALLBACK_X = 0.72;
+const LENS_TRAVEL_FALLBACK_Y = 0.62;
+const TEXTURE_SIZE = 1024;
+const TEXT_PARAGRAPH =
+  "a gummy bear lens moves across this paragraph and gently magnifies the words beneath it. the glass keeps a soft red pink tint while the manrope text stays small, regular, and easy to compare through the refractive candy surface.";
 
-// Procedural grayscale noise (coarse blotches + fine grain) for the roughness /
-// bump maps, so the surface isn't a uniform glossy mirror.
-function makeNoiseTexture() {
+function createDataTexture(size: number, fill: (x: number, y: number) => number) {
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const g = Math.max(0, Math.min(255, Math.floor(fill(x, y) * 255)));
+      const idx = (y * size + x) * 4;
+      data[idx] = data[idx + 1] = data[idx + 2] = g;
+      data[idx + 3] = 255;
+    }
+  }
+
+  const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+  tex.generateMipmaps = true;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+// Coarse sugar-body variation for roughness, so the surface is glossy but not a
+// uniform plastic shell.
+function makeRoughnessTexture() {
   const size = 256;
   const grid = 40;
   const coarse = new Float32Array((grid + 1) * (grid + 1));
@@ -45,59 +71,85 @@ function makeNoiseTexture() {
     const d = coarse[(y0 + 1) * (grid + 1) + x0 + 1];
     return (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy;
   };
-  const data = new Uint8Array(size * size * 4);
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const val = sample(x / size, y / size) * 0.55 + Math.random() * 0.45;
-      const g = Math.max(0, Math.min(255, Math.floor(val * 255)));
-      const idx = (y * size + x) * 4;
-      data[idx] = data[idx + 1] = data[idx + 2] = g;
-      data[idx + 3] = 255;
-    }
-  }
-  const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
-  tex.generateMipmaps = true;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
-  tex.magFilter = THREE.LinearFilter;
-  tex.needsUpdate = true;
-  return tex;
+  return createDataTexture(size, (x, y) => sample(x / size, y / size) * 0.48 + Math.random() * 0.22 + 0.18);
 }
 
-// Paints a diagonal rose → lavender → cyan sweep across a mesh's (already
-// centered) local-space vertices, matching the palette used elsewhere.
-function paintGradient(geometry: THREE.BufferGeometry) {
-  const posAttr = geometry.attributes.position as THREE.BufferAttribute;
-  const count = posAttr.count;
-  const colors = new Float32Array(count * 3);
-  const stops = PALETTE.map((c) => new THREE.Color(c));
-  const col = new THREE.Color();
+// The thickness map gives the bear a darker, syrupy middle and clearer edges.
+// MeshPhysicalMaterial multiplies this by the material thickness.
+function makeGummyThicknessTexture() {
+  const size = 256;
+  return createDataTexture(size, (x, y) => {
+    const u = x / (size - 1) - 0.5;
+    const v = y / (size - 1) - 0.5;
+    const radial = Math.max(0, 1 - Math.sqrt(u * u + v * v) * 1.8);
+    const verticalPull = Math.max(0, 1 - Math.abs(v + 0.08) * 1.45);
+    return 0.34 + radial * 0.42 + verticalPull * 0.2 + Math.random() * 0.04;
+  });
+}
 
-  const box = new THREE.Box3().setFromBufferAttribute(posAttr);
-  const size = new THREE.Vector3();
-  box.getSize(size);
-  const spanX = Math.max(size.x, 1e-6);
-  const spanY = Math.max(size.y, 1e-6);
+// Fine pectin-like dimples break up the perfect CG highlight without making
+// the bear look frosted or dusty.
+function makePectinBumpTexture() {
+  const size = 256;
+  return createDataTexture(size, (x, y) => {
+    const wave = Math.sin(x * 0.34) * Math.sin(y * 0.27) * 0.06;
+    return 0.5 + wave + (Math.random() - 0.5) * 0.09;
+  });
+}
 
-  for (let i = 0; i < count; i++) {
-    const px = posAttr.getX(i);
-    const py = posAttr.getY(i);
+function getManropeFontFamily() {
+  return getComputedStyle(document.documentElement).getPropertyValue("--font-manrope").trim() || "Manrope, Arial, sans-serif";
+}
 
-    // Normalize into 0..1 across each axis before blending, so the sweep
-    // works regardless of the mesh's native unit scale.
-    const nx = (px - box.min.x) / spanX - 0.5; // -0.5..0.5, left → right
-    const ny = (py - box.min.y) / spanY; // 0..1, feet → head
+function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
+  const words = text.split(" ");
+  let line = "";
+  let cursorY = y;
 
-    // Mostly-vertical sweep (feet → head): rose at the base, cyan up top,
-    // with a gentle diagonal tilt.
-    const t = Math.min(1, Math.max(0, ny + nx * 0.25)) * (stops.length - 1);
-    const idx = Math.floor(t);
-    col.copy(stops[idx]).lerp(stops[Math.min(idx + 1, stops.length - 1)], t - idx);
-    colors[i * 3] = col.r;
-    colors[i * 3 + 1] = col.g;
-    colors[i * 3 + 2] = col.b;
+  for (const word of words) {
+    const nextLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(nextLine).width > maxWidth && line) {
+      ctx.fillText(line, x, cursorY);
+      line = word;
+      cursorY += lineHeight;
+    } else {
+      line = nextLine;
+    }
   }
 
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  if (line) {
+    ctx.fillText(line, x, cursorY);
+  }
+}
+
+function makeManropeTextTexture(fontFamily: string) {
+  const canvas = document.createElement("canvas");
+  canvas.width = TEXTURE_SIZE;
+  canvas.height = TEXTURE_SIZE;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Unable to create gummy text texture canvas.");
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
+
+  ctx.fillStyle = "#121413";
+  ctx.textBaseline = "top";
+  ctx.globalAlpha = 0.9;
+  ctx.font = `500 40px ${fontFamily}`;
+  wrapText(ctx, `${TEXT_PARAGRAPH} ${TEXT_PARAGRAPH}`, 108, 150, 812, 58);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.ClampToEdgeWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 export function GradientAura({ className, loop = false }: GradientAuraProps) {
@@ -120,7 +172,7 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.18;
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
     renderer.domElement.style.display = "block";
@@ -134,32 +186,76 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
     const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
     camera.position.set(0, 0, 4.9);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.3);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
     keyLight.position.set(2, 3, 4);
     scene.add(keyLight);
-    const rimA = new THREE.PointLight(0x6ea8ff, 22, 14);
-    rimA.position.set(-3, -1.5, 2);
+    const rimA = new THREE.PointLight(0xffc0b5, 24, 14);
+    rimA.position.set(-3, -1.5, 2.4);
     scene.add(rimA);
-    const rimB = new THREE.PointLight(0xff8ad0, 18, 14);
-    rimB.position.set(3, 2, -1);
+    const rimB = new THREE.PointLight(0xff4f7a, 28, 14);
+    rimB.position.set(3, 2, -1.2);
     scene.add(rimB);
     // Backlight behind the gummy so light glows through the translucent body.
-    const backLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    const backLight = new THREE.DirectionalLight(0xfff2d8, 3.5);
     backLight.position.set(-1.5, 2, -5);
     scene.add(backLight);
+    const bellyGlow = new THREE.PointLight(0xff426a, 8, 4);
+    bellyGlow.position.set(0, -0.05, -1.2);
+    scene.add(bellyGlow);
 
-    const noiseTex = makeNoiseTexture();
+    const noiseTex = makeRoughnessTexture();
     noiseTex.wrapS = THREE.RepeatWrapping;
     noiseTex.wrapT = THREE.RepeatWrapping;
     noiseTex.repeat.set(3, 3);
+    const thicknessTex = makeGummyThicknessTexture();
+    thicknessTex.wrapS = THREE.RepeatWrapping;
+    thicknessTex.wrapT = THREE.RepeatWrapping;
+    const bumpTex = makePectinBumpTexture();
+    bumpTex.wrapS = THREE.RepeatWrapping;
+    bumpTex.wrapT = THREE.RepeatWrapping;
+    bumpTex.repeat.set(4, 4);
 
     // The gummy "specimen" — populated once the GLB finishes loading.
     const group = new THREE.Group();
+    group.position.z = -0.2;
     scene.add(group);
+    const lensTravel = {
+      x: LENS_TRAVEL_FALLBACK_X,
+      y: LENS_TRAVEL_FALLBACK_Y,
+    };
 
     let cancelled = false;
+    let backdropTexture: THREE.CanvasTexture | null = null;
     const loadedGeometries: THREE.BufferGeometry[] = [];
     const loadedMaterials: THREE.Material[] = [];
+
+    const backdropGeometry = new THREE.PlaneGeometry(3.35, 3.35);
+    const backdropMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      toneMapped: false,
+    });
+    const backdrop = new THREE.Mesh(backdropGeometry, backdropMaterial);
+    backdrop.position.set(0, 0, -1.65);
+    scene.add(backdrop);
+    loadedGeometries.push(backdropGeometry);
+    loadedMaterials.push(backdropMaterial);
+
+    const setTextTexture = () => {
+      const nextTexture = makeManropeTextTexture(getManropeFontFamily());
+      const previousTexture = backdropTexture;
+      backdropTexture = nextTexture;
+      backdropMaterial.map = nextTexture;
+      backdropMaterial.needsUpdate = true;
+      previousTexture?.dispose();
+    };
+    setTextTexture();
+
+    void document.fonts?.ready.then(() => {
+      if (!cancelled) {
+        setTextTexture();
+        backdropMaterial.needsUpdate = true;
+      }
+    });
 
     const loader = new GLTFLoader();
     loader.load(
@@ -184,7 +280,7 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
         const rawBox = new THREE.Box3().setFromObject(model);
         const rawSize = new THREE.Vector3();
         rawBox.getSize(rawSize);
-        const targetHeight = 1.6;
+        const targetHeight = 1.5;
         const scale = targetHeight / Math.max(rawSize.y, 1e-6);
         model.scale.setScalar(scale);
 
@@ -200,14 +296,13 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
         model.position.sub(center);
 
         model.traverse((child) => {
-          if (!(child instanceof THREE.Mesh)) return;
+          if (!(child instanceof THREE.Mesh) || child.userData.skipGummyMaterial) return;
           const mesh = child;
           const original = mesh.geometry;
 
           // Weld coincident vertices, then Loop-subdivide to round the
           // low-poly silhouette into a smooth, pillowy gummy, and recompute
-          // smooth normals. The bump map is dropped too — it added shimmery
-          // micro-normals across the translucent surface.
+          // smooth normals.
           const welded = mergeVertices(original);
           const geometry = LoopSubdivision.modify(welded, 3);
           geometry.computeVertexNormals();
@@ -215,27 +310,33 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
           welded.dispose();
           mesh.geometry = geometry;
 
-          paintGradient(geometry);
-
           const oldMaterial = mesh.material;
           const gummyMaterial = new THREE.MeshPhysicalMaterial({
-            vertexColors: true,
-            color: 0xffffff,
+            color: new THREE.Color(GUMMY_COLOR),
             metalness: 0.0,
-            roughness: 0.2,
+            roughness: 0.025,
             roughnessMap: noiseTex,
-            // Clear translucent jelly — light passes through the thin volume,
-            // colour deepens toward the thicker edges.
-            transmission: 0.96,
-            thickness: 0.9,
-            ior: 1.35,
-            attenuationColor: new THREE.Color("#ef5f7e"),
-            attenuationDistance: 3.2,
-            clearcoat: 0.0,
-            envMapIntensity: 0.28,
-            specularIntensity: 0.3,
-            sheen: 0.1,
-            transparent: true,
+            bumpMap: bumpTex,
+            bumpScale: 0.012,
+            // Real optical gummy: keep alpha opaque and let the 3D volume
+            // refract the opaque paragraph plane behind it.
+            transmission: 1,
+            opacity: 1,
+            transparent: false,
+            depthWrite: true,
+            thickness: 4.6,
+            thicknessMap: thicknessTex,
+            ior: 2.0,
+            dispersion: 0.05,
+            attenuationColor: new THREE.Color("#ff4674"),
+            attenuationDistance: 7,
+            clearcoat: 0.95,
+            clearcoatRoughness: 0.08,
+            envMapIntensity: 1.05,
+            specularColor: new THREE.Color("#fff0df"),
+            specularIntensity: 1,
+            sheen: 0.08,
+            sheenRoughness: 0.38,
           });
           mesh.material = gummyMaterial;
 
@@ -248,6 +349,14 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
           }
         });
 
+        const fittedBox = new THREE.Box3().setFromObject(model);
+        const fittedSize = new THREE.Vector3();
+        fittedBox.getSize(fittedSize);
+        const lensDepthScale = (camera.position.z - group.position.z) / (camera.position.z - backdrop.position.z);
+        const backdropHalfAtLensDepth = BACKDROP_HALF_SIZE * lensDepthScale;
+        lensTravel.x = Math.max(0, backdropHalfAtLensDepth - fittedSize.x / 2 - LENS_EDGE_PADDING);
+        lensTravel.y = Math.max(0, backdropHalfAtLensDepth - fittedSize.y / 2 - LENS_EDGE_PADDING);
+
         group.add(model);
       },
       undefined,
@@ -258,25 +367,22 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
 
     let raf = 0;
     let visible = true;
-    const clock = new THREE.Clock();
-
     const render = () => {
       raf = requestAnimationFrame(render);
       // Skip the heavy transmission render while the canvas is off-screen.
       if (!visible) return;
-      const t = clock.getElapsedTime();
 
-      pointer.current.cx += (pointer.current.x - pointer.current.cx) * 0.06;
-      pointer.current.cy += (pointer.current.y - pointer.current.cy) * 0.06;
+      pointer.current.cx += (pointer.current.x - pointer.current.cx) * 0.12;
+      pointer.current.cy += (pointer.current.y - pointer.current.cy) * 0.12;
       const cx = pointer.current.cx;
       const cy = pointer.current.cy;
 
-      // Gentle idle sway + bob, no full spin, plus a nudge toward the cursor.
-      group.rotation.y = Math.sin(t * 0.4) * 0.35 + cx * 0.5;
-      group.position.y = Math.sin(t * 0.8) * 0.04;
+      // Keep the lens facing the camera. Only move it across the square image
+      // so the refractive body behaves like a movable magnifier.
+      group.rotation.set(0, 0, 0);
+      group.position.x = cx * lensTravel.x;
+      group.position.y = -cy * lensTravel.y;
 
-      camera.position.x += (cx * 0.5 - camera.position.x) * 0.05;
-      camera.position.y += (-cy * 0.5 - camera.position.y) * 0.05;
       camera.lookAt(0, 0, 0);
 
       renderer.render(scene, camera);
@@ -285,8 +391,11 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
 
     const handlePointerMove = (event: PointerEvent) => {
       const rect = container.getBoundingClientRect();
-      pointer.current.x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-      pointer.current.y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+      const backdropSize = Math.min(rect.width, rect.height * BACKDROP_SCREEN_RATIO);
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      pointer.current.x = Math.max(-1, Math.min(1, (event.clientX - centerX) / (backdropSize / 2)));
+      pointer.current.y = Math.max(-1, Math.min(1, (event.clientY - centerY) / (backdropSize / 2)));
     };
     const handlePointerLeave = () => {
       pointer.current.x = 0;
@@ -323,7 +432,10 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
       renderer.domElement.remove();
       loadedGeometries.forEach((g) => g.dispose());
       loadedMaterials.forEach((m) => m.dispose());
+      if (backdropTexture) backdropTexture.dispose();
       noiseTex.dispose();
+      thicknessTex.dispose();
+      bumpTex.dispose();
       envTexture.dispose();
       pmrem.dispose();
       renderer.dispose();
@@ -351,11 +463,12 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
 
   return (
     <div
-      ref={containerRef}
       className={cn(
         "relative isolate h-full min-h-full w-full overflow-hidden bg-transparent",
         className,
       )}
-    />
+    >
+      <div ref={containerRef} className="h-full min-h-full w-full" />
+    </div>
   );
 }

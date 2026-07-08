@@ -17,6 +17,7 @@ export type ComponentMeta = {
   createdAt: string;
   codePath: string;
   codeHref: string;
+  previewImage: string;
   aiPrompt: string;
   /** Credit + link to the site/work that inspired this component. */
   inspiredBy?: { label: string; href: string };
@@ -24,7 +25,7 @@ export type ComponentMeta = {
 
 type ComponentMetaInput = Omit<
   ComponentMeta,
-  "codeHref" | "aiPrompt"
+  "codeHref" | "previewImage" | "aiPrompt"
 >;
 
 function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
@@ -35,6 +36,7 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
   return {
     ...meta,
     codeHref,
+    previewImage: `/previews/${meta.id}.png`,
     aiPrompt: [
       `Use AtomicMotion UI's ${meta.title} component.`,
       `Source: ${codeHref}`,
