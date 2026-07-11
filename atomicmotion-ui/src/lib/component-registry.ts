@@ -177,6 +177,9 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-07-08",
     codePath: "src/components/gradient-aura/gradient-aura.tsx",
+    // Heavy Three.js scene — show the looping video poster in the gallery
+    // instead of mounting the live WebGL preview (avoids the load regression).
+    previewStatic: true,
   }),
   liquidVinyl: createComponentMeta({
     id: "liquid-vinyl",
