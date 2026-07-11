@@ -8,6 +8,7 @@
     "start": "next start",
     "capture:home-previews": "node scripts/capture-home-previews.mjs",
     "render:gummy-xiaohongshu": "node scripts/render-gummy-xiaohongshu.mjs",
+    "render:card-videos": "node scripts/render-card-videos.mjs",
     "lint": "eslint",
     "test:design": "node scripts/verify-jitter-design-system.mjs",
     "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs",

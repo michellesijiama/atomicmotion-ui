@@ -5,6 +5,9 @@
   --jitter-ink: #0e1011;
   --jitter-white: #ffffff;
   --jitter-surface: #fafafa;
+  /* Gallery card surface. Pages stay white (--jitter-bg); UI cards sit on this
+     gray. Every card preview must use this token. */
+  --jitter-card: #f2f2f4;
   --jitter-gray-100: #e6e6e6;
   --jitter-gray-200: #cccccc;
   --jitter-gray-400: #999999;
@@ -28,6 +31,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  /* Design-system surface for gallery cards. Use `bg-card` on every card so the
+     gray stays consistent and lives in one place. */
+  --color-card: var(--jitter-card);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
