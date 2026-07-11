@@ -18,6 +18,17 @@ export type ComponentMeta = {
   codePath: string;
   codeHref: string;
   previewImage: string;
+  /**
+   * Looping video used for the home gallery card instead of a live preview,
+   * for heavy WebGL scenes we don't want mounting live in the gallery.
+   */
+  previewVideo?: string;
+  /**
+   * Render the static poster on the home card instead of a live or video
+   * preview — used for heavy 3D components that should not animate in the
+   * gallery.
+   */
+  previewStatic?: boolean;
   aiPrompt: string;
   /** Credit + link to the site/work that inspired this component. */
   inspiredBy?: { label: string; href: string };
@@ -25,7 +36,7 @@ export type ComponentMeta = {
 
 type ComponentMetaInput = Omit<
   ComponentMeta,
-  "codeHref" | "previewImage" | "aiPrompt"
+  "codeHref" | "previewImage" | "previewVideo" | "aiPrompt"
 >;
 
 function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
@@ -37,6 +48,7 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
     ...meta,
     codeHref,
     previewImage: `/previews/${meta.id}.png`,
+    previewVideo: meta.id === "gradient-aura" ? `/previews/${meta.id}.mp4` : undefined,
     aiPrompt: [
       `Use AtomicMotion UI's ${meta.title} component.`,
       `Source: ${codeHref}`,
@@ -177,6 +189,7 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-07-10",
     codePath: "src/components/liquid-vinyl/liquid-vinyl.tsx",
+    previewStatic: true,
   }),
 } satisfies Record<string, ComponentMeta>;
 
