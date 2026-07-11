@@ -20,11 +20,9 @@ const PALETTE = {
 
 const liquidVertexShader = /* glsl */ `
   varying vec2 vUv;
-  varying vec3 vPosition;
 
   void main() {
     vUv = uv;
-    vPosition = position;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
@@ -35,7 +33,6 @@ const liquidFragmentShader = /* glsl */ `
   uniform vec3 uAccent;
   uniform vec3 uLime;
   varying vec2 vUv;
-  varying vec3 vPosition;
 
   float hash(vec2 p) {
     p = fract(p * vec2(123.34, 456.21));
@@ -86,8 +83,6 @@ const liquidFragmentShader = /* glsl */ `
     float rind = fbm(dir * 4.2 + vec2(radius * 2.1, -radius * 1.4));
     float rindVein = smoothstep(0.42, 0.74, rind) * smoothstep(0.3, 0.52, radius);
     float milky = smoothstep(0.36, 0.92, marbleNoise) * 0.34;
-    float surfaceGrain = fbm(marbleUv * 6.4 + vec2(flow * 1.7, -flow * 1.2));
-    float subsurface = fbm(marbleUv * 2.65 - vec2(radius * 0.6, flow));
     float ribbon = sin(angle * 5.0 + radius * 24.0 - uTime * 0.34 + flow * 4.0);
     float fine = sin(radius * 178.0 + angle * 2.0 + flow * 3.0) * 0.5 + 0.5;
     float caustic = smoothstep(0.68, 1.0, sin(angle * 3.0 - radius * 15.0 + uTime * 0.18) * 0.5 + 0.5);
@@ -106,7 +101,7 @@ const liquidFragmentShader = /* glsl */ `
     vec3 fogTint = mix(uColor, cream, 0.74);
     float haze = smoothstep(0.1, 0.9, flow) * 0.04 + milky * 0.08 + 0.035;
     color = mix(color, fogTint, haze);
-    float reliefLight = (surfaceGrain - 0.5) * 0.1 + (subsurface - 0.5) * 0.12 + fine * 0.02;
+    float reliefLight = (marbleNoise - 0.5) * 0.08 + (softCloud - 0.5) * 0.1 + fine * 0.02;
     color *= 1.0 + reliefLight;
     color += ribbon * 0.01 + fine * 0.012;
 
@@ -216,9 +211,9 @@ function createOrangeLabelTexture() {
   }
 
   const background = context.createRadialGradient(center - 110, center - 120, 30, center, center, center);
-  background.addColorStop(0, "#f9822f");
-  background.addColorStop(0.48, "#e85b17");
-  background.addColorStop(1, "#b83b0d");
+  background.addColorStop(0, "#ff6030");
+  background.addColorStop(0.48, "#dc3215");
+  background.addColorStop(1, "#8f1c0b");
   context.fillStyle = background;
   context.fillRect(0, 0, size, size);
 
@@ -236,20 +231,30 @@ function createOrangeLabelTexture() {
   context.strokeStyle = "rgba(255, 235, 205, 0.42)";
   context.stroke();
 
-  context.font = "600 74px Arial, sans-serif";
+  context.font = "600 58px Arial, sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillStyle = "rgba(255, 247, 226, 0.9)";
   context.shadowColor = "rgba(137, 45, 8, 0.24)";
   context.shadowBlur = 7;
-  for (let i = 0; i < 5; i++) {
+  const circularText = "Atomic Motion  ".repeat(5);
+  const glyphs = Array.from(circularText);
+  const advances = glyphs.map((glyph) => context.measureText(glyph).width + 5);
+  const totalAdvance = advances.reduce((sum, advance) => sum + advance, 0);
+  const anglePerPixel = (Math.PI * 2) / totalAdvance;
+  const textRadius = 380;
+  let angleCursor = -Math.PI / 2;
+
+  glyphs.forEach((glyph, index) => {
+    const glyphAngle = advances[index] * anglePerPixel;
+    const angle = angleCursor + glyphAngle / 2;
     context.save();
-    context.translate(center, center);
-    context.rotate((i / 5) * Math.PI * 2);
-    context.translate(0, -370);
-    context.fillText("Atomic Motion", 0, 0);
+    context.translate(center + Math.cos(angle) * textRadius, center + Math.sin(angle) * textRadius);
+    context.rotate(angle + Math.PI / 2);
+    context.fillText(glyph, 0, 0);
     context.restore();
-  }
+    angleCursor += glyphAngle;
+  });
   context.shadowBlur = 0;
 
   for (let i = 0; i < 520; i++) {
@@ -278,7 +283,7 @@ function createOrangeLabelTexture() {
 }
 
 function createLabelPlasticTexture() {
-  const size = 512;
+  const size = 256;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -292,12 +297,10 @@ function createLabelPlasticTexture() {
   const data = image.data;
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const nx = (x - size / 2) / size;
-      const ny = (y - size / 2) / size;
-      const radius = Math.sqrt(nx * nx + ny * ny);
-      const scuff = Math.sin(x * 0.19 + y * 0.27) * 9 + Math.sin(radius * size * 1.8) * 6;
-      const speckle = (Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
-      const value = Math.max(0, Math.min(255, 126 + scuff + speckle * 12));
+      const grain = Math.sin(x * 0.47 + y * 0.31) * Math.sin(x * 0.17 - y * 0.53) * 20;
+      const hash = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+      const speckle = hash - Math.floor(hash);
+      const value = Math.max(0, Math.min(255, 132 + grain + (speckle - 0.5) * 24));
       const offset = (y * size + x) * 4;
       data[offset] = value;
       data[offset + 1] = value;
@@ -320,10 +323,10 @@ function createLabelPlasticTexture() {
 
 function createGrooveGeometry() {
   const positions: number[] = [];
-  const segments = 192;
+  const segments = 144;
 
-  for (let ring = 0; ring < 42; ring++) {
-    const radius = 0.72 + ring * 0.0325;
+  for (let ring = 0; ring < 36; ring++) {
+    const radius = 0.72 + ring * 0.038;
     for (let segment = 0; segment < segments; segment++) {
       const a = (segment / segments) * Math.PI * 2;
       const b = ((segment + 1) / segments) * Math.PI * 2;
@@ -456,7 +459,7 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
     softShadow.scale.set(4.65, 4.65, 1);
     scene.add(softShadow);
 
-    const shellGeometry = new THREE.CylinderGeometry(2.2, 2.2, 0.22, 160, 2, false);
+    const shellGeometry = new THREE.CylinderGeometry(2.2, 2.2, 0.22, 128, 2, false);
     shellGeometry.rotateX(Math.PI / 2);
     geometries.push(shellGeometry);
     const shellMaterial = new THREE.MeshPhysicalMaterial({
@@ -519,7 +522,7 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
     liquidVolume.renderOrder = 1;
     group.add(liquidVolume);
 
-    const liquidSurfaceGeometry = new THREE.RingGeometry(0.68, 2.055, 192, 3);
+    const liquidSurfaceGeometry = new THREE.RingGeometry(0.68, 2.055, 160, 3);
     geometries.push(liquidSurfaceGeometry);
     const liquidSurfaceMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -555,7 +558,7 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
     });
     materials.push(meniscusMaterial);
     for (const radius of [0.68, 2.055]) {
-      const geometry = new THREE.TorusGeometry(radius, radius < 1 ? 0.018 : 0.03, 10, 160);
+      const geometry = new THREE.TorusGeometry(radius, radius < 1 ? 0.018 : 0.03, 10, 128);
       geometries.push(geometry);
       const mesh = new THREE.Mesh(geometry, meniscusMaterial);
       mesh.position.z = 0.086;
@@ -576,7 +579,7 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
     grooves.renderOrder = 5;
     group.add(grooves);
 
-    const edgeGeometry = new THREE.TorusGeometry(2.2, 0.045, 12, 192);
+    const edgeGeometry = new THREE.TorusGeometry(2.2, 0.045, 12, 160);
     geometries.push(edgeGeometry);
     const edgeMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xfff9e6,
@@ -612,7 +615,7 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
     caustics.renderOrder = 6;
     group.add(caustics);
 
-    const labelGeometry = new THREE.CircleGeometry(0.78, 128);
+    const labelGeometry = new THREE.CircleGeometry(0.78, 96);
     geometries.push(labelGeometry);
     const orangeLabelTexture = createOrangeLabelTexture();
     const labelPlasticTexture = createLabelPlasticTexture();
@@ -620,13 +623,13 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
     const labelMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       map: orangeLabelTexture,
-      roughness: 0.7,
+      roughness: 0.82,
       roughnessMap: labelPlasticTexture,
       bumpMap: labelPlasticTexture,
-      bumpScale: 0.012,
-      specularIntensity: 0.24,
-      clearcoat: 0.14,
-      clearcoatRoughness: 0.72,
+      bumpScale: 0.018,
+      specularIntensity: 0.18,
+      clearcoat: 0.06,
+      clearcoatRoughness: 0.86,
       side: THREE.DoubleSide,
     });
     materials.push(labelMaterial);
@@ -691,12 +694,16 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
     let tiltY = 0;
     let offsetX = 0;
     let offsetY = 0;
+    let pointerBounds = container.getBoundingClientRect();
+
+    const handlePointerEnter = () => {
+      pointerBounds = container.getBoundingClientRect();
+    };
 
     const handlePointerMove = (event: PointerEvent) => {
       if (reduceMotion || event.pointerType !== "mouse") return;
-      const bounds = container.getBoundingClientRect();
-      const normalizedX = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
-      const normalizedY = ((event.clientY - bounds.top) / bounds.height) * 2 - 1;
+      const normalizedX = ((event.clientX - pointerBounds.left) / pointerBounds.width) * 2 - 1;
+      const normalizedY = ((event.clientY - pointerBounds.top) / pointerBounds.height) * 2 - 1;
       targetTiltX = normalizedY * 0.045;
       targetTiltY = normalizedX * 0.055;
       targetOffsetX = normalizedX * 0.025;
@@ -710,6 +717,7 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
       targetOffsetY = 0;
     };
 
+    container.addEventListener("pointerenter", handlePointerEnter);
     container.addEventListener("pointermove", handlePointerMove);
     container.addEventListener("pointerleave", handlePointerLeave);
 
@@ -743,6 +751,7 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
       camera.position.z = camera.aspect < 1 ? 7.2 * (0.92 / camera.aspect) : 7.2;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
+      pointerBounds = container.getBoundingClientRect();
     });
     resizeObserver.observe(container);
 
@@ -754,6 +763,7 @@ export function LiquidVinyl({ className, loop = false }: LiquidVinylProps) {
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
+      container.removeEventListener("pointerenter", handlePointerEnter);
       container.removeEventListener("pointermove", handlePointerMove);
       container.removeEventListener("pointerleave", handlePointerLeave);
       resizeObserver.disconnect();

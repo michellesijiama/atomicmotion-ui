@@ -29,6 +29,18 @@ async function prepareVideoPage(page) {
   await page.evaluate(() => {
     document.body.style.background = "#ffffff";
     document.body.style.overflow = "hidden";
+    const hideDevChrome = document.createElement("style");
+    hideDevChrome.textContent = `
+      nextjs-portal,
+      [data-nextjs-toast],
+      [data-nextjs-dialog-overlay],
+      [data-nextjs-dialog],
+      [data-nextjs-errors],
+      [data-nextjs-dev-tools-button] {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(hideDevChrome);
     const reveals = Array.from(document.querySelectorAll(".am-reveal"));
     if (reveals[0]) reveals[0].style.display = "none";
     if (reveals[1]) {
@@ -39,6 +51,25 @@ async function prepareVideoPage(page) {
     }
     const root = document.querySelector("body > div");
     if (root) root.style.height = "100vh";
+
+    const cursor = document.createElement("div");
+    cursor.setAttribute("data-xhs-cursor", "true");
+    cursor.style.position = "fixed";
+    cursor.style.left = "0";
+    cursor.style.top = "0";
+    cursor.style.zIndex = "999999";
+    cursor.style.width = "34px";
+    cursor.style.height = "34px";
+    cursor.style.pointerEvents = "none";
+    cursor.style.background = "#111111";
+    cursor.style.clipPath = "polygon(0 0, 0 88%, 26% 63%, 42% 100%, 58% 92%, 43% 58%, 74% 58%)";
+    cursor.style.filter = "drop-shadow(0 2px 3px rgba(255,255,255,0.85)) drop-shadow(0 3px 8px rgba(0,0,0,0.25))";
+    cursor.style.transform = "translate3d(-100px, -100px, 0)";
+    document.body.appendChild(cursor);
+
+    window.__setXhsCursor = (x, y) => {
+      cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    };
   });
 }
 
@@ -67,6 +98,9 @@ try {
   for (let i = 0; i < totalFrames; i++) {
     const point = pointerForFrame(i);
     await page.mouse.move(point.x, point.y);
+    await page.evaluate(({ x, y }) => {
+      window.__setXhsCursor?.(x, y);
+    }, point);
     await page.waitForTimeout(1000 / fps);
     await page.screenshot({
       path: framePath(i),
