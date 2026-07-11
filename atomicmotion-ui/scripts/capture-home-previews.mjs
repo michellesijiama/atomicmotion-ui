@@ -46,7 +46,7 @@ try {
   for (const id of ids) {
     await page.goto(`${baseUrl}/components/${id}`, { waitUntil: "domcontentloaded" });
     await prepareCapturePage(page);
-    await page.waitForTimeout(id === "gradient-aura" ? 2400 : 1400);
+    await page.waitForTimeout(["gradient-aura", "liquid-vinyl"].includes(id) ? 2400 : 1400);
     await page.screenshot({
       path: previewPath(id),
       clip: { x: 0, y: 0, width: 960, height: 1200 },
