@@ -7,6 +7,7 @@ import { FilterDropdownReveal } from "@/components/filter-dropdown-reveal";
 import { GeminiLive } from "@/components/gemini-live";
 import { GeometricLogoReveal } from "@/components/geometric-logo-reveal";
 import { GradientAura } from "@/components/gradient-aura";
+import { LiquidVinyl } from "@/components/liquid-vinyl";
 import { ScrollScrubbedTypography } from "@/components/scroll-scrubbed-typography";
 import { ScrollScrubbedVideo } from "@/components/scroll-scrubbed-video";
 
@@ -38,6 +39,10 @@ function GradientAuraPreview({ loop }: { loop?: boolean }) {
   return <GradientAura loop={loop} />;
 }
 
+function LiquidVinylPreview({ loop }: { loop?: boolean }) {
+  return <LiquidVinyl loop={loop} />;
+}
+
 function ScrollScrubbedTypographyPreview({ loop }: { loop?: boolean }) {
   return <ScrollScrubbedTypography loop={loop} className={loop ? "px-16" : undefined} />;
 }
@@ -55,5 +60,6 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "gemini-live": GeminiLivePreview,
   "geometric-logo-reveal": GeometricLogoRevealPreview,
   "gradient-aura": GradientAuraPreview,
+  "liquid-vinyl": LiquidVinylPreview,
   "scroll-scrubbed-video": ScrollScrubbedVideoPreview,
 };

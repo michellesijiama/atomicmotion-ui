@@ -166,6 +166,18 @@ export const componentRegistry = {
     createdAt: "2026-07-08",
     codePath: "src/components/gradient-aura/gradient-aura.tsx",
   }),
+  liquidVinyl: createComponentMeta({
+    id: "liquid-vinyl",
+    index: "010",
+    title: "Liquid Vinyl",
+    description:
+      "A transparent Three.js vinyl filled with image-colored liquid, fine pressed grooves, fluid caustics, and cursor-responsive refraction",
+    category: "3D",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-07-10",
+    codePath: "src/components/liquid-vinyl/liquid-vinyl.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
