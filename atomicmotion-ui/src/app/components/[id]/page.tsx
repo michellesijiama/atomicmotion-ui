@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { ComponentStage } from "@/components/website/component-stage";
 import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
 import { componentList, getComponentById } from "@/lib/component-registry";
@@ -53,7 +54,7 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   // Same Jitter-style cascade as the home page so entering any component page
   // reveals the header then the preview.
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <ComponentStage>
       <div className="am-reveal relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
         <SiteHeader component={component} />
       </div>
@@ -64,6 +65,6 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
       >
         <Preview />
       </div>
-    </div>
+    </ComponentStage>
   );
 }
