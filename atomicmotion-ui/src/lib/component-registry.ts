@@ -6,6 +6,10 @@ export const REPO_PROJECT_ROOT = "atomicmotion-ui";
 const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REPO_BRANCH}`;
 const DEPENDENCY_HINT = "framer-motion, lucide-react, clsx, tailwind-merge";
 
+// Components whose home-gallery card plays a looping video (`/previews/<id>.mp4`)
+// instead of the static poster — heavy 3D scenes we don't mount live in the grid.
+const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-aura", "liquid-vinyl"]);
+
 export type ComponentMeta = {
   id: string;
   index: string;
@@ -48,7 +52,9 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
     ...meta,
     codeHref,
     previewImage: `/previews/${meta.id}.png`,
-    previewVideo: meta.id === "gradient-aura" ? `/previews/${meta.id}.mp4` : undefined,
+    previewVideo: COMPONENTS_WITH_PREVIEW_VIDEO.has(meta.id)
+      ? `/previews/${meta.id}.mp4`
+      : undefined,
     aiPrompt: [
       `Use AtomicMotion UI's ${meta.title} component.`,
       `Source: ${codeHref}`,
