@@ -8,7 +8,7 @@ const DEPENDENCY_HINT = "framer-motion, lucide-react, clsx, tailwind-merge";
 
 // Components whose home-gallery card plays a looping video (`/previews/<id>.mp4`)
 // instead of the static poster — heavy 3D scenes we don't mount live in the grid.
-const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-aura", "liquid-vinyl"]);
+const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-aura"]);
 
 export type ComponentMeta = {
   id: string;
@@ -185,19 +185,6 @@ export const componentRegistry = {
     codePath: "src/components/gradient-aura/gradient-aura.tsx",
     // Heavy Three.js scene — show the looping video poster in the gallery
     // instead of mounting the live WebGL preview (avoids the load regression).
-    previewStatic: true,
-  }),
-  liquidVinyl: createComponentMeta({
-    id: "liquid-vinyl",
-    index: "010",
-    title: "Liquid Vinyl",
-    description:
-      "A transparent Three.js vinyl filled with image-colored liquid, fine pressed grooves, fluid caustics, and cursor-responsive refraction",
-    category: "3D",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
-    createdAt: "2026-07-10",
-    codePath: "src/components/liquid-vinyl/liquid-vinyl.tsx",
     previewStatic: true,
   }),
 } satisfies Record<string, ComponentMeta>;
