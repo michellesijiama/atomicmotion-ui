@@ -132,8 +132,9 @@ function makeManropeTextTexture(fontFamily: string) {
     throw new Error("Unable to create gummy text texture canvas.");
   }
 
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
+  // Leave the canvas transparent (no white fill) so the backdrop shows only the
+  // text — the plane behind the gummy bear reads as a transparent surface.
+  ctx.clearRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
 
   ctx.fillStyle = "#121413";
   ctx.textBaseline = "top";
@@ -233,6 +234,10 @@ export function GradientAura({ className, loop = false }: GradientAuraProps) {
     const backdropMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       toneMapped: false,
+      // Discard the empty (transparent) canvas pixels so the page shows through
+      // where there's no text, while keeping the material in the opaque queue so
+      // the gummy bear's transmission still refracts the paragraph.
+      alphaTest: 0.5,
     });
     const backdrop = new THREE.Mesh(backdropGeometry, backdropMaterial);
     backdrop.position.set(0, 0, -1.65);
