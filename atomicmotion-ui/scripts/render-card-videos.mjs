@@ -24,26 +24,24 @@ const captureBackground = "#f2f2f4";
 
 // Per-component capture plan. `spanSeconds` is the real wall-clock window the
 // frames are sampled across; picking one full period of the dominant motion
-// makes the clip loop seamlessly. `frames` are then played back at `fps`.
+// makes the clip loop seamlessly. The clip's on-screen loop length (and thus
+// how fast the motion reads) is `frames / fps` — bump frames or drop fps to
+// slow it down.
 const allTargets = [
   {
     id: "gradient-aura",
-    frames: 144,
-    spanSeconds: 6,
+    // 216 / 24 = 9s per orbit (was 6s) — a calmer bear glide.
+    frames: 216,
+    spanSeconds: 9,
     settleMs: 2600,
     orbitCursor: true,
-  },
-  {
-    // One full record revolution (rotation.z advances 0.22 rad/s -> 2*pi/0.22).
-    id: "liquid-vinyl",
-    frames: 96,
-    spanSeconds: 28.56,
-    settleMs: 2400,
-    orbitCursor: false,
+    fps: 24,
+    // Text + bear detail compresses fine at a higher CRF; keeps the file small.
+    crf: 28,
   },
 ];
 
-// Optional CLI filter: `node render-card-videos.mjs liquid-vinyl` re-renders
+// Optional CLI filter: `node render-card-videos.mjs gradient-aura` re-renders
 // only that clip. With no args it renders every 3D component.
 const requested = process.argv.slice(2);
 const targets = requested.length
@@ -55,6 +53,13 @@ mkdirSync(outputDir, { recursive: true });
 async function prepareCapturePage(page) {
   await page.evaluate((bg) => {
     document.body.style.background = bg;
+    // The component page wraps its content in ComponentStage, which paints its
+    // own background (white by default — the Shift+G toggle's initial state).
+    // Force the layout <main> and that stage to the gray capture background so
+    // the 3D scene blends into the card instead of sitting on a white box.
+    document.querySelectorAll("main, main > div").forEach((el) => {
+      el.style.background = bg;
+    });
     const hideDevChrome = document.createElement("style");
     hideDevChrome.textContent = `nextjs-portal { display: none !important; }`;
     document.head.appendChild(hideDevChrome);
@@ -135,7 +140,7 @@ try {
     await execFileAsync("ffmpeg", [
       "-y",
       "-framerate",
-      String(fps),
+      String(target.fps ?? fps),
       "-i",
       resolve(frameDir, "frame-%04d.png"),
       "-vf",
@@ -145,7 +150,7 @@ try {
       "-preset",
       "slow",
       "-crf",
-      "23",
+      String(target.crf ?? 23),
       "-pix_fmt",
       "yuv420p",
       "-movflags",
