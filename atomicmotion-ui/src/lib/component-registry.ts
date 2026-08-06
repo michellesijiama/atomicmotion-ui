@@ -187,6 +187,19 @@ export const componentRegistry = {
     // instead of mounting the live WebGL preview (avoids the load regression).
     previewStatic: true,
   }),
+  scrollPhaseCursor: createComponentMeta({
+    id: "scroll-phase-cursor",
+    index: "010",
+    title: "Scroll Phase Cursor",
+    description:
+      "A circular pointer whose ring fills with page progress while a sculpted 3D form rotates with the scroll",
+    category: "Cursor",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-08-06",
+    codePath: "src/components/scroll-phase-cursor/scroll-phase-cursor.tsx",
+    inspiredBy: { label: "Inversa", href: "https://inversa.com" },
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
