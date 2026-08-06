@@ -39,7 +39,7 @@ function SlidePlate({ slide }: { slide: Slide }) {
           ["Aspect ratio", slide.ratio],
           ["Dimensions", slide.dimensions],
         ].map(([label, value]) => (
-          <div key={label} className="text-left">
+          <div key={label} className="whitespace-nowrap text-left">
             <p className="text-[#8b8b86]">{label}</p>
             <p className="text-[#adada8]">{value}</p>
           </div>
