@@ -1,3 +1,13 @@
 .superpowers/
 atomicmotion-ui/public/scroll-phase-cursor.gif
 atomicmotion-ui/.tmp/
+
+# Agent process files and internal planning docs — not part of the public product
+CLAUDE.md
+AGENTS.md
+.claudecode/
+.claude/
+.devin/
+docs/superpowers/
+atomicmotion-ui/docs/superpowers/
+.vercel

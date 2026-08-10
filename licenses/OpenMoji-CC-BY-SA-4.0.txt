@@ -1,0 +1,31 @@
+Third-party asset notice — OpenMoji
+====================================
+
+Files covered: atomicmotion-ui/public/emoji/*.svg (40 files), and the emoji
+path data bundled inside atomicmotion-ui/src/components/emoji-sketch/emoji-sketch.tsx
+(the `emoji-sketch` component draws these same line-art SVGs stroke by stroke,
+falling back to the OpenMoji CDN at runtime — see the component's header
+comment).
+
+Source:    OpenMoji — https://openmoji.org
+Version:   15.0.0
+Author:    OpenMoji project and contributors (https://github.com/hfg-gmuend/openmoji)
+License:   Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+Full text: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+Summary of the obligations this repo takes on (see the full legal text linked
+above for the binding terms):
+
+- Attribution: this notice, plus the credit in the root README's "Third-party
+  assets" section, is the required attribution for the OpenMoji artwork
+  bundled in and referenced by this repository.
+- ShareAlike: if you redistribute these SVGs (or the line-art data extracted
+  from them) in modified form, your distribution of those modified files must
+  also be licensed under CC BY-SA 4.0. This requirement applies only to the
+  OpenMoji artwork itself — it does not extend to the rest of this
+  repository's MIT-licensed source code, which does not incorporate OpenMoji
+  content.
+
+This notice does not change the MIT license that covers the original code in
+this repository (see /LICENSE); it scopes that MIT grant to exclude the
+OpenMoji assets listed above, which remain under CC BY-SA 4.0.

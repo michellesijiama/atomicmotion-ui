@@ -54,9 +54,9 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.42, ease: [0.45, 0, 0.55, 1] }}
-        className="mx-auto mb-10 max-w-none rounded-[22px] border border-black/15 bg-transparent p-2"
+        className="mx-auto mb-10 max-w-none border-t border-black/15 bg-transparent p-2 pt-6"
       >
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex justify-center gap-2 overflow-x-auto">
           {filterOptions.map((option) => {
             const isActive = activeFilter === option.value;
 

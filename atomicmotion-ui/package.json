@@ -2,14 +2,18 @@
   "name": "atomicmotion-ui",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "description": "Open-source micro-interactions for designers and developers — a gallery of polished, animated UI components you can copy-paste into your own project one file at a time.",
+  "homepage": "https://atomicmotion.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michellesijiama/atomicmotion-ui"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "capture:home-previews": "node scripts/capture-home-previews.mjs",
-    "render:gummy-xiaohongshu": "node scripts/render-gummy-xiaohongshu.mjs",
-    "render:card-videos": "node scripts/render-card-videos.mjs",
-    "render:scroll-phase-gif": "node scripts/render-scroll-phase-cursor-gif.mjs",
     "lint": "eslint",
     "test:design": "node scripts/verify-jitter-design-system.mjs",
     "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs",
@@ -34,7 +38,6 @@
     "three-subdivide": "^1.1.5"
   },
   "devDependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -10,6 +10,16 @@ Each interaction is a single, self-contained file built with React, Tailwind
 CSS, and Framer Motion. Browse them in the gallery, then copy the source (or
 hand an AI agent a ready-made prompt) and drop it straight into your codebase.
 
+## What this is / what this isn't
+
+- **This is** a copy-paste component gallery: each file in `src/components/`
+  is meant to be pulled into your own project and adapted.
+- **This isn't** an npm package — there's nothing to `npm install` from this
+  repo, and no semver or API-stability guarantee across commits.
+- The gallery site (`atomicmotion.dev`) is a demo of the components, not a
+  supported hosted product — issues about the site itself are welcome, but
+  it isn't maintained as a service.
+
 ## Components
 
 | Component | Category | Inspired by | Source |
@@ -20,8 +30,10 @@ hand an AI agent a ready-made prompt) and drop it straight into your codebase.
 | **Filter Dropdown Reveal** — a project filter bar with a soft dropdown and clipped text reveal | Navigation | [MAD](https://www.i-mad.com) | [`filter-dropdown-reveal.tsx`](atomicmotion-ui/src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx) |
 | **Codex Sidebar Reveal** — a compact app shell whose left sidebar expands and shifts the workspace | Navigation | [Codex](https://openai.com/codex) | [`codex-sidebar-reveal.tsx`](atomicmotion-ui/src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx) |
 | **Scroll-Scrubbed Typography** — a sticky editorial title that stretches tall, then compresses as scroll scrubs its scale | Typography | [Getty × Gehry](https://gehry.getty.edu) | [`scroll-scrubbed-typography.tsx`](atomicmotion-ui/src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) |
-
-More are on the way — see the "Coming soon" slots in the gallery.
+| **Scroll-Scrubbed Video** — a full-bleed editorial video stage where wheel direction scrubs the film forward or backward | Video | [Getty × Gehry](https://gehry.getty.edu) | [`scroll-scrubbed-video.tsx`](atomicmotion-ui/src/components/scroll-scrubbed-video/scroll-scrubbed-video.tsx) |
+| **Geometric Logo Reveal** — a wordmark assembles from a gray ghost into solid ink in a staggered cascade | Typography | [Form&Fun](https://www.formandfun.co) | [`geometric-logo-reveal.tsx`](atomicmotion-ui/src/components/geometric-logo-reveal/geometric-logo-reveal.tsx) |
+| **Gradient Gummy Bear** — a translucent 3D gummy bear (Three.js) with a soft pink gradient and cursor parallax | 3D | — | [`gradient-aura.tsx`](atomicmotion-ui/src/components/gradient-aura/gradient-aura.tsx) |
+| **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](atomicmotion-ui/src/components/scroll-phase-cursor/scroll-phase-cursor.tsx) |
 
 ## Using a component
 
@@ -115,10 +127,21 @@ to `src/lib/component-registry.ts` so it appears in the gallery.
 Designed and built by [Sijia Ma](https://www.linkedin.com/in/michellesijiama/).
 Each component credits the site or work that inspired it.
 
-**Third-party assets:** the Gradient Gummy Bear uses the "Gummy Bear" 3D model
-by Poly by Google (Google Poly), licensed [CC-BY](https://creativecommons.org/licenses/by/3.0/),
-sourced via [Poly Pizza](https://poly.pizza/m/5zl16PPAItW).
+## Third-party assets
+
+This repo's own code is MIT-licensed, but a few binary assets under
+`atomicmotion-ui/public/` carry different licenses or unresolved provenance.
+See [`ASSETS.md`](ASSETS.md) for the full table. Notably:
+
+- The Gradient Gummy Bear uses the "Gummy Bear" 3D model by Poly by Google
+  (Google Poly), licensed [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/),
+  sourced via [Poly Pizza](https://poly.pizza/m/5zl16PPAItW).
+- The Emoji Sketch component's line-art SVGs are [OpenMoji](https://openmoji.org)
+  v15.0.0, licensed **CC BY-SA 4.0** — see
+  [`licenses/OpenMoji-CC-BY-SA-4.0.txt`](licenses/OpenMoji-CC-BY-SA-4.0.txt).
 
 ## License
 
-[MIT](LICENSE) © 2026 Sijia Ma
+[MIT](LICENSE) © 2026 Sijia Ma — scoped to this repository's original source
+code. Third-party assets keep their own licenses; see
+[Third-party assets](#third-party-assets) above.
