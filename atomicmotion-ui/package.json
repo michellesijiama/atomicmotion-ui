@@ -15,6 +15,7 @@
     "start": "next start",
     "capture:home-previews": "node scripts/capture-home-previews.mjs",
     "lint": "eslint",
+    "verify": "cd .. && node scripts/verify-public-surface.mjs && node scripts/verify-registry-paths.mjs",
     "test:design": "node scripts/verify-jitter-design-system.mjs",
     "test:expanded-navigation": "node scripts/verify-expanded-navigation-mad.mjs",
     "test:codex-sidebar": "node scripts/verify-codex-sidebar-reveal.mjs",

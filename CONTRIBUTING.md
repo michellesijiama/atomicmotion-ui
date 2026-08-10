@@ -33,12 +33,11 @@ npm run lint
 npm run build
 ```
 
-And from the repo root, the two guard scripts that keep the public surface
-and gallery links honest:
+And the two guard scripts that keep the public surface and gallery links
+honest (from `atomicmotion-ui/`, or run them directly from the repo root):
 
 ```bash
-node scripts/verify-public-surface.mjs
-node scripts/verify-registry-paths.mjs
+npm run verify
 ```
 
 ## Licensing of contributions
