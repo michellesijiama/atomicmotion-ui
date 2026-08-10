@@ -22,7 +22,7 @@ drift out of date.
 | `atomicmotion-ui/public/**` (svg icons, previews, `models/gummy-bear.glb`) | PUBLIC | credited third-party or self-authored |
 | `atomicmotion-ui/public/emoji/*.svg` | PUBLIC (attributed) | OpenMoji, CC BY-SA 4.0 — see `licenses/OpenMoji-CC-BY-SA-4.0.txt` |
 | `atomicmotion-ui/public/gummy-bear-xiaohongshu.mp4` | removed | unreferenced by any component; output of the deleted `render:gummy-xiaohongshu` script |
-| `atomicmotion-ui/public/videos/pinterest-floral-scroll.mp4` | REVIEW | load-bearing for `scroll-scrubbed-video` — kept so the component still works; provenance unresolved, see `ASSETS.md` |
+| `atomicmotion-ui/public/videos/pinterest-floral-scroll.mp4` | removed | provenance never resolved; deleted, and `scroll-scrubbed-video` unlisted from the registry/gallery/README/hero — see `ASSETS.md` |
 | `atomicmotion-ui/scripts/verify-*.mjs` | PUBLIC | real Playwright test infrastructure |
 | `atomicmotion-ui/scripts/capture-home-previews.mjs` | PUBLIC | legitimate contributor tooling (regenerate gallery previews) |
 | `atomicmotion-ui/scripts/render-*.mjs` | removed | personal social-media content generators, no consumer value |

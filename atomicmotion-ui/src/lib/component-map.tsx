@@ -8,7 +8,6 @@ import { GeminiLive } from "@/components/gemini-live";
 import { GeometricLogoReveal } from "@/components/geometric-logo-reveal";
 import { GradientAura } from "@/components/gradient-aura";
 import { ScrollScrubbedTypography } from "@/components/scroll-scrubbed-typography";
-import { ScrollScrubbedVideo } from "@/components/scroll-scrubbed-video";
 import { ScrollPhaseCursor } from "@/components/scroll-phase-cursor";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
@@ -43,10 +42,6 @@ function ScrollScrubbedTypographyPreview({ loop }: { loop?: boolean }) {
   return <ScrollScrubbedTypography loop={loop} className={loop ? "px-16" : undefined} />;
 }
 
-function ScrollScrubbedVideoPreview({ loop }: { loop?: boolean }) {
-  return <ScrollScrubbedVideo loop={loop} />;
-}
-
 function ScrollPhaseCursorPreview({ loop }: { loop?: boolean }) {
   return <ScrollPhaseCursor loop={loop} />;
 }
@@ -60,6 +55,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "gemini-live": GeminiLivePreview,
   "geometric-logo-reveal": GeometricLogoRevealPreview,
   "gradient-aura": GradientAuraPreview,
-  "scroll-scrubbed-video": ScrollScrubbedVideoPreview,
   "scroll-phase-cursor": ScrollPhaseCursorPreview,
 };

@@ -146,19 +146,6 @@ export const componentRegistry = {
     codePath: "src/components/gemini-live/gemini-live.tsx",
     inspiredBy: { label: "Gemini", href: "https://gemini.google.com" },
   }),
-  scrollScrubbedVideo: createComponentMeta({
-    id: "scroll-scrubbed-video",
-    index: "007",
-    title: "Scroll-Scrubbed Video",
-    description:
-      "A full-bleed editorial video stage where wheel direction scrubs the film forward or backward through a sticky timeline",
-    category: "Video",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
-    createdAt: "2026-07-06",
-    codePath: "src/components/scroll-scrubbed-video/scroll-scrubbed-video.tsx",
-    inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
-  }),
   geometricLogoReveal: createComponentMeta({
     id: "geometric-logo-reveal",
     index: "008",

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/michellesijiama/atomicmotion-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/michellesijiama/atomicmotion-ui/actions/workflows/ci.yml)
 
-![Four AtomicMotion UI components: Gemini Live, Gradient Gummy Bear, Emoji Sketch, and Scroll-Scrubbed Video](docs/images/hero.png)
+![Four AtomicMotion UI components: Gemini Live, Gradient Gummy Bear, Emoji Sketch, and Scroll Phase Cursor](docs/images/hero.png)
 
 Open-source micro-interactions for designers and developers — a gallery of
 polished, animated UI components you can lift into your own project one file at
@@ -37,7 +37,6 @@ hand an AI agent a ready-made prompt) and drop it straight into your codebase.
 | <img src="atomicmotion-ui/public/previews/filter-dropdown-reveal.png" width="160"> | **Filter Dropdown Reveal** — a project filter bar with a soft dropdown and clipped text reveal | Navigation | [MAD](https://www.i-mad.com) | [`filter-dropdown-reveal.tsx`](atomicmotion-ui/src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx) |
 | <img src="atomicmotion-ui/public/previews/codex-sidebar-reveal.png" width="160"> | **Codex Sidebar Reveal** — a compact app shell whose left sidebar expands and shifts the workspace | Navigation | [Codex](https://openai.com/codex) | [`codex-sidebar-reveal.tsx`](atomicmotion-ui/src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx) |
 | <img src="atomicmotion-ui/public/previews/scroll-scrubbed-typography.png" width="160"> | **Scroll-Scrubbed Typography** — a sticky editorial title that stretches tall, then compresses as scroll scrubs its scale | Typography | [Getty × Gehry](https://gehry.getty.edu) | [`scroll-scrubbed-typography.tsx`](atomicmotion-ui/src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) |
-| <img src="atomicmotion-ui/public/previews/scroll-scrubbed-video.png" width="160"> | **Scroll-Scrubbed Video** — a full-bleed editorial video stage where wheel direction scrubs the film forward or backward | Video | [Getty × Gehry](https://gehry.getty.edu) | [`scroll-scrubbed-video.tsx`](atomicmotion-ui/src/components/scroll-scrubbed-video/scroll-scrubbed-video.tsx) |
 | <img src="atomicmotion-ui/public/previews/geometric-logo-reveal.png" width="160"> | **Geometric Logo Reveal** — a wordmark assembles from a gray ghost into solid ink in a staggered cascade | Typography | [Form&Fun](https://www.formandfun.co) | [`geometric-logo-reveal.tsx`](atomicmotion-ui/src/components/geometric-logo-reveal/geometric-logo-reveal.tsx) |
 | <img src="atomicmotion-ui/public/previews/gradient-aura.png" width="160"> | **Gradient Gummy Bear** — a translucent 3D gummy bear (Three.js) with a soft pink gradient and cursor parallax | 3D | — | [`gradient-aura.tsx`](atomicmotion-ui/src/components/gradient-aura/gradient-aura.tsx) |
 | <img src="atomicmotion-ui/public/previews/scroll-phase-cursor.png" width="160"> | **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](atomicmotion-ui/src/components/scroll-phase-cursor/scroll-phase-cursor.tsx) |
