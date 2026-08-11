@@ -71,7 +71,12 @@ try {
   for (const id of ids) {
     await page.goto(`${baseUrl}/components/${id}`, { waitUntil: "domcontentloaded" });
     await prepareCapturePage(page);
-    await page.waitForTimeout(id === "gradient-gummy-bear" ? 2400 : 1400);
+    if (id === "voice-bloom") {
+      await page.getByRole("button", { name: "Start voice input" }).click();
+      await page.waitForTimeout(3200);
+    } else {
+      await page.waitForTimeout(id === "gradient-gummy-bear" ? 2400 : 1400);
+    }
     await hideDevOverlay(page);
     await page.screenshot({
       path: previewPath(id),

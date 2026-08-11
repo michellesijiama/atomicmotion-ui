@@ -231,6 +231,19 @@ export const componentRegistry = {
     codePath: "components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx",
     inspiredBy: { label: "Inversa", href: "https://inversa.com" },
   }),
+  voiceBloom: createComponentMeta({
+    id: "voice-bloom",
+    index: "011",
+    title: "Voice Bloom",
+    description:
+      "A gradient microphone that listens, blooms into an AI response panel, and reveals generated guidance word by word",
+    category: "AI",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-08-11",
+    codePath: "components/ai/voice-bloom/voice-bloom.tsx",
+    inspiredBy: { label: "Atomic Motion", href: "https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion" },
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);

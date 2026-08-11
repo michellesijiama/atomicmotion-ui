@@ -9,6 +9,7 @@ import { GeometricLogoReveal } from "@components/typography/geometric-logo-revea
 import { GradientGummyBear } from "@components/3d/gradient-gummy-bear";
 import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
 import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
+import { VoiceBloom } from "@components/ai/voice-bloom";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
@@ -46,6 +47,10 @@ function ScrollPhaseCursorPreview({ loop }: { loop?: boolean }) {
   return <ScrollPhaseCursor loop={loop} />;
 }
 
+function VoiceBloomPreview({ loop }: { loop?: boolean }) {
+  return <VoiceBloom loop={loop} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
@@ -56,4 +61,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "geometric-logo-reveal": GeometricLogoRevealPreview,
   "gradient-gummy-bear": GradientGummyBearPreview,
   "scroll-phase-cursor": ScrollPhaseCursorPreview,
+  "voice-bloom": VoiceBloomPreview,
 };
