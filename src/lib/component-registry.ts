@@ -7,7 +7,7 @@ const DEPENDENCY_HINT = "framer-motion, lucide-react, clsx, tailwind-merge";
 
 // Components whose home-gallery card plays a looping video (`/previews/<id>.mp4`)
 // instead of the static poster — heavy 3D scenes we don't mount live in the grid.
-const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-aura"]);
+const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-gummy-bear"]);
 
 export type ComponentMeta = {
   id: string;
@@ -79,8 +79,8 @@ export const componentRegistry = {
     codePath: "components/tool/emoji-sketch/emoji-sketch.tsx",
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
-  expandedNavigation: createComponentMeta({
-    id: "expanded-navigation",
+  softMenuReveal: createComponentMeta({
+    id: "soft-menu-reveal",
     index: "002",
     title: "Soft Menu Reveal",
     description:
@@ -89,7 +89,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-20",
-    codePath: "components/navigation/expanded-navigation/expanded-navigation.tsx",
+    codePath: "components/navigation/soft-menu-reveal/soft-menu-reveal.tsx",
     inspiredBy: { label: "Jitter", href: "https://madewithjitter.com" },
   }),
   filterDropdownReveal: createComponentMeta({
@@ -158,8 +158,8 @@ export const componentRegistry = {
     codePath: "components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx",
     inspiredBy: { label: "Form&Fun", href: "https://www.formandfun.co" },
   }),
-  gradientAura: createComponentMeta({
-    id: "gradient-aura",
+  gradientGummyBear: createComponentMeta({
+    id: "gradient-gummy-bear",
     index: "009",
     title: "Gradient Gummy Bear",
     description:
@@ -168,7 +168,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-07-08",
-    codePath: "components/3d/gradient-aura/gradient-aura.tsx",
+    codePath: "components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx",
     // Heavy Three.js scene — show the looping video poster in the gallery
     // instead of mounting the live WebGL preview (avoids the load regression).
     previewStatic: true,

@@ -5,7 +5,7 @@ function read(path) {
 }
 
 const files = {
-  softMenu: read("components/navigation/expanded-navigation/expanded-navigation.tsx"),
+  softMenu: read("components/navigation/soft-menu-reveal/soft-menu-reveal.tsx"),
   filterDropdown: read("components/navigation/filter-dropdown-reveal/filter-dropdown-reveal.tsx"),
   filterDropdownIndex: read("components/navigation/filter-dropdown-reveal/index.ts"),
   map: read("src/lib/component-map.tsx"),
@@ -56,11 +56,11 @@ const checks = [
 const failures = checks.filter(([, passed]) => !passed);
 
 if (failures.length > 0) {
-  console.error("expanded navigation MAD checks failed:");
+  console.error("soft menu reveal split checks failed:");
   for (const [label] of failures) {
     console.error(`- ${label}`);
   }
   process.exit(1);
 }
 
-console.log(`expanded navigation split checks passed (${checks.length}/${checks.length}).`);
+console.log(`soft menu reveal split checks passed (${checks.length}/${checks.length}).`);

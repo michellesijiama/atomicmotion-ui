@@ -10,7 +10,7 @@ const outputDir = resolve(projectRoot, "public/previews");
 const registry = readFileSync(resolve(projectRoot, "src/lib/component-registry.ts"), "utf8");
 const allIds = [...new Set(Array.from(registry.matchAll(/id: "([^"]+)"/g)).map((match) => match[1]))];
 
-// Optional CLI filter: `node capture-home-previews.mjs gradient-aura`
+// Optional CLI filter: `node capture-home-previews.mjs gradient-gummy-bear`
 // regenerates only those posters. With no args it captures every component.
 const requested = process.argv.slice(2);
 const ids = requested.length ? allIds.filter((id) => requested.includes(id)) : allIds;
@@ -71,7 +71,7 @@ try {
   for (const id of ids) {
     await page.goto(`${baseUrl}/components/${id}`, { waitUntil: "domcontentloaded" });
     await prepareCapturePage(page);
-    await page.waitForTimeout(id === "gradient-aura" ? 2400 : 1400);
+    await page.waitForTimeout(id === "gradient-gummy-bear" ? 2400 : 1400);
     await hideDevOverlay(page);
     await page.screenshot({
       path: previewPath(id),

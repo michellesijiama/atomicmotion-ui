@@ -15,7 +15,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type GradientAuraProps = {
+export type GradientGummyBearProps = {
   className?: string;
   loop?: boolean;
 };
@@ -159,7 +159,7 @@ function makeManropeTextTexture(fontFamily: string) {
   return texture;
 }
 
-export function GradientAura({ className, loop = false }: GradientAuraProps) {
+export function GradientGummyBear({ className, loop = false }: GradientGummyBearProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const pointer = React.useRef({ x: 0, y: 0, cx: 0, cy: 0 });
 

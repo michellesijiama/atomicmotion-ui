@@ -9,9 +9,9 @@ carry a different license than the code that ships them. Checked by
 | Path | Source | Author | License | Credited in |
 | --- | --- | --- | --- | --- |
 | `public/emoji/*.svg` (40 files) | [OpenMoji](https://openmoji.org) v15.0.0 | OpenMoji project & contributors | CC BY-SA 4.0 | `licenses/OpenMoji-CC-BY-SA-4.0.txt`, `public/emoji/README.md`, root `README.md` |
-| `public/models/gummy-bear.glb` | [Poly Pizza](https://poly.pizza/m/5zl16PPAItW) ("Gummy Bear" by Poly by Google) | Google Poly | CC-BY 3.0 | `src/components/gradient-aura/gradient-aura.tsx` header comment, root `README.md` |
-| `public/gummy-bear-poster.png` | Self-authored (poster frame captured from the `gradient-aura` component render) | Sijia Ma | MIT (repo default) | — |
-| `public/previews/*.png`, `public/previews/gradient-aura.mp4` | Self-authored (`npm run capture:home-previews`) — screen captures of this repo's own components | Sijia Ma | MIT (repo default) | — |
+| `public/models/gummy-bear.glb` | [Poly Pizza](https://poly.pizza/m/5zl16PPAItW) ("Gummy Bear" by Poly by Google) | Google Poly | CC-BY 3.0 | `components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx` header comment, root `README.md` |
+| `public/gummy-bear-poster.png` | Self-authored (poster frame captured from the `gradient-gummy-bear` component render) | Sijia Ma | MIT (repo default) | — |
+| `public/previews/*.png`, `public/previews/gradient-gummy-bear.mp4` | Self-authored (`npm run capture:home-previews`) — screen captures of this repo's own components | Sijia Ma | MIT (repo default) | — |
 | `public/{next,vercel,globe,file,window}.svg` | Default `create-next-app` scaffold icons | Vercel | MIT (Next.js template default) | — |
 
 ## Already removed

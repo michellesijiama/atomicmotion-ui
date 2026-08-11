@@ -5,7 +5,7 @@ function read(path) {
 }
 
 const files = {
-  component: read("components/3d/gradient-aura/gradient-aura.tsx"),
+  component: read("components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx"),
   registry: read("src/lib/component-registry.ts"),
   packageJson: read("package.json"),
   layout: read("src/app/layout.tsx"),
@@ -28,7 +28,7 @@ const checks = [
   ["component file exists", files.component.length > 0],
   ["local gummy bear model exists", files.model],
   ["local gummy poster exists", files.poster],
-  ["component still exports GradientAura", files.component.includes("export function GradientAura")],
+  ["component still exports GradientGummyBear", files.component.includes("export function GradientGummyBear")],
   ["component keeps detail-only WebGL", files.component.includes("if (loop) return")],
   ["layout exposes Manrope for the text texture", files.layout.includes("Manrope") && files.layout.includes("--font-manrope")],
   ["component generates a Manrope text backdrop texture", files.component.includes("makeManropeTextTexture") && files.component.includes("getManropeFontFamily")],

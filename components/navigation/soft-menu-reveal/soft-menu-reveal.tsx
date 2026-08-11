@@ -11,7 +11,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type ExpandedNavigationProps = {
+export type SoftMenuRevealProps = {
   className?: string;
   loop?: boolean;
 };
@@ -32,7 +32,7 @@ const panelTransition = {
 // Frosted "mega menu" that expands over the page — the nav row sits inside the
 // panel (madewithjitter-style), and the surface blurs the content behind it.
 // Self-contained: scoped --expnav-* tokens, inline keyframes, no global CSS.
-export function ExpandedNavigation({ className, loop = false }: ExpandedNavigationProps) {
+export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps) {
   const uid = React.useId().replace(/[:]/g, "");
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement>(null);

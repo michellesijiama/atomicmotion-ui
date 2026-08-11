@@ -91,7 +91,7 @@ Always run these before any commit:
 ```bash
 npm run lint
 npm run build
-for s in design expanded-navigation codex-sidebar card-padding \
+for s in design soft-menu-reveal codex-sidebar card-padding \
          gemini-live home-filter gradient-gummy home-previews; do
   npm run "test:$s" || echo "FAILED: test:$s"
 done
