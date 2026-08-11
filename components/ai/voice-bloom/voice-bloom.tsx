@@ -160,7 +160,7 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
             isOpen ? "Stop voice response" : isListening ? "Listening" : "Start voice input"
           }
           aria-pressed={isListening}
-          className="absolute left-1/2 top-1/2 z-10 flex w-48 items-center justify-center overflow-visible rounded-[200px] bg-[#020006] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+          className="absolute left-1/2 top-1/2 z-10 flex w-48 items-center justify-center overflow-visible rounded-[200px] bg-[#020006] text-white focus-visible:outline-none"
           initial={false}
           animate={{
             height: 48,
