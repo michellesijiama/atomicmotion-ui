@@ -16,18 +16,18 @@ export default function Home() {
             </header>
           </Reveal>
 
-          <section className="py-20 sm:py-28 lg:py-32" aria-label="Introduction">
-            <Reveal delay={0.1}>
-              <h1 className="mx-auto max-w-3xl text-balance text-center text-[26px] leading-[1.3] tracking-[-0.02em] text-[var(--jitter-ink)]">
-                Open-sourced interaction inspirations designed for{" "}
-                <RotatingWord words={["designers", "agents"]} />
-              </h1>
-            </Reveal>
+          <section className="pb-20 sm:pb-28 lg:pb-32" aria-label="Introduction">
+            <div className="py-20 sm:py-28 lg:py-32">
+              <Reveal delay={0.1}>
+                <h1 className="mx-auto max-w-3xl text-balance text-center text-[26px] leading-[1.3] tracking-[-0.02em] text-[var(--jitter-ink)]">
+                  Open-sourced interaction inspirations designed for{" "}
+                  <RotatingWord words={["designers", "agents"]} />
+                </h1>
+              </Reveal>
+            </div>
 
             <Reveal delay={0.18}>
-              <div className="mt-10">
-                <HomeComponentBrowser components={componentList} />
-              </div>
+              <HomeComponentBrowser components={componentList} />
             </Reveal>
           </section>
         </div>

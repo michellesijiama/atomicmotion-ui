@@ -9,11 +9,15 @@ const files = {
   filter: read("src/components/website/home-component-browser.tsx"),
   registry: read("src/lib/component-registry.ts"),
 };
+const rotatingWordIndex = files.home.indexOf("<RotatingWord");
+const componentBrowserIndex = files.home.indexOf(
+  "<HomeComponentBrowser components={componentList} />"
+);
 
 const checks = [
   ["home filter component exists", files.filter.length > 0],
   ["home imports filter browser", files.home.includes("HomeComponentBrowser")],
-  ["filter sits below intro text", files.home.includes("<RotatingWord") && files.home.includes("<HomeComponentBrowser components={componentList} />") && files.home.includes("mt-10")],
+  ["filter follows evenly padded intro text", rotatingWordIndex >= 0 && componentBrowserIndex > rotatingWordIndex && files.home.includes('className="py-20 sm:py-28 lg:py-32"')],
   ["filter uses framer motion", files.filter.includes('from "framer-motion"') && files.filter.includes("AnimatePresence")],
   // The filter bar lost its enclosing pill: it is now a rule-topped strip whose
   // individual buttons carry the rounded border.
