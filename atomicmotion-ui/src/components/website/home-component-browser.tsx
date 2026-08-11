@@ -71,7 +71,7 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
                 {isActive && (
                   <motion.span
                     layoutId="home-active-filter"
-                    className="absolute inset-0 rounded-full bg-[#2f64ff]"
+                    className="absolute inset-0 rounded-full bg-[var(--jitter-ink)]"
                     transition={activeFilterTransition}
                   />
                 )}

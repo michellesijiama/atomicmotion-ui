@@ -19,7 +19,9 @@ const checks = [
   // individual buttons carry the rounded border.
   ["filter bar is a rule-topped strip", files.filter.includes("border-t border-black/15")],
   ["filter buttons keep the rico-style rounded border", files.filter.includes("rounded-full border border-black/15")],
-  ["filter has animated active blue pill", files.filter.includes('layoutId="home-active-filter"') && files.filter.includes("bg-[#2f64ff]")],
+  // The active pill uses the ink token, not a hard-coded blue, so it tracks
+  // the design system instead of a literal.
+  ["filter has animated active pill", files.filter.includes('layoutId="home-active-filter"') && files.filter.includes("bg-[var(--jitter-ink)]")],
   ["filter buttons are pill shaped", files.filter.includes("h-10") && files.filter.includes("rounded-full")],
   ["filter drives card visibility by category", files.filter.includes("activeFilter === \"all\"") && files.filter.includes("component.category === activeFilter")],
   ["components declare creation dates", files.registry.includes("createdAt: \"2026-06-25\"") && files.registry.includes("createdAt: \"2026-06-22\"")],
