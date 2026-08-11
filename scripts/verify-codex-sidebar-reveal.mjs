@@ -16,6 +16,7 @@ const checks = [
   ["component exports CodexSidebarReveal", files.component.includes("export function CodexSidebarReveal")],
   ["component uses framer motion", files.component.includes('from "framer-motion"')],
   ["component uses animated React sidebar icon", files.component.includes("function AnimatedSidebarIcon") && files.component.includes("<motion.svg") && !files.component.includes("PanelLeft")],
+  ["animated sidebar icon defines SVG starting values", files.component.includes("initial={{ x1: 6.8, x2: 6.8 }}") && files.component.match(/initial=\{\{ x1: 10\.2, x2: 12\.6, opacity: 0\.7 \}\}/g)?.length === 2],
   ["component keeps workspace arrow controls visible", files.component.includes("workspaceActions") && files.component.includes("ArrowLeft") && files.component.includes("ArrowRight")],
   ["component uses 16px icons", !files.component.includes("size-5") && files.component.includes("className=\"size-4\"")],
   ["component keeps top controls fixed above layout", files.component.includes("absolute left-3 top-3 z-50") && files.component.includes("pointer-events-none")],

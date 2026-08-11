@@ -67,24 +67,37 @@ function AnimatedSidebarIcon({ open }: { open: boolean }) {
         width="13.5"
         height="11.5"
         rx="2.4"
+        opacity={0.82}
+        initial={{ opacity: 0.82 }}
         animate={{ opacity: open ? 1 : 0.82 }}
         transition={{ duration: 0.28, ease }}
       />
       <motion.line
+        x1={6.8}
+        x2={6.8}
         y1="5.2"
         y2="14.8"
+        initial={{ x1: 6.8, x2: 6.8 }}
         animate={{ x1: open ? 8.4 : 6.8, x2: open ? 8.4 : 6.8 }}
         transition={{ duration: 0.34, ease }}
       />
       <motion.line
+        x1={10.2}
+        x2={12.6}
         y1="8.2"
         y2="8.2"
+        opacity={0.7}
+        initial={{ x1: 10.2, x2: 12.6, opacity: 0.7 }}
         animate={{ x1: open ? 5.6 : 10.2, x2: open ? 6.7 : 12.6, opacity: open ? 0.42 : 0.7 }}
         transition={{ duration: 0.34, ease }}
       />
       <motion.line
+        x1={10.2}
+        x2={12.6}
         y1="11.8"
         y2="11.8"
+        opacity={0.7}
+        initial={{ x1: 10.2, x2: 12.6, opacity: 0.7 }}
         animate={{ x1: open ? 5.6 : 10.2, x2: open ? 6.7 : 12.6, opacity: open ? 0.42 : 0.7 }}
         transition={{ duration: 0.34, ease }}
       />
