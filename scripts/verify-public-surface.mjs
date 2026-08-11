@@ -62,7 +62,7 @@ function main() {
   }
 
   const publicFiles = files.filter(
-    (f) => f.startsWith("atomicmotion-ui/public/") && !ASSET_EXEMPT.some((p) => p.test(f))
+    (f) => f.startsWith("public/") && !ASSET_EXEMPT.some((p) => p.test(f))
   );
   let assetsDoc = "";
   try {

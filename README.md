@@ -10,8 +10,8 @@ a time.
 
 **Live gallery → [atomicmotion.dev](https://atomicmotion.dev)**
 
-Clone the repo and run commands from the [`atomicmotion-ui/`](atomicmotion-ui)
-subfolder — see [Local development](#local-development) below.
+Clone the repo and run commands from the repo root — see
+[Local development](#local-development) below.
 
 Each interaction is a single, self-contained file built with React, Tailwind
 CSS, and Framer Motion. Browse them in the gallery, then copy the source (or
@@ -31,15 +31,15 @@ hand an AI agent a ready-made prompt) and drop it straight into your codebase.
 
 | Preview | Component | Category | Inspired by | Source |
 | --- | --- | --- | --- | --- |
-| <img src="atomicmotion-ui/public/previews/gemini-live.png" width="160"> | **Gemini Live** — floating live-assistant panel with source chips, a blue edge glow, and listening pulses | AI | [Gemini](https://gemini.google.com) | [`gemini-live.tsx`](atomicmotion-ui/src/components/gemini-live/gemini-live.tsx) |
-| <img src="atomicmotion-ui/public/previews/emoji-sketch.png" width="160"> | **Emoji Sketch** — pick an emoji and watch it self-draw stroke by stroke, with a pencil wobble | Tool | [Getty × Gehry](https://gehry.getty.edu) | [`emoji-sketch.tsx`](atomicmotion-ui/src/components/emoji-sketch/emoji-sketch.tsx) |
-| <img src="atomicmotion-ui/public/previews/expanded-navigation.png" width="160"> | **Soft Menu Reveal** — a frosted menu that unfolds from a stable nav row on a bell-curve transition | Navigation | [Jitter](https://madewithjitter.com) | [`expanded-navigation.tsx`](atomicmotion-ui/src/components/expanded-navigation/expanded-navigation.tsx) |
-| <img src="atomicmotion-ui/public/previews/filter-dropdown-reveal.png" width="160"> | **Filter Dropdown Reveal** — a project filter bar with a soft dropdown and clipped text reveal | Navigation | [MAD](https://www.i-mad.com) | [`filter-dropdown-reveal.tsx`](atomicmotion-ui/src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx) |
-| <img src="atomicmotion-ui/public/previews/codex-sidebar-reveal.png" width="160"> | **Codex Sidebar Reveal** — a compact app shell whose left sidebar expands and shifts the workspace | Navigation | [Codex](https://openai.com/codex) | [`codex-sidebar-reveal.tsx`](atomicmotion-ui/src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx) |
-| <img src="atomicmotion-ui/public/previews/scroll-scrubbed-typography.png" width="160"> | **Scroll-Scrubbed Typography** — a sticky editorial title that stretches tall, then compresses as scroll scrubs its scale | Typography | [Getty × Gehry](https://gehry.getty.edu) | [`scroll-scrubbed-typography.tsx`](atomicmotion-ui/src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) |
-| <img src="atomicmotion-ui/public/previews/geometric-logo-reveal.png" width="160"> | **Geometric Logo Reveal** — a wordmark assembles from a gray ghost into solid ink in a staggered cascade | Typography | [Form&Fun](https://www.formandfun.co) | [`geometric-logo-reveal.tsx`](atomicmotion-ui/src/components/geometric-logo-reveal/geometric-logo-reveal.tsx) |
-| <img src="atomicmotion-ui/public/previews/gradient-aura.png" width="160"> | **Gradient Gummy Bear** — a translucent 3D gummy bear (Three.js) with a soft pink gradient and cursor parallax | 3D | — | [`gradient-aura.tsx`](atomicmotion-ui/src/components/gradient-aura/gradient-aura.tsx) |
-| <img src="atomicmotion-ui/public/previews/scroll-phase-cursor.png" width="160"> | **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](atomicmotion-ui/src/components/scroll-phase-cursor/scroll-phase-cursor.tsx) |
+| <img src="public/previews/gemini-live.png" width="160"> | **Gemini Live** — floating live-assistant panel with source chips, a blue edge glow, and listening pulses | AI | [Gemini](https://gemini.google.com) | [`gemini-live.tsx`](src/components/gemini-live/gemini-live.tsx) |
+| <img src="public/previews/emoji-sketch.png" width="160"> | **Emoji Sketch** — pick an emoji and watch it self-draw stroke by stroke, with a pencil wobble | Tool | [Getty × Gehry](https://gehry.getty.edu) | [`emoji-sketch.tsx`](src/components/emoji-sketch/emoji-sketch.tsx) |
+| <img src="public/previews/expanded-navigation.png" width="160"> | **Soft Menu Reveal** — a frosted menu that unfolds from a stable nav row on a bell-curve transition | Navigation | [Jitter](https://madewithjitter.com) | [`expanded-navigation.tsx`](src/components/expanded-navigation/expanded-navigation.tsx) |
+| <img src="public/previews/filter-dropdown-reveal.png" width="160"> | **Filter Dropdown Reveal** — a project filter bar with a soft dropdown and clipped text reveal | Navigation | [MAD](https://www.i-mad.com) | [`filter-dropdown-reveal.tsx`](src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx) |
+| <img src="public/previews/codex-sidebar-reveal.png" width="160"> | **Codex Sidebar Reveal** — a compact app shell whose left sidebar expands and shifts the workspace | Navigation | [Codex](https://openai.com/codex) | [`codex-sidebar-reveal.tsx`](src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx) |
+| <img src="public/previews/scroll-scrubbed-typography.png" width="160"> | **Scroll-Scrubbed Typography** — a sticky editorial title that stretches tall, then compresses as scroll scrubs its scale | Typography | [Getty × Gehry](https://gehry.getty.edu) | [`scroll-scrubbed-typography.tsx`](src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) |
+| <img src="public/previews/geometric-logo-reveal.png" width="160"> | **Geometric Logo Reveal** — a wordmark assembles from a gray ghost into solid ink in a staggered cascade | Typography | [Form&Fun](https://www.formandfun.co) | [`geometric-logo-reveal.tsx`](src/components/geometric-logo-reveal/geometric-logo-reveal.tsx) |
+| <img src="public/previews/gradient-aura.png" width="160"> | **Gradient Gummy Bear** — a translucent 3D gummy bear (Three.js) with a soft pink gradient and cursor parallax | 3D | — | [`gradient-aura.tsx`](src/components/gradient-aura/gradient-aura.tsx) |
+| <img src="public/previews/scroll-phase-cursor.png" width="160"> | **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](src/components/scroll-phase-cursor/scroll-phase-cursor.tsx) |
 
 ## Using a component
 
@@ -93,22 +93,21 @@ accessible in your app.
 
 ## Repository layout
 
-The gallery site lives in the [`atomicmotion-ui/`](atomicmotion-ui) subfolder;
-run all commands from there.
+The Next.js gallery app lives at the repo root; run all commands from there.
 
 ```
 .
-├─ atomicmotion-ui/          # Next.js gallery app
-│  ├─ src/components/        # one folder per interaction
-│  ├─ src/lib/               # registry + helpers (cn, clipboard)
-│  └─ src/app/               # gallery + component detail pages
+├─ src/components/           # one folder per interaction
+├─ src/lib/                  # registry + helpers (cn, clipboard)
+├─ src/app/                  # gallery + component detail pages
+├─ public/                   # previews, models, emoji art
+├─ scripts/                  # guard + verify scripts
 └─ docs/                     # OSS audit and asset provenance
 ```
 
 ## Local development
 
 ```bash
-cd atomicmotion-ui
 npm install
 npm run dev
 ```
@@ -136,7 +135,7 @@ Each component credits the site or work that inspired it.
 ## Third-party assets
 
 This repo's own code is MIT-licensed, but a few binary assets under
-`atomicmotion-ui/public/` carry different licenses or unresolved provenance.
+`public/` carry different licenses or unresolved provenance.
 See [`ASSETS.md`](ASSETS.md) for the full table. Notably:
 
 - The Gradient Gummy Bear uses the "Gummy Bear" 3D model by Poly by Google
