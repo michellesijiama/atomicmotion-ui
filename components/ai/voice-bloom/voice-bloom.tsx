@@ -15,16 +15,7 @@ const response =
   "Your idea is taking shape. Start with the smallest useful version, test it, and let the next step reveal itself.";
 const responseWords = response.split(" ");
 const bloomEase = [0.22, 1, 0.36, 1] as const;
-const listeningGradient =
-  "radial-gradient(circle at 12% 32%, rgba(138,180,248,0.78) 0 8%, rgba(66,133,244,0.24) 18%, rgba(66,133,244,0) 38%), radial-gradient(circle at 88% 68%, rgba(66,133,244,0.7) 0 10%, rgba(138,180,248,0.2) 22%, rgba(66,133,244,0) 42%)";
-const listeningGradientOpacity = [0.14, 0.3, 0.18, 0.26, 0.14];
-const listeningGradientPositions = [
-  "0% 20%",
-  "82% 0%",
-  "100% 76%",
-  "18% 100%",
-  "0% 20%",
-];
+const expandEase = [0.65, 0, 0.35, 1] as const;
 
 export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
   const reduceMotion = useReducedMotion();
@@ -54,7 +45,7 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
         setPhase("answering");
         listeningTimer.current = null;
       },
-      reduceMotion ? 80 : 1050,
+      reduceMotion ? 80 : 150,
     );
   }, [clearListeningTimer, reduceMotion]);
 
@@ -74,11 +65,6 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
   const isOpen = phase === "answering";
   const isListening = phase === "listening";
   const shouldAnimateListening = isListening && !reduceMotion;
-  const gradientOpacity = isListening
-    ? reduceMotion
-      ? 0.22
-      : listeningGradientOpacity
-    : 0;
 
   return (
     <div
@@ -92,18 +78,18 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
       <div className="relative size-full" data-state={phase}>
         <motion.div
           aria-hidden={!isOpen}
-          className="absolute left-1/2 top-1/2 max-h-full max-w-full overflow-hidden bg-[#d4d2d5]"
+          className="absolute left-1/2 top-1/2 max-h-full max-w-full overflow-hidden rounded-[24px] bg-[#d4d2d5]"
           initial={false}
           animate={{
             width: isOpen ? 400 : 192,
             height: isOpen ? 224 : 48,
             marginLeft: isOpen ? -200 : -96,
             marginTop: isOpen ? -76 : -24,
-            borderRadius: isOpen ? 24 : 200,
+            opacity: isOpen ? 1 : 0,
           }}
           transition={{
-            duration: reduceMotion ? 0 : 0.72,
-            ease: bloomEase,
+            duration: reduceMotion ? 0 : 0.3,
+            ease: expandEase,
           }}
         >
           <AnimatePresence initial={false}>
@@ -168,34 +154,9 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
             marginTop: isOpen ? -68 : -24,
           }}
           transition={{
-            marginTop: { duration: reduceMotion ? 0 : 0.66, ease: bloomEase },
+            marginTop: { duration: reduceMotion ? 0 : 0.3, ease: expandEase },
           }}
         >
-          <motion.span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-[200px]"
-            style={{
-              background: listeningGradient,
-              backgroundSize: "180% 180%",
-            }}
-            animate={{
-              opacity: gradientOpacity,
-              backgroundPosition: isListening ? listeningGradientPositions : "0% 20%",
-            }}
-            transition={{
-              opacity: {
-                duration: reduceMotion ? 0 : 5.8,
-                ease: "easeInOut",
-                repeat: shouldAnimateListening ? Infinity : 0,
-              },
-              backgroundPosition: {
-                duration: reduceMotion ? 0 : 5.8,
-                ease: "easeInOut",
-                repeat: shouldAnimateListening ? Infinity : 0,
-              },
-            }}
-          />
-
           <motion.span
             aria-hidden="true"
             className="pointer-events-none absolute inset-[-8px] rounded-[200px] border border-white/40"
@@ -207,15 +168,15 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
             transition={{ duration: 1.8, ease: "easeOut", repeat: Infinity }}
           />
 
-          <span aria-hidden="true" className="relative z-10 block size-4 shrink-0">
+          <span aria-hidden="true" className="relative z-10 block size-6 shrink-0">
             <Mic
-              className={`absolute inset-0 size-4 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+              className={`absolute inset-0 size-6 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
                 isOpen ? "-translate-y-0.5 opacity-0" : "translate-y-0 opacity-100"
               }`}
               strokeWidth={2.5}
             />
             <MicOff
-              className={`absolute inset-0 size-4 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+              className={`absolute inset-0 size-6 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
                 isOpen ? "translate-y-0 opacity-100" : "translate-y-0.5 opacity-0"
               }`}
               strokeWidth={2.5}
