@@ -4,7 +4,7 @@ Thanks for considering a contribution to AtomicMotion UI.
 
 ## Adding a component
 
-1. Create a new folder under `src/components/<your-component>/`.
+1. Create a new folder under `components/<category>/<your-component>/`.
 2. Keep the component **self-contained in a single file** — it should only
    depend on React, Framer Motion, and the `cn` helper from `@/lib/utils`
    (plus `lucide-react` if it needs icons). Avoid introducing new

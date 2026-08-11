@@ -24,7 +24,7 @@ along with the script that generated it (`scripts/render-gummy-xiaohongshu.mjs`)
 license. It was the scrubbed-video content for the `scroll-scrubbed-video`
 component's gallery demo, so removing it also required unlisting that
 component from `component-registry.ts` and `component-map.tsx` (its source
-file at `src/components/scroll-scrubbed-video/` is untouched
+file at `components/unregistered/scroll-scrubbed-video/` is untouched
 and can be re-registered once someone supplies footage they have the rights
 to). The hero image was regenerated to no longer depict a frame from this
 video.

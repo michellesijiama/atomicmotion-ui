@@ -23,7 +23,8 @@
     "test:gemini-live": "node scripts/verify-gemini-live.mjs",
     "test:home-filter": "node scripts/verify-home-filter.mjs",
     "test:gradient-gummy": "node scripts/verify-gradient-gummy-material.mjs",
-    "test:home-previews": "node scripts/verify-static-home-previews.mjs"
+    "test:home-previews": "node scripts/verify-static-home-previews.mjs",
+    "test:doc-links": "node scripts/verify-doc-links.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

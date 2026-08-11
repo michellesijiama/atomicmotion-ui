@@ -19,7 +19,7 @@ hand an AI agent a ready-made prompt) and drop it straight into your codebase.
 
 ## What this is / what this isn't
 
-- **This is** a copy-paste component gallery: each file in `src/components/`
+- **This is** a copy-paste component gallery: each file in `components/`
   is meant to be pulled into your own project and adapted.
 - **This isn't** an npm package — there's nothing to `npm install` from this
   repo, and no semver or API-stability guarantee across commits.
@@ -31,15 +31,15 @@ hand an AI agent a ready-made prompt) and drop it straight into your codebase.
 
 | Preview | Component | Category | Inspired by | Source |
 | --- | --- | --- | --- | --- |
-| <img src="public/previews/gemini-live.png" width="160"> | **Gemini Live** — floating live-assistant panel with source chips, a blue edge glow, and listening pulses | AI | [Gemini](https://gemini.google.com) | [`gemini-live.tsx`](src/components/gemini-live/gemini-live.tsx) |
-| <img src="public/previews/emoji-sketch.png" width="160"> | **Emoji Sketch** — pick an emoji and watch it self-draw stroke by stroke, with a pencil wobble | Tool | [Getty × Gehry](https://gehry.getty.edu) | [`emoji-sketch.tsx`](src/components/emoji-sketch/emoji-sketch.tsx) |
+| <img src="public/previews/gemini-live.png" width="160"> | **Gemini Live** — floating live-assistant panel with source chips, a blue edge glow, and listening pulses | AI | [Gemini](https://gemini.google.com) | [`gemini-live.tsx`](components/ai/gemini-live/gemini-live.tsx) |
+| <img src="public/previews/emoji-sketch.png" width="160"> | **Emoji Sketch** — pick an emoji and watch it self-draw stroke by stroke, with a pencil wobble | Tool | [Getty × Gehry](https://gehry.getty.edu) | [`emoji-sketch.tsx`](components/tool/emoji-sketch/emoji-sketch.tsx) |
 | <img src="public/previews/soft-menu-reveal.png" width="160"> | **Soft Menu Reveal** — a frosted menu that unfolds from a stable nav row on a bell-curve transition | Navigation | [Jitter](https://madewithjitter.com) | [`soft-menu-reveal.tsx`](components/navigation/soft-menu-reveal/soft-menu-reveal.tsx) |
-| <img src="public/previews/filter-dropdown-reveal.png" width="160"> | **Filter Dropdown Reveal** — a project filter bar with a soft dropdown and clipped text reveal | Navigation | [MAD](https://www.i-mad.com) | [`filter-dropdown-reveal.tsx`](src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx) |
-| <img src="public/previews/codex-sidebar-reveal.png" width="160"> | **Codex Sidebar Reveal** — a compact app shell whose left sidebar expands and shifts the workspace | Navigation | [Codex](https://openai.com/codex) | [`codex-sidebar-reveal.tsx`](src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx) |
-| <img src="public/previews/scroll-scrubbed-typography.png" width="160"> | **Scroll-Scrubbed Typography** — a sticky editorial title that stretches tall, then compresses as scroll scrubs its scale | Typography | [Getty × Gehry](https://gehry.getty.edu) | [`scroll-scrubbed-typography.tsx`](src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) |
-| <img src="public/previews/geometric-logo-reveal.png" width="160"> | **Geometric Logo Reveal** — a wordmark assembles from a gray ghost into solid ink in a staggered cascade | Typography | [Form&Fun](https://www.formandfun.co) | [`geometric-logo-reveal.tsx`](src/components/geometric-logo-reveal/geometric-logo-reveal.tsx) |
+| <img src="public/previews/filter-dropdown-reveal.png" width="160"> | **Filter Dropdown Reveal** — a project filter bar with a soft dropdown and clipped text reveal | Navigation | [MAD](https://www.i-mad.com) | [`filter-dropdown-reveal.tsx`](components/navigation/filter-dropdown-reveal/filter-dropdown-reveal.tsx) |
+| <img src="public/previews/codex-sidebar-reveal.png" width="160"> | **Codex Sidebar Reveal** — a compact app shell whose left sidebar expands and shifts the workspace | Navigation | [Codex](https://openai.com/codex) | [`codex-sidebar-reveal.tsx`](components/navigation/codex-sidebar-reveal/codex-sidebar-reveal.tsx) |
+| <img src="public/previews/scroll-scrubbed-typography.png" width="160"> | **Scroll-Scrubbed Typography** — a sticky editorial title that stretches tall, then compresses as scroll scrubs its scale | Typography | [Getty × Gehry](https://gehry.getty.edu) | [`scroll-scrubbed-typography.tsx`](components/typography/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) |
+| <img src="public/previews/geometric-logo-reveal.png" width="160"> | **Geometric Logo Reveal** — a wordmark assembles from a gray ghost into solid ink in a staggered cascade | Typography | [Form&Fun](https://www.formandfun.co) | [`geometric-logo-reveal.tsx`](components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx) |
 | <img src="public/previews/gradient-gummy-bear.png" width="160"> | **Gradient Gummy Bear** — a translucent 3D gummy bear (Three.js) with a soft pink gradient and cursor parallax | 3D | — | [`gradient-gummy-bear.tsx`](components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx) |
-| <img src="public/previews/scroll-phase-cursor.png" width="160"> | **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](src/components/scroll-phase-cursor/scroll-phase-cursor.tsx) |
+| <img src="public/previews/scroll-phase-cursor.png" width="160"> | **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx) |
 
 ## Using a component
 
@@ -55,7 +55,7 @@ you get two actions:
 To add one by hand:
 
 1. Copy the component's `.tsx` file into your project (e.g. under
-   `src/components/`).
+   `components/`).
 2. Install the dependencies it uses:
    ```bash
    npm install framer-motion lucide-react clsx tailwind-merge
@@ -97,12 +97,21 @@ The Next.js gallery app lives at the repo root; run all commands from there.
 
 ```
 .
-├─ src/components/           # one folder per interaction
-├─ src/lib/                  # registry + helpers (cn, clipboard)
-├─ src/app/                  # gallery + component detail pages
-├─ public/                   # previews, models, emoji art
-├─ scripts/                  # guard + verify scripts
-└─ docs/                     # OSS audit and asset provenance
+├─ components/                # one folder per interaction, grouped by category
+│  ├─ 3d/
+│  ├─ ai/
+│  ├─ cursor/
+│  ├─ navigation/
+│  ├─ tool/
+│  ├─ typography/
+│  └─ unregistered/           # components not currently linked from the gallery
+├─ src/
+│  ├─ components/website/     # the gallery site's own chrome, not public components
+│  ├─ lib/                    # registry + helpers (cn, clipboard)
+│  └─ app/                    # gallery + component detail pages
+├─ public/                    # previews, models, emoji art
+├─ scripts/                   # guard + verify scripts
+└─ docs/                      # OSS audit and asset provenance
 ```
 
 ## Local development
@@ -124,8 +133,8 @@ npm run build
 ## Contributing
 
 Contributions are welcome. Keep each new interaction in its own folder under
-`src/components/`, self-contained in a single component file, and add its entry
-to `src/lib/component-registry.ts` so it appears in the gallery.
+`components/<category>/`, self-contained in a single component file, and add
+its entry to `src/lib/component-registry.ts` so it appears in the gallery.
 
 ## Credits
 
