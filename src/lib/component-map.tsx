@@ -1,14 +1,14 @@
 import type { ComponentType } from "react";
 
-import { CodexSidebarReveal } from "@/components/codex-sidebar-reveal";
-import { EmojiSketch } from "@/components/emoji-sketch";
-import { ExpandedNavigation } from "@/components/expanded-navigation";
-import { FilterDropdownReveal } from "@/components/filter-dropdown-reveal";
-import { GeminiLive } from "@/components/gemini-live";
-import { GeometricLogoReveal } from "@/components/geometric-logo-reveal";
-import { GradientAura } from "@/components/gradient-aura";
-import { ScrollScrubbedTypography } from "@/components/scroll-scrubbed-typography";
-import { ScrollPhaseCursor } from "@/components/scroll-phase-cursor";
+import { CodexSidebarReveal } from "@components/navigation/codex-sidebar-reveal";
+import { EmojiSketch } from "@components/tool/emoji-sketch";
+import { ExpandedNavigation } from "@components/navigation/expanded-navigation";
+import { FilterDropdownReveal } from "@components/navigation/filter-dropdown-reveal";
+import { GeminiLive } from "@components/ai/gemini-live";
+import { GeometricLogoReveal } from "@components/typography/geometric-logo-reveal";
+import { GradientAura } from "@components/3d/gradient-aura";
+import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
+import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;

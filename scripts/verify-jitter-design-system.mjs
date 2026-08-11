@@ -44,6 +44,10 @@ const files = {
 // gallery card silently falls back to a static poster.
 const registryIds = [...files.componentRegistry.matchAll(/id:\s*"([^"]+)"/g)].map((m) => m[1]);
 
+// Components live at components/<category>/<slug>/<slug>.tsx — derive the
+// folder from the registry's own codePath rather than assembling it from the id.
+const registryCodePaths = [...files.componentRegistry.matchAll(/codePath:\s*"([^"]+)"/g)].map((m) => m[1]);
+
 const checks = [
   ["test script is wired", files.packageJson.includes("verify-jitter-design-system.mjs")],
   ["page background token is Jitter white", files.globals.includes("--jitter-bg: #ffffff")],
@@ -81,14 +85,13 @@ const checks = [
   ["component registry defines repo owner", files.componentRegistry.includes("REPO_OWNER")],
   ["component registry defines repo name", files.componentRegistry.includes("REPO_NAME")],
   ["component registry defines repo branch", files.componentRegistry.includes("REPO_BRANCH")],
-  ["component registry defines repo project root", files.componentRegistry.includes("REPO_PROJECT_ROOT")],
-  ["component registry prefixes GitHub links with project root", files.componentRegistry.includes("`${REPO_PROJECT_ROOT}/${meta.codePath}`")],
+  ["component registry builds GitHub links from codePath alone", files.componentRegistry.includes("`${REPO_BLOB_BASE}/${meta.codePath}`") && !files.componentRegistry.includes("REPO_PROJECT_ROOT")],
   ["component registry includes AI prompts", files.componentRegistry.includes("aiPrompt")],
   ["component registry includes dependency hint", files.componentRegistry.includes("framer-motion, lucide-react, clsx, tailwind-merge")],
   ["component registry does not list removed component paths", !removedComponentPaths.some((path) => files.componentRegistry.includes(path))],
   ["component registry does not expose raw file metadata", !files.componentRegistry.includes("downloadHref") && !files.componentRegistry.includes("downloadLabel")],
   ["removed component files are absent", removedComponentPaths.every((path) => !existsSync(path))],
-  ["every registry component folder exists", registryIds.length > 0 && registryIds.every((id) => existsSync(`src/components/${id}`))],
+  ["every registry component file exists", registryCodePaths.length > 0 && registryCodePaths.length === registryIds.length && registryCodePaths.every((codePath) => existsSync(codePath))],
 ];
 
 const failures = checks.filter(([, passed]) => !passed);

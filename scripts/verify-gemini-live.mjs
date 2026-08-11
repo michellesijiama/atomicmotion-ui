@@ -5,8 +5,8 @@ function read(path) {
 }
 
 const files = {
-  component: read("src/components/gemini-live/gemini-live.tsx"),
-  index: read("src/components/gemini-live/index.ts"),
+  component: read("components/ai/gemini-live/gemini-live.tsx"),
+  index: read("components/ai/gemini-live/index.ts"),
   map: read("src/lib/component-map.tsx"),
   registry: read("src/lib/component-registry.ts"),
   packageJson: read("package.json"),
@@ -56,11 +56,11 @@ const checks = [
   ["component uses wide Gemini Live rectangle aspect", files.component.includes("aspect-[1.95/1]") && files.component.includes("max-w-[920px]") && !files.component.includes("h-[min(78vh,520px)]")],
   ["component uses wide rectangular loop preview", files.component.includes('loop && "h-[300px] w-[585px]"') && !files.component.includes('loop && "h-[560px] w-[430px]"')],
   ["index re-exports component", files.index.includes("GeminiLive")],
-  ["component map imports component", files.map.includes("@/components/gemini-live")],
+  ["component map imports component", files.map.includes("@components/ai/gemini-live")],
   ["component map exposes route", files.map.includes('"gemini-live"')],
   ["registry registers Gemini Live", files.registry.includes('id: "gemini-live"')],
   ["registry names component", files.registry.includes('title: "Gemini Live"')],
-  ["registry points to component source", files.registry.includes("src/components/gemini-live/gemini-live.tsx")],
+  ["registry points to component source", files.registry.includes("components/ai/gemini-live/gemini-live.tsx")],
   ["package exposes verification script", files.packageJson.includes('"test:gemini-live"')],
 ];
 

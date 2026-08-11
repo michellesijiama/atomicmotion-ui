@@ -5,8 +5,8 @@ function read(path) {
 }
 
 const files = {
-  component: read("src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx"),
-  index: read("src/components/codex-sidebar-reveal/index.ts"),
+  component: read("components/navigation/codex-sidebar-reveal/codex-sidebar-reveal.tsx"),
+  index: read("components/navigation/codex-sidebar-reveal/index.ts"),
   map: read("src/lib/component-map.tsx"),
   registry: read("src/lib/component-registry.ts"),
 };
@@ -38,11 +38,11 @@ const checks = [
   ["component loop reveals after simulated click", files.component.includes("setOpen(true)") && files.component.includes("}, 190)")],
   ["component loops the sidebar demo", files.component.includes("setInterval(revealSidebar, 5600)")],
   ["index re-exports component", files.index.includes("CodexSidebarReveal")],
-  ["component map imports component", files.map.includes("@/components/codex-sidebar-reveal")],
+  ["component map imports component", files.map.includes("@components/navigation/codex-sidebar-reveal")],
   ["component map exposes route", files.map.includes('"codex-sidebar-reveal"')],
   ["registry registers fifth UI", files.registry.includes('id: "codex-sidebar-reveal"') && files.registry.includes('index: "005"')],
   ["registry names component", files.registry.includes('title: "Codex Sidebar Reveal"')],
-  ["registry points to component source", files.registry.includes("src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx")],
+  ["registry points to component source", files.registry.includes("components/navigation/codex-sidebar-reveal/codex-sidebar-reveal.tsx")],
 ];
 
 const failures = checks.filter(([, passed]) => !passed);

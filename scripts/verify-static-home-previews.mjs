@@ -27,8 +27,18 @@ const staticPreviewIds = new Set(
 
 const WEBGL_MARKERS = ["useFrame", "@react-three", "WebGLRenderer", 'getContext("webgl'];
 
+// Components live at components/<category>/<slug>/ — the registry's codePath is
+// the source of truth for where an id's folder actually is.
+const codePathById = new Map(
+  entryBlocks
+    .map((block) => [block.match(/id: "([^"]+)"/)?.[1], block.match(/codePath:\s*"([^"]+)"/)?.[1]])
+    .filter(([id, codePath]) => id && codePath)
+);
+
 function usesWebGL(id) {
-  const dir = `src/components/${id}`;
+  const codePath = codePathById.get(id);
+  if (!codePath) return false;
+  const dir = codePath.split("/").slice(0, -1).join("/");
   if (!existsSync(dir)) return false;
   return readdirSync(dir).some((file) => {
     const source = read(`${dir}/${file}`);

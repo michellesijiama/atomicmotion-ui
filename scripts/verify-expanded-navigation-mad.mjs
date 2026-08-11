@@ -5,9 +5,9 @@ function read(path) {
 }
 
 const files = {
-  softMenu: read("src/components/expanded-navigation/expanded-navigation.tsx"),
-  filterDropdown: read("src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx"),
-  filterDropdownIndex: read("src/components/filter-dropdown-reveal/index.ts"),
+  softMenu: read("components/navigation/expanded-navigation/expanded-navigation.tsx"),
+  filterDropdown: read("components/navigation/filter-dropdown-reveal/filter-dropdown-reveal.tsx"),
+  filterDropdownIndex: read("components/navigation/filter-dropdown-reveal/index.ts"),
   map: read("src/lib/component-map.tsx"),
   registry: read("src/lib/component-registry.ts"),
 };

@@ -1,7 +1,6 @@
 export const REPO_OWNER = "michellesijiama";
 export const REPO_NAME = "atomicmotion-ui";
 export const REPO_BRANCH = "main";
-export const REPO_PROJECT_ROOT = "atomicmotion-ui";
 
 const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REPO_BRANCH}`;
 const DEPENDENCY_HINT = "framer-motion, lucide-react, clsx, tailwind-merge";
@@ -45,8 +44,7 @@ type ComponentMetaInput = Omit<
 
 function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
   const fileName = meta.codePath.split("/").at(-1) ?? meta.codePath;
-  const repoPath = `${REPO_PROJECT_ROOT}/${meta.codePath}`;
-  const codeHref = `${REPO_BLOB_BASE}/${repoPath}`;
+  const codeHref = `${REPO_BLOB_BASE}/${meta.codePath}`;
 
   return {
     ...meta,
@@ -60,6 +58,7 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
       `Source: ${codeHref}`,
       `File: ${fileName}`,
       "",
+      "This component is self-contained — the entire component is that one file.",
       `Install required dependencies if missing: ${DEPENDENCY_HINT}.`,
       "Copy the component into my project and adapt styling only where necessary.",
     ].join("\n"),
@@ -77,7 +76,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-20",
-    codePath: "src/components/emoji-sketch/emoji-sketch.tsx",
+    codePath: "components/tool/emoji-sketch/emoji-sketch.tsx",
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
   expandedNavigation: createComponentMeta({
@@ -90,7 +89,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-20",
-    codePath: "src/components/expanded-navigation/expanded-navigation.tsx",
+    codePath: "components/navigation/expanded-navigation/expanded-navigation.tsx",
     inspiredBy: { label: "Jitter", href: "https://madewithjitter.com" },
   }),
   filterDropdownReveal: createComponentMeta({
@@ -103,7 +102,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-22",
-    codePath: "src/components/filter-dropdown-reveal/filter-dropdown-reveal.tsx",
+    codePath: "components/navigation/filter-dropdown-reveal/filter-dropdown-reveal.tsx",
     inspiredBy: { label: "MAD", href: "https://www.i-mad.com/projects?page=2" },
   }),
   scrollScrubbedTypography: createComponentMeta({
@@ -117,7 +116,7 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-22",
     codePath:
-      "src/components/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx",
+      "components/typography/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx",
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
   codexSidebarReveal: createComponentMeta({
@@ -130,7 +129,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-25",
-    codePath: "src/components/codex-sidebar-reveal/codex-sidebar-reveal.tsx",
+    codePath: "components/navigation/codex-sidebar-reveal/codex-sidebar-reveal.tsx",
     inspiredBy: { label: "Codex", href: "https://openai.com/codex" },
   }),
   geminiLive: createComponentMeta({
@@ -143,7 +142,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-28",
-    codePath: "src/components/gemini-live/gemini-live.tsx",
+    codePath: "components/ai/gemini-live/gemini-live.tsx",
     inspiredBy: { label: "Gemini", href: "https://gemini.google.com" },
   }),
   geometricLogoReveal: createComponentMeta({
@@ -156,7 +155,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-07-08",
-    codePath: "src/components/geometric-logo-reveal/geometric-logo-reveal.tsx",
+    codePath: "components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx",
     inspiredBy: { label: "Form&Fun", href: "https://www.formandfun.co" },
   }),
   gradientAura: createComponentMeta({
@@ -169,7 +168,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-07-08",
-    codePath: "src/components/gradient-aura/gradient-aura.tsx",
+    codePath: "components/3d/gradient-aura/gradient-aura.tsx",
     // Heavy Three.js scene — show the looping video poster in the gallery
     // instead of mounting the live WebGL preview (avoids the load regression).
     previewStatic: true,
@@ -184,7 +183,7 @@ export const componentRegistry = {
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-08-06",
-    codePath: "src/components/scroll-phase-cursor/scroll-phase-cursor.tsx",
+    codePath: "components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx",
     inspiredBy: { label: "Inversa", href: "https://inversa.com" },
   }),
 } satisfies Record<string, ComponentMeta>;

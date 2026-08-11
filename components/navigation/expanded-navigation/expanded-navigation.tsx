@@ -3,7 +3,13 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 
-import { cn } from "@/lib/utils";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+// Inlined so this folder is self-contained — copy it anywhere and it works.
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export type ExpandedNavigationProps = {
   className?: string;

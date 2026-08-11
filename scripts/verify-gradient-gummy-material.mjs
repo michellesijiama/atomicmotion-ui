@@ -5,7 +5,7 @@ function read(path) {
 }
 
 const files = {
-  component: read("src/components/gradient-aura/gradient-aura.tsx"),
+  component: read("components/3d/gradient-aura/gradient-aura.tsx"),
   registry: read("src/lib/component-registry.ts"),
   packageJson: read("package.json"),
   layout: read("src/app/layout.tsx"),

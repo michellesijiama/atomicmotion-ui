@@ -7,7 +7,13 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { LoopSubdivision } from "three-subdivide";
 
-import { cn } from "@/lib/utils";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+// Inlined so this folder is self-contained — copy it anywhere and it works.
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export type GradientAuraProps = {
   className?: string;
