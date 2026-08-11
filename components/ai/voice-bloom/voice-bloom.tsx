@@ -13,7 +13,18 @@ type VoiceBloomPhase = "idle" | "listening" | "answering";
 
 const response =
   "Your idea is taking shape. Start with the smallest useful version, test it, and let the next step reveal itself.";
+const responseWords = response.split(" ");
 const bloomEase = [0.22, 1, 0.36, 1] as const;
+const listeningGradient =
+  "radial-gradient(circle at 12% 32%, rgba(138,180,248,0.78) 0 8%, rgba(66,133,244,0.24) 18%, rgba(66,133,244,0) 38%), radial-gradient(circle at 88% 68%, rgba(66,133,244,0.7) 0 10%, rgba(138,180,248,0.2) 22%, rgba(66,133,244,0) 42%)";
+const listeningGradientOpacity = [0.14, 0.3, 0.18, 0.26, 0.14];
+const listeningGradientPositions = [
+  "0% 20%",
+  "82% 0%",
+  "100% 76%",
+  "18% 100%",
+  "0% 20%",
+];
 
 export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
   const reduceMotion = useReducedMotion();
@@ -62,7 +73,12 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
 
   const isOpen = phase === "answering";
   const isListening = phase === "listening";
-  const words = response.split(" ");
+  const shouldAnimateListening = isListening && !reduceMotion;
+  const gradientOpacity = isListening
+    ? reduceMotion
+      ? 0.22
+      : listeningGradientOpacity
+    : 0;
 
   return (
     <div
@@ -102,7 +118,7 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
                 exit={reduceMotion ? undefined : { opacity: 0 }}
                 transition={{ duration: reduceMotion ? 0 : 0.2 }}
               >
-                {words.map((word, index) => (
+                {responseWords.map((word, index) => (
                   <motion.span
                     aria-hidden="true"
                     key={`${responseKey}-${word}-${index}`}
@@ -147,42 +163,35 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
           className="absolute left-1/2 top-1/2 z-10 flex w-48 items-center justify-center overflow-visible rounded-[200px] bg-[#020006] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
           initial={false}
           animate={{
-            height: isOpen ? 40 : 48,
+            height: 48,
             marginLeft: -96,
-            marginTop: isOpen ? -64 : -24,
-            scale: isListening && !reduceMotion ? [1, 1.035, 1] : 1,
-            opacity: isListening && !reduceMotion ? [1, 0.92, 1] : 1,
+            marginTop: isOpen ? -68 : -24,
           }}
           transition={{
-            height: { duration: reduceMotion ? 0 : 0.56, ease: bloomEase },
             marginTop: { duration: reduceMotion ? 0 : 0.66, ease: bloomEase },
-            scale: {
-              duration: 0.9,
-              ease: "easeInOut",
-              repeat: isListening && !reduceMotion ? Infinity : 0,
-            },
-            opacity: {
-              duration: 0.9,
-              ease: "easeInOut",
-              repeat: isListening && !reduceMotion ? Infinity : 0,
-            },
           }}
         >
           <motion.span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-[200px] bg-[linear-gradient(105deg,#866eea_0%,#a66fd5_42%,#cb696b_100%)] bg-[length:180%_180%]"
+            className="pointer-events-none absolute inset-0 rounded-[200px]"
+            style={{
+              background: listeningGradient,
+              backgroundSize: "180% 180%",
+            }}
             animate={{
-              opacity: isOpen ? 0 : 1,
-              backgroundPosition: isListening
-                ? ["0% 50%", "100% 50%", "0% 50%"]
-                : "50% 50%",
+              opacity: gradientOpacity,
+              backgroundPosition: isListening ? listeningGradientPositions : "0% 20%",
             }}
             transition={{
-              opacity: { duration: reduceMotion ? 0 : 0.24 },
-              backgroundPosition: {
-                duration: reduceMotion ? 0 : 1.4,
+              opacity: {
+                duration: reduceMotion ? 0 : 5.8,
                 ease: "easeInOut",
-                repeat: isListening ? Infinity : 0,
+                repeat: shouldAnimateListening ? Infinity : 0,
+              },
+              backgroundPosition: {
+                duration: reduceMotion ? 0 : 5.8,
+                ease: "easeInOut",
+                repeat: shouldAnimateListening ? Infinity : 0,
               },
             }}
           />
@@ -191,27 +200,57 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
             aria-hidden="true"
             className="pointer-events-none absolute inset-[-8px] rounded-[200px] border border-white/40"
             animate={
-              isListening && !reduceMotion
-                ? { opacity: [0, 0.55, 0], scale: [0.9, 1.14, 1.2] }
+              shouldAnimateListening
+                ? { opacity: [0, 0.28, 0], scale: [0.94, 1.1, 1.14] }
                 : { opacity: 0, scale: 0.9 }
             }
-            transition={{ duration: 1.05, ease: "easeOut", repeat: Infinity }}
+            transition={{ duration: 1.8, ease: "easeOut", repeat: Infinity }}
           />
 
           <AnimatePresence initial={false} mode="wait">
             <motion.span
               key={isOpen ? "mic-off" : "mic-on"}
-              className="relative z-10"
-              initial={reduceMotion ? false : { opacity: 0, scale: 0.75 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={reduceMotion ? undefined : { opacity: 0, scale: 0.75 }}
-              transition={{ duration: reduceMotion ? 0 : 0.18, ease: bloomEase }}
+              className="relative z-10 flex size-8 items-center justify-center"
+              initial={
+                reduceMotion || isOpen
+                  ? false
+                  : { opacity: 0, scale: 0.62, rotate: 8 }
+              }
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              exit={
+                reduceMotion || isOpen
+                  ? undefined
+                  : { opacity: 0, scale: 0.68, rotate: -10 }
+              }
+              transition={reduceMotion ? { duration: 0 } : { duration: 0.28, ease: bloomEase }}
             >
-              {isOpen ? (
-                <MicOff className="size-[17px]" strokeWidth={1.8} />
-              ) : (
-                <Mic className="size-5" strokeWidth={1.8} />
-              )}
+              <motion.span
+                className="flex size-8 items-center justify-center"
+                animate={
+                  shouldAnimateListening
+                    ? {
+                        y: [0, -2.5, 0],
+                        scale: [1, 1.09, 1],
+                        rotate: [0, -5, 4, 0],
+                      }
+                    : { y: 0, scale: 1, rotate: 0 }
+                }
+                transition={
+                  shouldAnimateListening
+                    ? {
+                        duration: 1.05,
+                        ease: "easeInOut",
+                        repeat: Infinity,
+                      }
+                    : { duration: reduceMotion ? 0 : 0.2, ease: bloomEase }
+                }
+              >
+                {isOpen ? (
+                  <MicOff className="size-4" strokeWidth={1.8} />
+                ) : (
+                  <Mic className="size-8" strokeWidth={1.8} />
+                )}
+              </motion.span>
             </motion.span>
           </AnimatePresence>
         </motion.button>
