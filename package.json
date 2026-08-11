@@ -14,6 +14,7 @@
     "build": "next build",
     "start": "next start",
     "capture:home-previews": "node scripts/capture-home-previews.mjs",
+    "generate:readmes": "node scripts/generate-component-readmes.mjs",
     "lint": "eslint",
     "verify": "cd .. && node scripts/verify-public-surface.mjs && node scripts/verify-registry-paths.mjs",
     "test:design": "node scripts/verify-jitter-design-system.mjs",
@@ -25,7 +26,8 @@
     "test:gradient-gummy": "node scripts/verify-gradient-gummy-material.mjs",
     "test:home-previews": "node scripts/verify-static-home-previews.mjs",
     "test:doc-links": "node scripts/verify-doc-links.mjs",
-    "test:structure": "node scripts/verify-component-structure.mjs"
+    "test:structure": "node scripts/verify-component-structure.mjs",
+    "test:readmes": "node scripts/verify-component-readmes.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
