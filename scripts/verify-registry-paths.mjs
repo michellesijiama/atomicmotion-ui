@@ -9,8 +9,8 @@
 // script has no TypeScript/bundler dependency and can run under plain Node.
 import { existsSync, readFileSync } from "node:fs";
 
-const REGISTRY_PATH = "atomicmotion-ui/src/lib/component-registry.ts";
-const APP_ROOT = "atomicmotion-ui";
+const REGISTRY_PATH = "src/lib/component-registry.ts";
+const APP_ROOT = ".";
 
 function main() {
   if (!existsSync(REGISTRY_PATH)) {

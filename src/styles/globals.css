@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+:root {
+  --jitter-bg: #ffffff;
+  --jitter-ink: #0e1011;
+  --jitter-white: #ffffff;
+  --jitter-surface: #fafafa;
+  /* Gallery card surface. Pages stay white (--jitter-bg); UI cards sit on this
+     gray. Every card preview must use this token. */
+  --jitter-card: #f2f2f4;
+  --jitter-gray-100: #e6e6e6;
+  --jitter-gray-200: #cccccc;
+  --jitter-gray-400: #999999;
+  --jitter-gray-600: #666666;
+  --jitter-gray-800: #333333;
+  --jitter-gray-900: #191919;
+  --jitter-green: #15bc64;
+  --jitter-purple: #7a40ed;
+  --jitter-blue: #1377e4;
+  --jitter-orange: #ff8316;
+  --am-header-bg: transparent;
+  --am-header-border: rgba(14, 16, 17, 0.1);
+  --am-nav-bg: var(--jitter-ink);
+  --am-nav-hover-bg: var(--jitter-gray-900);
+  --am-nav-focus-ring: rgba(14, 16, 17, 0.4);
+  --am-reader-font: var(--font-plus-jakarta-sans);
+  --background: var(--jitter-bg);
+  --foreground: var(--jitter-ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* Design-system surface for gallery cards. Use `bg-card` on every card so the
+     gray stays consistent and lives in one place. */
+  --color-card: var(--jitter-card);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Typography scale — adapted from rico.supply: weight 400 across the board,
+     larger sizes carry tighter negative tracking, headings keep tight leading. */
+  --text-display: 2rem; /* 32px */
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.04em;
+  --text-display--font-weight: 400;
+
+  --text-title: 1.375rem; /* 22px */
+  --text-title--line-height: 1.4;
+  --text-title--letter-spacing: -0.02em;
+  --text-title--font-weight: 400;
+
+  --text-heading: 1.25rem; /* 20px */
+  --text-heading--line-height: 1.2;
+  --text-heading--letter-spacing: -0.02em;
+  --text-heading--font-weight: 400;
+
+  --text-base--letter-spacing: -0.02em; /* 16px — logo / nav / links */
+  --text-base--font-weight: 400;
+
+  --text-body: 0.875rem; /* 14px */
+  --text-body--line-height: 1.4;
+  --text-body--letter-spacing: -0.015em;
+  --text-body--font-weight: 400;
+
+  --text-caption: 0.75rem; /* 12px */
+  --text-caption--line-height: 1.2;
+  --text-caption--letter-spacing: 0em;
+  --text-caption--font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Monospace stays at natural spacing — negative tracking hurts code legibility. */
+code,
+kbd,
+samp,
+pre {
+  letter-spacing: 0;
+}
+
+::selection {
+  background: var(--jitter-ink);
+  color: #ffffff;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Jitter-style entrance: content settles up from below with a soft blur that
+   resolves, on a long expo ease-out. Staggered via animation-delay so blocks
+   cascade in rather than appearing all at once. */
+@keyframes am-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(34px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.am-reveal {
+  /* `backwards` (not `both`): applies the from-state before the delay, but
+     reverts to the element's natural styles once finished — leaving NO
+     lingering transform/filter that would permanently break a descendant's
+     backdrop-filter (e.g. the frosted Soft Menu Reveal card). The `to`
+     keyframe equals the resting state, so the revert is seamless. */
+  animation: am-reveal 1.15s cubic-bezier(0.62, 0, 0.32, 1) backwards;
+}
+
+/* Dropdown surface animation: fade + subtle scale-up from the top. */
+@keyframes am-dropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.am-dropdown {
+  animation: am-dropdown 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top right;
+}
+
+/* Full-width panel reveal: opacity-only fade (no transform — a transformed
+   ancestor would break the inner backdrop-filter blur). */
+@keyframes am-panel {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.am-panel {
+  animation: am-panel 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  .am-reveal,
+  .am-dropdown,
+  .am-panel {
+    animation: none;
+  }
+}

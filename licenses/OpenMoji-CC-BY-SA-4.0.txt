@@ -1,8 +1,8 @@
 Third-party asset notice — OpenMoji
 ====================================
 
-Files covered: atomicmotion-ui/public/emoji/*.svg (40 files), and the emoji
-path data bundled inside atomicmotion-ui/src/components/emoji-sketch/emoji-sketch.tsx
+Files covered: public/emoji/*.svg (40 files), and the emoji
+path data bundled inside components/tool/emoji-sketch/emoji-sketch.tsx
 (the `emoji-sketch` component draws these same line-art SVGs stroke by stroke,
 falling back to the OpenMoji CDN at runtime — see the component's header
 comment).

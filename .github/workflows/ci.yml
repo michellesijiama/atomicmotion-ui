@@ -9,51 +9,41 @@ jobs:
   build:
     name: Guard, lint, build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: atomicmotion-ui
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: atomicmotion-ui/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - name: Verify public surface
-        working-directory: .
         run: node scripts/verify-public-surface.mjs
       - name: Verify registry paths
-        working-directory: .
         run: node scripts/verify-registry-paths.mjs
       - run: npm run lint
       - run: npm run build
 
-  playwright-tests:
-    name: Playwright verify scripts
+  verify-scripts:
+    name: Verify scripts
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: atomicmotion-ui
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: atomicmotion-ui/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - name: Start dev server
-        run: |
-          npm run dev &
-          for i in $(seq 1 30); do
-            curl -sf http://localhost:3000 > /dev/null && break
-            sleep 1
-          done
       - name: Run verify:* scripts
         run: |
-          for script in $(node -p "Object.keys(require('./package.json').scripts).filter(s => s.startsWith('test:')).join(' ')"); do
+          test_scripts="$(node -p "Object.keys(require('./package.json').scripts).filter(s => s.startsWith('test:')).join(' ')")"
+          set -- $test_scripts
+          if [ "$#" -lt 11 ]; then
+            echo "Expected at least 11 test:* scripts, found $#"
+            exit 1
+          fi
+          for script in "$@"; do
             echo "::group::npm run $script"
             npm run "$script"
             echo "::endgroup::"

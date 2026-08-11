@@ -4,9 +4,9 @@
 
 ## Checklist
 
-- [ ] `npm run lint` and `npm run build` pass (from `atomicmotion-ui/`)
+- [ ] `npm run lint` and `npm run build` pass (from the repo root)
 - [ ] `node scripts/verify-public-surface.mjs` and
-      `node scripts/verify-registry-paths.mjs` pass (from repo root)
+      `node scripts/verify-registry-paths.mjs` pass (from the repo root)
 - [ ] New component: registered in `src/lib/component-registry.ts`, preview
       generated via `npm run capture:home-previews <id>`
 - [ ] Any non-self-authored asset added is listed in `ASSETS.md` with its

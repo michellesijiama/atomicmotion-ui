@@ -1,6 +1,6 @@
 .superpowers/
-atomicmotion-ui/public/scroll-phase-cursor.gif
-atomicmotion-ui/.tmp/
+public/scroll-phase-cursor.gif
+.tmp/
 
 # Agent process files and internal planning docs — not part of the public product
 CLAUDE.md
@@ -9,7 +9,6 @@ AGENTS.md
 .claude/
 .devin/
 docs/superpowers/
-atomicmotion-ui/docs/superpowers/
 .vercel
 
 # Design QA notes — scratch findings that reference local temp paths and
@@ -23,4 +22,29 @@ design-qa.md
 # Reference/backdrop images used while building a component. Anything in
 # public/ that is genuinely shipped must be listed in ASSETS.md instead —
 # verify-public-surface.mjs enforces that.
-atomicmotion-ui/public/gummy-bear-backdrop.png
+public/gummy-bear-backdrop.png
+
+# ---- from the app (build output, deps, local env) ----
+*.pem
+*.tsbuildinfo
+.DS_Store
+.env*
+.pnp.*
+.pnpm-debug.log*
+.tmp/
+.vercel
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+/.next/
+/.pnp
+/build
+/coverage
+/node_modules
+/out/
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

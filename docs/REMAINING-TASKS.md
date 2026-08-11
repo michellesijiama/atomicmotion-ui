@@ -78,7 +78,7 @@ pixel values, so re-tuning does not break CI.
 If you find a properly licensed video to replace `public/videos/pinterest-floral-scroll.mp4`:
 
 1. Add the new video under `public/videos/`.
-2. Register the component in `atomicmotion-ui/src/lib/component-registry.ts` and `component-map.tsx`.
+2. Register the component in `src/lib/component-registry.ts` and `component-map.tsx`.
 3. Add the asset to `ASSETS.md` with full provenance.
 4. Run `npm run capture:home-previews scroll-scrubbed-video` to generate a new preview.
 5. Run `node scripts/verify-public-surface.mjs` and `node scripts/verify-registry-paths.mjs`.
@@ -89,14 +89,12 @@ If you find a properly licensed video to replace `public/videos/pinterest-floral
 Always run these before any commit:
 
 ```bash
-cd atomicmotion-ui
 npm run lint
 npm run build
-for s in design expanded-navigation codex-sidebar card-padding \
+for s in design soft-menu-reveal codex-sidebar card-padding \
          gemini-live home-filter gradient-gummy home-previews; do
   npm run "test:$s" || echo "FAILED: test:$s"
 done
-cd ..
 node scripts/verify-public-surface.mjs
 node scripts/verify-registry-paths.mjs
 ```
