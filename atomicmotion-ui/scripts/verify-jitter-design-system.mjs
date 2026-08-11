@@ -16,6 +16,7 @@ const removedComponentPaths = [
   "src/components/ui/window-leaf-shadow.tsx",
   "src/components/website/noisy-card-playground.tsx",
   "src/components/website/site-index.tsx",
+  "src/components/sunlit-book-page/sunlit-book-page.tsx",
 ];
 
 const files = {
@@ -31,8 +32,17 @@ const files = {
   componentCard: readIfExists("src/components/website/component-card.tsx"),
   componentMap: readIfExists("src/lib/component-map.tsx"),
   componentRegistry: readIfExists("src/lib/component-registry.ts"),
-  sunlitBookPage: readIfExists("src/components/sunlit-book-page/sunlit-book-page.tsx"),
+  // The gallery grid moved out of page.tsx into its own client component when
+  // the category filter landed, and the shared button classes moved into
+  // styles.ts, so the home/CTA checks below read those files instead.
+  homeBrowser: readIfExists("src/components/website/home-component-browser.tsx"),
+  websiteStyles: readIfExists("src/components/website/styles.ts"),
+  previewStage: readIfExists("src/components/website/preview-stage.tsx"),
 };
+
+// Every registry id must have a preview in the component map, otherwise the
+// gallery card silently falls back to a static poster.
+const registryIds = [...files.componentRegistry.matchAll(/id:\s*"([^"]+)"/g)].map((m) => m[1]);
 
 const checks = [
   ["test script is wired", files.packageJson.includes("verify-jitter-design-system.mjs")],
@@ -43,20 +53,22 @@ const checks = [
   ["blue status token exists", files.globals.includes("--jitter-blue: #1377e4")],
   ["orange status token exists", files.globals.includes("--jitter-orange: #ff8316")],
   ["layout uses Jitter shell background", files.layout.includes("bg-[var(--jitter-bg)]")],
-  ["home page is a gallery", files.page.includes("ComponentCard") && files.page.includes("componentList")],
-  ["home page does not render live preview", !files.page.includes("SunlitBookPage") && !files.page.includes("ComponentPlate")],
-  ["home page keeps minimal copy", files.page.includes("Micro-interactions designed for your agent to grab and share") && !files.page.includes("ready for AI-assisted reuse")],
+  ["home page is a gallery", files.homeBrowser.includes("ComponentCard") && files.page.includes("componentList")],
+  ["home page does not render live preview", !files.page.includes("ComponentPlate")],
+  ["home page keeps minimal copy", files.page.includes("Open-sourced interaction inspirations designed for") && !files.page.includes("ready for AI-assisted reuse")],
   ["home page removes footer repo copy", !files.page.includes("Public GitHub repo") && !files.page.includes("npx shadcn-style copy-paste architecture")],
-  ["home page uses visual grid", files.page.includes("grid-cols-1") && files.page.includes("sm:grid-cols-2")],
+  ["home page uses visual grid", files.homeBrowser.includes("grid-cols-1") && files.homeBrowser.includes("sm:grid-cols-2")],
   ["component card links to detail pages", files.componentCard.includes("next/link") && files.componentCard.includes("/components/${component.id}")],
   ["component card renders animated previews", files.componentCard.includes("componentMap") && files.componentCard.includes("pointer-events-none")],
-  ["component card preview is prominent", files.componentCard.includes("aspect-[4/5]") && files.componentCard.includes("scale-[0.52]")],
+  // Scaling used to be a hard-coded `scale-[0.52]` on the card; PreviewStage now
+  // measures the card and scales the fixed design canvas to fit.
+  ["component card preview is prominent", files.componentCard.includes("aspect-[4/5]") && files.previewStage.includes("DESIGN_WIDTH")],
   ["component card avoids long descriptions", !files.componentCard.includes("component.description")],
   ["component card renders title without index", files.componentCard.includes("component.title") && !files.componentCard.includes("component.index")],
   ["component card uses hover category and status tags", files.componentCard.includes("component.category") && files.componentCard.includes("component.status")],
-  ["component actions owns copy buttons", files.componentActions.includes("View code") && files.componentActions.includes("Copy for AI")],
-  ["component actions uses black CTA", files.componentActions.includes("bg-[var(--jitter-ink)]")],
-  ["component map renders sunlit book page", files.componentMap.includes('"sunlit-book-page"') && files.componentMap.includes("SunlitBookPage")],
+  ["component actions owns copy buttons", files.componentActions.includes("Copy link") && files.componentActions.includes("Copy for AI")],
+  ["component actions uses black CTA", files.componentActions.includes("actionPrimaryClass") && files.websiteStyles.includes("bg-[var(--jitter-ink)]")],
+  ["component map covers every registry id", registryIds.length > 0 && registryIds.every((id) => files.componentMap.includes(`"${id}"`))],
   ["detail route exists", files.detailPage.length > 0 && files.detailLayout.length > 0],
   ["detail route has static params", files.detailPage.includes("generateStaticParams")],
   ["detail route handles 404", files.detailPage.includes("notFound")],
@@ -73,23 +85,10 @@ const checks = [
   ["component registry prefixes GitHub links with project root", files.componentRegistry.includes("`${REPO_PROJECT_ROOT}/${meta.codePath}`")],
   ["component registry includes AI prompts", files.componentRegistry.includes("aiPrompt")],
   ["component registry includes dependency hint", files.componentRegistry.includes("framer-motion, lucide-react, clsx, tailwind-merge")],
-  ["component registry keeps only sunlit book page", files.componentRegistry.includes("sunlitBookPage") && !files.componentRegistry.includes("magnetButton")],
-  [
-    "component registry lists only sunlit book source path",
-    files.componentRegistry.includes("src/components/sunlit-book-page/sunlit-book-page.tsx") &&
-      !removedComponentPaths.some((path) => files.componentRegistry.includes(path)),
-  ],
+  ["component registry does not list removed component paths", !removedComponentPaths.some((path) => files.componentRegistry.includes(path))],
   ["component registry does not expose raw file metadata", !files.componentRegistry.includes("downloadHref") && !files.componentRegistry.includes("downloadLabel")],
   ["removed component files are absent", removedComponentPaths.every((path) => !existsSync(path))],
-  ["sunlit book page component exists", files.sunlitBookPage.length > 0],
-  ["sunlit book page exports component", files.sunlitBookPage.includes("export function SunlitBookPage")],
-  ["sunlit book page exposes scene props", ["windIntensity", "leafDensity", "interactive"].every((prop) => files.sunlitBookPage.includes(prop))],
-  ["sunlit book page renders centered text", files.sunlitBookPage.includes("max-w-xl") && files.sunlitBookPage.includes("text-[var(--jitter-ink)]/70")],
-  ["sunlit book page avoids yellow book chrome", !files.sunlitBookPage.includes("#f9e8bf") && !files.sunlitBookPage.includes("#faeac3")],
-  ["sunlit book page uses transparent site background", files.sunlitBookPage.includes("bg-transparent")],
-  ["sunlit book page avoids clipping branch shadows", files.sunlitBookPage.includes("overflow-visible") && files.sunlitBookPage.includes("-inset-[18%]")],
-  ["sunlit book page includes serif reading content", files.sunlitBookPage.includes("font-serif") && files.sunlitBookPage.includes("PlaceholderText")],
-  ["sunlit book page includes leaf shadow animation", files.sunlitBookPage.includes("@keyframes sunlit-book-sway-a") && files.sunlitBookPage.includes("LeafShadow")],
+  ["every registry component folder exists", registryIds.length > 0 && registryIds.every((id) => existsSync(`src/components/${id}`))],
 ];
 
 const failures = checks.filter(([, passed]) => !passed);

@@ -36,7 +36,9 @@ const checks = [
   ["component glows around all edges", files.component.includes('side="top"') && files.component.includes('side="right"') && files.component.includes('side="bottom"') && files.component.includes('side="left"')],
   ["component keeps listening glow restrictive", files.component.includes("activeListeningRestrictedEdgeGlow") && files.component.includes("strokeLinecap") && !files.component.includes("topRail") && !files.component.includes("blur-2xl")],
   ["component varies waveform frequency", files.component.includes("relaxed") && files.component.includes("active") && files.component.includes("tight") && files.component.includes("strokeWidth")],
-  ["component uses blurry waveform glow", files.component.includes("blur(7px) drop-shadow(0 0 26px rgba(66,133,244,0.92))")],
+  // Asserted by shape rather than exact radii so the glow can be re-tuned
+  // without a CI failure — what matters is that it stays a blurred blue glow.
+  ["component uses blurry waveform glow", /filter="blur\(\d+px\) drop-shadow\(0 0 \d+px rgba\(66,133,244,[\d.]+\)\)"/.test(files.component)],
   ["component uses Material 3 dark live surface", !files.component.includes("bg-black") && files.component.includes("rounded-[28px]") && files.component.includes("surfaceContainerLow")],
   ["component removes blue background glow", !files.component.includes("shadow-[0_0_28px") && !files.component.includes("rgba(47,120,255")],
   ["component removes outer panel shadow", !files.component.includes("boxShadow") && !files.component.includes("0 22px 54px rgba(4,8,18,0.28)") && !files.component.includes("0 18px 48px rgba(4,8,18,0.24)")],

@@ -32,7 +32,10 @@ const checks = [
   ["component keeps detail-only WebGL", files.component.includes("if (loop) return")],
   ["layout exposes Manrope for the text texture", files.layout.includes("Manrope") && files.layout.includes("--font-manrope")],
   ["component generates a Manrope text backdrop texture", files.component.includes("makeManropeTextTexture") && files.component.includes("getManropeFontFamily")],
-  ["component uses a pure white blank canvas", files.component.includes('ctx.fillStyle = "#ffffff"') && !files.component.includes('ctx.fillStyle = "#f7f6ef"') && !files.component.includes('ctx.fillStyle = "#ece7db"')],
+  // The backdrop plane used to be painted opaque white; it is now left
+  // transparent so only the text reads against the page behind the gummy bear.
+  ["component leaves the text backdrop transparent", files.component.includes("ctx.clearRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE)") && !files.component.includes('ctx.fillStyle = "#ffffff"') && !files.component.includes('ctx.fillStyle = "#f7f6ef"') && !files.component.includes('ctx.fillStyle = "#ece7db"')],
+  ["component fills the backdrop text with ink", files.component.includes('ctx.fillStyle = "#121413"')],
   ["component draws a normal paragraph that projects visually near 20px", files.component.includes("TEXT_PARAGRAPH") && files.component.includes("ctx.font = `500 40px ${fontFamily}`") && files.component.includes("wrapText(ctx, `${TEXT_PARAGRAPH} ${TEXT_PARAGRAPH}`")],
   ["component uses lowercase paragraph copy only", !files.component.includes("GUMMY BEAR LENS") && !files.component.includes("MAGNIFY") && !files.component.includes("THROUGH GLASS")],
   ["component does not draw grid or outline stripes on the text texture", !files.component.includes("ctx.stroke(") && !files.component.includes("ctx.lineTo(") && !files.component.includes("ctx.moveTo(")],

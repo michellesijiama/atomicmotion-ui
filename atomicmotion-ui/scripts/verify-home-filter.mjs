@@ -15,7 +15,10 @@ const checks = [
   ["home imports filter browser", files.home.includes("HomeComponentBrowser")],
   ["filter sits below intro text", files.home.includes("<RotatingWord") && files.home.includes("<HomeComponentBrowser components={componentList} />") && files.home.includes("mt-10")],
   ["filter uses framer motion", files.filter.includes('from "framer-motion"') && files.filter.includes("AnimatePresence")],
-  ["filter has rico-style rounded bordered bar", files.filter.includes("rounded-[22px] border border-black/15")],
+  // The filter bar lost its enclosing pill: it is now a rule-topped strip whose
+  // individual buttons carry the rounded border.
+  ["filter bar is a rule-topped strip", files.filter.includes("border-t border-black/15")],
+  ["filter buttons keep the rico-style rounded border", files.filter.includes("rounded-full border border-black/15")],
   ["filter has animated active blue pill", files.filter.includes('layoutId="home-active-filter"') && files.filter.includes("bg-[#2f64ff]")],
   ["filter buttons are pill shaped", files.filter.includes("h-10") && files.filter.includes("rounded-full")],
   ["filter drives card visibility by category", files.filter.includes("activeFilter === \"all\"") && files.filter.includes("component.category === activeFilter")],
