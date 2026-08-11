@@ -207,52 +207,20 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
             transition={{ duration: 1.8, ease: "easeOut", repeat: Infinity }}
           />
 
-          <AnimatePresence initial={false} mode="wait">
-            <motion.span
-              key={isOpen ? "mic-off" : "mic-on"}
-              className="relative z-10 flex size-8 items-center justify-center"
-              initial={
-                reduceMotion || isOpen
-                  ? false
-                  : { opacity: 0, scale: 0.62, rotate: 8 }
-              }
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              exit={
-                reduceMotion || isOpen
-                  ? undefined
-                  : { opacity: 0, scale: 0.68, rotate: -10 }
-              }
-              transition={reduceMotion ? { duration: 0 } : { duration: 0.28, ease: bloomEase }}
-            >
-              <motion.span
-                className="flex size-8 items-center justify-center"
-                animate={
-                  shouldAnimateListening
-                    ? {
-                        y: [0, -2.5, 0],
-                        scale: [1, 1.09, 1],
-                        rotate: [0, -5, 4, 0],
-                      }
-                    : { y: 0, scale: 1, rotate: 0 }
-                }
-                transition={
-                  shouldAnimateListening
-                    ? {
-                        duration: 1.05,
-                        ease: "easeInOut",
-                        repeat: Infinity,
-                      }
-                    : { duration: reduceMotion ? 0 : 0.2, ease: bloomEase }
-                }
-              >
-                {isOpen ? (
-                  <MicOff className="size-4" strokeWidth={1.8} />
-                ) : (
-                  <Mic className="size-8" strokeWidth={1.8} />
-                )}
-              </motion.span>
-            </motion.span>
-          </AnimatePresence>
+          <span aria-hidden="true" className="relative z-10 block size-4 shrink-0">
+            <Mic
+              className={`absolute inset-0 size-4 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+                isOpen ? "-translate-y-0.5 opacity-0" : "translate-y-0 opacity-100"
+              }`}
+              strokeWidth={2.5}
+            />
+            <MicOff
+              className={`absolute inset-0 size-4 transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+                isOpen ? "translate-y-0 opacity-100" : "translate-y-0.5 opacity-0"
+              }`}
+              strokeWidth={2.5}
+            />
+          </span>
         </motion.button>
       </div>
     </div>
