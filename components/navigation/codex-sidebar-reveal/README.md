@@ -6,7 +6,7 @@ A compact app shell where a top-left icon press expands the left sidebar and shi
 
 - **Category:** Navigation
 - **Demo:** https://atomicmotion.dev/components/codex-sidebar-reveal
-- **Dependencies:** framer-motion, lucide-react, clsx, tailwind-merge
+- **Dependencies:** clsx, framer-motion, lucide-react, tailwind-merge
 
 This component is self-contained — the entire component is `codex-sidebar-reveal.tsx`.
 Copy this folder into your project and adjust the styling.

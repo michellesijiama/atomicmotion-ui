@@ -13,9 +13,10 @@ a time.
 Clone the repo and run commands from the repo root — see
 [Local development](#local-development) below.
 
-Each interaction is a single, self-contained file built with React, Tailwind
-CSS, and Framer Motion. Browse them in the gallery, then copy the source (or
-hand an AI agent a ready-made prompt) and drop it straight into your codebase.
+Each interaction keeps its component code in a single file. Browse it in the
+gallery, then copy the source (or hand an AI agent a ready-made prompt) and
+drop it into your codebase. Components that load runtime assets call those
+files and their licence requirements out explicitly.
 
 ## What this is / what this isn't
 
@@ -52,36 +53,29 @@ you get two actions:
   Cursor, etc.) telling it where the source lives, which dependencies to add,
   and to adapt it into your project.
 
-To add one by hand:
+To add one by hand (using Gemini Live as an example):
 
-1. Copy the component's `.tsx` file into your project (e.g. under
-   `components/`).
-2. Install the dependencies it uses:
+1. Open the component folder and follow its generated `README.md`; it lists the
+   exact dependencies and any required runtime assets.
+2. Copy the component's `.tsx` file into your project, preserving any required
+   assets and attribution listed in that README.
+3. Install the listed dependencies. For Gemini Live:
    ```bash
-   npm install framer-motion lucide-react clsx tailwind-merge
-   ```
-3. Add the `cn` helper the components import from `@/lib/utils`:
-   ```ts
-   // src/lib/utils.ts
-   import { type ClassValue, clsx } from "clsx";
-   import { twMerge } from "tailwind-merge";
-
-   export function cn(...inputs: ClassValue[]) {
-     return twMerge(clsx(inputs));
-   }
+   npm install framer-motion clsx tailwind-merge
    ```
 4. Import and render it:
    ```tsx
-   import { GeminiLive } from "@/components/gemini-live/gemini-live";
+   import { GeminiLive } from "@/components/ai/gemini-live/gemini-live";
 
    export function Demo() {
      return <GeminiLive />;
    }
    ```
 
-Components are self-contained: they rely only on React, Framer Motion, and the
-`cn` helper, and they preserve keyboard access and focus states so they stay
-accessible in your app.
+Component files do not import this gallery's private `@/` modules. Dependencies
+vary by interaction, and the generated README in each folder is authoritative.
+Components preserve keyboard access and focus states so they stay accessible
+in your app.
 
 ## Stack
 

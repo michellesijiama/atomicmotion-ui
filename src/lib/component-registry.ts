@@ -3,11 +3,25 @@ export const REPO_NAME = "atomicmotion-ui";
 export const REPO_BRANCH = "main";
 
 const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REPO_BRANCH}`;
-const DEPENDENCY_HINT = "framer-motion, lucide-react, clsx, tailwind-merge";
 
 // Components whose home-gallery card plays a looping video (`/previews/<id>.mp4`)
 // instead of the static poster — heavy 3D scenes we don't mount live in the grid.
 const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-gummy-bear"]);
+
+/**
+ * A file outside the component's own folder that the component loads at
+ * runtime (a 3D model, a texture, …). Copying the folder alone is not enough
+ * for these components, and the licence travels with the asset — so both the
+ * generated README and the "Copy for AI" prompt have to say so.
+ */
+export type RequiredAsset = {
+  /** Repo-relative path, e.g. "public/models/gummy-bear.glb". */
+  path: string;
+  /** Licence the asset ships under, e.g. "CC-BY 3.0". */
+  license: string;
+  /** Attribution line that must survive redistribution. */
+  credit: string;
+};
 
 export type ComponentMeta = {
   id: string;
@@ -33,6 +47,11 @@ export type ComponentMeta = {
    */
   previewStatic?: boolean;
   aiPrompt: string;
+  /**
+   * Files outside this component's folder that it loads at runtime. Present
+   * only for components that are not fully self-contained — see RequiredAsset.
+   */
+  requiredAssets?: RequiredAsset[];
   /** Credit + link to the site/work that inspired this component. */
   inspiredBy?: { label: string; href: string };
 };
@@ -45,6 +64,22 @@ type ComponentMetaInput = Omit<
 function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
   const fileName = meta.codePath.split("/").at(-1) ?? meta.codePath;
   const codeHref = `${REPO_BLOB_BASE}/${meta.codePath}`;
+  const requiredAssets = meta.requiredAssets ?? [];
+
+  // Only claim self-containment when it is actually true: a component that
+  // fetches a model or texture at runtime needs those files copied too, and
+  // their licence comes with them.
+  const selfContainment =
+    requiredAssets.length === 0
+      ? ["This component is self-contained — the entire component is that one file."]
+      : [
+          "The component code is that one file, but it is NOT fully self-contained:",
+          "it loads these files at runtime, so copy them across as well and keep",
+          "their attribution:",
+          ...requiredAssets.map(
+            (asset) => `- ${asset.path} — ${asset.license}. ${asset.credit}`
+          ),
+        ];
 
   return {
     ...meta,
@@ -58,8 +93,8 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
       `Source: ${codeHref}`,
       `File: ${fileName}`,
       "",
-      "This component is self-contained — the entire component is that one file.",
-      `Install required dependencies if missing: ${DEPENDENCY_HINT}.`,
+      ...selfContainment,
+      "Install any dependencies imported by the component if they are missing.",
       "Copy the component into my project and adapt styling only where necessary.",
     ].join("\n"),
   };
@@ -169,6 +204,16 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-07-08",
     codePath: "components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx",
+    // The component fetches this GLB at runtime, so the folder alone is not
+    // enough — and the model is CC-BY, so the credit has to travel with it.
+    requiredAssets: [
+      {
+        path: "public/models/gummy-bear.glb",
+        license: "CC-BY 3.0",
+        credit:
+          '"Gummy Bear" by Poly by Google, via Poly Pizza (https://poly.pizza/m/5zl16PPAItW) — attribution required.',
+      },
+    ],
     // Heavy Three.js scene — show the looping video poster in the gallery
     // instead of mounting the live WebGL preview (avoids the load regression).
     previewStatic: true,

@@ -17,10 +17,52 @@ const REGISTRY_PATH = "src/lib/component-registry.ts";
 const REPO_SLUG = "michellesijiama/atomicmotion-ui";
 const REPO_BRANCH = "main";
 const SITE = "https://atomicmotion.dev";
-const DEPENDENCIES = "framer-motion, lucide-react, clsx, tailwind-merge";
+
+// Imports that are already there in any React project — listing them as
+// things to install would be noise.
+const IMPLICIT_PACKAGES = new Set(["react", "react-dom"]);
 
 export const slug = (s) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/**
+ * Maps a module specifier to the npm package you would install for it:
+ * "three/examples/jsm/loaders/GLTFLoader.js" -> "three",
+ * "@scope/pkg/sub" -> "@scope/pkg".
+ */
+export function packageNameFor(specifier) {
+  const parts = specifier.split("/");
+  return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
+}
+
+/**
+ * Derives a component's real dependency list by reading its own source, so a
+ * copy-paste user installs what the file actually imports. Hardcoding one
+ * list for every component is how the READMEs ended up telling gummy-bear
+ * users to install framer-motion (which it does not use) and not three
+ * (which it does).
+ */
+export function dependenciesFor(codePath) {
+  const src = readFileSync(codePath, "utf8");
+  const specifiers = [
+    // `import … from "x"` / `export … from "x"` (the `from` covers both)
+    ...[...src.matchAll(/\bfrom\s+["']([^"']+)["']/g)].map((m) => m[1]),
+    // bare side-effect imports: `import "x";`
+    ...[...src.matchAll(/^\s*import\s+["']([^"']+)["']/gm)].map((m) => m[1]),
+  ];
+
+  const packages = new Set();
+  for (const specifier of specifiers) {
+    // Relative imports live inside the folder; "@/" imports are banned
+    // outright (scripts/verify-component-structure.mjs enforces that).
+    if (specifier.startsWith(".") || specifier.startsWith("@/")) continue;
+    const pkg = packageNameFor(specifier);
+    if (IMPLICIT_PACKAGES.has(pkg)) continue;
+    packages.add(pkg);
+  }
+
+  return [...packages].sort();
+}
 
 /**
  * Parses the registry into { id, title, description, category, codePath }.
@@ -39,6 +81,23 @@ export function readRegistryEntries(registryPath = REGISTRY_PATH) {
   }
 
   return blocks.map((b) => {
+    const requiredAssetsSource = b.match(
+      /requiredAssets:\s*\[([\s\S]*?)\n\s*\],/
+    )?.[1];
+    const requiredAssets = requiredAssetsSource
+      ? [...requiredAssetsSource.matchAll(/\{([\s\S]*?)\}/g)].map((match) => {
+          const asset = match[1];
+          const readString = (field) =>
+            asset.match(
+              new RegExp(`${field}:\\s*\\n?\\s*(["'])((?:\\\\.|(?!\\1)[\\s\\S])*)\\1`)
+            )?.[2];
+          return {
+            path: readString("path"),
+            license: readString("license"),
+            credit: readString("credit"),
+          };
+        })
+      : [];
     const entry = {
       id: b.match(/id: "([^"]+)"/)?.[1],
       title: b.match(/title: "([^"]+)"/)?.[1],
@@ -46,12 +105,25 @@ export function readRegistryEntries(registryPath = REGISTRY_PATH) {
       description: b.match(/description:\s*\n?\s*"((?:[^"\\]|\\.)*)"/)?.[1],
       category: b.match(/category: "([^"]+)"/)?.[1],
       codePath: b.match(/codePath:\s*\n?\s*"([^"]+)"/)?.[1],
+      requiredAssets,
     };
-    for (const [key, value] of Object.entries(entry)) {
+    for (const [key, value] of Object.entries(entry).filter(
+      ([key]) => key !== "requiredAssets"
+    )) {
       if (!value) {
         throw new Error(`[${entry.id ?? "?"}] registry entry is missing ${key}`);
       }
     }
+    for (const [index, asset] of requiredAssets.entries()) {
+      for (const [key, value] of Object.entries(asset)) {
+        if (!value) {
+          throw new Error(
+            `[${entry.id}] requiredAssets[${index}] is missing ${key}`
+          );
+        }
+      }
+    }
+    entry.dependencies = dependenciesFor(entry.codePath);
     return entry;
   });
 }
@@ -67,6 +139,28 @@ export function readmePath(entry) {
  */
 export function renderReadme(entry) {
   const previewUrl = `https://raw.githubusercontent.com/${REPO_SLUG}/${REPO_BRANCH}/public/previews/${entry.id}.png`;
+  const dependencies =
+    entry.dependencies.length > 0
+      ? entry.dependencies.join(", ")
+      : "None beyond React";
+  const usageNotes =
+    entry.requiredAssets.length === 0
+      ? [
+          `This component is self-contained — the entire component is \`${entry.id}.tsx\`.`,
+          "Copy this folder into your project and adjust the styling.",
+        ]
+      : [
+          "## Required assets",
+          "",
+          "The component code is one file, but it also loads these files at runtime:",
+          "",
+          ...entry.requiredAssets.map(
+            (asset) =>
+              `- \`${asset.path}\` — ${asset.license}. ${asset.credit}`
+          ),
+          "",
+          "Copy the component and every required asset, preserving the attribution above.",
+        ];
 
   return [
     `# ${entry.title}`,
@@ -77,10 +171,9 @@ export function renderReadme(entry) {
     "",
     `- **Category:** ${entry.category}`,
     `- **Demo:** ${SITE}/components/${entry.id}`,
-    `- **Dependencies:** ${DEPENDENCIES}`,
+    `- **Dependencies:** ${dependencies}`,
     "",
-    `This component is self-contained — the entire component is \`${entry.id}.tsx\`.`,
-    "Copy this folder into your project and adjust the styling.",
+    ...usageNotes,
     "",
     "<!-- Generated by scripts/generate-component-readmes.mjs. Do not edit by hand. -->",
     "",

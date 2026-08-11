@@ -6,7 +6,7 @@ Pick an emoji and watch it drawn on, stroke by stroke, as a hand-sketched line a
 
 - **Category:** Tool
 - **Demo:** https://atomicmotion.dev/components/emoji-sketch
-- **Dependencies:** framer-motion, lucide-react, clsx, tailwind-merge
+- **Dependencies:** clsx, perfect-freehand, tailwind-merge
 
 This component is self-contained — the entire component is `emoji-sketch.tsx`.
 Copy this folder into your project and adjust the styling.

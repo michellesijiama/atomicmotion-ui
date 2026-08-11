@@ -6,7 +6,7 @@ A project filter bar with a soft gray dropdown and clipped text reveal
 
 - **Category:** Navigation
 - **Demo:** https://atomicmotion.dev/components/filter-dropdown-reveal
-- **Dependencies:** framer-motion, lucide-react, clsx, tailwind-merge
+- **Dependencies:** clsx, framer-motion, tailwind-merge
 
 This component is self-contained — the entire component is `filter-dropdown-reveal.tsx`.
 Copy this folder into your project and adjust the styling.

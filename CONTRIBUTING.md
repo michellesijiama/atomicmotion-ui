@@ -5,14 +5,16 @@ Thanks for considering a contribution to AtomicMotion UI.
 ## Adding a component
 
 1. Create a new folder under `components/<category>/<your-component>/`.
-2. Keep the component **self-contained in a single file** — it should only
-   depend on React, Framer Motion, and the `cn` helper from `@/lib/utils`
-   (plus `lucide-react` if it needs icons). Avoid introducing new
-   dependencies unless the interaction genuinely requires one.
+2. Keep the component code **self-contained in a single file**. It must not
+   import the gallery's private `@/` modules; inline small helpers such as
+   `cn()`. External packages are allowed when the interaction genuinely needs
+   them, and the generated component README will list what the source imports.
 3. Register it in `src/lib/component-registry.ts` so it shows
    up in the gallery — set `id`, `title`, `description`, `category`, and
    `codePath`, and credit the site or work that inspired it via `inspiredBy`
    if applicable.
+   If the component loads files outside its folder at runtime, add them to
+   `requiredAssets` and document their provenance in `ASSETS.md`.
 4. Add a preview: run `npm run capture:home-previews <your-component-id>`
    from the repo root to generate `public/previews/<id>.png`.
 5. Preserve keyboard access and focus states — components in this gallery

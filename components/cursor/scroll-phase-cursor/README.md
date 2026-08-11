@@ -6,7 +6,7 @@ A circular pointer whose ring fills with page progress while a sculpted 3D form 
 
 - **Category:** Cursor
 - **Demo:** https://atomicmotion.dev/components/scroll-phase-cursor
-- **Dependencies:** framer-motion, lucide-react, clsx, tailwind-merge
+- **Dependencies:** clsx, framer-motion, tailwind-merge
 
 This component is self-contained — the entire component is `scroll-phase-cursor.tsx`.
 Copy this folder into your project and adjust the styling.

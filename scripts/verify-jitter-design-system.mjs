@@ -87,7 +87,7 @@ const checks = [
   ["component registry defines repo branch", files.componentRegistry.includes("REPO_BRANCH")],
   ["component registry builds GitHub links from codePath alone", files.componentRegistry.includes("`${REPO_BLOB_BASE}/${meta.codePath}`") && !files.componentRegistry.includes("REPO_PROJECT_ROOT")],
   ["component registry includes AI prompts", files.componentRegistry.includes("aiPrompt")],
-  ["component registry includes dependency hint", files.componentRegistry.includes("framer-motion, lucide-react, clsx, tailwind-merge")],
+  ["component registry gives dependency guidance without a false universal package list", files.componentRegistry.includes("Install any dependencies imported by the component if they are missing.") && !files.componentRegistry.includes("const DEPENDENCY_HINT")],
   ["component registry does not list removed component paths", !removedComponentPaths.some((path) => files.componentRegistry.includes(path))],
   ["component registry does not expose raw file metadata", !files.componentRegistry.includes("downloadHref") && !files.componentRegistry.includes("downloadLabel")],
   ["removed component files are absent", removedComponentPaths.every((path) => !existsSync(path))],

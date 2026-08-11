@@ -6,7 +6,7 @@ A geometric wordmark assembles from a gray ghost — letters fill to ink in a st
 
 - **Category:** Typography
 - **Demo:** https://atomicmotion.dev/components/geometric-logo-reveal
-- **Dependencies:** framer-motion, lucide-react, clsx, tailwind-merge
+- **Dependencies:** clsx, framer-motion, tailwind-merge
 
 This component is self-contained — the entire component is `geometric-logo-reveal.tsx`.
 Copy this folder into your project and adjust the styling.

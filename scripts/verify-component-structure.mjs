@@ -25,6 +25,12 @@ for (const b of blocks) {
   if (codePath !== expected) violations.push(`[${id}] codePath is ${codePath}, expected ${expected}`);
   if (!existsSync(codePath)) violations.push(`[${id}] file does not exist: ${codePath}`);
   if (title && slug(title) !== id) violations.push(`[${id}] id does not match title "${title}" (expected ${slug(title)})`);
+  if (existsSync(codePath)) {
+    const componentSource = readFileSync(codePath, "utf8");
+    if (/\bfrom\s+["']@\//.test(componentSource) || /^\s*import\s+["']@\//m.test(componentSource)) {
+      violations.push(`[${id}] component imports a private @/ module: ${codePath}`);
+    }
+  }
 
   const dir = `components/${slug(category)}/${id}`;
   if (existsSync(dir)) {

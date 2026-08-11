@@ -37,7 +37,13 @@ jobs:
       - run: npm ci
       - name: Run verify:* scripts
         run: |
-          for script in $(node -p "Object.keys(require('./package.json').scripts).filter(s => s.startsWith('test:')).join(' ')"); do
+          test_scripts="$(node -p "Object.keys(require('./package.json').scripts).filter(s => s.startsWith('test:')).join(' ')")"
+          set -- $test_scripts
+          if [ "$#" -lt 11 ]; then
+            echo "Expected at least 11 test:* scripts, found $#"
+            exit 1
+          fi
+          for script in "$@"; do
             echo "::group::npm run $script"
             npm run "$script"
             echo "::endgroup::"

@@ -6,7 +6,7 @@ A frosted menu that unfolds from a stable nav row with a smooth bell-curve trans
 
 - **Category:** Navigation
 - **Demo:** https://atomicmotion.dev/components/soft-menu-reveal
-- **Dependencies:** framer-motion, lucide-react, clsx, tailwind-merge
+- **Dependencies:** clsx, framer-motion, tailwind-merge
 
 This component is self-contained — the entire component is `soft-menu-reveal.tsx`.
 Copy this folder into your project and adjust the styling.
