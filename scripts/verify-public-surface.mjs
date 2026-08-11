@@ -18,6 +18,10 @@ const DENYLIST_PATTERNS = [
   /(^|\/)\.env(\.|$)/,
   /(^|\/)scripts\/render-/,
   /(^|\/)\.vercel\//,
+  // Design QA scratch notes — they cite local temp paths and components that
+  // may no longer exist.
+  /(^|\/)[\w-]*qa\.md$/i,
+  /(^|\/)\.DS_Store$/,
 ];
 
 const ASSET_EXEMPT = [

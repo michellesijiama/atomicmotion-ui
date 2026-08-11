@@ -11,3 +11,16 @@ AGENTS.md
 docs/superpowers/
 atomicmotion-ui/docs/superpowers/
 .vercel
+
+# Design QA notes — scratch findings that reference local temp paths and
+# in-progress components, not part of the public product.
+design-qa.md
+*-qa.md
+
+# OS cruft. The app folder ignores this already; the repo root did not.
+.DS_Store
+
+# Reference/backdrop images used while building a component. Anything in
+# public/ that is genuinely shipped must be listed in ASSETS.md instead —
+# verify-public-surface.mjs enforces that.
+atomicmotion-ui/public/gummy-bear-backdrop.png
