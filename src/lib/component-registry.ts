@@ -236,7 +236,7 @@ export const componentRegistry = {
     index: "011",
     title: "Voice Bloom",
     description:
-      "A gradient microphone that listens, blooms into an AI response panel, and reveals generated guidance word by word",
+      "A conversational microphone that blooms into an AI response panel, reveals replies word by word, and offers copy or regenerate actions",
     category: "AI",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

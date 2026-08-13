@@ -1,6 +1,6 @@
 # Voice Bloom
 
-A gradient microphone that listens, blooms into an AI response panel, and reveals generated guidance word by word
+A conversational microphone that blooms into an AI response panel, reveals replies word by word, and offers copy or regenerate actions
 
 ![Voice Bloom preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/voice-bloom.png)
 
