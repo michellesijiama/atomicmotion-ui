@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Open-source micro-interactions for designers and developers — a gallery of polished, animated UI components you can copy-paste into your own project one file at a time.",
+  "description": "Open-source micro-interactions for designers and developers \u2014 a gallery of polished, animated UI components you can copy-paste into your own project one file at a time.",
   "homepage": "https://atomicmotion.dev",
   "repository": {
     "type": "git",
@@ -14,6 +14,7 @@
     "build": "next build",
     "start": "next start",
     "capture:home-previews": "node scripts/capture-home-previews.mjs",
+    "capture:preview-loop": "node scripts/capture-preview-loop.mjs",
     "generate:readmes": "node scripts/generate-component-readmes.mjs",
     "lint": "eslint",
     "verify": "node scripts/verify-public-surface.mjs && node scripts/verify-registry-paths.mjs",

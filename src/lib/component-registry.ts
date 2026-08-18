@@ -6,7 +6,7 @@ const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REP
 
 // Components whose home-gallery card plays a looping video (`/previews/<id>.mp4`)
 // instead of the static poster — heavy 3D scenes we don't mount live in the grid.
-const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-gummy-bear"]);
+const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-gummy-bear", "showreel-sphere"]);
 
 /**
  * A file outside the component's own folder that the component loads at
@@ -243,6 +243,35 @@ export const componentRegistry = {
     createdAt: "2026-08-11",
     codePath: "components/ai/voice-bloom/voice-bloom.tsx",
     inspiredBy: { label: "Atomic Motion", href: "https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion" },
+  }),
+  showreelSphere: createComponentMeta({
+    id: "showreel-sphere",
+    index: "012",
+    title: "Showreel Sphere",
+    description:
+      "A studio landing page whose whole hero is one draggable 3D sphere, wrapped in a Renaissance painting that the next one sweeps around to replace every four seconds",
+    category: "3D",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-08-17",
+    codePath: "components/3d/showreel-sphere/showreel-sphere.tsx",
+    inspiredBy: { label: "Little Troop", href: "https://littletroop.com" },
+    // Composited into the sphere texture at runtime, so the folder alone is not
+    // enough. CC0 means no attribution is legally required, but the provenance
+    // travels with the files anyway.
+    requiredAssets: [
+      {
+        path: "public/paintings/ (4 .jpg files)",
+        license: "CC0 1.0 Universal (public domain dedication)",
+        credit:
+          'Renaissance panels from The Metropolitan Museum of Art Open Access (metmuseum.org/art/collection), downscaled reproductions of public-domain works: Fra Carnevale, "The Birth of the Virgin" (1467, object 435848); Pieter Bruegel the Elder, "The Harvesters" (1565, object 435809); Joachim Patinir, "The Penitence of Saint Jerome" (ca. 1515, object 437261); Hieronymus Bosch, "The Adoration of the Magi" (ca. 1475, object 435724).',
+      },
+    ],
+    // Heavy Three.js scene — the gallery card plays the captured loop rather
+    // than mounting a live WebGL context in the grid. The clip is one exact
+    // 360° revolution, so its last frame is pixel-identical to its first and
+    // the loop has no visible seam.
+    previewStatic: true,
   }),
 } satisfies Record<string, ComponentMeta>;
 

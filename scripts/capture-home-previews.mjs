@@ -61,6 +61,15 @@ async function prepareCapturePage(page) {
   }, captureBackground);
 }
 
+// Setting document.body is not enough on its own: the detail page's
+// ComponentStage paints its own opaque surface on top of it. Use the stage's
+// own Shift+G affordance to put it on --jitter-card, so transparent (e.g.
+// WebGL) previews blend into the gray card instead of baking in a white box.
+// Must run after hydration — before that the stage has no keydown listener.
+function setStageGray(page) {
+  return page.keyboard.press("Shift+G");
+}
+
 const browser = await chromium.launch();
 const page = await browser.newPage({
   viewport: { width: 960, height: 1200 },
@@ -77,6 +86,8 @@ try {
     } else {
       await page.waitForTimeout(id === "gradient-gummy-bear" ? 2400 : 1400);
     }
+    await setStageGray(page);
+    await page.waitForTimeout(400);
     await hideDevOverlay(page);
     await page.screenshot({
       path: previewPath(id),

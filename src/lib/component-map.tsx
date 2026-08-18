@@ -7,6 +7,7 @@ import { FilterDropdownReveal } from "@components/navigation/filter-dropdown-rev
 import { GeminiLive } from "@components/ai/gemini-live";
 import { GeometricLogoReveal } from "@components/typography/geometric-logo-reveal";
 import { GradientGummyBear } from "@components/3d/gradient-gummy-bear";
+import { ShowreelSphere } from "@components/3d/showreel-sphere";
 import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
 import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
 import { VoiceBloom } from "@components/ai/voice-bloom";
@@ -39,6 +40,10 @@ function GradientGummyBearPreview({ loop }: { loop?: boolean }) {
   return <GradientGummyBear loop={loop} />;
 }
 
+function ShowreelSpherePreview({ loop }: { loop?: boolean }) {
+  return <ShowreelSphere loop={loop} />;
+}
+
 function ScrollScrubbedTypographyPreview({ loop }: { loop?: boolean }) {
   return <ScrollScrubbedTypography loop={loop} className={loop ? "px-16" : undefined} />;
 }
@@ -62,4 +67,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "gradient-gummy-bear": GradientGummyBearPreview,
   "scroll-phase-cursor": ScrollPhaseCursorPreview,
   "voice-bloom": VoiceBloomPreview,
+  "showreel-sphere": ShowreelSpherePreview,
 };
