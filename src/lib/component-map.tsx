@@ -11,6 +11,7 @@ import { ShowreelSphere } from "@components/3d/showreel-sphere";
 import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
 import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
 import { VoiceBloom } from "@components/ai/voice-bloom";
+import { CoffeeGauge } from "@components/data/coffee-gauge";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
@@ -56,6 +57,12 @@ function VoiceBloomPreview({ loop }: { loop?: boolean }) {
   return <VoiceBloom loop={loop} />;
 }
 
+function CoffeeGaugePreview({ loop }: { loop?: boolean }) {
+  // The card is a compact 300px at true size, which lands tiny inside the
+  // 960px preview canvas. Scale it up for the gallery only.
+  return <CoffeeGauge loop={loop} className={loop ? "scale-[2]" : undefined} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
@@ -68,4 +75,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "scroll-phase-cursor": ScrollPhaseCursorPreview,
   "voice-bloom": VoiceBloomPreview,
   "showreel-sphere": ShowreelSpherePreview,
+  "coffee-gauge": CoffeeGaugePreview,
 };

@@ -273,6 +273,18 @@ export const componentRegistry = {
     // the loop has no visible seam.
     previewStatic: true,
   }),
+  coffeeGauge: createComponentMeta({
+    id: "coffee-gauge",
+    index: "013",
+    title: "Coffee Gauge",
+    description:
+      "Three hand-drawn coffee cups on a periwinkle card, each a liquid gauge that pours and drains on its own rhythm — empty they read as outlines, full they read as the solid silhouette; open the card and you can log what you actually drank",
+    category: "Data",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-08-23",
+    codePath: "components/data/coffee-gauge/coffee-gauge.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
