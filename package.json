@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Open-source micro-interactions for designers and developers \u2014 a gallery of polished, animated UI components you can copy-paste into your own project one file at a time.",
+  "description": "Open-source micro-interactions for designers and developers — a gallery of polished, animated UI components you can copy-paste into your own project one file at a time.",
   "homepage": "https://atomicmotion.dev",
   "repository": {
     "type": "git",
@@ -28,7 +28,8 @@
     "test:home-previews": "node scripts/verify-static-home-previews.mjs",
     "test:doc-links": "node scripts/verify-doc-links.mjs",
     "test:structure": "node scripts/verify-component-structure.mjs",
-    "test:readmes": "node scripts/verify-component-readmes.mjs"
+    "test:readmes": "node scripts/verify-component-readmes.mjs",
+    "render:coffee-gauge-gif": "node scripts/render-coffee-gauge-gif.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -43,6 +44,7 @@
     "three-subdivide": "^1.1.5"
   },
   "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
