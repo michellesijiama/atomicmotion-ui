@@ -1,6 +1,10 @@
 .superpowers/
 public/scroll-phase-cursor.gif
 public/coffee-gauge-rednote.gif
+
+# Social/render tooling and its output. scripts/render-* is denylisted by
+# verify-public-surface.mjs — this keeps it from being staged by accident.
+scripts/render-*
 .tmp/
 
 # Agent process files and internal planning docs — not part of the public product
