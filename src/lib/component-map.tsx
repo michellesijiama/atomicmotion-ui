@@ -58,9 +58,12 @@ function VoiceBloomPreview({ loop }: { loop?: boolean }) {
 }
 
 function CoffeeGaugePreview({ loop }: { loop?: boolean }) {
-  // The card is a compact 300px at true size, which lands tiny inside the
-  // 960px preview canvas. Scale it up for the gallery only.
-  return <CoffeeGauge loop={loop} className={loop ? "scale-[2]" : undefined} />;
+  // The card is a compact 336px at true size, which lands tiny inside the
+  // 960px preview canvas. Scale it up for the gallery only — enough to read,
+  // not so much that it crowds the tile.
+  return (
+    <CoffeeGauge loop={loop} className={loop ? "scale-[1.55]" : undefined} />
+  );
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
