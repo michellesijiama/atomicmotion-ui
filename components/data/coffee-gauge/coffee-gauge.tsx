@@ -250,12 +250,12 @@ export function CoffeeGauge({
 
   const counts = React.useMemo(
     () =>
-      logged
+      logged && !controlled
         ? logged.counts
         : (CUPS.map((cup, i) =>
             Math.round((levels[i] / 100) * cup.limit),
           ) as [number, number, number]),
-    [logged, levels],
+    [controlled, logged, levels],
   );
 
   /**
@@ -358,33 +358,38 @@ export function CoffeeGauge({
           >
             {title}
           </span>
-          <button
-            type="button"
-            onClick={toggle}
-            aria-expanded={expanded}
-            aria-controls={`${uid}-log`}
-            className="-mr-1 grid h-7 w-7 place-items-center rounded-full transition-colors"
-            style={{ color: PALETTE.ink }}
-          >
-            <span className="sr-only">
-              {expanded ? "Hide the log" : "Log a drink"}
-            </span>
-            <svg
-              aria-hidden
-              viewBox="0 0 16 16"
-              className="h-3.5 w-3.5 opacity-70 transition-transform duration-300"
-              style={{ transform: expanded ? "rotate(180deg)" : undefined }}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
+          {/* Only the uncontrolled card owns its numbers. Pass `values` and the
+              caller owns them — so there is nothing to log against, and a
+              disclosure that edits nothing would be a lie. */}
+          {!controlled && (
+            <button
+              type="button"
+              onClick={toggle}
+              aria-expanded={expanded}
+              aria-controls={`${uid}-log`}
+              className="-mr-1 grid h-7 w-7 place-items-center rounded-full transition-colors"
+              style={{ color: PALETTE.ink }}
             >
-              <path
-                d="M3.5 6l4.5 4.5L12.5 6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <span className="sr-only">
+                {expanded ? "Hide the log" : "Log a drink"}
+              </span>
+              <svg
+                aria-hidden
+                viewBox="0 0 16 16"
+                className="h-3.5 w-3.5 opacity-70 transition-transform duration-300"
+                style={{ transform: expanded ? "rotate(180deg)" : undefined }}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path
+                  d="M3.5 6l4.5 4.5L12.5 6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
         </header>
 
         <div className="relative grid grid-cols-3 gap-2">
@@ -567,6 +572,7 @@ export function CoffeeGauge({
 
         {/* The log. `grid-template-rows` from 0fr to 1fr is what lets this
             animate open to its own height without hard-coding one. */}
+        {!controlled && (
         <div
           id={`${uid}-log`}
           className="relative -mt-1 grid transition-[grid-template-rows] duration-300 ease-out"
@@ -575,7 +581,7 @@ export function CoffeeGauge({
           <div className="overflow-hidden">
             <div
               className="flex flex-col gap-2 pt-3"
-              style={{ borderTop: `1px solid 33` }}
+              style={{ borderTop: `1px solid ${PALETTE.ink}33` }}
             >
               {CUPS.map((cup, i) => (
                 <div
@@ -616,6 +622,7 @@ export function CoffeeGauge({
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
