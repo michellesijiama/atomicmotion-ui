@@ -12,6 +12,7 @@ import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed
 import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
 import { VoiceBloom } from "@components/ai/voice-bloom";
 import { CoffeeGauge } from "@components/data/coffee-gauge";
+import { HalftoneBloom } from "@components/data/halftone-bloom";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
@@ -66,6 +67,10 @@ function CoffeeGaugePreview({ loop }: { loop?: boolean }) {
   );
 }
 
+function HalftoneBloomPreview({ loop }: { loop?: boolean }) {
+  return <HalftoneBloom loop={loop} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
@@ -79,4 +84,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "voice-bloom": VoiceBloomPreview,
   "showreel-sphere": ShowreelSpherePreview,
   "coffee-gauge": CoffeeGaugePreview,
+  "halftone-bloom": HalftoneBloomPreview,
 };

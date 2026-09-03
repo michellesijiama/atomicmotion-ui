@@ -285,6 +285,18 @@ export const componentRegistry = {
     createdAt: "2026-08-23",
     codePath: "components/data/coffee-gauge/coffee-gauge.tsx",
   }),
+  halftoneBloom: createComponentMeta({
+    id: "halftone-bloom",
+    index: "014",
+    title: "Halftone Bloom",
+    description:
+      "A progress indicator drawn as a stippled moon — a lunar photograph resampled into coloured dots that light left to right like a terminator crossing the disc, from new moon at nothing to full at a hundred; collapsed it sits as a glance-sized moon at the same phase",
+    category: "Data",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-09-03",
+    codePath: "components/data/halftone-bloom/halftone-bloom.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);

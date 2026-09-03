@@ -84,7 +84,16 @@ try {
       await page.getByRole("button", { name: "Start voice input" }).click();
       await page.waitForTimeout(3200);
     } else {
-      await page.waitForTimeout(id === "gradient-gummy-bear" ? 2400 : 1400);
+      // halftone-bloom opens collapsed, so the poster has to open it — and it
+      // spends its first seconds part-lit, so shoot during the hold with the
+      // moon full.
+      if (id === "halftone-bloom") {
+        await page.getByRole("button", { name: "Show the moon" }).click();
+      }
+      // Components whose poster wants a specific moment rather than "shortly
+      // after mount".
+      const settle = { "gradient-gummy-bear": 2400, "halftone-bloom": 4200 };
+      await page.waitForTimeout(settle[id] ?? 1400);
     }
     await setStageGray(page);
     await page.waitForTimeout(400);

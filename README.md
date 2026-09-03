@@ -41,6 +41,8 @@ files and their licence requirements out explicitly.
 | <img src="public/previews/geometric-logo-reveal.png" width="160"> | **Geometric Logo Reveal** — a wordmark assembles from a gray ghost into solid ink in a staggered cascade | Typography | [Form&Fun](https://www.formandfun.co) | [`geometric-logo-reveal.tsx`](components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx) |
 | <img src="public/previews/gradient-gummy-bear.png" width="160"> | **Gradient Gummy Bear** — a translucent 3D gummy bear (Three.js) with a soft pink gradient and cursor parallax | 3D | — | [`gradient-gummy-bear.tsx`](components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx) |
 | <img src="public/previews/scroll-phase-cursor.png" width="160"> | **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx) |
+| <img src="public/previews/coffee-gauge.png" width="160"> | **Coffee Gauge** — three hand-drawn cups that pour and drain as liquid gauges; open the card and log what you actually drank | Data | — | [`coffee-gauge.tsx`](components/data/coffee-gauge/coffee-gauge.tsx) |
+| <img src="public/previews/halftone-bloom.png" width="160"> | **Halftone Bloom** — a progress indicator stippled entirely in dots: a moon that lights left to right like a terminator, new to full | Data | — | [`halftone-bloom.tsx`](components/data/halftone-bloom/halftone-bloom.tsx) |
 
 ## Using a component
 
