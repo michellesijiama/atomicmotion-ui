@@ -86,9 +86,23 @@ try {
     } else {
       // halftone-bloom opens collapsed, so the poster has to open it — and it
       // spends its first seconds part-lit, so shoot during the hold with the
-      // moon full.
+      // moon full. Wait for hydration first: clicking a server-rendered button
+      // before React has attached only moves focus, and the poster comes out
+      // collapsed with a focus ring on it.
       if (id === "halftone-bloom") {
-        await page.getByRole("button", { name: "Show the moon" }).click();
+        const isOpen = () =>
+          page.evaluate(
+            () => document.querySelector('[aria-controls$="-moon"]')?.getAttribute("aria-expanded") === "true",
+          );
+        // Retry rather than click once and hope: a single click can land in the
+        // window before React has attached its handler, which moves focus and
+        // nothing else. Clicking again after hydration is harmless.
+        for (let attempt = 0; attempt < 12 && !(await isOpen()); attempt += 1) {
+          await page.waitForTimeout(400);
+          await page.getByRole("button", { name: "Show the moon" }).click();
+        }
+        if (!(await isOpen())) throw new Error("halftone-bloom did not expand");
+        await page.evaluate(() => document.activeElement?.blur());
       }
       // Components whose poster wants a specific moment rather than "shortly
       // after mount".

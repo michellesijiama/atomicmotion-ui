@@ -295,6 +295,52 @@ function smallestCircle(points) {
 const SATURATION = flag("saturate", 2.2);
 for (const cell of cells) if (cell.rgb) cell.rgb = saturate(cell.rgb, SATURATION);
 
+// The subject's disc, measured off the trace rather than assumed. `--disc 0`
+// turns it off for subjects that are not round, and the component then falls
+// back to the whole grid.
+const DISC_LEVEL = flag("disc", 0.3);
+const subject = [];
+if (DISC_LEVEL > 0) {
+  for (let i = 0; i < cells.length; i += 1) {
+    if (cells[i].v >= DISC_LEVEL) {
+      subject.push({ x: (i % COLS) + 0.5, y: Math.floor(i / COLS) + 0.5 });
+    }
+  }
+}
+const disc = subject.length > 2 ? smallestCircle(subject) : null;
+
+/**
+ * Stretch the tones inside the disc across the whole ramp.
+ *
+ * Ink so far is distance from the background, which separates subject from sky
+ * and almost nothing else. For a full moon that is close to useless: the disc
+ * is uniformly far brighter than the sky, so every cell in it lands in the top
+ * of the range — measured on the first pass of this image, nothing inside the
+ * disc fell below level 4 — and the craters and maria that make it legible as
+ * a moon are compressed into two or three levels that all screen identically.
+ * Rescaling against the subject's own percentiles is what puts that detail
+ * back. Clipping a little at each end is deliberate; it is what gives the
+ * highlands somewhere bright to go.
+ */
+const LEVELS = flag("levels", 1);
+if (LEVELS && disc) {
+  const inside = [];
+  for (let i = 0; i < cells.length; i += 1) {
+    const x = (i % COLS) + 0.5;
+    const y = Math.floor(i / COLS) + 0.5;
+    if (Math.hypot(x - disc.x, y - disc.y) <= disc.r) inside.push(cells[i].v);
+  }
+  inside.sort((a, b) => a - b);
+  const lo = inside[Math.floor(inside.length * 0.03)];
+  const hi = inside[Math.floor(inside.length * 0.985)];
+  if (hi > lo) {
+    for (const cell of cells) {
+      cell.v = Math.min(1, Math.max(0, (cell.v - lo) / (hi - lo)));
+    }
+  }
+  console.log(`levels: stretched ${lo.toFixed(3)}..${hi.toFixed(3)} to 0..1`);
+}
+
 const lit = cells.filter((c) => c.rgb && c.v > 0.12).map((c) => c.rgb);
 if (lit.length === 0) {
   console.error("traced nothing — every cell matched the ground colour");
@@ -347,20 +393,6 @@ function chunk(s) {
   for (let i = 0; i < s.length; i += COLS) out.push(s.slice(i, i + COLS));
   return out;
 }
-
-// The subject's disc, measured off the trace rather than assumed. `--disc 0`
-// turns it off for subjects that are not round, and the component then falls
-// back to the whole grid.
-const DISC_LEVEL = flag("disc", 0.3);
-const subject = [];
-if (DISC_LEVEL > 0) {
-  for (let i = 0; i < cells.length; i += 1) {
-    if (cells[i].v >= DISC_LEVEL) {
-      subject.push({ x: (i % COLS) + 0.5, y: Math.floor(i / COLS) + 0.5 });
-    }
-  }
-}
-const disc = subject.length > 2 ? smallestCircle(subject) : null;
 
 const block = [
   `const TRACE_COLS = ${COLS};`,
