@@ -316,14 +316,30 @@ const nearest = (rgb) => {
 };
 
 // Two parallel strings, one character per cell: ink weight 0-9, and an index
-// into the palette. Strings rather than arrays because 9,216 cells of JSON is
-// 150 KB of source and 9,216 characters is 9 KB.
+// into the palette. Strings rather than arrays because 17,000 cells of JSON is
+// 280 KB of source and 17,000 characters is 17 KB.
+//
+// The palette index is base36, NOT String(index): a palette of more than ten
+// entries makes index 10 two characters wide, which shunts every cell after it
+// one place along and misaligns the colours against the grid from that point
+// on. It shows up as streaks and wrong hues, not as an error.
+const DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz";
+if (palette.length > DIGITS.length) {
+  console.error(`palette of ${palette.length} exceeds the ${DIGITS.length} single-character indices`);
+  process.exit(1);
+}
 let levels = "";
 let colors = "";
 for (const cell of cells) {
   const v = Math.min(9, Math.round(cell.v * 9));
   levels += String(v);
-  colors += v === 0 || !cell.rgb ? "0" : String(nearest(cell.rgb));
+  colors += v === 0 || !cell.rgb ? "0" : DIGITS[nearest(cell.rgb)];
+}
+if (levels.length !== COLS * ROWS || colors.length !== COLS * ROWS) {
+  console.error(
+    `encoded ${levels.length}/${colors.length} characters for ${COLS * ROWS} cells`,
+  );
+  process.exit(1);
 }
 
 function chunk(s) {
