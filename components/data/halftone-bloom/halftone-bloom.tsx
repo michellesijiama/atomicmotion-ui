@@ -15,7 +15,7 @@ export type HalftoneBloomProps = {
   value?: number;
   /** Defaults to "Progress Indicator". */
   title?: string;
-  /** The line under the title. Pass null to drop it. */
+  /** An optional line under the title. Off by default. */
   caption?: string | null;
   /** Present for gallery parity — the card animates either way. */
   loop?: boolean;
@@ -355,21 +355,81 @@ const DISC = 0.97;
 const DENSITY = 0.92;
 
 /**
- * Raises a colour towards white until it clears a minimum brightness.
+ * Gain on the chroma of the smeared tint, not a fraction of it.
  *
- * The moon's unlit limb traces out almost black, which against a black card is
- * no mark at all — and this needs a whole disc of dots for the terminator to
- * sweep across. Lifting keeps each cell's hue and only argues with its value.
+ * Above one because `TINT` costs saturation to buy coherence. The trace holds
+ * its colour in a scattered minority of cells — median saturation across the
+ * disc is 0.018, with the ninetieth percentile at 0.281 — so averaging over a
+ * neighbourhood mixes those few tinted cells into a neutral majority and comes
+ * out close to grey. What survives the averaging is the part of the colour that
+ * is genuinely regional, and it survives at about a twentieth saturation, which
+ * is under the threshold of being seen at all. Multiplying it back up is what
+ * puts the mineral colour on the card; the blur is what keeps it from being
+ * confetti when it gets there.
+ *
+ * Raising this is safe in a way that raising per-cell chroma was not, because
+ * colour and structure now live at different spatial frequencies: the picture
+ * is drawn in the *area* of each mark, and the colour is a wash over it.
  */
-function lift(hex: string, min: number) {
-  const n = Number.parseInt(hex.slice(1), 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  if (lum >= min) return hex;
-  const k = min / Math.max(lum, 1);
-  const to = (c: number) => Math.min(255, Math.round(c * k));
+const CHROMA = 4.0;
+
+/**
+ * The band marks are painted across.
+ *
+ * The floor sits well clear of the card, because on black there is no such
+ * thing as a dark dot — only a missing one. Value is the second channel here,
+ * not the first; area is the first. See `size` in `buildPlate`.
+ */
+const VALUE_FLOOR = 150;
+const VALUE_CEIL = 255;
+
+/**
+ * The dot diameter a cell gets at no ink and at full, as a fraction of its
+ * cell. This is the picture's primary channel, and — because a dot's ink goes
+ * as the square of its diameter — also the card's main brightness control: the
+ * dark passages read dark mostly because their dots are small and the black
+ * card shows between them, not because the dots themselves are dim.
+ */
+const AREA_MIN = 0.45;
+const AREA_MAX = 1.0;
+
+function luma(r: number, g: number, b: number) {
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * Takes a colour's chroma down to `CHROMA`, then repaints it at the value `v`
+ * asks for.
+ *
+ * Blends towards white or black rather than scaling the three channels, so a
+ * colour pushed bright keeps its hue instead of clipping one channel at a time
+ * and drifting as it goes.
+ */
+function shade(r0: number, g0: number, b0: number, v: number) {
+  let r = r0;
+  let g = g0;
+  let b = b0;
+
+  const grey = luma(r, g, b);
+  r = grey + (r - grey) * CHROMA;
+  g = grey + (g - grey) * CHROMA;
+  b = grey + (b - grey) * CHROMA;
+
+  const target = VALUE_FLOOR + (VALUE_CEIL - VALUE_FLOOR) * v;
+  const now = luma(r, g, b);
+  if (target > now) {
+    const t = (target - now) / Math.max(255 - now, 1);
+    r += (255 - r) * t;
+    g += (255 - g) * t;
+    b += (255 - b) * t;
+  } else {
+    const t = target / Math.max(now, 1);
+    r *= t;
+    g *= t;
+    b *= t;
+  }
+
+  const to = (c: number) => clamp(Math.round(c), 0, 255);
   return `#${((to(r) << 16) | (to(g) << 8) | to(b)).toString(16).padStart(6, "0")}`;
 }
 
@@ -453,11 +513,18 @@ type Mark = {
  * The screened picture, laid down once at module load and shared by every card
  * on the page.
  *
- * Two things make this a stipple rather than a grid of squares. Whether a cell
- * gets a mark at all is a coin weighted by that cell's ink, so tone is a count
- * of marks per area — which is what the eye actually reads density as. And
- * every mark is nudged up to half a cell off true, which stops nine thousand of
- * them lining back up into the lattice they were sampled on.
+ * Three channels carry the tone, in order of how much of the work they do.
+ * Area is the first: a dot's diameter runs from a quarter of its cell to the
+ * whole of it, which is a sixteen-fold range in ink and the only range a black
+ * card cannot flatten. Value is the second, over a band floored well clear of
+ * the background. Density — whether a cell is given a mark at all — is the
+ * third and shallowest, and is there to keep the screen from reading as a grid
+ * rather than to draw anything.
+ *
+ * The marks themselves sit on the lattice they were sampled on. Jittering them
+ * is the obvious way to keep a screen from looking mechanical, but at this
+ * pitch it costs every mare boundary and crater rim its edge, and those edges
+ * are the picture.
  */
 /**
  * Where the subject's disc actually is, measured off the photograph by the
@@ -472,6 +539,201 @@ const DISC_CX = TRACE_DISC ? TRACE_DISC.x : (TRACE_COLS - 1) / 2;
 const DISC_CY = TRACE_DISC ? TRACE_DISC.y : (TRACE_ROWS - 1) / 2;
 const DISC_R =
   (TRACE_DISC ? TRACE_DISC.r : Math.min(TRACE_COLS, TRACE_ROWS) / 2) * DISC;
+
+/**
+ * How many rings the radial profile is measured in.
+ *
+ * Binned by area rather than by radius — see `binOf` — so every ring holds the
+ * same number of cells and the profile is measured just as confidently at the
+ * centre, where a ring of even width would enclose almost nothing, as it is at
+ * the limb.
+ */
+const RING_BINS = 48;
+
+/**
+ * The traced tone with the photograph's halo divided out.
+ *
+ * The trace arrives with a bright ring just inside the limb: mean level 7.85 in
+ * the annulus at r=0.83–0.92, against 2.79 at the centre. That is an unsharp
+ * halo carried in from the source, not lunar tone — a real full moon darkens
+ * towards its limb — and it accounts for a third of all the tonal variance in
+ * the grid. Which is to say the strongest feature in the picture was an
+ * artefact, and the eye obliged by reading a glowing annulus instead of a moon.
+ *
+ * So measure the mean tone at each radius, subtract it, and re-expand what is
+ * left. What survives is the part of the picture that varies *across* the disc
+ * rather than *with* the radius — the maria and the highlands — which is the
+ * part worth drawing.
+ *
+ * Computed here rather than baked into `TRACE_LEVELS`, so those constants stay
+ * the tracer's honest output and the correction stays legible and tunable. It
+ * is a few thousand operations, once, at module load.
+ */
+const TONE = (() => {
+  const cells = TRACE_ROWS * TRACE_COLS;
+  // Negative marks a cell outside the disc, and is the only out-of-band test
+  // used below — a residual can legitimately reach -1, so it cannot double as
+  // a sentinel of its own.
+  const raw = new Float32Array(cells).fill(-1);
+  const sum = new Float64Array(RING_BINS);
+  const count = new Float64Array(RING_BINS);
+  // `r * r`, so the bins are equal in area rather than equal in width.
+  const binOf = (r: number) =>
+    Math.min(RING_BINS - 1, Math.floor(r * r * RING_BINS));
+  const radius = (x: number, y: number) =>
+    Math.hypot((x - DISC_CX) / DISC_R, (y - DISC_CY) / DISC_R);
+
+  for (let y = 0; y < TRACE_ROWS; y++) {
+    for (let x = 0; x < TRACE_COLS; x++) {
+      const r = radius(x, y);
+      if (r > 1) continue;
+      const i = y * TRACE_COLS + x;
+      const level = (TRACE_LEVELS.charCodeAt(i) - 48) / 9;
+      raw[i] = level;
+      const b = binOf(r);
+      sum[b] += level;
+      count[b] += 1;
+    }
+  }
+
+  // Lightly smoothed before it is subtracted. A raw profile carries its own
+  // bin-to-bin noise and taking that out of the picture would print the bin
+  // edges back onto the moon as a set of finer rings — but the smoothing window
+  // has to stay narrower than the halo it is there to remove. Widening it to
+  // five bins smears the halo instead of subtracting it and leaves a third of
+  // the ring standing; three across the 48 bins here leaves under half a
+  // percent of the tonal variance radial, which is flat.
+  const profile = Array.from({ length: RING_BINS }, (_, b) =>
+    count[b] > 0 ? sum[b] / count[b] : 0,
+  );
+  const smooth = profile.map((_, b) => {
+    let s = 0;
+    let n = 0;
+    for (let k = -1; k <= 1; k++) {
+      const j = b + k;
+      if (j >= 0 && j < RING_BINS && count[j] > 0) {
+        s += profile[j];
+        n += 1;
+      }
+    }
+    return n > 0 ? s / n : 0;
+  });
+
+  const residual = new Float32Array(cells);
+  const spread: number[] = [];
+  for (let y = 0; y < TRACE_ROWS; y++) {
+    for (let x = 0; x < TRACE_COLS; x++) {
+      const i = y * TRACE_COLS + x;
+      if (raw[i] < 0) continue;
+      const v = raw[i] - smooth[binOf(radius(x, y))];
+      residual[i] = v;
+      spread.push(v);
+    }
+  }
+
+  // Clipped at the 2nd and 98th percentile rather than at the extremes, so a
+  // couple of stray cells cannot set the contrast of the whole disc.
+  spread.sort((a, b) => a - b);
+  const lo = spread[Math.floor(spread.length * 0.02)];
+  const hi = spread[Math.floor(spread.length * 0.98)];
+  const span = Math.max(hi - lo, 1e-6);
+
+  const out = new Float32Array(cells).fill(-1);
+  for (let i = 0; i < cells; i++) {
+    if (raw[i] < 0) continue;
+    out[i] = clamp((residual[i] - lo) / span, 0, 1);
+  }
+  return out;
+})();
+
+/**
+ * How far the traced colour is smeared before it is used, in cells either side.
+ *
+ * The mineral colour in the source is real, but it is *regional* — titanium-rich
+ * basalt reads blue across a whole mare, iron-rich ground reads warm across
+ * another — and the trace samples it per cell, which turns broad geology into
+ * per-dot noise. Averaging it back over a neighbourhood restores the scale the
+ * colour actually has, and that is what lets `CHROMA` run near full strength
+ * without the confetti coming back with it: the wash is low-frequency, the
+ * picture is high-frequency, and the two stop competing.
+ */
+const TINT_BLUR = 3;
+
+/** The traced colour, smeared to the scale lunar colour actually varies on. */
+const TINT = (() => {
+  const cells = TRACE_ROWS * TRACE_COLS;
+  // Premultiplied by the disc mask, so the blur below can sum blindly and
+  // divide by the summed weight — the limb then averages only what is inside
+  // the disc, instead of pulling the empty sky in over it.
+  const r = new Float32Array(cells);
+  const g = new Float32Array(cells);
+  const b = new Float32Array(cells);
+  const w = new Float32Array(cells);
+
+  for (let i = 0; i < cells; i++) {
+    if (TONE[i] < 0) continue;
+    const hex = TRACE_PALETTE[digit(TRACE_COLORS, i)] ?? TRACE_PALETTE[0];
+    const n = Number.parseInt(hex.slice(1), 16);
+    r[i] = (n >> 16) & 255;
+    g[i] = (n >> 8) & 255;
+    b[i] = n & 255;
+    w[i] = 1;
+  }
+
+  // Separable: two one-dimensional passes rather than one square window, which
+  // is the same blur for a fraction of the reads.
+  const pass = (
+    inR: Float32Array,
+    inG: Float32Array,
+    inB: Float32Array,
+    inW: Float32Array,
+    horizontal: boolean,
+  ) => {
+    const oR = new Float32Array(cells);
+    const oG = new Float32Array(cells);
+    const oB = new Float32Array(cells);
+    const oW = new Float32Array(cells);
+    for (let y = 0; y < TRACE_ROWS; y++) {
+      for (let x = 0; x < TRACE_COLS; x++) {
+        let sr = 0;
+        let sg = 0;
+        let sb = 0;
+        let sw = 0;
+        for (let k = -TINT_BLUR; k <= TINT_BLUR; k++) {
+          const xx = horizontal ? x + k : x;
+          const yy = horizontal ? y : y + k;
+          if (xx < 0 || xx >= TRACE_COLS || yy < 0 || yy >= TRACE_ROWS) continue;
+          const j = yy * TRACE_COLS + xx;
+          sr += inR[j];
+          sg += inG[j];
+          sb += inB[j];
+          sw += inW[j];
+        }
+        const i = y * TRACE_COLS + x;
+        oR[i] = sr;
+        oG[i] = sg;
+        oB[i] = sb;
+        oW[i] = sw;
+      }
+    }
+    return { r: oR, g: oG, b: oB, w: oW };
+  };
+
+  const once = pass(r, g, b, w, true);
+  const twice = pass(once.r, once.g, once.b, once.w, false);
+
+  const outR = new Float32Array(cells);
+  const outG = new Float32Array(cells);
+  const outB = new Float32Array(cells);
+  for (let i = 0; i < cells; i++) {
+    if (TONE[i] < 0) continue;
+    const weight = Math.max(twice.w[i], 1e-6);
+    outR[i] = twice.r[i] / weight;
+    outG[i] = twice.g[i] / weight;
+    outB[i] = twice.b[i] / weight;
+  }
+  return { r: outR, g: outG, b: outB };
+})();
 
 function buildPlate(stride: number, cell: number): Mark[] {
   const marks: Mark[] = [];
@@ -493,30 +755,32 @@ function buildPlate(stride: number, cell: number): Mark[] {
       if (r > 1) continue;
 
       const i = y * TRACE_COLS + x;
-      const traced = (TRACE_LEVELS.charCodeAt(i) - 48) / 9;
-      // A floor under the whole disc. Half this moon is unlit and traces out
-      // near black; without a floor that half is simply missing, and there is
-      // nothing there for the terminator to move over.
-      const v = Math.max(traced, 0.16);
-      // Feather the limb, so the disc's edge is a scatter thinning out rather
-      // than a cut circle.
-      const edge = smoothstep(1, 0.9, r);
-      // `DENSITY` thins the whole screen without touching the picture: the coin
-      // stays weighted by each cell's own ink, so the moon keeps its tonal
-      // range and simply gets fewer dots carrying it.
-      if (hash01(x + 0.5, y + 0.5) > Math.pow(v, 0.7) * edge * DENSITY) continue;
+      const v = TONE[i];
+      // Keep the limb. A sphere is read as much from its silhouette as from
+      // anything inside it, and the old feather spent that cue on a scatter
+      // that trailed off into the card.
+      const edge = smoothstep(1, 0.98, r);
+      // Density is the weakest of the three channels, so it is the one that
+      // thins the field rather than the one that draws the picture: a shallow
+      // ramp on a high floor, so the dark passages stay a populated surface
+      // instead of turning into a hole for the terminator to cross.
+      if (hash01(x + 0.5, y + 0.5) > (0.6 + 0.4 * v) * edge * DENSITY) continue;
 
       marks.push({
-        cx: ((x - originX) / stride) * cell + (hash01(x, y * 1.7) - 0.5) * cell,
-        cy: ((y - originY) / stride) * cell + (hash01(x * 2.3, y) - 0.5) * cell,
+        // On the lattice. The old ±half-cell jitter cost every crater rim and
+        // every mare boundary its edge, which was most of what there was to
+        // recognise.
+        cx: ((x - originX) / stride) * cell,
+        cy: ((y - originY) / stride) * cell,
         // Measured across the disc rather than across the grid, so the sweep
         // starts exactly at the left limb and ends exactly at the right.
         across: clamp((nx + 1) / 2, 0, 1),
-        // A little size on top of the density, so the brightest passages read
-        // as solid rather than merely crowded. Kept under a cell wide, so dots
-        // stay separate marks instead of closing into a wash.
-        size: (0.5 + 0.5 * v) * cell,
-        color: lift(TRACE_PALETTE[digit(TRACE_COLORS, i)] ?? TRACE_PALETTE[0], 105),
+        // Area carries the tone, and it is the channel that survives a black
+        // card: a dark dot is not dark, it is absent. So the maria come out as
+        // smaller marks rather than dimmer ones, and the picture keeps its full
+        // range without anything falling into the background.
+        size: (AREA_MIN + (AREA_MAX - AREA_MIN) * v) * cell,
+        color: shade(TINT.r[i], TINT.g[i], TINT.b[i], v),
         turn: 0,
       });
     }
@@ -587,7 +851,10 @@ function draw(
     ctx.fillStyle = color;
     ctx.beginPath();
     for (const { cx, cy, size } of marks) {
-      ctx.rect(cx - size / 2, cy - size / 2, size, size);
+      // `moveTo` first, or each arc is joined to the previous one by a chord
+      // and the whole bucket fills as one webbed blob.
+      ctx.moveTo(cx + size / 2, cy);
+      ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
     }
     ctx.fill();
   }
@@ -608,7 +875,7 @@ function usePrefersReducedMotion() {
 export function HalftoneBloom({
   value,
   title = "Progress Indicator",
-  caption = "You are on track to finish the goal three days early",
+  caption = null,
   className,
 }: HalftoneBloomProps) {
   const reduced = usePrefersReducedMotion();
