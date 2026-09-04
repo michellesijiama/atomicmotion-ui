@@ -17,7 +17,13 @@ export type HalftoneBloomProps = {
   title?: string;
   /** An optional line under the title. Off by default. */
   caption?: string | null;
-  /** Present for gallery parity — the card animates either way. */
+  /** What the percentage is a percentage of, set under the number. Pass null
+   *  to drop it. */
+  unit?: string | null;
+  /** Set by the gallery card. The moon fills either way; with `loop` the card
+   *  also opens as the fill begins and closes as the drain begins, so the
+   *  disclosure is seen without anyone clicking it. Ignored when `value` is
+   *  set or motion is reduced. */
   loop?: boolean;
   className?: string;
 };
@@ -355,33 +361,24 @@ const DISC = 0.97;
 const DENSITY = 0.92;
 
 /**
- * Gain on the chroma of the smeared tint, not a fraction of it.
- *
- * Above one because `TINT` costs saturation to buy coherence. The trace holds
- * its colour in a scattered minority of cells — median saturation across the
- * disc is 0.018, with the ninetieth percentile at 0.281 — so averaging over a
- * neighbourhood mixes those few tinted cells into a neutral majority and comes
- * out close to grey. What survives the averaging is the part of the colour that
- * is genuinely regional, and it survives at about a twentieth saturation, which
- * is under the threshold of being seen at all. Multiplying it back up is what
- * puts the mineral colour on the card; the blur is what keeps it from being
- * confetti when it gets there.
- *
- * Raising this is safe in a way that raising per-cell chroma was not, because
- * colour and structure now live at different spatial frequencies: the picture
- * is drawn in the *area* of each mark, and the colour is a wash over it.
+ * Saturation gain on the traced colour. Mild, because the palette is already
+ * about as vivid as the photograph — the mineral blues and salmons trace out
+ * at 0.6–0.97 saturation — and what had been washing them out was not their
+ * strength but their being *averaged* with each other. See `TINT`.
  */
-const CHROMA = 4.0;
+const SATURATION = 1.35;
 
 /**
- * The band marks are painted across.
+ * How far tone is allowed to darken a mark, as a fraction of its lightness.
  *
- * The floor sits well clear of the card, because on black there is no such
- * thing as a dark dot — only a missing one. Value is the second channel here,
- * not the first; area is the first. See `size` in `buildPlate`.
+ * Small, because value is the picture's second channel, not its first; area
+ * carries the structure (see `AREA_MIN`). And because the source is bright
+ * everywhere — a photograph of a full moon has no true darks inside the disc,
+ * only lighter and less light — so a mark that dropped far below its palette
+ * lightness would be inventing shadow the moon does not have, and on a black
+ * card would be halfway to vanishing besides.
  */
-const VALUE_FLOOR = 150;
-const VALUE_CEIL = 255;
+const TONE_DEPTH = 0.18;
 
 /**
  * The dot diameter a cell gets at no ink and at full, as a fraction of its
@@ -393,44 +390,59 @@ const VALUE_CEIL = 255;
 const AREA_MIN = 0.45;
 const AREA_MAX = 1.0;
 
-function luma(r: number, g: number, b: number) {
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+type Hsl = { h: number; s: number; l: number };
+
+function hexToHsl(hex: string): Hsl {
+  const n = Number.parseInt(hex.slice(1), 16);
+  const r = ((n >> 16) & 255) / 255;
+  const g = ((n >> 8) & 255) / 255;
+  const b = (n & 255) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d === 0) return { h: 0, s: 0, l };
+  const s = d / (1 - Math.abs(2 * l - 1));
+  let h: number;
+  if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  h *= 60;
+  if (h < 0) h += 360;
+  return { h, s, l };
+}
+
+function hslToHex({ h, s, l }: Hsl) {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (h < 60) [r, g, b] = [c, x, 0];
+  else if (h < 120) [r, g, b] = [x, c, 0];
+  else if (h < 180) [r, g, b] = [0, c, x];
+  else if (h < 240) [r, g, b] = [0, x, c];
+  else if (h < 300) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  const to = (v: number) => clamp(Math.round((v + m) * 255), 0, 255);
+  return `#${((to(r) << 16) | (to(g) << 8) | to(b)).toString(16).padStart(6, "0")}`;
 }
 
 /**
- * Takes a colour's chroma down to `CHROMA`, then repaints it at the value `v`
- * asks for.
+ * Paints a palette entry at tone `v`: its own hue, a little more saturated,
+ * and darkened by at most `TONE_DEPTH`.
  *
- * Blends towards white or black rather than scaling the three channels, so a
- * colour pushed bright keeps its hue instead of clipping one channel at a time
- * and drifting as it goes.
+ * Worked in HSL rather than by scaling channels, so pushing saturation moves a
+ * colour away from grey along its own hue instead of clipping whichever
+ * channel is largest and drifting towards a primary.
  */
-function shade(r0: number, g0: number, b0: number, v: number) {
-  let r = r0;
-  let g = g0;
-  let b = b0;
-
-  const grey = luma(r, g, b);
-  r = grey + (r - grey) * CHROMA;
-  g = grey + (g - grey) * CHROMA;
-  b = grey + (b - grey) * CHROMA;
-
-  const target = VALUE_FLOOR + (VALUE_CEIL - VALUE_FLOOR) * v;
-  const now = luma(r, g, b);
-  if (target > now) {
-    const t = (target - now) / Math.max(255 - now, 1);
-    r += (255 - r) * t;
-    g += (255 - g) * t;
-    b += (255 - b) * t;
-  } else {
-    const t = target / Math.max(now, 1);
-    r *= t;
-    g *= t;
-    b *= t;
-  }
-
-  const to = (c: number) => clamp(Math.round(c), 0, 255);
-  return `#${((to(r) << 16) | (to(g) << 8) | to(b)).toString(16).padStart(6, "0")}`;
+function paint(entry: Hsl, v: number) {
+  return hslToHex({
+    h: entry.h,
+    s: Math.min(0.95, entry.s * SATURATION),
+    l: entry.l * (1 - TONE_DEPTH + TONE_DEPTH * v),
+  });
 }
 
 /** One fill-hold-drain-rest cycle, in milliseconds. */
@@ -647,92 +659,69 @@ const TONE = (() => {
 })();
 
 /**
- * How far the traced colour is smeared before it is used, in cells either side.
+ * The neighbourhood each cell's colour is decided over, in cells either side.
  *
- * The mineral colour in the source is real, but it is *regional* — titanium-rich
+ * The mineral colour in the source is real and *regional* — titanium-rich
  * basalt reads blue across a whole mare, iron-rich ground reads warm across
- * another — and the trace samples it per cell, which turns broad geology into
- * per-dot noise. Averaging it back over a neighbourhood restores the scale the
- * colour actually has, and that is what lets `CHROMA` run near full strength
- * without the confetti coming back with it: the wash is low-frequency, the
- * picture is high-frequency, and the two stop competing.
+ * another — but the trace quantises it per cell, and at the boundaries of a
+ * patch that dithers between the patch's colour and its neighbours'. Read
+ * cell by cell it is confetti.
+ *
+ * The obvious cure, averaging over a neighbourhood, was tried and made
+ * everything brown: the warm family (salmon through orange, hue 7–31) and the
+ * blue family (hue 218–272) are near-complementary, and a mean of two
+ * complementaries is mud. So this takes the *mode* instead — the palette
+ * entry most of the neighbourhood agrees on — which removes the speckle
+ * without ever mixing two hues into a third. A blue patch stays that blue to
+ * its edge, and a salmon patch stays salmon.
  */
-const TINT_BLUR = 3;
+const TINT_RADIUS = 2;
 
-/** The traced colour, smeared to the scale lunar colour actually varies on. */
+/**
+ * How much a vote is worth per unit of saturation. Nearly half the disc traces
+ * to a neutral near-white, and with equal votes that majority would swallow a
+ * small coloured patch from its edges inward; weighting the vivid entries up
+ * lets a patch hold its ground where it is genuinely present without letting
+ * a single stray cell win a neighbourhood on its own.
+ */
+const TINT_VIVID_WEIGHT = 1.5;
+
+const PALETTE_HSL = TRACE_PALETTE.map(hexToHsl);
+
+/** The palette index each cell paints with, after the neighbourhood vote. */
 const TINT = (() => {
   const cells = TRACE_ROWS * TRACE_COLS;
-  // Premultiplied by the disc mask, so the blur below can sum blindly and
-  // divide by the summed weight — the limb then averages only what is inside
-  // the disc, instead of pulling the empty sky in over it.
-  const r = new Float32Array(cells);
-  const g = new Float32Array(cells);
-  const b = new Float32Array(cells);
-  const w = new Float32Array(cells);
+  const out = new Uint8Array(cells);
+  const votes = new Float32Array(TRACE_PALETTE.length);
+  const weight = PALETTE_HSL.map((c) => 1 + TINT_VIVID_WEIGHT * c.s);
 
-  for (let i = 0; i < cells; i++) {
-    if (TONE[i] < 0) continue;
-    const hex = TRACE_PALETTE[digit(TRACE_COLORS, i)] ?? TRACE_PALETTE[0];
-    const n = Number.parseInt(hex.slice(1), 16);
-    r[i] = (n >> 16) & 255;
-    g[i] = (n >> 8) & 255;
-    b[i] = n & 255;
-    w[i] = 1;
-  }
-
-  // Separable: two one-dimensional passes rather than one square window, which
-  // is the same blur for a fraction of the reads.
-  const pass = (
-    inR: Float32Array,
-    inG: Float32Array,
-    inB: Float32Array,
-    inW: Float32Array,
-    horizontal: boolean,
-  ) => {
-    const oR = new Float32Array(cells);
-    const oG = new Float32Array(cells);
-    const oB = new Float32Array(cells);
-    const oW = new Float32Array(cells);
-    for (let y = 0; y < TRACE_ROWS; y++) {
-      for (let x = 0; x < TRACE_COLS; x++) {
-        let sr = 0;
-        let sg = 0;
-        let sb = 0;
-        let sw = 0;
-        for (let k = -TINT_BLUR; k <= TINT_BLUR; k++) {
-          const xx = horizontal ? x + k : x;
-          const yy = horizontal ? y : y + k;
-          if (xx < 0 || xx >= TRACE_COLS || yy < 0 || yy >= TRACE_ROWS) continue;
+  for (let y = 0; y < TRACE_ROWS; y++) {
+    for (let x = 0; x < TRACE_COLS; x++) {
+      const i = y * TRACE_COLS + x;
+      if (TONE[i] < 0) continue;
+      votes.fill(0);
+      for (let dy = -TINT_RADIUS; dy <= TINT_RADIUS; dy++) {
+        const yy = y + dy;
+        if (yy < 0 || yy >= TRACE_ROWS) continue;
+        for (let dx = -TINT_RADIUS; dx <= TINT_RADIUS; dx++) {
+          const xx = x + dx;
+          if (xx < 0 || xx >= TRACE_COLS) continue;
           const j = yy * TRACE_COLS + xx;
-          sr += inR[j];
-          sg += inG[j];
-          sb += inB[j];
-          sw += inW[j];
+          // Only the disc votes; the sky outside it has no colour to offer.
+          if (TONE[j] < 0) continue;
+          const k = digit(TRACE_COLORS, j);
+          if (k < TRACE_PALETTE.length) votes[k] += weight[k];
         }
-        const i = y * TRACE_COLS + x;
-        oR[i] = sr;
-        oG[i] = sg;
-        oB[i] = sb;
-        oW[i] = sw;
       }
+      let best = digit(TRACE_COLORS, i);
+      if (best >= TRACE_PALETTE.length) best = 0;
+      for (let k = 0; k < votes.length; k++) {
+        if (votes[k] > votes[best]) best = k;
+      }
+      out[i] = best;
     }
-    return { r: oR, g: oG, b: oB, w: oW };
-  };
-
-  const once = pass(r, g, b, w, true);
-  const twice = pass(once.r, once.g, once.b, once.w, false);
-
-  const outR = new Float32Array(cells);
-  const outG = new Float32Array(cells);
-  const outB = new Float32Array(cells);
-  for (let i = 0; i < cells; i++) {
-    if (TONE[i] < 0) continue;
-    const weight = Math.max(twice.w[i], 1e-6);
-    outR[i] = twice.r[i] / weight;
-    outG[i] = twice.g[i] / weight;
-    outB[i] = twice.b[i] / weight;
   }
-  return { r: outR, g: outG, b: outB };
+  return out;
 })();
 
 function buildPlate(stride: number, cell: number): Mark[] {
@@ -780,7 +769,7 @@ function buildPlate(stride: number, cell: number): Mark[] {
         // smaller marks rather than dimmer ones, and the picture keeps its full
         // range without anything falling into the background.
         size: (AREA_MIN + (AREA_MAX - AREA_MIN) * v) * cell,
-        color: shade(TINT.r[i], TINT.g[i], TINT.b[i], v),
+        color: paint(PALETTE_HSL[TINT[i]], v),
         turn: 0,
       });
     }
@@ -876,6 +865,8 @@ export function HalftoneBloom({
   value,
   title = "Progress Indicator",
   caption = null,
+  unit = "of daily goal",
+  loop = false,
   className,
 }: HalftoneBloomProps) {
   const reduced = usePrefersReducedMotion();
@@ -884,6 +875,14 @@ export function HalftoneBloom({
   const fullRef = React.useRef<HTMLCanvasElement | null>(null);
   const miniRef = React.useRef<HTMLCanvasElement | null>(null);
   const [expanded, setExpanded] = React.useState(false);
+  // Only the gallery card opens and closes on its own, and only while it is
+  // the one deciding the reading.
+  const auto = loop && !controlled && !reduced;
+  // The clock's origin, kept outside the effect. The effect re-runs whenever
+  // `expanded` changes, and an origin local to it would restart the fill from
+  // new moon on every open — which, once opening is itself driven by the fill,
+  // would hold the card below full forever.
+  const startedRef = React.useRef<number | null>(null);
   const uid = React.useId().replace(/:/g, "");
 
   // Only the animated card needs to store a reading. A controlled or
@@ -935,20 +934,36 @@ export function HalftoneBloom({
     // step without re-rendering the card sixty times a second.
     let frame = 0;
     let shown = -1;
-    const started = performance.now();
+    let open: boolean | null = null;
+    if (startedRef.current === null) startedRef.current = performance.now();
+    const started = startedRef.current;
     const tick = (now: number) => {
-      const fraction = cycleAt(now - started);
+      const elapsed = now - started;
+      const fraction = cycleAt(elapsed);
       paint(fraction);
       const next = Math.round(fraction * 100);
       if (next !== shown) {
         shown = next;
         setTicking(next);
       }
+      // On the gallery card the fill also works the disclosure: the card opens
+      // as the moon begins to fill and closes as it begins to drain. The big
+      // moon gets the fill and the hold; the small one gets the drain, which is
+      // the least interesting stretch and the one where a card left open would
+      // be showing a moon going out. Set only on the change, so React is not
+      // asked to confirm the same state sixty times a second.
+      if (auto) {
+        const shouldOpen = elapsed % CYCLE_MS < GROW_MS + HOLD_MS;
+        if (shouldOpen !== open) {
+          open = shouldOpen;
+          setExpanded(shouldOpen);
+        }
+      }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [controlled, reduced, value, expanded]);
+  }, [controlled, reduced, value, expanded, auto]);
 
   return (
     <div
@@ -1035,12 +1050,19 @@ export function HalftoneBloom({
           aria-label={title}
           className="flex items-center justify-between gap-5"
         >
-          <span
-            className="shrink-0 text-[38px] font-medium leading-none tracking-[-0.02em]"
-            style={{ fontVariantNumeric: "lining-nums tabular-nums" }}
-          >
-            {percent}%
-          </span>
+          <div className="flex shrink-0 flex-col gap-1.5">
+            <span
+              className="text-[38px] font-medium leading-none tracking-[-0.02em]"
+              style={{ fontVariantNumeric: "lining-nums tabular-nums" }}
+            >
+              {percent}%
+            </span>
+            {unit ? (
+              <span className="text-[13px] leading-none" style={{ color: PALETTE.muted }}>
+                {unit}
+              </span>
+            ) : null}
+          </div>
           <div
             className="relative shrink-0 transition-[width,height] duration-500 ease-out"
             style={{
