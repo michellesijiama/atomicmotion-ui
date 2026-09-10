@@ -297,6 +297,18 @@ export const componentRegistry = {
     createdAt: "2026-09-03",
     codePath: "components/data/halftone-bloom/halftone-bloom.tsx",
   }),
+  blossomLight: createComponentMeta({
+    id: "blossom-light",
+    index: "015",
+    title: "Blossom Light",
+    description:
+      "A brightness slider whose fill is a window rather than a bar — warm daylight with a blossoming bough standing in it, and a veil over whatever the light has not reached yet, so setting the level plays as a sunrise walking up the branch. The light it sets is the light in the room, so the window throws a shadow that draws tighter and darker as you turn it up",
+    category: "Control",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-09-09",
+    codePath: "components/control/blossom-light/blossom-light.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);

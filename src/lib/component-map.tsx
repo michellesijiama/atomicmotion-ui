@@ -13,6 +13,7 @@ import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
 import { VoiceBloom } from "@components/ai/voice-bloom";
 import { CoffeeGauge } from "@components/data/coffee-gauge";
 import { HalftoneBloom } from "@components/data/halftone-bloom";
+import { BlossomLight } from "@components/control/blossom-light";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
@@ -71,6 +72,13 @@ function HalftoneBloomPreview({ loop }: { loop?: boolean }) {
   return <HalftoneBloom loop={loop} />;
 }
 
+function BlossomLightPreview({ loop }: { loop?: boolean }) {
+  // The slider is 116px wide at true size, which lands tiny inside the 960px
+  // preview canvas. Scale it for the gallery only -- enough to read the
+  // blossom, not so much that it crowds the tile.
+  return <BlossomLight loop={loop} className={loop ? "scale-[1.6]" : undefined} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
@@ -85,4 +93,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "showreel-sphere": ShowreelSpherePreview,
   "coffee-gauge": CoffeeGaugePreview,
   "halftone-bloom": HalftoneBloomPreview,
+  "blossom-light": BlossomLightPreview,
 };
