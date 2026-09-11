@@ -432,16 +432,35 @@ export function BlossomLight({
           <defs>
             <filter id={windId} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
               <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="2" seed="4" result="noise">
+                {/* Spline-eased, so the drift never changes speed at a keyframe
+                    — linear keyframes gave the wind a visible tick every few
+                    seconds. */}
                 {!still && (
                   <animate
                     attributeName="baseFrequency"
                     values="0.006 0.009;0.012 0.005;0.007 0.011;0.006 0.009"
-                    dur="10s"
+                    keyTimes="0;0.36;0.7;1"
+                    calcMode="spline"
+                    keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"
+                    dur="12s"
                     repeatCount="indefinite"
                   />
                 )}
               </feTurbulence>
-              <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="G" />
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="G">
+                {/* Gusts: the displacement itself breathes, on its own beat. */}
+                {!still && (
+                  <animate
+                    attributeName="scale"
+                    values="22;36;26;22"
+                    keyTimes="0;0.4;0.75;1"
+                    calcMode="spline"
+                    keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"
+                    dur="9s"
+                    repeatCount="indefinite"
+                  />
+                )}
+              </feDisplacementMap>
             </filter>
           </defs>
         </svg>
@@ -450,6 +469,7 @@ export function BlossomLight({
           className="pointer-events-none absolute inset-0"
           style={{
             transform: "scale(1.1)",
+            willChange: "transform",
             filter: `url(#${windId}) brightness(calc(0.66 + var(--q-b) * 0.34)) saturate(calc(1.12 - var(--q-b) * 0.12))`,
           }}
         >
