@@ -302,12 +302,19 @@ export const componentRegistry = {
     index: "015",
     title: "Blossom Light",
     description:
-      "A brightness slider whose fill is a window rather than a bar — warm daylight with a blossoming bough standing in it, and a veil over whatever the light has not reached yet, so setting the level plays as a sunrise walking up the branch. The light it sets is the light in the room, so the window throws a shadow that draws tighter and darker as you turn it up",
+      "A square of wall whose light is the controls in the middle of it: leaf shadow on white plaster, dimmed and lifted by a brightness pill that fills line by line, turned from cool to amber by a tone slider, and sent to follow the weather outside by an Adaptive toggle, while the leaf shadow on the wall stirs in a wind — all flat frosted glass, scaling itself to fit wherever it is put",
     category: "Control",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-09",
     codePath: "components/control/blossom-light/blossom-light.tsx",
+    requiredAssets: [
+      {
+        path: "public/textures/wall-shadow.jpg",
+        license: "Supplied by the component author; confirm terms before redistributing",
+        credit: "Leaf-shadow photograph supplied by the AtomicMotion author.",
+      },
+    ],
   }),
 } satisfies Record<string, ComponentMeta>;
 

@@ -73,10 +73,8 @@ function HalftoneBloomPreview({ loop }: { loop?: boolean }) {
 }
 
 function BlossomLightPreview({ loop }: { loop?: boolean }) {
-  // The slider is 116px wide at true size, which lands tiny inside the 960px
-  // preview canvas. Scale it for the gallery only -- enough to read the
-  // blossom, not so much that it crowds the tile.
-  return <BlossomLight loop={loop} className={loop ? "scale-[1.6]" : undefined} />;
+  // The phone scales itself to whatever it is put in; the tile needs no help.
+  return <BlossomLight loop={loop} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {

@@ -43,7 +43,7 @@ files and their licence requirements out explicitly.
 | <img src="public/previews/scroll-phase-cursor.png" width="160"> | **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx) |
 | <img src="public/previews/coffee-gauge.png" width="160"> | **Coffee Gauge** — three hand-drawn cups that pour and drain as liquid gauges; open the card and log what you actually drank | Data | — | [`coffee-gauge.tsx`](components/data/coffee-gauge/coffee-gauge.tsx) |
 | <img src="public/previews/halftone-bloom.png" width="160"> | **Halftone Bloom** — a progress indicator stippled entirely in dots: a moon that lights left to right like a terminator, new to full | Data | — | [`halftone-bloom.tsx`](components/data/halftone-bloom/halftone-bloom.tsx) |
-| <img src="public/previews/blossom-light.png" width="160"> | **Blossom Light** — a brightness slider whose fill is a lit window with a blossoming bough in it, so setting the level plays as a sunrise walking up the branch | Control | — | [`blossom-light.tsx`](components/control/blossom-light/blossom-light.tsx) |
+| <img src="public/previews/blossom-light.png" width="160"> | **Blossom Light** — a square of wall whose light is the controls in the middle of it — leaf shadow dimmed and lifted by a line-by-line brightness pill, toned from cool to amber, its leaf shadow stirring in a wind | Control | — | [`blossom-light.tsx`](components/control/blossom-light/blossom-light.tsx) |
 
 ## Using a component
 
