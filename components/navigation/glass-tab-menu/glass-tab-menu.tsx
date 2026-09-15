@@ -79,7 +79,7 @@ const PLUSH: React.CSSProperties = {
 
 /** Lighter plush laid on the plush: the row-hover pill. */
 const PLUSH_LIFT: React.CSSProperties = {
-  background: "rgba(255,255,255,0.55)",
+  background: "rgba(255,255,255,0.72)",
 };
 
 /** The Features bloom when no photo is given. */
