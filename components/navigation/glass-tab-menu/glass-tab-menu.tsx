@@ -14,7 +14,7 @@ function cn(...inputs: ClassValue[]) {
 export type GlassTabMenuProps = {
   /** Which tab wears the pill at first. Default "shop". */
   defaultTab?: "shop" | "features";
-  /** A photo for the Features card. Without one, a dark glossy placeholder is drawn. */
+  /** A photo for the Features card. Without one, a soft pink-lavender bloom is drawn. */
   featureImage?: string;
   /** Alt text for that photo. */
   featureAlt?: string;
@@ -66,42 +66,85 @@ const PUSH = { type: "spring", stiffness: 380, damping: 32 } as const;
 const panelHeight = (tab: Tab) => (tab.kind === "media" ? PANEL_H_MEDIA : PANEL_H_LIST);
 
 /**
- * Frosted pink-lavender glass. Reads as glass on a flat host too — a bloom of
- * periwinkle and pink through the tint, a 1px rim of light along the top
- * edge — and over anything colourful the backdrop blur takes over.
+ * The plush tint: a bloom of pink at the top-left and periwinkle at the
+ * bottom-right through a frosted lavender. No strokes anywhere — the edge
+ * is made by the fuzz filter, not by a line.
  */
-const GLASS: React.CSSProperties = {
+const PLUSH: React.CSSProperties = {
   background:
-    "radial-gradient(90% 120% at 18% 10%, rgba(242,196,227,0.55) 0%, transparent 55%), radial-gradient(80% 110% at 85% 90%, rgba(150,170,255,0.5) 0%, transparent 60%), linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.2) 100%), rgba(196,190,240,0.62)",
+    "radial-gradient(90% 120% at 18% 10%, rgba(242,196,227,0.6) 0%, transparent 55%), radial-gradient(80% 110% at 85% 90%, rgba(150,170,255,0.55) 0%, transparent 60%), linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.15) 100%), rgba(196,190,240,0.66)",
   backdropFilter: "blur(24px) saturate(160%)",
   WebkitBackdropFilter: "blur(24px) saturate(160%)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.75), inset 0 0 0 1px rgba(255,255,255,0.35)",
 };
 
-/** Lighter glass laid on the dark glass: the row-hover pill and the arrow. */
-const GLASS_LIFT: React.CSSProperties = {
-  background: "rgba(255,255,255,0.5)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
+/** Lighter plush laid on the plush: the row-hover pill. */
+const PLUSH_LIFT: React.CSSProperties = {
+  background: "rgba(255,255,255,0.55)",
 };
 
-/** A fine static grain over one pane of glass. Nothing here ever animates. */
-function Grain() {
+/** The Features bloom when no photo is given. */
+const BLOOM: React.CSSProperties = {
+  background:
+    "radial-gradient(70% 60% at 30% 30%, rgba(255,214,236,0.95) 0%, transparent 60%), radial-gradient(70% 70% at 75% 70%, rgba(150,170,255,0.9) 0%, transparent 65%), linear-gradient(160deg, #E6E2FA 0%, #C9C6F0 60%, #B7BEF2 100%)",
+};
+
+/**
+ * The fibre filter, defined once per instance and referenced by CSS
+ * `filter: url(#…)` from every plush surface. A slow wave bends the
+ * silhouette, a fine one frays it, and a small blur turns the fray into
+ * nap. Static: nothing here ever changes after mount.
+ */
+function FuzzDefs({ id }: { id: string }) {
+  return (
+    <svg aria-hidden="true" width={0} height={0} style={{ position: "absolute" }}>
+      <filter id={id} x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="3" result="wave" />
+        <feDisplacementMap in="SourceGraphic" in2="wave" scale="6" xChannelSelector="R" yChannelSelector="G" result="waved" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="11" result="fibre" />
+        <feDisplacementMap in="waved" in2="fibre" scale="5" xChannelSelector="R" yChannelSelector="G" result="frayed" />
+        <feGaussianBlur in="frayed" stdDeviation="0.9" />
+      </filter>
+    </svg>
+  );
+}
+
+/** A dense, visible speckle over one plush surface. Nothing here ever animates. */
+function Grain({ radius }: { radius: number }) {
   const id = `grain-${React.useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   return (
     <svg
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 h-full w-full"
-      style={{ mixBlendMode: "soft-light", opacity: 0.45 }}
+      style={{ mixBlendMode: "soft-light", opacity: 0.75, clipPath: `inset(0 round ${radius}px)` }}
     >
       <filter id={id} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="7" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" seed="7" />
         <feColorMatrix
           type="matrix"
-          values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 0 1"
+          values="0.8 0.8 0.8 0 -0.7  0.8 0.8 0.8 0 -0.7  0.8 0.8 0.8 0 -0.7  0 0 0 0 1"
         />
       </filter>
       <rect width="100%" height="100%" filter={`url(#${id})`} />
     </svg>
+  );
+}
+
+type PlushProps = { radius: number; fuzzId: string; tint?: React.CSSProperties; className?: string };
+
+/**
+ * The surface behind a pane or pill: the tint, the speckle, and the fibre
+ * filter on the whole layer so its edge frays. Content is drawn above it,
+ * outside the filter, so type stays crisp.
+ */
+function Plush({ radius, fuzzId, tint = PLUSH, className }: PlushProps) {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn("pointer-events-none absolute inset-0", className)}
+      style={{ borderRadius: radius, filter: `url(#${fuzzId})`, ...tint }}
+    >
+      <Grain radius={radius} />
+    </div>
   );
 }
 
@@ -113,14 +156,14 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-type ListPanelProps = { items: string[]; uid: string; onInteract: () => void };
+type ListPanelProps = { items: string[]; uid: string; fuzzId: string; onInteract: () => void };
 
 /**
- * The list: whichever row the pointer or focus is on gets a lighter glass
+ * The list: whichever row the pointer or focus is on gets a lighter plush
  * pill that slides between rows, with a round arrow at its end, while the
  * other rows dim. Hover state lives here so it resets when the panel swaps.
  */
-function ListPanel({ items, uid, onInteract }: ListPanelProps) {
+function ListPanel({ items, uid, fuzzId, onInteract }: ListPanelProps) {
   const [hovered, setHovered] = React.useState<string | null>(null);
   return (
     <ul
@@ -142,9 +185,10 @@ function ListPanel({ items, uid, onInteract }: ListPanelProps) {
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={PUSH}
-                className="absolute -inset-x-2 inset-y-0 rounded-[10px]"
-                style={GLASS_LIFT}
-              />
+                className="absolute -inset-x-2 inset-y-0"
+              >
+                <Plush radius={10} fuzzId={fuzzId} tint={PLUSH_LIFT} />
+              </motion.span>
             )}
             <button
               type="button"
@@ -166,10 +210,10 @@ function ListPanel({ items, uid, onInteract }: ListPanelProps) {
                 initial={false}
                 animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : -6, scale: isHovered ? 1 : 0.8 }}
                 transition={{ duration: 0.22, ease: bell }}
-                className="flex h-7 w-7 items-center justify-center rounded-full"
-                style={{ background: "rgba(255,255,255,0.7)" }}
+                className="relative flex h-7 w-7 items-center justify-center"
               >
-                <svg width={14} height={14} viewBox="0 0 14 14">
+                <Plush radius={14} fuzzId={fuzzId} tint={{ background: "rgba(255,255,255,0.75)" }} />
+                <svg className="relative" width={14} height={14} viewBox="0 0 14 14">
                   <path d="M2.5 7h9M7.5 3l4 4-4 4" fill="none" stroke={SKIN.ink} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </motion.span>
@@ -181,31 +225,30 @@ function ListPanel({ items, uid, onInteract }: ListPanelProps) {
   );
 }
 
-type MediaPanelProps = { image?: string; alt?: string };
+type MediaPanelProps = { image?: string; alt?: string; fuzzId: string };
 
 /** The Features card: a real photo when given one, otherwise a soft pink-lavender bloom. */
-function MediaPanel({ image, alt }: MediaPanelProps) {
+function MediaPanel({ image, alt, fuzzId }: MediaPanelProps) {
   return (
-    <div
-      className="relative mt-4 flex-1 overflow-hidden rounded-[12px]"
-      style={{
-        background:
-          "radial-gradient(70% 60% at 30% 30%, rgba(255,214,236,0.95) 0%, transparent 60%), radial-gradient(70% 70% at 75% 70%, rgba(150,170,255,0.9) 0%, transparent 65%), linear-gradient(160deg, #E6E2FA 0%, #C9C6F0 60%, #B7BEF2 100%)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
-      }}
-    >
+    <div className="relative mt-4 flex-1">
+      <Plush radius={12} fuzzId={fuzzId} tint={BLOOM} />
       {image ? (
         // A plain <img>: this file is meant to be copied out of Next.js.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={image} alt={alt ?? ""} className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={image}
+          alt={alt ?? ""}
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ borderRadius: 12, filter: `url(#${fuzzId})` }}
+        />
       ) : null}
-      <Grain />
     </div>
   );
 }
 
 export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, loop = false, className }: GlassTabMenuProps) {
   const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const fuzzId = `fuzz-${uid}`;
   const [active, setActive] = React.useState<TabId>(defaultTab);
   /** Which tab's panel is showing. Hover and focus drive this; clicks drive `active`. */
   const [open, setOpen] = React.useState<TabId | null>(loop ? defaultTab : null);
@@ -294,7 +337,7 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
         className={cn("relative flex h-full min-h-[420px] w-full items-center justify-center bg-transparent", className)}
         style={{ fontFamily: FONT }}
       >
-        {/* The cluster: bar, gap, panel. Pointer and focus leaving it fold the panel. */}
+        <FuzzDefs id={fuzzId} />
         {/* Extra top margin equal to the panel's reach, so the bar itself sits at the host's centre and the panel hangs below it. */}
         <div
           className="relative"
@@ -306,10 +349,10 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
           <nav
             aria-label="Primary"
             role="tablist"
-            className="relative inline-flex items-center overflow-hidden rounded-full p-1"
-            style={{ height: BAR_H, ...GLASS }}
+            className="relative inline-flex items-center p-1"
+            style={{ height: BAR_H }}
           >
-            <Grain />
+            <Plush radius={BAR_H / 2} fuzzId={fuzzId} />
             {TABS.map((tab) => {
               const isActive = tab.id === active;
               return (
@@ -337,10 +380,11 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
                   {isActive && (
                     <motion.span
                       layoutId={`${uid}-pill`}
-                      className="absolute inset-0 -z-10 rounded-full"
-                      style={{ background: SKIN.pill, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)" }}
+                      className="absolute inset-0 -z-10"
                       transition={SLIDE}
-                    />
+                    >
+                      <Plush radius={(BAR_H - 8) / 2} fuzzId={fuzzId} tint={{ background: SKIN.pill }} />
+                    </motion.span>
                   )}
                   {tab.label}
                 </button>
@@ -357,33 +401,34 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
             initial={false}
             animate={{ height: shown ? panelHeight(shown) : 0, opacity: shown ? 1 : 0, y: shown ? 0 : -8 }}
             transition={{ duration: shown ? 0.5 : 0.28, ease: bell }}
-            className="absolute left-0 overflow-hidden"
+            className="absolute left-0"
             style={{
               top: BAR_H + PANEL_GAP,
               width: PANEL_W,
-              borderRadius: PANEL_RADIUS,
               pointerEvents: shown ? "auto" : "none",
-              ...GLASS,
             }}
           >
-            <Grain />
-            {shown && (
-              <motion.div
-                key={shown.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.32, ease: bell }}
-                className="relative flex h-full flex-col pt-4"
-                style={{ paddingLeft: PANEL_PAD, paddingRight: PANEL_PAD, paddingBottom: shown.kind === "media" ? PANEL_PAD : 0 }}
-              >
-                <Eyebrow>{shown.eyebrow}</Eyebrow>
-                {shown.kind === "list" ? (
-                  <ListPanel items={shown.items} uid={uid} onInteract={takeOver} />
-                ) : (
-                  <MediaPanel image={featureImage} alt={featureAlt} />
-                )}
-              </motion.div>
-            )}
+            <Plush radius={PANEL_RADIUS} fuzzId={fuzzId} />
+            {/* Content is clipped to the pane; the plush behind it is not, so its fray shows. */}
+            <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: PANEL_RADIUS }}>
+              {shown && (
+                <motion.div
+                  key={shown.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.32, ease: bell }}
+                  className="relative flex h-full flex-col pt-4"
+                  style={{ paddingLeft: PANEL_PAD, paddingRight: PANEL_PAD, paddingBottom: shown.kind === "media" ? PANEL_PAD : 0 }}
+                >
+                  <Eyebrow>{shown.eyebrow}</Eyebrow>
+                  {shown.kind === "list" ? (
+                    <ListPanel items={shown.items} uid={uid} fuzzId={fuzzId} onInteract={takeOver} />
+                  ) : (
+                    <MediaPanel image={featureImage} alt={featureAlt} fuzzId={fuzzId} />
+                  )}
+                </motion.div>
+              )}
+            </div>
           </motion.div>
         </div>
       </div>

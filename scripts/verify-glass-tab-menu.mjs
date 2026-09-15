@@ -30,6 +30,7 @@ const checks = [
   ["component is deterministic on the server", !files.component.includes("Math.random")],
   ["component is glass", files.component.includes("backdropFilter") && files.component.includes("WebkitBackdropFilter")],
   ["component grains the glass with a static filter", files.component.includes("feTurbulence") && files.component.includes("mixBlendMode")],
+  ["panes have fibrous edges, not strokes", files.component.includes("feDisplacementMap") && !files.component.includes("inset 0 1px 0")],
   ["component fades the list tail", files.component.includes("maskImage") && files.component.includes("WebkitMaskImage")],
   ["bar is a tablist", files.component.includes('role="tablist"') && files.component.includes('role="tab"') && files.component.includes('role="tabpanel"') && files.component.includes("aria-selected")],
   ["tabs take arrow keys and Escape", files.component.includes('"ArrowRight"') && files.component.includes('"ArrowLeft"') && files.component.includes('"ArrowDown"') && files.component.includes('"Escape"')],
