@@ -44,6 +44,7 @@ files and their licence requirements out explicitly.
 | <img src="public/previews/coffee-gauge.png" width="160"> | **Coffee Gauge** — three hand-drawn cups that pour and drain as liquid gauges; open the card and log what you actually drank | Data | — | [`coffee-gauge.tsx`](components/data/coffee-gauge/coffee-gauge.tsx) |
 | <img src="public/previews/halftone-bloom.png" width="160"> | **Halftone Bloom** — a progress indicator stippled entirely in dots: a moon that lights left to right like a terminator, new to full | Data | — | [`halftone-bloom.tsx`](components/data/halftone-bloom/halftone-bloom.tsx) |
 | <img src="public/previews/blossom-light.png" width="160"> | **Blossom Light** — a square of wall whose light is the controls in the middle of it — leaf shadow dimmed and lifted by a line-by-line brightness pill, toned from cool to amber, its leaf shadow stirring in a wind | Control | — | [`blossom-light.tsx`](components/control/blossom-light/blossom-light.tsx) |
+| <img src="public/previews/glass-tab-menu.png" width="160"> | **Glass Tab Menu** — a smoky glass tab bar whose lime pill slides between tabs, with a frosted dropdown panel that unfolds on hover and fades out its last rows | Navigation | — | [`glass-tab-menu.tsx`](components/navigation/glass-tab-menu/glass-tab-menu.tsx) |
 
 ## Using a component
 
