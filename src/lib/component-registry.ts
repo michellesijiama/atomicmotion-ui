@@ -316,6 +316,18 @@ export const componentRegistry = {
       },
     ],
   }),
+  glassTabMenu: createComponentMeta({
+    id: "glass-tab-menu",
+    index: "016",
+    title: "Glass Tab Menu",
+    description:
+      "A capsule tab bar in dark smoky glass — a lime pill slides between Shop, Features, and About on a spring, and hovering a tab unfolds a frosted panel beneath it whose list fades out at the bottom edge",
+    category: "Navigation",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-09-14",
+    codePath: "components/navigation/glass-tab-menu/glass-tab-menu.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);

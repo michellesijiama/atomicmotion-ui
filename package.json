@@ -28,7 +28,8 @@
     "test:home-previews": "node scripts/verify-static-home-previews.mjs",
     "test:doc-links": "node scripts/verify-doc-links.mjs",
     "test:structure": "node scripts/verify-component-structure.mjs",
-    "test:readmes": "node scripts/verify-component-readmes.mjs"
+    "test:readmes": "node scripts/verify-component-readmes.mjs",
+    "test:glass-tab-menu": "node scripts/verify-glass-tab-menu.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
