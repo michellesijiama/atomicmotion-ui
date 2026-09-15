@@ -321,7 +321,7 @@ export const componentRegistry = {
     index: "016",
     title: "Glass Tab Menu",
     description:
-      "A capsule tab bar in dark smoky glass — a lime pill slides between Shop and Features on a spring; hovering Shop unfolds a frosted list whose hovered row gets a lighter glass pill and an arrow that slide from row to row, and hovering Features unfolds a glossy media card",
+      "A capsule tab bar in frosted pink-lavender glass — a blush pill slides between Shop and Features on a spring; hovering Shop unfolds a frosted list whose hovered row gets a lighter glass pill and an arrow that slide from row to row, and hovering Features unfolds a glossy media card",
     category: "Navigation",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

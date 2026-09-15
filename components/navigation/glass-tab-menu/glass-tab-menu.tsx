@@ -35,10 +35,10 @@ const TABS: Tab[] = [
 ];
 
 const SKIN = {
-  text: "rgba(255,255,255,0.92)",
-  textMuted: "rgba(255,255,255,0.6)",
-  lime: "#D7F542",
-  limeInk: "#1B2007",
+  ink: "#3A3560",
+  inkMuted: "rgba(58,53,96,0.55)",
+  pill: "#F2C4E3",
+  pillInk: "#4A2A48",
 };
 
 // Reads the host's Manrope if it exposes one (the gallery does, via next/font),
@@ -66,22 +66,22 @@ const PUSH = { type: "spring", stiffness: 380, damping: 32 } as const;
 const panelHeight = (tab: Tab) => (tab.kind === "media" ? PANEL_H_MEDIA : PANEL_H_LIST);
 
 /**
- * Dark smoky glass. Reads as glass on a flat host too — a diagonal sheen, a
- * 1px rim of light along the top edge — and over anything
- * colourful the backdrop blur takes over.
+ * Frosted pink-lavender glass. Reads as glass on a flat host too — a bloom of
+ * periwinkle and pink through the tint, a 1px rim of light along the top
+ * edge — and over anything colourful the backdrop blur takes over.
  */
 const GLASS: React.CSSProperties = {
   background:
-    "linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.09) 100%), rgba(44,46,42,0.6)",
+    "radial-gradient(90% 120% at 18% 10%, rgba(242,196,227,0.55) 0%, transparent 55%), radial-gradient(80% 110% at 85% 90%, rgba(150,170,255,0.5) 0%, transparent 60%), linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.2) 100%), rgba(196,190,240,0.62)",
   backdropFilter: "blur(24px) saturate(160%)",
   WebkitBackdropFilter: "blur(24px) saturate(160%)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.07)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.75), inset 0 0 0 1px rgba(255,255,255,0.35)",
 };
 
 /** Lighter glass laid on the dark glass: the row-hover pill and the arrow. */
 const GLASS_LIFT: React.CSSProperties = {
-  background: "rgba(255,255,255,0.14)",
-  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
+  background: "rgba(255,255,255,0.5)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
 };
 
 /** A fine static grain over one pane of glass. Nothing here ever animates. */
@@ -91,10 +91,10 @@ function Grain() {
     <svg
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 h-full w-full"
-      style={{ mixBlendMode: "overlay", opacity: 0.16 }}
+      style={{ mixBlendMode: "soft-light", opacity: 0.45 }}
     >
       <filter id={id} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="7" />
         <feColorMatrix
           type="matrix"
           values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 0 1"
@@ -107,7 +107,7 @@ function Grain() {
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[9px] font-medium tracking-[0.02em]" style={{ color: SKIN.textMuted }}>
+    <span className="text-[9px] font-medium tracking-[0.02em]" style={{ color: SKIN.inkMuted }}>
       {children}
     </span>
   );
@@ -152,10 +152,10 @@ function ListPanel({ items, uid, onInteract }: ListPanelProps) {
               onFocus={() => setHovered(item)}
               onBlur={() => setHovered((h) => (h === item ? null : h))}
               onClick={onInteract}
-              className="relative flex w-full items-center justify-between rounded-md text-left text-[15px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              className="relative flex w-full items-center justify-between rounded-md text-left text-[15px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#3A3560]/50"
               style={{
                 height: ROW_H,
-                color: SKIN.text,
+                color: SKIN.ink,
                 opacity: hovered === null ? 0.85 : isHovered ? 1 : 0.45,
                 transition: "opacity 220ms ease",
               }}
@@ -167,10 +167,10 @@ function ListPanel({ items, uid, onInteract }: ListPanelProps) {
                 animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : -6, scale: isHovered ? 1 : 0.8 }}
                 transition={{ duration: 0.22, ease: bell }}
                 className="flex h-7 w-7 items-center justify-center rounded-full"
-                style={{ background: "rgba(255,255,255,0.18)" }}
+                style={{ background: "rgba(255,255,255,0.7)" }}
               >
                 <svg width={14} height={14} viewBox="0 0 14 14">
-                  <path d="M2.5 7h9M7.5 3l4 4-4 4" fill="none" stroke="#fff" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M2.5 7h9M7.5 3l4 4-4 4" fill="none" stroke={SKIN.ink} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </motion.span>
             </button>
@@ -183,15 +183,15 @@ function ListPanel({ items, uid, onInteract }: ListPanelProps) {
 
 type MediaPanelProps = { image?: string; alt?: string };
 
-/** The Features card: a real photo when given one, otherwise a dark, wet-looking gloss. */
+/** The Features card: a real photo when given one, otherwise a soft pink-lavender bloom. */
 function MediaPanel({ image, alt }: MediaPanelProps) {
   return (
     <div
       className="relative mt-4 flex-1 overflow-hidden rounded-[12px]"
       style={{
         background:
-          "radial-gradient(120% 80% at 28% 18%, rgba(255,255,255,0.2), transparent 55%), linear-gradient(200deg, transparent 62%, rgba(215,245,66,0.32) 100%), linear-gradient(160deg, #3A3D3A 0%, #151614 55%, #0D0E0C 100%)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)",
+          "radial-gradient(70% 60% at 30% 30%, rgba(255,214,236,0.95) 0%, transparent 60%), radial-gradient(70% 70% at 75% 70%, rgba(150,170,255,0.9) 0%, transparent 65%), linear-gradient(160deg, #E6E2FA 0%, #C9C6F0 60%, #B7BEF2 100%)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
       }}
     >
       {image ? (
@@ -329,16 +329,16 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
                   onClick={() => activate(tab.id)}
                   onKeyDown={(e) => onTabKey(e, tab.id)}
                   className={cn(
-                    "relative z-10 rounded-full px-[18px] text-[15px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2C2E2A]",
-                    !isActive && "hover:bg-white/10"
+                    "relative z-10 rounded-full px-[18px] text-[15px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#3A3560]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#E4E0F6]",
+                    !isActive && "hover:bg-white/40"
                   )}
-                  style={{ height: BAR_H - 8, color: isActive ? SKIN.limeInk : SKIN.text }}
+                  style={{ height: BAR_H - 8, color: isActive ? SKIN.pillInk : SKIN.ink }}
                 >
                   {isActive && (
                     <motion.span
                       layoutId={`${uid}-pill`}
                       className="absolute inset-0 -z-10 rounded-full"
-                      style={{ background: SKIN.lime, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)" }}
+                      style={{ background: SKIN.pill, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)" }}
                       transition={SLIDE}
                     />
                   )}
