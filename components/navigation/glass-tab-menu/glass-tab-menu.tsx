@@ -67,7 +67,7 @@ const panelHeight = (tab: Tab) => (tab.kind === "media" ? PANEL_H_MEDIA : PANEL_
 
 /**
  * Dark smoky glass. Reads as glass on a flat host too — a diagonal sheen, a
- * 1px rim of light along the top edge, a soft shadow — and over anything
+ * 1px rim of light along the top edge — and over anything
  * colourful the backdrop blur takes over.
  */
 const GLASS: React.CSSProperties = {
@@ -75,8 +75,7 @@ const GLASS: React.CSSProperties = {
     "linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.09) 100%), rgba(44,46,42,0.6)",
   backdropFilter: "blur(24px) saturate(160%)",
   WebkitBackdropFilter: "blur(24px) saturate(160%)",
-  boxShadow:
-    "inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.07), 0 14px 36px rgba(0,0,0,0.2)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.07)",
 };
 
 /** Lighter glass laid on the dark glass: the row-hover pill and the arrow. */
@@ -296,9 +295,10 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
         style={{ fontFamily: FONT }}
       >
         {/* The cluster: bar, gap, panel. Pointer and focus leaving it fold the panel. */}
+        {/* Extra top margin equal to the panel's reach, so the bar itself sits at the host's centre and the panel hangs below it. */}
         <div
           className="relative"
-          style={{ width: PANEL_W, height: BAR_H + PANEL_GAP + tallest }}
+          style={{ width: PANEL_W, height: BAR_H + PANEL_GAP + tallest, marginTop: PANEL_GAP + tallest }}
           onPointerLeave={hide}
           onBlur={onClusterBlur}
           onKeyDown={onClusterKey}
