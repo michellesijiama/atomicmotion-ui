@@ -260,7 +260,11 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
       "ArrowLeft": () => activate(TABS[(i - 1 + TABS.length) % TABS.length].id),
       "Home": () => activate(TABS[0].id),
       "End": () => activate(TABS[TABS.length - 1].id),
-      "ArrowDown": () => panelRef.current?.querySelector("button")?.focus(),
+      "ArrowDown": () => {
+        show(id);
+        // The rows mount on the next render; focus the first one after that.
+        window.requestAnimationFrame(() => panelRef.current?.querySelector("button")?.focus());
+      },
     };
     const run = moves[e.key];
     if (!run) return;
@@ -270,9 +274,11 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
 
   const onClusterKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== "Escape") return;
+    // Focus first: the tab's onFocus reopens the panel, and the close below
+    // has to be the last word in this batch.
+    tabRefs.current[active]?.focus();
     window.clearTimeout(closeTimer.current);
     setOpen(null);
-    tabRefs.current[active]?.focus();
   };
 
   const onClusterBlur = (e: React.FocusEvent<HTMLDivElement>) => {
@@ -323,7 +329,7 @@ export function GlassTabMenu({ defaultTab = "shop", featureImage, featureAlt, lo
                   onClick={() => activate(tab.id)}
                   onKeyDown={(e) => onTabKey(e, tab.id)}
                   className={cn(
-                    "relative z-10 rounded-full px-[18px] text-[15px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white/60",
+                    "relative z-10 rounded-full px-[18px] text-[15px] font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#2C2E2A]",
                     !isActive && "hover:bg-white/10"
                   )}
                   style={{ height: BAR_H - 8, color: isActive ? SKIN.limeInk : SKIN.text }}
