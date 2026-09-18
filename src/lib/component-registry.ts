@@ -316,17 +316,17 @@ export const componentRegistry = {
       },
     ],
   }),
-  glassTabMenu: createComponentMeta({
-    id: "glass-tab-menu",
+  frostedEventCard: createComponentMeta({
+    id: "frosted-event-card",
     index: "016",
-    title: "Glass Tab Menu",
+    title: "Frosted Event Card",
     description:
-      "A capsule tab bar in frosted pink-lavender glass — a blush pill slides between Shop and Features on a spring; hovering Shop unfolds a frosted list whose hovered row gets a lighter glass pill and an arrow that slide from row to row, and hovering Features unfolds a glossy media card",
-    category: "Navigation",
+      "A dark event card whose picture is a frosted, grainy bloom of a pagoda fading into black — a white date badge, a glass share button, a serif title, and a white sign-up pill that springs into a lavender \"You're on the list\" when pressed",
+    category: "Card",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
-    createdAt: "2026-09-14",
-    codePath: "components/navigation/glass-tab-menu/glass-tab-menu.tsx",
+    createdAt: "2026-09-18",
+    codePath: "components/card/frosted-event-card/frosted-event-card.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
 
