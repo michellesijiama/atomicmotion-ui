@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Static checks for Frosted Event Card: the picture is a static SVG bloom
+// Static checks for Gradient Event Card: the picture is a static SVG bloom
 // under a static grain filter that fades into ink, the share button is real
 // glass, the CTA and date badge are accessible, and the gallery wiring
 // agrees on the id.
@@ -10,19 +10,19 @@ function read(path) {
 }
 
 const files = {
-  component: read("components/card/frosted-event-card/frosted-event-card.tsx"),
-  index: read("components/card/frosted-event-card/index.ts"),
+  component: read("components/card/gradient-event-card/gradient-event-card.tsx"),
+  index: read("components/card/gradient-event-card/index.ts"),
   map: read("src/lib/component-map.tsx"),
   registry: read("src/lib/component-registry.ts"),
   packageJson: read("package.json"),
 };
 
 const registryEntry =
-  files.registry.split(/(?=\n\s+id: ")/).find((block) => block.includes('id: "frosted-event-card"')) ?? "";
+  files.registry.split(/(?=\n\s+id: ")/).find((block) => block.includes('id: "gradient-event-card"')) ?? "";
 
 const checks = [
   ["component exists", files.component.length > 0],
-  ["component exports FrostedEventCard", files.component.includes("export function FrostedEventCard")],
+  ["component exports GradientEventCard", files.component.includes("export function GradientEventCard")],
   ["component is a client component", files.component.startsWith('"use client"')],
   ["component does not import private modules", !/from\s+["']@\//.test(files.component)],
   [
@@ -71,25 +71,25 @@ const checks = [
   ["no shadow behind the cards", !files.component.includes("0 30px 60px")],
   ["loop stops at first interaction", files.component.includes("interacted")],
   ["motion respects reduced motion", files.component.includes('reducedMotion="user"')],
-  ["index re-exports component", files.index.includes("FrostedEventCard")],
-  ["component map imports component", files.map.includes("@components/card/frosted-event-card")],
-  ["component map exposes route", files.map.includes('"frosted-event-card"')],
-  ["registry registers Frosted Event Card", registryEntry.includes('id: "frosted-event-card"')],
-  ["registry names component", registryEntry.includes('title: "Frosted Event Card"')],
+  ["index re-exports component", files.index.includes("GradientEventCard")],
+  ["component map imports component", files.map.includes("@components/card/gradient-event-card")],
+  ["component map exposes route", files.map.includes('"gradient-event-card"')],
+  ["registry registers Gradient Event Card", registryEntry.includes('id: "gradient-event-card"')],
+  ["registry names component", registryEntry.includes('title: "Gradient Event Card"')],
   ["registry files it under Card", registryEntry.includes('category: "Card"')],
-  ["registry points to component source", registryEntry.includes("components/card/frosted-event-card/frosted-event-card.tsx")],
+  ["registry points to component source", registryEntry.includes("components/card/gradient-event-card/gradient-event-card.tsx")],
   ["registry claims no runtime assets", !registryEntry.includes("requiredAssets")],
-  ["package exposes verification script", files.packageJson.includes('"test:frosted-event-card"')],
+  ["package exposes verification script", files.packageJson.includes('"test:gradient-event-card"')],
 ];
 
 const failures = checks.filter(([, passed]) => !passed);
 
 if (failures.length > 0) {
-  console.error("frosted event card checks failed:");
+  console.error("gradient event card checks failed:");
   for (const [label] of failures) {
     console.error(`- ${label}`);
   }
   process.exit(1);
 }
 
-console.log(`frosted event card checks passed (${checks.length}/${checks.length}).`);
+console.log(`gradient event card checks passed (${checks.length}/${checks.length}).`);

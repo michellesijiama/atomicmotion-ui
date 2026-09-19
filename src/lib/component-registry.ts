@@ -316,17 +316,17 @@ export const componentRegistry = {
       },
     ],
   }),
-  frostedEventCard: createComponentMeta({
-    id: "frosted-event-card",
+  gradientEventCard: createComponentMeta({
+    id: "gradient-event-card",
     index: "016",
-    title: "Frosted Event Card",
+    title: "Gradient Event Card",
     description:
       "Eight event cards on a ring inside a phone lying on its side — swipe and they follow your finger and snap one page at a time, the neighbours turning away like cover flow. Each card is a heat-map field with circles, ellipses, arcs and coils painted onto it as heat, every shape its own halo-to-core gradient, in palettes borrowed from painters — Monet, Rothko, Hilma af Klint, O'Keeffe kept cohesive; Matisse and Delaunay loud — rippling, breathing, orbiting and swaying under printed grain",
     category: "Card",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-18",
-    codePath: "components/card/frosted-event-card/frosted-event-card.tsx",
+    codePath: "components/card/gradient-event-card/gradient-event-card.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
 

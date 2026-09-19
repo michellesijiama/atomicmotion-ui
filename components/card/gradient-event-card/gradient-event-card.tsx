@@ -25,7 +25,7 @@ export type EventItem = {
   date: { month: string; day: string; weekday: string; dateTime: string };
 };
 
-export type FrostedEventCardProps = {
+export type GradientEventCardProps = {
   /** The invites, in order. Five ship by default. */
   events?: EventItem[];
   /** Which card starts in the centre. */
@@ -584,14 +584,14 @@ function Slide({ index, count, track, children, onClick }: SlideProps) {
   );
 }
 
-export function FrostedEventCard({
+export function GradientEventCard({
   events = EVENTS,
   defaultIndex = 0,
   loop = false,
   onSelect,
   onShare,
   className,
-}: FrostedEventCardProps) {
+}: GradientEventCardProps) {
   const n = events.length;
   /** The track: -index * STEP puts card `index` in the centre. Unbounded, since the ring wraps. */
   const track = useMotionValue(-defaultIndex * STEP);

@@ -14,7 +14,7 @@ import { VoiceBloom } from "@components/ai/voice-bloom";
 import { CoffeeGauge } from "@components/data/coffee-gauge";
 import { HalftoneBloom } from "@components/data/halftone-bloom";
 import { BlossomLight } from "@components/control/blossom-light";
-import { FrostedEventCard } from "@components/card/frosted-event-card";
+import { GradientEventCard } from "@components/card/gradient-event-card";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
@@ -78,8 +78,8 @@ function BlossomLightPreview({ loop }: { loop?: boolean }) {
   return <BlossomLight loop={loop} />;
 }
 
-function FrostedEventCardPreview({ loop }: { loop?: boolean }) {
-  return <FrostedEventCard loop={loop} />;
+function GradientEventCardPreview({ loop }: { loop?: boolean }) {
+  return <GradientEventCard loop={loop} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
@@ -97,5 +97,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "coffee-gauge": CoffeeGaugePreview,
   "halftone-bloom": HalftoneBloomPreview,
   "blossom-light": BlossomLightPreview,
-  "frosted-event-card": FrostedEventCardPreview,
+  "gradient-event-card": GradientEventCardPreview,
 };

@@ -29,7 +29,7 @@
     "test:doc-links": "node scripts/verify-doc-links.mjs",
     "test:structure": "node scripts/verify-component-structure.mjs",
     "test:readmes": "node scripts/verify-component-readmes.mjs",
-    "test:frosted-event-card": "node scripts/verify-frosted-event-card.mjs"
+    "test:gradient-event-card": "node scripts/verify-gradient-event-card.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
