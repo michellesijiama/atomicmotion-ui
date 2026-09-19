@@ -56,10 +56,10 @@ const INK = "#08080A";
 
 const PRESS = { type: "spring", stiffness: 500, damping: 30 } as const;
 
-/** A season of the salon: one card per evening, each with its own aura. */
+/** A season of the salon: one card per evening, each with its own aura. Poetry After Dark leads. */
 const EVENTS: EventItem[] = [
-  { id: "salon", pattern: "waves", mood: "monet", title: ["The Autumn", "Book Salon"], subtitle: "This season's pick: The Remains of the Day by Kazuo Ishiguro", date: { month: "OCT", day: "14", weekday: "Wed", dateTime: "2026-10-14" } },
   { id: "poetry", pattern: "ovals", mood: "matisse", title: ["Poetry", "After Dark"], subtitle: "An evening of readings by candlelight, with a glass of something warm", date: { month: "OCT", day: "22", weekday: "Thu", dateTime: "2026-10-22" } },
+  { id: "salon", pattern: "waves", mood: "monet", title: ["The Autumn", "Book Salon"], subtitle: "This season's pick: The Remains of the Day by Kazuo Ishiguro", date: { month: "OCT", day: "14", weekday: "Wed", dateTime: "2026-10-14" } },
   { id: "table", pattern: "stack", mood: "rothko", title: ["The Long", "Table"], subtitle: "A shared supper and a swap of the books you loved this year", date: { month: "NOV", day: "5", weekday: "Thu", dateTime: "2026-11-05" } },
   { id: "voices", pattern: "orbit", mood: "hockney", title: ["Two", "Voices"], subtitle: "Two novelists in conversation about writing from memory", date: { month: "NOV", day: "19", weekday: "Thu", dateTime: "2026-11-19" } },
   { id: "winter", pattern: "hourglass", mood: "hilma", title: ["The Winter", "Reading Party"], subtitle: "Closing the season with readings, cake and a raffle of signed copies", date: { month: "DEC", day: "3", weekday: "Thu", dateTime: "2026-12-03" } },
