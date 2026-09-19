@@ -1,6 +1,6 @@
 # Frosted Event Card
 
-A dark event card whose picture is a frosted, grainy bloom of a pagoda fading into black — a white date badge, a glass share button, a serif title, and a white sign-up pill that springs into a lavender \"You're on the list\" when pressed
+Eight event cards on a ring inside a phone lying on its side — swipe and they follow your finger and snap one page at a time, the neighbours turning away like cover flow. Each card is a heat-map field with circles, ellipses, arcs and coils painted onto it as heat, every shape its own halo-to-core gradient, in palettes borrowed from painters — Monet, Rothko, Hilma af Klint, O'Keeffe kept cohesive; Matisse and Delaunay loud — rippling, breathing, orbiting and swaying under printed grain
 
 ![Frosted Event Card preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/frosted-event-card.png)
 
