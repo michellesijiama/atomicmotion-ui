@@ -11,10 +11,10 @@ import { ShowreelSphere } from "@components/3d/showreel-sphere";
 import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
 import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
 import { VoiceBloom } from "@components/ai/voice-bloom";
-import { CoffeeGauge } from "@components/data/coffee-gauge";
-import { HalftoneBloom } from "@components/data/halftone-bloom";
+import { CoffeeGauge } from "@components/data-visualization/coffee-gauge";
+import { HalftoneBloom } from "@components/data-visualization/halftone-bloom";
 import { BlossomLight } from "@components/control/blossom-light";
-import { GradientEventCard } from "@components/card/gradient-event-card";
+import { GradientEventCard } from "@components/gradient/gradient-event-card";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;

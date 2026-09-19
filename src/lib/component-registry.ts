@@ -279,11 +279,11 @@ export const componentRegistry = {
     title: "Coffee Gauge",
     description:
       "Three hand-drawn coffee cups on a periwinkle card, each a liquid gauge that pours and drains on its own rhythm — empty they read as outlines, full they read as the solid silhouette; open the card and you can log what you actually drank",
-    category: "Data",
+    category: "Data Visualization",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-08-23",
-    codePath: "components/data/coffee-gauge/coffee-gauge.tsx",
+    codePath: "components/data-visualization/coffee-gauge/coffee-gauge.tsx",
   }),
   halftoneBloom: createComponentMeta({
     id: "halftone-bloom",
@@ -291,11 +291,11 @@ export const componentRegistry = {
     title: "Halftone Bloom",
     description:
       "A progress indicator drawn as a stippled moon — a lunar photograph resampled into coloured dots that light left to right like a terminator crossing the disc, from new moon at nothing to full at a hundred; collapsed it sits as a glance-sized moon at the same phase",
-    category: "Data",
+    category: "Data Visualization",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-03",
-    codePath: "components/data/halftone-bloom/halftone-bloom.tsx",
+    codePath: "components/data-visualization/halftone-bloom/halftone-bloom.tsx",
   }),
   blossomLight: createComponentMeta({
     id: "blossom-light",
@@ -322,11 +322,11 @@ export const componentRegistry = {
     title: "Gradient Event Card",
     description:
       "Eight event cards on a ring inside a phone lying on its side — swipe and they follow your finger and snap one page at a time, the neighbours turning away like cover flow. Each card is a heat-map field with circles, ellipses, arcs and coils painted onto it as heat, every shape its own halo-to-core gradient, in palettes borrowed from painters — Monet, Rothko, Hilma af Klint, O'Keeffe kept cohesive; Matisse and Delaunay loud — rippling, breathing, orbiting and swaying under printed grain",
-    category: "Card",
+    category: "Gradient",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-18",
-    codePath: "components/card/gradient-event-card/gradient-event-card.tsx",
+    codePath: "components/gradient/gradient-event-card/gradient-event-card.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
 

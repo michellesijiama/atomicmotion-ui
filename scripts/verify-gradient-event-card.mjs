@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Static checks for Gradient Event Card: the picture is a static SVG bloom
-// under a static grain filter that fades into ink, the share button is real
-// glass, the CTA and date badge are accessible, and the gallery wiring
+// Static checks for Gradient Event Card: eight shader-lit invites on a
+// swipeable cover-flow ring inside a phone frame — the light is a fragment
+// shader of circles read through painter palettes, one GL context serves
+// every card, the swipe turns one page at a time, and the gallery wiring
 // agrees on the id.
 import { existsSync, readFileSync } from "node:fs";
 
@@ -10,8 +11,8 @@ function read(path) {
 }
 
 const files = {
-  component: read("components/card/gradient-event-card/gradient-event-card.tsx"),
-  index: read("components/card/gradient-event-card/index.ts"),
+  component: read("components/gradient/gradient-event-card/gradient-event-card.tsx"),
+  index: read("components/gradient/gradient-event-card/index.ts"),
   map: read("src/lib/component-map.tsx"),
   registry: read("src/lib/component-registry.ts"),
   packageJson: read("package.json"),
@@ -72,12 +73,12 @@ const checks = [
   ["loop stops at first interaction", files.component.includes("interacted")],
   ["motion respects reduced motion", files.component.includes('reducedMotion="user"')],
   ["index re-exports component", files.index.includes("GradientEventCard")],
-  ["component map imports component", files.map.includes("@components/card/gradient-event-card")],
+  ["component map imports component", files.map.includes("@components/gradient/gradient-event-card")],
   ["component map exposes route", files.map.includes('"gradient-event-card"')],
   ["registry registers Gradient Event Card", registryEntry.includes('id: "gradient-event-card"')],
   ["registry names component", registryEntry.includes('title: "Gradient Event Card"')],
-  ["registry files it under Card", registryEntry.includes('category: "Card"')],
-  ["registry points to component source", registryEntry.includes("components/card/gradient-event-card/gradient-event-card.tsx")],
+  ["registry files it under Gradient", registryEntry.includes('category: "Gradient"')],
+  ["registry points to component source", registryEntry.includes("components/gradient/gradient-event-card/gradient-event-card.tsx")],
   ["registry claims no runtime assets", !registryEntry.includes("requiredAssets")],
   ["package exposes verification script", files.packageJson.includes('"test:gradient-event-card"')],
 ];

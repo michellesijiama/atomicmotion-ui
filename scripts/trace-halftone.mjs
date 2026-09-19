@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Traces a source image into the dot grid that components/data/halftone-bloom
+// Traces a source image into the dot grid that components/data-visualization/halftone-bloom
 // prints, and splices the result into the component between its
 // `// <trace>` / `// </trace>` markers.
 //
@@ -21,7 +21,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { extname, resolve } from "node:path";
 import { chromium } from "playwright";
 
-const COMPONENT = "components/data/halftone-bloom/halftone-bloom.tsx";
+const COMPONENT = "components/data-visualization/halftone-bloom/halftone-bloom.tsx";
 
 const args = process.argv.slice(2);
 const imagePath = args.find((a) => !a.startsWith("--"));

@@ -4,7 +4,7 @@ Eight event cards on a ring inside a phone lying on its side — swipe and they 
 
 ![Gradient Event Card preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/gradient-event-card.png)
 
-- **Category:** Card
+- **Category:** Gradient
 - **Demo:** https://atomicmotion.dev/components/gradient-event-card
 - **Dependencies:** clsx, framer-motion, tailwind-merge
 

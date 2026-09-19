@@ -4,7 +4,7 @@ A progress indicator drawn as a stippled moon — a lunar photograph resampled i
 
 ![Halftone Bloom preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/halftone-bloom.png)
 
-- **Category:** Data
+- **Category:** Data Visualization
 - **Demo:** https://atomicmotion.dev/components/halftone-bloom
 - **Dependencies:** clsx, tailwind-merge
 

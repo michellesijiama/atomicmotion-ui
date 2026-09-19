@@ -4,7 +4,7 @@ Three hand-drawn coffee cups on a periwinkle card, each a liquid gauge that pour
 
 ![Coffee Gauge preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/coffee-gauge.png)
 
-- **Category:** Data
+- **Category:** Data Visualization
 - **Demo:** https://atomicmotion.dev/components/coffee-gauge
 - **Dependencies:** clsx, tailwind-merge
 
