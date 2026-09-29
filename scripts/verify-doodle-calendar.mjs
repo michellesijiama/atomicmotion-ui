@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Static checks for Doodle Calendar: a white iPhone holding one August in blue
+// Static checks for Doodle Calendar: a grey Apple-style UI holding one August in blue
 // ballpoint — past days are tiny pen-drawn landscape motifs on <canvas>, the future
 // is dots, and tapping a day swells its circle into a nature sketch that draws
 // itself (a shared-layout morph, then contours, then hatching). Every scene is
@@ -49,14 +49,14 @@ const checks = [
   ["foliage is built from scalloped clumps: canopy(), clumps() and canopyLayers() exist", c.includes("function canopy(") && c.includes("function clumps(") && c.includes("function canopyLayers(") && c.includes("function scallop(")],
   ["the sketch toolkit has trunks, hills, water, reflections, pines and a house in perspective", ["function trunkLayers(", "function ridge(", "function lakeLayer(", "function reflect(", "function pineLayers(", "function house("].every((f) => c.includes(f))],
   ["scenes have no people, faces, cats or props", !/function (person|catSitting|bee|butterfly|lemon|cup)\(/.test(c) && !/Birthday|Coffee|Cake|bunting|Supper|Lido|Market|Victory|Overthinking/i.test(c)],
-  ["draw-in runs on requestAnimationFrame, outlines then hatching", c.includes("requestAnimationFrame") && c.includes("OUTLINE_MS") && c.includes("HATCH_MS") && c.includes("paintOutline(") && c.includes("paintHatch(")],
+  ["draw-in runs slowly on requestAnimationFrame, with continuous hatch strokes in scene order", c.includes("requestAnimationFrame") && c.includes("OUTLINE_MS = 1800") && c.includes("SETTLE_MS = 240") && c.includes("HATCH_MS = 3200") && c.includes("paintOutline(") && c.includes("travel - comp.hatch[next].s") && !c.includes("hatch.sort((a, b) => a.x - b.x)")],
   ["finished drawings are cached per scene", c.includes("const bitmaps = new Map") && c.includes("function sceneBitmap(")],
   ["canvas work stays out of render: drawn in effects", c.includes("React.useEffect") && !/document\.createElement\("canvas"\)/.test(c.slice(c.indexOf("export function DoodleCalendar"), c.indexOf("const DayCell")))],
   ["ink is ballpoint blue and the old violet is gone", c.includes('const INK = "#0A5BD9"') && !/2F2BD6/i.test(c) && !c.includes("6B67E6") && !c.includes("A9A7F0")],
   ["paper is a neutral grey, the card a lighter grey", c.includes('const PAPER = "#E6E7EA"') && c.includes('const CARD = "#F2F3F5"')],
   ["no kind tag on the card", !c.includes("OUTING") && !c.includes("KIND_LABEL") && !/Outing"/.test(c)],
   ["phone is tall like an iPhone (ratio ≥ 2.0)", num("PHONE_H") / num("PHONE_W") >= 2.0 && num("PHONE_W") === 300],
-  ["thin white bezel", num("BEZEL") === 9 && c.includes("const PHONE_RADIUS = 51")],
+  ["grey UI has no outer white bezel", num("BEZEL") === 0 && c.includes("const SCREEN_RADIUS = 51")],
   ["self-contained: no perfect-freehand", !c.includes("perfect-freehand") && !c.includes("getStroke")],
   ["self-contained: no OpenMoji or emoji fetching", !c.includes("/emoji/") && !c.includes("openmoji") && !c.includes("fetch(")],
   ["no shadows: no box-shadow", !c.includes("boxShadow") && !c.includes("box-shadow")],
@@ -74,16 +74,17 @@ const checks = [
   ["titles are at most four words, sentences at most fourteen", sceneRows.length === 14 && sceneRows.every((r) => r.title.split(/\s+/).length <= 4 && r.sentence.split(/\s+/).length <= 14)],
   ["the days cover several kinds of place", new Set(sceneRows.map((r) => r.kind)).size >= 5 && !c.includes('kind: "mood"') && !c.includes('kind: "activity"')],
   ["the titles are the nature diary", ["Morning Fog", "The Old Oak", "Cottage and Poplars", "Lavender Rows", "Still Lake", "Pine Ridge", "Sunflowers", "River Bend", "Birch Path", "Storm Coming In", "The Garden Gate", "Cliffs and Sea", "Orchard After Rain", "Moonrise"].every((t, i) => sceneRows[i]?.title === t)],
-  ["month heading is Manrope 800 and the header never swaps", c.includes("MONTH_NAME}") && c.includes("fontWeight: 800") && !c.includes("SWAP")],
-  ["phone is white", c.includes('background: "#FFFFFF"')],
+  ["month heading is Manrope 800 and swaps the year for the selected date", c.includes("MONTH_NAME}") && c.includes("fontWeight: 800") && c.includes("{openDay ?? YEAR}")],
+  ["outer white shell and hairline are removed", !c.includes('background: "#FFFFFF"') && !c.includes('border: "1px solid rgba(10, 60, 140, 0.10)"')],
   ["phone scales to fit its host", c.includes("ResizeObserver") && c.includes("Math.min(1,") && c.includes("Math.max(0.3")],
   ["layout morph corrects for the phone's scale", c.includes("transformPagePoint")],
   ["circle morphs into the card with shared layout", c.includes("layoutId=") && c.includes("LayoutGroup")],
   ["card is a modal dialog labelled by its title", c.includes('role="dialog"') && c.includes('aria-modal="true"') && c.includes("aria-labelledby={titleId}")],
   ["title is set in Instrument Serif", c.includes("--font-instrument-serif") && c.includes("Instrument Serif")],
   ["fonts are Manrope, Instrument Serif and Geist Mono", c.includes("--font-manrope") && c.includes("--font-geist-mono")],
-  ["card closes by button, Escape or tapping outside", c.includes('aria-label="Close"') && c.includes('"Escape"') && c.includes("onClick={close}")],
-  ["focus goes to the close button and back to the day", c.includes("closeRef.current?.focus") && c.includes("returnFocusRef")],
+  ["card closes by Escape or tapping outside, with no close button", !c.includes('aria-label="Close"') && c.includes('"Escape"') && c.includes("onClick={close}")],
+  ["duplicate date row is removed from the card", !c.includes("info.weekday.slice(0, 3).toUpperCase()")],
+  ["focus goes to the dialog and back to the day", c.includes("dialogRef.current?.focus") && c.includes("returnFocusRef")],
   ["only past days and today are buttons", c.includes('type="button"') && c.includes('state === "future"') && c.includes("aria-hidden=\"true\" className=\"block rounded-full\"")],
   ["days sit in a grid", c.includes('role="grid"') && c.includes('role="row"') && c.includes('role="gridcell"') && c.includes('role="columnheader"')],
   ["weekday row and day rows share one column template", (c.match(/gridTemplateColumns: "repeat\(7, 1fr\)"/g) ?? []).length >= 2],

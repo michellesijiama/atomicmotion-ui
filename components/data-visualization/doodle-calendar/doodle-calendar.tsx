@@ -67,9 +67,8 @@ const FONT_SERIF = "var(--font-instrument-serif, 'Instrument Serif'), Georgia, s
 // share PAD, and the space between circles is GAP in both directions.
 const PHONE_W = 300;
 const PHONE_H = 618;
-const BEZEL = 9;
-const PHONE_RADIUS = 51;
-const SCREEN_RADIUS = 42;
+const BEZEL = 0;
+const SCREEN_RADIUS = 51;
 const SCREEN_W = PHONE_W - BEZEL * 2;
 const SCREEN_H = PHONE_H - BEZEL * 2;
 
@@ -430,13 +429,12 @@ type Op = {
 type Composition = {
   /** Contours and line marks, in the order the pen goes round them. */
   outline: Op[];
-  /** Hatching and texture, sorted for a sweep from left to right. */
+  /** Hatching and texture, kept in the scene's natural back-to-front drawing order. */
   hatch: Op[];
   /** Total length of the contour trace. */
   total: number;
-  /** The x-range of the sweep. */
-  kmin: number;
-  kmax: number;
+  /** Total pen travel through the short hatch strokes and their tiny pauses. */
+  hatchTotal: number;
 };
 
 const pathLen = (p: number[]) => {
@@ -928,14 +926,19 @@ function compose(layers: readonly Layer[], st: PenStyle, seed: number, dw: numbe
     }
     for (const mk of layer.marks ?? []) markOps(mk, layer.depth, st, rnd, hidden, hasMask, outline, hatch, bounds);
   });
-  hatch.sort((a, b) => a.x - b.x);
   let total = 0;
   for (const o of outline) {
     o.l = pathLen(o.p);
     o.s = total;
     total += o.l;
   }
-  return { outline, hatch, total, kmin: hatch.length ? hatch[0].x : 0, kmax: hatch.length ? hatch[hatch.length - 1].x : 1 };
+  let hatchTotal = 0;
+  for (const o of hatch) {
+    o.l = Math.max(1, pathLen(o.p));
+    o.s = hatchTotal;
+    hatchTotal += o.l + 1.25;
+  }
+  return { outline, hatch, total, hatchTotal };
 }
 
 /* ── painting ── */
@@ -1018,10 +1021,10 @@ function paintOutline(ctx: CanvasRenderingContext2D, c: Composition, upTo: numbe
   }
 }
 
-/** Hatch strokes from index `from` while they start left of `limit`. Returns the next index. */
+/** Hatch strokes from index `from` to `limit`, following the scene's drawing order. */
 function paintHatch(ctx: CanvasRenderingContext2D, c: Composition, from: number, limit: number) {
   let i = from;
-  for (; i < c.hatch.length && c.hatch[i].x <= limit; i++) fillOp(ctx, c.hatch[i]);
+  for (; i < c.hatch.length && i < limit; i++) fillOp(ctx, c.hatch[i]);
   return i;
 }
 
@@ -2674,11 +2677,11 @@ const sceneOf = (day: number): Scene | undefined => SCENES[day - 1];
 /* ───────────────────────────── drawing on the canvases ───────────────────────────── */
 
 const DRAW_DELAY_MS = 560;
-const OUTLINE_MS = 520;
-const HATCH_MS = 700;
+const OUTLINE_MS = 1800;
+const SETTLE_MS = 240;
+const HATCH_MS = 3200;
 
-const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-const easeOut = (t: number) => 1 - Math.pow(1 - t, 2);
+const easeDraw = (t: number) => smoothstep(0, 1, t);
 
 /** Backing-store scale: a little finer than the screen so the pen stays crisp under the gallery's zoom. */
 const penRes = () => Math.min(3.5, Math.max(1, window.devicePixelRatio || 1) * 1.25);
@@ -2721,7 +2724,8 @@ function sceneBitmap(i: number, w: number, h: number): HTMLCanvasElement {
 
 /**
  * The opened day's drawing. It waits for the card to land, then the pen traces the
- * contours stroke by stroke and sweeps the hatching in from the left. Reduced
+ * contours stroke by stroke, then adds the short hatch marks in their natural
+ * scene order instead of sweeping across the image. Reduced
  * motion gets the finished drawing at once.
  */
 function ArtCanvas({ index, reduced }: { index: number; reduced: boolean }) {
@@ -2739,6 +2743,11 @@ function ArtCanvas({ index, reduced }: { index: number; reduced: boolean }) {
     }
     const comp = sceneComposition(index);
     const view = viewFor(cv.width, cv.height, 360, 240, true);
+    const committed = document.createElement("canvas");
+    committed.width = cv.width;
+    committed.height = cv.height;
+    const committedCtx = committed.getContext("2d");
+    if (!committedCtx) return;
     let raf = 0;
     let t0 = 0;
     let next = 0;
@@ -2749,18 +2758,28 @@ function ArtCanvas({ index, reduced }: { index: number; reduced: boolean }) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, cv.width, cv.height);
         beginPen(ctx, view);
-        paintOutline(ctx, comp, comp.total * easeInOut(e / OUTLINE_MS));
+        paintOutline(ctx, comp, comp.total * easeDraw(e / OUTLINE_MS));
       } else {
         if (!contoursDone) {
-          ctx.setTransform(1, 0, 0, 1, 0, 0);
-          ctx.clearRect(0, 0, cv.width, cv.height);
-          beginPen(ctx, view);
-          paintOutline(ctx, comp, Infinity);
+          beginPen(committedCtx, view);
+          paintOutline(committedCtx, comp, Infinity);
           contoursDone = true;
         }
-        const q = Math.min(1, (e - OUTLINE_MS) / HATCH_MS);
-        beginPen(ctx, view);
-        next = paintHatch(ctx, comp, next, lerp(comp.kmin - 2, comp.kmax + 1, easeOut(q)));
+        const q = Math.min(1, Math.max(0, (e - OUTLINE_MS - SETTLE_MS) / HATCH_MS));
+        const travel = comp.hatchTotal * easeDraw(q);
+        beginPen(committedCtx, view);
+        while (next < comp.hatch.length && comp.hatch[next].s + comp.hatch[next].l <= travel) {
+          fillOp(committedCtx, comp.hatch[next]);
+          next += 1;
+        }
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        ctx.drawImage(committed, 0, 0);
+        if (next < comp.hatch.length && comp.hatch[next].s < travel) {
+          beginPen(ctx, view);
+          fillOp(ctx, comp.hatch[next], travel - comp.hatch[next].s);
+        }
         if (q >= 1) {
           ctx.setTransform(1, 0, 0, 1, 0, 0);
           const done = document.createElement("canvas");
@@ -2802,8 +2821,8 @@ function CellPen({ index, inverted }: { index: number; inverted: boolean }) {
 
 /* ───────────────────────────── the component ───────────────────────────── */
 
-const HOLD_MS = 3800;
-const PAUSE_MS = 700;
+const HOLD_MS = 7600;
+const PAUSE_MS = 900;
 const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
 
 type DayState = "past" | "today" | "future";
@@ -2821,7 +2840,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
   const fitRef = React.useRef<HTMLDivElement>(null);
   const scaleRef = React.useRef(1);
   const cells = React.useRef<Record<number, HTMLButtonElement | null>>({});
-  const closeRef = React.useRef<HTMLButtonElement>(null);
+  const dialogRef = React.useRef<HTMLDivElement>(null);
   const openRef = React.useRef<number | null>(null);
   /** Set once a person, not the loop, has opened or touched the card — only then does focus move. */
   const byPersonRef = React.useRef(false);
@@ -2878,11 +2897,11 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
     setOpenDay(null);
   }, []);
 
-  // A person opened it: put focus on the close button. A person closed it: hand
-  // focus back to the day they opened from.
+  // A person opened it: put focus on the detail panel so Escape is immediately
+  // available. Once it closes, hand focus back to the day they opened from.
   React.useEffect(() => {
     if (openDay !== null) {
-      if (byPersonRef.current) closeRef.current?.focus({ preventScroll: true });
+      if (byPersonRef.current) dialogRef.current?.focus({ preventScroll: true });
     } else if (returnFocusRef.current !== null) {
       cells.current[returnFocusRef.current]?.focus({ preventScroll: true });
       returnFocusRef.current = null;
@@ -2954,18 +2973,12 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
             {`
               .dc-cell { outline: none; border-radius: 50%; }
               .dc-cell:focus-visible { outline: 2px solid ${INK}; outline-offset: 2px; }
-              .dc-close:focus-visible { outline: 2px solid ${INK}; outline-offset: 2px; }
+              .dc-dialog:focus-visible { outline: none; }
             `}
           </style>
 
           <div ref={fitRef} className="relative shrink-0" style={{ width: PHONE_W, height: PHONE_H, transformOrigin: "50% 50%" }}>
-            {/* The white iPhone: a thin bezel with a hairline outline, nothing behind it. */}
-            <div
-              className="absolute inset-0"
-              style={{ background: "#FFFFFF", borderRadius: PHONE_RADIUS, border: "1px solid rgba(10, 60, 140, 0.10)" }}
-            />
-
-            {/* The screen: one sheet of grey paper. */}
+            {/* The screen: one uninterrupted sheet of grey paper. */}
             <div
               className="absolute overflow-hidden"
               style={{ inset: BEZEL, borderRadius: SCREEN_RADIUS, background: PAPER, color: INK }}
@@ -2973,6 +2986,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
               {/* The month: the heading and the grid share one left edge, PAD from the screen. */}
               <motion.h2
                 className="absolute m-0"
+                aria-label={openDay === null ? `${MONTH_NAME} ${YEAR}` : `${MONTH_NAME} ${openDay}, ${YEAR}`}
                 initial={false}
                 animate={{ y: openDay === null ? HEAD_TOP_CLOSED - HEAD_TOP_OPEN : 0 }}
                 transition={LAYOUT}
@@ -2990,7 +3004,9 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                 }}
               >
                 {MONTH_NAME}
-                <span style={{ display: "block", color: ink(0.38), marginTop: 2, marginLeft: "-0.045em" }}>{YEAR}</span>
+                <span style={{ display: "block", color: ink(0.38), marginTop: 2, marginLeft: "-0.045em" }}>
+                  {openDay ?? YEAR}
+                </span>
               </motion.h2>
 
               {/* The weekday row and the grid sit low on the glass: one column template, so labels stand exactly over their circles. */}
@@ -3097,58 +3113,23 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                 {scene && info && openDay !== null ? (
                   <motion.div
                     key="card"
+                    ref={dialogRef}
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby={titleId}
-                    className="absolute overflow-hidden"
+                    tabIndex={-1}
+                    className="dc-dialog absolute overflow-hidden"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1, transition: { delay: 0.26, duration: 0.24 } }}
                     exit={{ opacity: 0, transition: { duration: 0.12 } }}
                     style={{ left: CARD_X, top: CARD_TOP, width: CARD_W, height: CARD_H, borderRadius: CARD_RADIUS, zIndex: 4 }}
-                    onKeyDown={(e) => {
-                      // One button in here: Tab has nowhere else to go.
-                      if (e.key === "Tab") {
-                        e.preventDefault();
-                        closeRef.current?.focus({ preventScroll: true });
-                      }
-                    }}
                   >
                     <div className="relative" style={{ width: ART_W, height: ART_H }}>
                       <ArtCanvas key={openDay} index={openDay - 1} reduced={reduced} />
-                      <button
-                        ref={closeRef}
-                        type="button"
-                        className="dc-close absolute grid cursor-pointer place-items-center rounded-full p-0"
-                        style={{ top: 12, right: 12, width: 28, height: 28, background: CARD, color: INK, border: `1px solid ${ink(0.3)}` }}
-                        aria-label="Close"
-                        onClick={close}
-                      >
-                        <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-                          <path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="round" />
-                        </svg>
-                      </button>
                     </div>
 
-                    {/* The date and the caption: a small editorial block under the drawing. */}
+                    {/* The caption: a small editorial block under the drawing. */}
                     <div className="absolute inset-x-0 bottom-0 flex flex-col" style={{ top: ART_H, padding: "10px 20px 16px" }}>
-                      <div className="flex items-end justify-between" style={{ height: 44 }}>
-                        <div
-                          style={{
-                            fontFamily: FONT_SANS,
-                            fontWeight: 800,
-                            fontSize: 48,
-                            lineHeight: "44px",
-                            letterSpacing: "-0.05em",
-                            color: INK,
-                          }}
-                          aria-hidden="true"
-                        >
-                          {info.day}
-                        </div>
-                        <div style={{ fontSize: 10.5, lineHeight: "15px", letterSpacing: "0.1em", paddingBottom: 3, color: INK }}>
-                          {info.weekday.slice(0, 3).toUpperCase()} · AUG {info.day}
-                        </div>
-                      </div>
                       <h3
                         id={titleId}
                         className="m-0"
