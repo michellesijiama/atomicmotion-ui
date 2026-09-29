@@ -56,9 +56,6 @@ const CARD = "#F2F3F5";
 const DISC_TODAY = "#4A86E2";
 
 const FONT_SANS = "var(--font-manrope, Manrope), Manrope, ui-sans-serif, system-ui, sans-serif";
-const FONT_MONO =
-  "var(--font-geist-mono, 'Geist Mono'), 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-const FONT_SERIF = "var(--font-instrument-serif, 'Instrument Serif'), Georgia, serif";
 
 /* ───────────────────────────── layout tokens ───────────────────────────── */
 
@@ -433,8 +430,6 @@ type Composition = {
   hatch: Op[];
   /** Total length of the contour trace. */
   total: number;
-  /** Total pen travel through the short hatch strokes and their tiny pauses. */
-  hatchTotal: number;
 };
 
 const pathLen = (p: number[]) => {
@@ -932,13 +927,7 @@ function compose(layers: readonly Layer[], st: PenStyle, seed: number, dw: numbe
     o.s = total;
     total += o.l;
   }
-  let hatchTotal = 0;
-  for (const o of hatch) {
-    o.l = Math.max(1, pathLen(o.p));
-    o.s = hatchTotal;
-    hatchTotal += o.l + 1.25;
-  }
-  return { outline, hatch, total, hatchTotal };
+  return { outline, hatch, total };
 }
 
 /* ── painting ── */
@@ -2676,13 +2665,6 @@ const sceneOf = (day: number): Scene | undefined => SCENES[day - 1];
 
 /* ───────────────────────────── drawing on the canvases ───────────────────────────── */
 
-const DRAW_DELAY_MS = 560;
-const OUTLINE_MS = 1800;
-const SETTLE_MS = 240;
-const HATCH_MS = 3200;
-
-const easeDraw = (t: number) => smoothstep(0, 1, t);
-
 /** Backing-store scale: a little finer than the screen so the pen stays crisp under the gallery's zoom. */
 const penRes = () => Math.min(3.5, Math.max(1, window.devicePixelRatio || 1) * 1.25);
 
@@ -2723,12 +2705,10 @@ function sceneBitmap(i: number, w: number, h: number): HTMLCanvasElement {
 }
 
 /**
- * The opened day's drawing. It waits for the card to land, then the pen traces the
- * contours stroke by stroke, then adds the short hatch marks in their natural
- * scene order instead of sweeping across the image. Reduced
- * motion gets the finished drawing at once.
+ * The opened day's drawing is shown complete as soon as the card appears. The card
+ * itself still transitions into place, but the illustration does not animate.
  */
-function ArtCanvas({ index, reduced }: { index: number; reduced: boolean }) {
+function ArtCanvas({ index }: { index: number }) {
   const ref = React.useRef<HTMLCanvasElement>(null);
   React.useEffect(() => {
     const cv = ref.current;
@@ -2737,70 +2717,8 @@ function ArtCanvas({ index, reduced }: { index: number; reduced: boolean }) {
     const res = penRes();
     cv.width = Math.round(ART_W * res);
     cv.height = Math.round(ART_H * res);
-    if (reduced) {
-      ctx.drawImage(sceneBitmap(index, cv.width, cv.height), 0, 0);
-      return;
-    }
-    const comp = sceneComposition(index);
-    const view = viewFor(cv.width, cv.height, 360, 240, true);
-    const committed = document.createElement("canvas");
-    committed.width = cv.width;
-    committed.height = cv.height;
-    const committedCtx = committed.getContext("2d");
-    if (!committedCtx) return;
-    let raf = 0;
-    let t0 = 0;
-    let next = 0;
-    let contoursDone = false;
-    const tick = (now: number) => {
-      const e = now - t0;
-      if (e < OUTLINE_MS) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, cv.width, cv.height);
-        beginPen(ctx, view);
-        paintOutline(ctx, comp, comp.total * easeDraw(e / OUTLINE_MS));
-      } else {
-        if (!contoursDone) {
-          beginPen(committedCtx, view);
-          paintOutline(committedCtx, comp, Infinity);
-          contoursDone = true;
-        }
-        const q = Math.min(1, Math.max(0, (e - OUTLINE_MS - SETTLE_MS) / HATCH_MS));
-        const travel = comp.hatchTotal * easeDraw(q);
-        beginPen(committedCtx, view);
-        while (next < comp.hatch.length && comp.hatch[next].s + comp.hatch[next].l <= travel) {
-          fillOp(committedCtx, comp.hatch[next]);
-          next += 1;
-        }
-
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, cv.width, cv.height);
-        ctx.drawImage(committed, 0, 0);
-        if (next < comp.hatch.length && comp.hatch[next].s < travel) {
-          beginPen(ctx, view);
-          fillOp(ctx, comp.hatch[next], travel - comp.hatch[next].s);
-        }
-        if (q >= 1) {
-          ctx.setTransform(1, 0, 0, 1, 0, 0);
-          const done = document.createElement("canvas");
-          done.width = cv.width;
-          done.height = cv.height;
-          done.getContext("2d")?.drawImage(cv, 0, 0);
-          bitmaps.set(`${index}:${cv.width}x${cv.height}`, done);
-          return;
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    const timer = window.setTimeout(() => {
-      t0 = performance.now();
-      raf = requestAnimationFrame(tick);
-    }, DRAW_DELAY_MS);
-    return () => {
-      window.clearTimeout(timer);
-      cancelAnimationFrame(raf);
-    };
-  }, [index, reduced]);
+    ctx.drawImage(sceneBitmap(index, cv.width, cv.height), 0, 0);
+  }, [index]);
   return <canvas ref={ref} aria-hidden="true" style={{ display: "block", width: ART_W, height: ART_H }} />;
 }
 
@@ -2821,8 +2739,8 @@ function CellPen({ index, inverted }: { index: number; inverted: boolean }) {
 
 /* ───────────────────────────── the component ───────────────────────────── */
 
-const HOLD_MS = 7600;
-const PAUSE_MS = 900;
+const HOLD_MS = 3800;
+const PAUSE_MS = 700;
 const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
 
 type DayState = "past" | "today" | "future";
@@ -2965,7 +2883,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
         <div
           ref={hostRef}
           className={cn("relative flex size-full min-h-[420px] items-center justify-center overflow-hidden", className)}
-          style={{ fontFamily: FONT_MONO }}
+          style={{ fontFamily: FONT_SANS }}
           onPointerDownCapture={touched}
           onKeyDownCapture={touched}
         >
@@ -3125,7 +3043,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                     style={{ left: CARD_X, top: CARD_TOP, width: CARD_W, height: CARD_H, borderRadius: CARD_RADIUS, zIndex: 4 }}
                   >
                     <div className="relative" style={{ width: ART_W, height: ART_H }}>
-                      <ArtCanvas key={openDay} index={openDay - 1} reduced={reduced} />
+                      <ArtCanvas key={openDay} index={openDay - 1} />
                     </div>
 
                     {/* The caption: a small editorial block under the drawing. */}
@@ -3134,11 +3052,11 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                         id={titleId}
                         className="m-0"
                         style={{
-                          fontFamily: FONT_SERIF,
-                          fontWeight: 400,
+                          fontFamily: FONT_SANS,
+                          fontWeight: 500,
                           fontSize: 26,
                           lineHeight: "28px",
-                          letterSpacing: "-0.005em",
+                          letterSpacing: "-0.025em",
                           color: INK,
                           marginTop: 6,
                         }}
