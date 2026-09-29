@@ -45,7 +45,7 @@ files and their licence requirements out explicitly.
 | <img src="public/previews/halftone-bloom.png" width="160"> | **Halftone Bloom** — a progress indicator stippled entirely in dots: a moon that lights left to right like a terminator, new to full | Data Visualization | — | [`halftone-bloom.tsx`](components/data-visualization/halftone-bloom/halftone-bloom.tsx) |
 | <img src="public/previews/blossom-light.png" width="160"> | **Blossom Light** — a square of wall whose light is the controls in the middle of it — leaf shadow dimmed and lifted by a line-by-line brightness pill, toned from cool to amber, its leaf shadow stirring in a wind | Control | — | [`blossom-light.tsx`](components/control/blossom-light/blossom-light.tsx) |
 | <img src="public/previews/gradient-event-card.png" width="160"> | **Gradient Event Card** — eight event cards on a ring inside a phone lying on its side: swipe, and they follow your finger and snap one page at a time, the neighbours turning away like cover flow; each card is a heat-map field with circles, ellipses, arcs and coils painted onto it as heat, every shape its own halo-to-core gradient, in palettes borrowed from painters — most cohesive, Matisse and Delaunay loud | Gradient | — | [`gradient-event-card.tsx`](components/gradient/gradient-event-card/gradient-event-card.tsx) |
-| <img src="public/previews/doodle-calendar.png" width="160"> | **Doodle Calendar** — a white phone holding one August in a single blue ink: past days are little paper-cut motifs, the future waits as dots, and tapping a day swells its circle into a magazine-style illustrated page — a mood, an outing, a small moment of nature — with its date, title and one wry sentence, flat and with no shadows | Data Visualization | — | [`doodle-calendar.tsx`](components/data-visualization/doodle-calendar/doodle-calendar.tsx) |
+| <img src="public/previews/doodle-calendar.png" width="160"> | **Doodle Calendar** — a white iPhone holding one August in blue ballpoint: past days are small pen-hatched motifs, today is the same drawing printed dark, the future waits as dots, and tapping a day swells its circle into a hand-drawn page — a mood, an outing, a small moment of nature — that draws itself outline-first and then hatches in, with its date, title and one wry sentence, all pen on grey paper and with no shadows | Data Visualization | — | [`doodle-calendar.tsx`](components/data-visualization/doodle-calendar/doodle-calendar.tsx) |
 
 ## Using a component
 
@@ -149,7 +149,7 @@ See [`ASSETS.md`](ASSETS.md) for the full table. Notably:
 - The Gradient Gummy Bear uses the "Gummy Bear" 3D model by Poly by Google
   (Google Poly), licensed [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/),
   sourced via [Poly Pizza](https://poly.pizza/m/5zl16PPAItW).
-- The Emoji Sketch and Doodle Calendar components' line-art SVGs are
+- The Emoji Sketch component's line-art SVGs are
   [OpenMoji](https://openmoji.org) v15.0.0, licensed **CC BY-SA 4.0** — see
   [`licenses/OpenMoji-CC-BY-SA-4.0.txt`](licenses/OpenMoji-CC-BY-SA-4.0.txt).
 

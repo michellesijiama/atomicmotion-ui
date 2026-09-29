@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Static checks for Doodle Calendar: a white phone holding one August in a
-// single blue ink — past days are paper-cut motifs, the future is dots, and
-// tapping a day swells its circle into a magazine-style illustrated page
-// (a shared-layout morph). Fully self-contained, flat, with no shadows and no
-// strokes anywhere, and the gallery wiring agrees on the id.
+// Static checks for Doodle Calendar: a white iPhone holding one August in blue
+// ballpoint — past days are pen-hatched motifs drawn on <canvas>, the future is
+// dots, and tapping a day swells its circle into a page that draws itself
+// (a shared-layout morph, then outline-first hatching). Fully self-contained,
+// seeded (no Math.random), with no shadows, and the gallery wiring agrees on the id.
 import { existsSync, readFileSync } from "node:fs";
 
 function read(path) {
@@ -24,6 +24,7 @@ const registryEntry =
   files.registry.split(/(?=\n\s+id: ")/).find((block) => block.includes('id: "doodle-calendar"')) ?? "";
 
 const c = files.component;
+const num = (name) => Number((c.match(new RegExp(`const ${name} = (\\d+)`)) ?? [])[1]);
 const weekdayShort = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const checks = [
@@ -35,15 +36,25 @@ const checks = [
   ["component does not use lucide", !c.includes("lucide-react")],
   ["component inlines cn", c.includes("function cn(")],
   ["component uses framer-motion", c.includes('from "framer-motion"') && c.includes("AnimatePresence") && c.includes("whileTap")],
-  ["component is deterministic on the server", !c.includes("Math.random")],
+  ["component is deterministic: no Math.random", !c.includes("Math.random")],
+  ["component uses a seeded PRNG (mulberry32)", c.includes("function mulberry32(") && c.includes("0x6d2b79f5")],
+  ["pictures are drawn on a canvas", c.includes("<canvas") && c.includes('getContext("2d")')],
+  ["scenes are Path2D layers with tone, knockout and marks", c.includes("new Path2D(") && c.includes("knockout?: boolean") && c.includes("tone: number") && c.includes("marks?:")],
+  ["hatching is vertical pen lines with a second heavier pass", c.includes("function hatchLayer(") && c.includes("passes.push")],
+  ["draw-in runs on requestAnimationFrame, outlines then hatching", c.includes("requestAnimationFrame") && c.includes("OUTLINE_MS") && c.includes("HATCH_MS") && c.includes("paintOutline(") && c.includes("paintHatch(")],
+  ["finished drawings are cached per scene", c.includes("const bitmaps = new Map") && c.includes("function sceneBitmap(")],
+  ["canvas work stays out of render: drawn in effects", c.includes("React.useEffect") && !/document\.createElement\("canvas"\)/.test(c.slice(c.indexOf("export function DoodleCalendar"), c.indexOf("const DayCell")))],
+  ["ink is ballpoint blue and the old violet is gone", c.includes('const INK = "#0A5BD9"') && !/2F2BD6/i.test(c) && !c.includes("6B67E6") && !c.includes("A9A7F0")],
+  ["paper is a neutral grey, the card a lighter grey", c.includes('const PAPER = "#E6E7EA"') && c.includes('const CARD = "#F2F3F5"')],
+  ["no kind tag on the card", !c.includes("OUTING") && !c.includes("KIND_LABEL") && !/Outing"/.test(c)],
+  ["phone is tall like an iPhone (ratio ≥ 2.0)", num("PHONE_H") / num("PHONE_W") >= 2.0 && num("PHONE_W") === 300],
+  ["thin white bezel", num("BEZEL") === 9 && c.includes("const PHONE_RADIUS = 51")],
   ["self-contained: no perfect-freehand", !c.includes("perfect-freehand") && !c.includes("getStroke")],
   ["self-contained: no OpenMoji or emoji fetching", !c.includes("/emoji/") && !c.includes("openmoji") && !c.includes("fetch(")],
   ["no shadows: no box-shadow", !c.includes("boxShadow") && !c.includes("box-shadow")],
   ["no shadows: no drop-shadow", !c.includes("drop-shadow") && !c.includes("dropShadow")],
   ["no shadows: no text-shadow", !c.includes("textShadow") && !c.includes("text-shadow")],
   ["no shadows: no shadow utility classes", !c.includes("shadow-")],
-  ["no strokes: no strokeWidth", !c.includes("strokeWidth") && !c.includes("stroke-width")],
-  ["no strokes: no stroke attribute", !/\bstroke\s*=/.test(c) && !/\bstroke:/.test(c)],
   ["no gradients or filters", !c.includes("linearGradient") && !c.includes("radialGradient") && !c.includes("linear-gradient") && !c.includes("<filter")],
   ["no status bar text", !c.includes("9:41")],
   ["no weather left in the component", !/weather|sunny|rainbow|thunder|openmoji/i.test(c.replace(/Rain Indoors|A good chapter[^"]*/g, ""))],
@@ -54,7 +65,6 @@ const checks = [
   ["fourteen scenes, each with a kind, title and sentence", (c.match(/kind: "(mood|activity|nature)", title:/g) ?? []).length === 14],
   ["all three kinds of day appear", ['kind: "mood"', 'kind: "activity"', 'kind: "nature"'].every((k) => c.includes(k))],
   ["month heading is Manrope 800 and the header never swaps", c.includes("MONTH_NAME}") && c.includes("fontWeight: 800") && !c.includes("SWAP")],
-  ["palette is one blue in four strengths on paper", ['INK = "#2F2BD6"', 'MID = "#6B67E6"', 'LIGHT = "#A9A7F0"', 'PALE = "#D3D2F6"', 'PAPER = "#E4E4EA"'].every((k) => c.includes(`const ${k}`))],
   ["phone is white", c.includes('background: "#FFFFFF"')],
   ["phone scales to fit its host", c.includes("ResizeObserver") && c.includes("Math.min(1,") && c.includes("Math.max(0.3")],
   ["layout morph corrects for the phone's scale", c.includes("transformPagePoint")],
@@ -70,7 +80,6 @@ const checks = [
   ["arrow keys, Home and End move between open days", c.includes("ArrowLeft") && c.includes("ArrowRight") && c.includes("ArrowUp: -7") && c.includes("ArrowDown: 7") && c.includes('"Home"') && c.includes('"End"')],
   ["keyboard is clamped to the days that can be opened", c.includes("Math.min(today, Math.max(1,")],
   ["focus ring is an outline in ink", c.includes(":focus-visible") && c.includes("outline: 2px solid")],
-  ["pieces of each scene are laid down with a stagger", c.includes("function Piece(") && c.includes("REVEAL_STEP") && c.includes("function Idle(")],
   ["loop stops at first interaction", c.includes("interacted") && c.includes("onPointerDownCapture") && c.includes("onKeyDownCapture")],
   ["loop opens today, then day 1, 2, 3", c.includes("[today, ...Array.from({ length: today - 1 }")],
   ["exposes onSelect", c.includes("onSelect?:")],
