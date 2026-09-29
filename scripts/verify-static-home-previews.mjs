@@ -1,8 +1,9 @@
 // The gallery uses a hybrid preview strategy: light components animate live on
 // the card, while heavy WebGL scenes opt out via `previewStatic: true` and show
 // a poster (looping video when one exists, otherwise the still image). This
-// keeps the gallery at zero live GL canvases, which is what the all-static
-// strategy that preceded it was actually protecting.
+// keeps the gallery's live GL cost down, which is what the all-static strategy
+// that preceded it was actually protecting; the one deliberate exception is
+// listed in LIVE_WEBGL_ALLOWED below.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 
 function read(path) {
@@ -46,7 +47,12 @@ function usesWebGL(id) {
   });
 }
 
-const webglIds = uniqueIds.filter(usesWebGL);
+// WebGL components that are allowed to animate live on the gallery card. Gradient
+// Event Card draws every card through one shared GL context and blits into 2D
+// canvases, so a live tile costs a single context — it is meant to be seen moving.
+const LIVE_WEBGL_ALLOWED = new Set(["gradient-event-card"]);
+
+const webglIds = uniqueIds.filter((id) => usesWebGL(id) && !LIVE_WEBGL_ALLOWED.has(id));
 
 const checks = [
   ["registry exposes previewImage metadata", registry.includes("previewImage: string")],
