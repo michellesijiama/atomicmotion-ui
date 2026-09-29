@@ -1,6 +1,6 @@
 # Doodle Calendar
 
-A white iPhone holding one August in blue ballpoint — a month heading over a grid where every past day is a small pen-hatched motif in wobbly vertical strokes, today is the same drawing printed dark, and the future waits as quiet dots — and tap any day and its circle swells into a page for that day, a mood, an outing or a small moment of nature that draws itself outline-first and then hatches in from the left, with a date, a title and one wry sentence beneath, all of it pen on grey paper, with no shadows anywhere
+A white iPhone holding one August as a nature diary in blue ballpoint — a month heading over a grid where every past day is a tiny pen-drawn landscape motif, today is the same drawing printed dark, and the future waits as quiet dots — and tap any day and its circle swells into a sketchbook page, a fog-bound oak, a cottage under poplars, a still lake, a ridge of pines, that draws itself contour first and then hatches in from the left, near things dark and bold and far things faint, with a date, a title and one quiet sentence beneath, all of it pen on grey paper, with no shadows anywhere
 
 ![Doodle Calendar preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/doodle-calendar.png)
 

@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 // Static checks for Doodle Calendar: a white iPhone holding one August in blue
-// ballpoint — past days are pen-hatched motifs drawn on <canvas>, the future is
-// dots, and tapping a day swells its circle into a page that draws itself
-// (a shared-layout morph, then outline-first hatching). Fully self-contained,
-// seeded (no Math.random), with no shadows, and the gallery wiring agrees on the id.
+// ballpoint — past days are tiny pen-drawn landscape motifs on <canvas>, the future
+// is dots, and tapping a day swells its circle into a nature sketch that draws
+// itself (a shared-layout morph, then contours, then hatching). Every scene is
+// landscape, drawn in a refined ballpoint technique with depth planes. Fully
+// self-contained, seeded (no Math.random), with no shadows, and the gallery wiring
+// agrees on the id.
 import { existsSync, readFileSync } from "node:fs";
 
 function read(path) {
@@ -25,6 +27,7 @@ const registryEntry =
 
 const c = files.component;
 const num = (name) => Number((c.match(new RegExp(`const ${name} = (\\d+)`)) ?? [])[1]);
+const sceneRows = [...c.matchAll(/kind: "(\w+)", title: "([^"]+)", sentence: "([^"]+)"/g)].map((m) => ({ kind: m[1], title: m[2], sentence: m[3] }));
 const weekdayShort = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const checks = [
@@ -40,7 +43,12 @@ const checks = [
   ["component uses a seeded PRNG (mulberry32)", c.includes("function mulberry32(") && c.includes("0x6d2b79f5")],
   ["pictures are drawn on a canvas", c.includes("<canvas") && c.includes('getContext("2d")')],
   ["scenes are Path2D layers with tone, knockout and marks", c.includes("new Path2D(") && c.includes("knockout?: boolean") && c.includes("tone: number") && c.includes("marks?:")],
-  ["hatching is vertical pen lines with a second heavier pass", c.includes("function hatchLayer(") && c.includes("passes.push")],
+  ["every layer can carry a depth (aerial perspective): 0 near … 1 far", c.includes("depth?: number") && c.includes("function depthMod(") && c.includes("dm.sp") && c.includes("dm.w") && c.includes("dm.a")],
+  ["hatching is fine vertical pen lines in bursts, with cross-passes in the darks", c.includes("function hatchLayer(") && c.includes("passes.push") && c.includes("band = {")],
+  ["contours are tapered variable-width ribbons, cut at corners", c.includes("function contourSub(") && c.includes("function fillOp(") && c.includes("pressure(")],
+  ["foliage is built from scalloped clumps: canopy(), clumps() and canopyLayers() exist", c.includes("function canopy(") && c.includes("function clumps(") && c.includes("function canopyLayers(") && c.includes("function scallop(")],
+  ["the sketch toolkit has trunks, hills, water, reflections, pines and a house in perspective", ["function trunkLayers(", "function ridge(", "function lakeLayer(", "function reflect(", "function pineLayers(", "function house("].every((f) => c.includes(f))],
+  ["scenes have no people, faces, cats or props", !/function (person|catSitting|bee|butterfly|lemon|cup)\(/.test(c) && !/Birthday|Coffee|Cake|bunting|Supper|Lido|Market|Victory|Overthinking/i.test(c)],
   ["draw-in runs on requestAnimationFrame, outlines then hatching", c.includes("requestAnimationFrame") && c.includes("OUTLINE_MS") && c.includes("HATCH_MS") && c.includes("paintOutline(") && c.includes("paintHatch(")],
   ["finished drawings are cached per scene", c.includes("const bitmaps = new Map") && c.includes("function sceneBitmap(")],
   ["canvas work stays out of render: drawn in effects", c.includes("React.useEffect") && !/document\.createElement\("canvas"\)/.test(c.slice(c.indexOf("export function DoodleCalendar"), c.indexOf("const DayCell")))],
@@ -57,13 +65,15 @@ const checks = [
   ["no shadows: no shadow utility classes", !c.includes("shadow-")],
   ["no gradients or filters", !c.includes("linearGradient") && !c.includes("radialGradient") && !c.includes("linear-gradient") && !c.includes("<filter")],
   ["no status bar text", !c.includes("9:41")],
-  ["no weather left in the component", !/weather|sunny|rainbow|thunder|openmoji/i.test(c.replace(/Rain Indoors|A good chapter[^"]*/g, ""))],
+  ["no weather icons left in the component", !/weather|sunny|rainbow|thunder|openmoji/i.test(c)],
   ["weekday labels are English", weekdayShort.every((d) => c.includes(`"${d}"`))],
   ["full weekday names are English", ["Monday", "Friday", "Sunday"].every((d) => c.includes(`"${d}"`))],
   ["month is August 2026", c.includes('"August"') && c.includes("YEAR = 2026") && c.includes("FIRST_COLUMN = 5")],
   ["today defaults to Friday the 14th", /today: todayProp = 14/.test(c)],
-  ["fourteen scenes, each with a kind, title and sentence", (c.match(/kind: "(mood|activity|nature)", title:/g) ?? []).length === 14],
-  ["all three kinds of day appear", ['kind: "mood"', 'kind: "activity"', 'kind: "nature"'].every((k) => c.includes(k))],
+  ["fourteen scenes, each with a kind, title and sentence", sceneRows.length === 14],
+  ["titles are at most four words, sentences at most fourteen", sceneRows.length === 14 && sceneRows.every((r) => r.title.split(/\s+/).length <= 4 && r.sentence.split(/\s+/).length <= 14)],
+  ["the days cover several kinds of place", new Set(sceneRows.map((r) => r.kind)).size >= 5 && !c.includes('kind: "mood"') && !c.includes('kind: "activity"')],
+  ["the titles are the nature diary", ["Morning Fog", "The Old Oak", "Cottage and Poplars", "Lavender Rows", "Still Lake", "Pine Ridge", "Sunflowers", "River Bend", "Birch Path", "Storm Coming In", "The Garden Gate", "Cliffs and Sea", "Orchard After Rain", "Moonrise"].every((t, i) => sceneRows[i]?.title === t)],
   ["month heading is Manrope 800 and the header never swaps", c.includes("MONTH_NAME}") && c.includes("fontWeight: 800") && !c.includes("SWAP")],
   ["phone is white", c.includes('background: "#FFFFFF"')],
   ["phone scales to fit its host", c.includes("ResizeObserver") && c.includes("Math.min(1,") && c.includes("Math.max(0.3")],
@@ -92,6 +102,7 @@ const checks = [
   ["registry files it under Data Visualization", registryEntry.includes('category: "Data Visualization"')],
   ["registry points to component source", registryEntry.includes("components/data-visualization/doodle-calendar/doodle-calendar.tsx")],
   ["registry lists no required assets", !registryEntry.includes("requiredAssets")],
+  ["registry description says nature and ballpoint", /nature/i.test(registryEntry) && /ballpoint/i.test(registryEntry) && !/birthday|coffee|mood, an outing/i.test(registryEntry)],
   ["OpenMoji docs no longer mention the calendar", !files.emojiReadme.includes("doodle-calendar") && !files.assets.includes("Doodle Calendar")],
   ["package exposes verification script", files.packageJson.includes('"test:doodle-calendar"')],
 ];
