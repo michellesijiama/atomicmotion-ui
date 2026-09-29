@@ -83,6 +83,28 @@ try {
     if (id === "voice-bloom") {
       await page.getByRole("button", { name: "Start voice input" }).click();
       await page.waitForTimeout(3200);
+    } else if (id === "doodle-calendar") {
+      // The poster is a calendar mid-sketch: click a handful of days so the
+      // grid already holds several doodles, and finish on today so the header
+      // shows the sun. The untouched circles keep "click a day" obvious.
+      // Wait for hydration first — a click before React attaches does nothing.
+      const days = [1, 2, 3, 4, 5, 6, 12, 13, 8, 7];
+      const pressed = (day) =>
+        page.evaluate(
+          (d) => document.querySelector(`[aria-label*="August ${d} "]`)?.getAttribute("aria-pressed") === "true",
+          day,
+        );
+      await page.waitForTimeout(1200);
+      for (const day of days) {
+        for (let attempt = 0; attempt < 8 && !(await pressed(day)); attempt += 1) {
+          await page.locator(`[aria-label*="August ${day} "]`).click();
+          await page.waitForTimeout(150);
+        }
+        await page.waitForTimeout(260);
+      }
+      await page.evaluate(() => document.activeElement?.blur());
+      await page.mouse.move(2, 2);
+      await page.waitForTimeout(2600);
     } else {
       // halftone-bloom opens collapsed, so the poster has to open it — and it
       // spends its first seconds part-lit, so shoot during the hold with the

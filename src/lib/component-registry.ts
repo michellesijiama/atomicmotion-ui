@@ -328,6 +328,29 @@ export const componentRegistry = {
     createdAt: "2026-09-18",
     codePath: "components/gradient/gradient-event-card/gradient-event-card.tsx",
   }),
+  doodleCalendar: createComponentMeta({
+    id: "doodle-calendar",
+    index: "017",
+    title: "Doodle Calendar",
+    description:
+      "A white phone holding one August in a single blue ink — a huge day number, the month and year, a grid of soft circles on lilac-grey paper — and each circle is a button: click a day and its circle gives way to that day's weather, sketched stroke by stroke as a wobbly pencil doodle from real OpenMoji line drawings, the same sketch appearing large beside the number while the footer counts the days you have drawn, so the grid slowly fills up like a garden of little suns, clouds, lightning bolts, leaves and rainbows, all of it flat, with no shadows anywhere",
+    category: "Data Visualization",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-09-29",
+    codePath: "components/data-visualization/doodle-calendar/doodle-calendar.tsx",
+    // The doodles are traced at runtime from these OpenMoji line drawings, so
+    // the folder alone is not enough — and they are CC BY-SA 4.0, so the credit
+    // and the share-alike notice travel with them.
+    requiredAssets: [
+      {
+        path: "public/emoji/*.svg",
+        license: "CC BY-SA 4.0",
+        credit:
+          "OpenMoji (openmoji.org) line drawings by the OpenMoji project & contributors — see licenses/OpenMoji-CC-BY-SA-4.0.txt.",
+      },
+    ],
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);

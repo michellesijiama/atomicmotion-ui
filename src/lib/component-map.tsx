@@ -15,6 +15,7 @@ import { CoffeeGauge } from "@components/data-visualization/coffee-gauge";
 import { HalftoneBloom } from "@components/data-visualization/halftone-bloom";
 import { BlossomLight } from "@components/control/blossom-light";
 import { GradientEventCard } from "@components/gradient/gradient-event-card";
+import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
@@ -82,6 +83,12 @@ function GradientEventCardPreview({ loop }: { loop?: boolean }) {
   return <GradientEventCard loop={loop} />;
 }
 
+function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
+  // The phone scales itself down to fit; the portrait phone sits small in the
+  // landscape preview canvas, so the gallery tile enlarges it a touch to read.
+  return <DoodleCalendar loop={loop} className={loop ? "scale-[1.2]" : undefined} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
@@ -98,4 +105,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "halftone-bloom": HalftoneBloomPreview,
   "blossom-light": BlossomLightPreview,
   "gradient-event-card": GradientEventCardPreview,
+  "doodle-calendar": DoodleCalendarPreview,
 };
