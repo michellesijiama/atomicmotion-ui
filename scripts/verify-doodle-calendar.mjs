@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Static checks for Doodle Calendar: a grey Apple-style UI holding one August in blue
-// ballpoint — past days are tiny pen-drawn landscape motifs on <canvas>, the future
-// is dots, and tapping a day swells its circle into a nature sketch that draws
+// Static checks for Doodle Calendar: a grey Apple-style UI holding one August in
+// Matisse-coloured ballpoint — past days are tiny pen-drawn landscape motifs on
+// <canvas>, the future is small coloured rings, and tapping a day swells its circle into a nature sketch that draws
 // itself (a shared-layout morph, then contours, then hatching). Every scene is
 // landscape, drawn in a refined ballpoint technique with depth planes. Fully
 // self-contained, seeded (no Math.random), with no shadows, and the gallery wiring
@@ -52,7 +52,11 @@ const checks = [
   ["opened illustration is rendered complete without a drawing animation", c.includes("ctx.drawImage(sceneBitmap(index, cv.width, cv.height), 0, 0)") && !c.slice(c.indexOf("function ArtCanvas"), c.indexOf("function CellPen")).includes("requestAnimationFrame")],
   ["finished drawings are cached per scene", c.includes("const bitmaps = new Map") && c.includes("function sceneBitmap(")],
   ["canvas work stays out of render: drawn in effects", c.includes("React.useEffect") && !/document\.createElement\("canvas"\)/.test(c.slice(c.indexOf("export function DoodleCalendar"), c.indexOf("const DayCell")))],
-  ["ink is ballpoint blue and the old violet is gone", c.includes('const INK = "#0A5BD9"') && !/2F2BD6/i.test(c) && !c.includes("6B67E6") && !c.includes("A9A7F0")],
+  ["drawings are in Matisse's palette, one pen colour per layer, and the old violet is gone", c.includes("const MATISSE = {") && c.includes("hue?: Hue") && c.includes("MATISSE[layer.hue ?? \"blue\"]") && !/2F2BD6/i.test(c) && !c.includes("6B67E6") && !c.includes("A9A7F0")],
+  ["all type is black", c.includes('const TEXT = "#141416"') && !c.includes("color: INK") && !c.includes("ink(")],
+  ["weekday labels are at least 16px", Number((c.match(/const WEEKDAY_SIZE = (\d+)/) ?? [])[1]) >= 16],
+  ["days to come are small empty rings in the palette's colours", c.includes("const DOT_HUES") && c.includes("border: `1.5px solid ${hueCss(")],
+  ["no home indicator on the glass", !/home indicator/i.test(c)],
   ["paper is a neutral grey, the card a lighter grey", c.includes('const PAPER = "#E6E7EA"') && c.includes('const CARD = "#F2F3F5"')],
   ["no kind tag on the card", !c.includes("OUTING") && !c.includes("KIND_LABEL") && !/Outing"/.test(c)],
   ["phone is tall like an iPhone (ratio ≥ 2.0)", num("PHONE_H") / num("PHONE_W") >= 2.0 && num("PHONE_W") === 300],

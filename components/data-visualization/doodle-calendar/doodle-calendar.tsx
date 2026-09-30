@@ -6,13 +6,14 @@ import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion } 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// Doodle Calendar — every picture in this file is drawn in blue ballpoint, in
-// code, the way a sketchbook landscape is: each scene is a short list of layers
-// (a hill, a canopy of scalloped clumps, a cottage in perspective) with a tone and
-// a depth, and a seeded pen draws them on a <canvas> — confident tapering contours
-// first, then fine vertical hatching swept in where the shade falls. Far things are
-// light and fine, near things dark and bold. No images, no gradients, no shadows,
-// so the folder is self-contained — copy it anywhere and it works.
+// Doodle Calendar — every picture in this file is drawn in ballpoint, in code, the
+// way a sketchbook landscape is: each scene is a short list of layers (a hill, a
+// canopy of scalloped clumps, a cottage in perspective) with a tone, a depth and a
+// colour from Matisse's palette, and a seeded pen draws them on a <canvas> —
+// confident tapering contours first, then fine vertical hatching swept in where the
+// shade falls. Far things are light and fine, near things dark and bold. No images,
+// no gradients, no shadows, so the folder is self-contained — copy it anywhere and
+// it works.
 
 // Inlined so this folder is self-contained — copy it anywhere and it works.
 function cn(...inputs: ClassValue[]) {
@@ -44,16 +45,34 @@ export type DoodleCalendarProps = {
 
 /* ───────────────────────────── palette & type ───────────────────────────── */
 
-// One ballpoint blue on one grey sheet. Every tone in the file is this ink at
-// some alpha, so nothing can drift toward violet.
-const INK = "#0A5BD9";
-const INK_RGB = "10 91 217";
-const ink = (a: number) => `rgb(${INK_RGB} / ${a})`;
+// Matisse's cut-out colours, each a ballpoint of its own, on one grey sheet: cobalt
+// for water, sky and far hills, emerald for leaf and grass, vermilion for roofs and
+// trunks, cadmium yellow and orange for fields, flowers and stone, rose and violet
+// for blossom, lavender and rock, and black for birch bark and gulls. A layer names
+// its colour; one that doesn't is drawn in the cobalt.
+const MATISSE = {
+  blue: [30, 76, 170],
+  green: [26, 138, 84],
+  red: [222, 62, 40],
+  orange: [240, 124, 36],
+  yellow: [236, 170, 20],
+  pink: [232, 104, 150],
+  violet: [112, 72, 170],
+  black: [26, 26, 30],
+} as const satisfies Record<string, readonly [number, number, number]>;
+type Hue = keyof typeof MATISSE;
+type RGB = (typeof MATISSE)[Hue];
+const hueCss = (h: Hue) => `rgb(${MATISSE[h].join(" ")})`;
+/** The days still to come: small empty rings, each in the next colour of the palette. */
+const DOT_HUES: readonly Hue[] = ["blue", "red", "yellow", "green", "pink", "orange", "violet"];
+/** All the type is black, at a few strengths. */
+const TEXT = "#141416";
+const text = (a: number) => `rgb(20 20 22 / ${a})`;
 /** The page behind the calendar, and the lighter card an opened day is drawn on. */
 const PAPER = "#E6E7EA";
 const CARD = "#F2F3F5";
-/** Today's disc, mid-morph: the dark hatched circle seen from a distance. */
-const DISC_TODAY = "#4A86E2";
+/** Today's disc, mid-morph: the dark hatched cobalt circle seen from a distance. */
+const DISC_TODAY = "#5172B6";
 
 const FONT_SANS = "var(--font-manrope, Manrope), Manrope, ui-sans-serif, system-ui, sans-serif";
 
@@ -69,14 +88,16 @@ const SCREEN_RADIUS = 51;
 const SCREEN_W = PHONE_W - BEZEL * 2;
 const SCREEN_H = PHONE_H - BEZEL * 2;
 
-const PAD = 16;
+const PAD = 22;
 const GAP = 3;
 const CELL = (SCREEN_W - PAD * 2 - GAP * 6) / 7;
 
-const HEAD_SIZE = 50;
-const HEAD_LINE = 48;
-const WEEKDAY_H = 14;
-const WEEKDAY_GAP = 9;
+const HEAD_SIZE = 36;
+const HEAD_LINE = 38;
+/** Weekday labels: 16px type, the smallest the calendar uses. */
+const WEEKDAY_SIZE = 16;
+const WEEKDAY_H = 20;
+const WEEKDAY_GAP = 8;
 /** Gap between the last row and the bottom of the glass — the grid sits low, like a desk calendar. */
 const GRID_BOTTOM = 36;
 
@@ -100,10 +121,10 @@ const GRID_H = WEEKDAY_H + WEEKDAY_GAP + WEEKS * CELL + (WEEKS - 1) * GAP;
 const HEAD_BLOCK = HEAD_LINE * 2 + 2;
 const HEAD_GAP = 30;
 const HEAD_TOP_CLOSED = SCREEN_H - GRID_BOTTOM - GRID_H - HEAD_GAP - HEAD_BLOCK;
-const HEAD_TOP_OPEN = 46;
+const HEAD_TOP_OPEN = 56;
 
 // The card: a drawing over one date, one title and one sentence, ending well above the
-// home indicator.
+// bottom of the screen.
 const CARD_X = 10;
 const CARD_BOTTOM = 24;
 const ART_W = SCREEN_W - CARD_X * 2;
@@ -152,6 +173,8 @@ type Mark =
       blade?: boolean;
       /** 0 near … 1 far; defaults to the layer's. */
       depth?: number;
+      /** Pen colour; defaults to the layer's. */
+      hue?: Hue;
     };
 
 type Layer = {
@@ -161,6 +184,8 @@ type Layer = {
   tone: number;
   /** 0 near … 1 far: how light, fine and sparse the pen is (aerial perspective). Default 0.35. */
   depth?: number;
+  /** Which of the palette's pens draws it (hatching, contour and marks). Default cobalt. */
+  hue?: Hue;
   /** Paper first: hides everything drawn behind it. */
   knockout?: boolean;
   /** Contour weight: 0 (none, the default) … about 1.2. */
@@ -414,8 +439,10 @@ type Op = {
   /** Full width at each point. */
   wp: number[];
   a: number;
-  /** How deep the ink is: 1 is the pen's own blue, less is the same blue pressed darker. */
+  /** How deep the ink is: 1 is the pen's own colour, less is the same colour pressed darker. */
   c?: number;
+  /** Which pen: set per layer (or mark) when the scene is composed. */
+  rgb?: RGB;
   /** Sweep key: where the hatching arrives, left to right. */
   x: number;
   /** For contours: how far along the whole trace it starts, and how long it is. */
@@ -909,17 +936,31 @@ function compose(layers: readonly Layer[], st: PenStyle, seed: number, dw: numbe
   const outline: Op[] = [];
   const hatch: Op[] = [];
   const bounds = { h: dh };
+  // Every stroke pushed since (o, h) was drawn with this pen.
+  const dye = (o: number, h: number, rgb: RGB) => {
+    for (let i = o; i < outline.length; i++) outline[i].rgb = rgb;
+    for (let i = h; i < hatch.length; i++) hatch[i].rgb = rgb;
+  };
   layers.forEach((layer, li) => {
     const rnd = mulberry32(seed * 7919 + li * 104729 + 17);
     const hidden = masks[li];
     const hasMask = any[li];
     const subs = layer.d ? flatten(layer.d, 1.6) : [];
+    const pen = MATISSE[layer.hue ?? "blue"];
+    let o0 = outline.length;
+    let h0 = hatch.length;
     hatchLayer(layer, subs, st, rnd, hidden, hasMask, hatch, bounds);
     if ((layer.line ?? 0) > 0) {
       const ls: LineSpec = { wt: layer.line ?? 0, depth: layer.depth, side: layer.side ?? "all", crisp: layer.crisp === true, a: 1 };
       for (const s of subs) contourSub(s, ls, st, rnd, hidden, hasMask, outline);
     }
-    for (const mk of layer.marks ?? []) markOps(mk, layer.depth, st, rnd, hidden, hasMask, outline, hatch, bounds);
+    dye(o0, h0, pen);
+    for (const mk of layer.marks ?? []) {
+      o0 = outline.length;
+      h0 = hatch.length;
+      markOps(mk, layer.depth, st, rnd, hidden, hasMask, outline, hatch, bounds);
+      dye(o0, h0, typeof mk !== "string" && mk.hue ? MATISSE[mk.hue] : pen);
+    }
   });
   let total = 0;
   for (const o of outline) {
@@ -941,8 +982,7 @@ function viewFor(cw: number, ch: number, dw: number, dh: number, cover: boolean)
   return { k, ox: (cw - dw * k) / 2, oy: (ch - dh * k) / 2 };
 }
 
-const INK_CH = INK_RGB.split(" ").map(Number);
-const penColor = (a: number, c = 1) => `rgba(${Math.round(INK_CH[0] * c)},${Math.round(INK_CH[1] * c)},${Math.round(INK_CH[2] * c)},${a.toFixed(2)})`;
+const penColor = (a: number, c = 1, rgb: RGB = MATISSE.blue) => `rgba(${Math.round(rgb[0] * c)},${Math.round(rgb[1] * c)},${Math.round(rgb[2] * c)},${a.toFixed(2)})`;
 
 function beginPen(ctx: CanvasRenderingContext2D, v: View) {
   ctx.setTransform(v.k, 0, 0, v.k, v.ox, v.oy);
@@ -952,7 +992,7 @@ function beginPen(ctx: CanvasRenderingContext2D, v: View) {
 /** One stroke, filled as a ribbon along its centre line; `upTo` stops it part-way (the pen still travelling). */
 function fillOp(ctx: CanvasRenderingContext2D, o: Op, upTo = Infinity) {
   const { p, wp } = o;
-  ctx.fillStyle = penColor(o.a, o.c);
+  ctx.fillStyle = penColor(o.a, o.c, o.rgb);
   ctx.beginPath();
   if (wp.length === 1) {
     ctx.arc(p[0], p[1], wp[0] / 2, 0, Math.PI * 2);
@@ -1330,6 +1370,8 @@ type CanopyStyle = {
   /** How much each clump's own lit-to-shade gradient counts, and how sharply the underside darkens. */
   local?: number;
   curve?: number;
+  /** Leaf is emerald unless told otherwise (a cloud, a far wood). */
+  hue?: Hue;
 };
 
 /**
@@ -1345,6 +1387,7 @@ function canopyLayers(c: Canopy, o: CanopyStyle = {}, from = 0, to = 1): Layer[]
   const lit = o.lit ?? 0.34;
   const depth = o.depth ?? 0.3;
   const lw = o.line ?? 1;
+  const hue = o.hue ?? "green";
   const nz = noise2((o.seed ?? 1) * 17 + 3);
   const last = c.clumps.length;
   const inSlice = (k: Clump) => k.z >= from && (k.z < to || to >= 1);
@@ -1357,6 +1400,7 @@ function canopyLayers(c: Canopy, o: CanopyStyle = {}, from = 0, to = 1): Layer[]
       d: k.d,
       tone: o.tone ?? 0.9,
       depth,
+      hue,
       knockout: true,
       angle: o.angle ?? 0,
       toneAt: (x, y) => {
@@ -1423,7 +1467,7 @@ function canopyLayers(c: Canopy, o: CanopyStyle = {}, from = 0, to = 1): Layer[]
     end();
   });
   const marks: Mark[] = buckets.map((d, b): Mark => ({ d, w: (weights[b] * lw) / 0.85, a: 0.9, depth }));
-  layers.push({ d: "", tone: 0, depth, marks: marks.filter((m) => typeof m !== "string" && m.d.length > 0) });
+  layers.push({ d: "", tone: 0, depth, hue, marks: marks.filter((m) => typeof m !== "string" && m.d.length > 0) });
   return layers;
 }
 
@@ -1462,6 +1506,8 @@ function trunkLayers(x: number, base: number, top: number, wBase: number, wTop: 
       d,
       tone: o.tone ?? 0.95,
       depth,
+      // Fauve trunks: vermilion under the green.
+      hue: "red",
       knockout: true,
       line: 0,
       toneAt: (px, py) => {
@@ -1499,7 +1545,7 @@ function castShadow(x0: number, y: number, rx: number, ry: number, seed: number,
 /* ── ground ── */
 
 /** Grass and field: a ground shape hatched in short vertical strokes that thicken toward the viewer and toward shadow. */
-function groundLayer(x0: number, x1: number, top: (x: number) => number, bottom: number, o: { far?: number; near?: number; depth?: number; seed?: number; shade?: (x: number, y: number) => number; run?: number; marks?: readonly Mark[]; angle?: number; line?: number } = {}): Layer {
+function groundLayer(x0: number, x1: number, top: (x: number) => number, bottom: number, o: { far?: number; near?: number; depth?: number; seed?: number; shade?: (x: number, y: number) => number; run?: number; marks?: readonly Mark[]; angle?: number; line?: number; hue?: Hue } = {}): Layer {
   const n = Math.max(3, Math.round((x1 - x0) / 14));
   const pts: Pt[] = Array.from({ length: n + 1 }, (_, i) => [x0 + ((x1 - x0) * i) / n, top(x0 + ((x1 - x0) * i) / n)]);
   const far = o.far ?? 0.04;
@@ -1510,6 +1556,7 @@ function groundLayer(x0: number, x1: number, top: (x: number) => number, bottom:
     d: `${smooth(pts, false)}L${P(x1, bottom)}L${P(x0, bottom)}Z`,
     tone: Math.max(far, near, 0.05) + 0.5,
     depth: o.depth ?? 0.4,
+    hue: o.hue ?? "green",
     angle: o.angle ?? 0,
     run: o.run ?? 0.75,
     line: o.line ?? 0,
@@ -1543,11 +1590,11 @@ function tufts(x0: number, x1: number, y0: number, y1: number, n: number, h: num
       d += `M${P(bx, y)}Q${P(bx + l * 0.15, y - bh * 0.6)} ${P(bx + l * 0.5, y - bh)}`;
     }
   }
-  return { d, tex: true, blade: true, a: 0.85, w: 1, depth };
+  return { d, tex: true, blade: true, a: 0.85, w: 1, depth, hue: "green" };
 }
 
 /** Stipple: n dots scattered in an ellipse. */
-function stip(cx: number, cy: number, rx: number, ry: number, n: number, seed = 1, a = 0.75, depth?: number): Mark {
+function stip(cx: number, cy: number, rx: number, ry: number, n: number, seed = 1, a = 0.75, depth?: number, hue?: Hue): Mark {
   const r = mulberry32(seed * 419 + 23);
   let d = "";
   for (let i = 0; i < n; i++) {
@@ -1555,11 +1602,11 @@ function stip(cx: number, cy: number, rx: number, ry: number, n: number, seed = 
     const k = Math.sqrt(r());
     d += `M${P(cx + Math.cos(t) * rx * k, cy + Math.sin(t) * ry * k)}`;
   }
-  return { d, tex: true, a, depth };
+  return { d, tex: true, a, depth, hue };
 }
 
 /** Short dashes scattered over a box: pebbles, wet earth, ripples. */
-function dashes(x0: number, x1: number, y0: number, y1: number, n: number, len: number, seed = 1, o: { a?: number; depth?: number; tilt?: number } = {}): Mark {
+function dashes(x0: number, x1: number, y0: number, y1: number, n: number, len: number, seed = 1, o: { a?: number; depth?: number; tilt?: number; hue?: Hue } = {}): Mark {
   const r = mulberry32(seed * 251 + 29);
   let d = "";
   for (let i = 0; i < n; i++) {
@@ -1569,7 +1616,7 @@ function dashes(x0: number, x1: number, y0: number, y1: number, n: number, len: 
     const t = (o.tilt ?? 0) + (r() - 0.5) * 0.1;
     d += `M${P(x, y)}Q${P(x + l / 2, y + t * l * 0.5 + (r() - 0.5) * 0.6)} ${P(x + l, y + t * l)}`;
   }
-  return { d, tex: true, a: o.a ?? 0.75, depth: o.depth, w: 0.9 };
+  return { d, tex: true, a: o.a ?? 0.75, depth: o.depth, w: 0.9, hue: o.hue };
 }
 
 /* ── water ── */
@@ -1605,19 +1652,20 @@ function glints(x0: number, x1: number, y0: number, y1: number, n: number, seed 
 }
 
 /** Reflections: the shapes above a waterline, turned over and hatched in broken vertical strokes. */
-function reflect(ds: readonly string[], y0: number, tone: number, depth: number, reach = 46): Layer[] {
-  return ds.map((d): Layer => ({ d: mirrorY(d, y0), tone, depth, run: 0.55, angle: 0, toneAt: (_, py) => clamp01(1 - (py - y0) / reach) * 0.9 + 0.1 }));
+function reflect(ds: readonly string[], y0: number, tone: number, depth: number, reach = 46, hue?: Hue): Layer[] {
+  return ds.map((d): Layer => ({ d: mirrorY(d, y0), tone, depth, hue, run: 0.55, angle: 0, toneAt: (_, py) => clamp01(1 - (py - y0) / reach) * 0.9 + 0.1 }));
 }
 
 /* ── pines ── */
 
 /** A conifer: a thin trunk and tiers of drooping, ragged branches, each dark under its skirt and light on its upper left. */
-function pineLayers(x: number, base: number, h: number, w: number, seed: number, o: { depth?: number; tone?: number; line?: number } = {}): Layer[] {
+function pineLayers(x: number, base: number, h: number, w: number, seed: number, o: { depth?: number; tone?: number; line?: number; hue?: Hue } = {}): Layer[] {
   const r = mulberry32(seed * 887 + 3);
   const depth = o.depth ?? 0.3;
+  const hue = o.hue ?? "green";
   const tiers = Math.max(3, Math.round(h / 13));
   const out: Layer[] = [
-    { d: box(x - Math.max(1, w * 0.03), base - h * 0.18, Math.max(2, w * 0.06), h * 0.18 + 1), tone: 0.95, depth, line: 0.5 },
+    { d: box(x - Math.max(1, w * 0.03), base - h * 0.18, Math.max(2, w * 0.06), h * 0.18 + 1), tone: 0.95, depth, hue: o.hue ? hue : "red", line: 0.5 },
   ];
   const top = base - h;
   for (let i = 0; i < tiers; i++) {
@@ -1651,6 +1699,7 @@ function pineLayers(x: number, base: number, h: number, w: number, seed: number,
       d: poly(pts),
       tone: o.tone ?? 0.92,
       depth,
+      hue,
       knockout: true,
       line: o.line ?? 0.85,
       side: "all",
@@ -1728,25 +1777,27 @@ function house(x: number, y: number, o: HouseOpts): Layer[] {
   const roofAngle = (Math.atan2(c0[0] - apex[0], c0[1] - apex[1]) * 180) / Math.PI;
   const layers: Layer[] = [];
 
-  // the gable end: in shade, its edge sloping up to the ridge
+  // the gable end: in shade (cobalt, as Matisse shades), its edge sloping up to the ridge
   const endWall = poly([F(0, 0), S(1, 0), S(1, 1), apex, F(0, 1)]);
   layers.push({
     d: endWall,
     tone: o.endTone ?? 0.62,
     depth,
+    hue: "blue",
     knockout: true,
     line: 0.9,
     crisp: true,
     angle: 0,
     ramp: { to: (o.endTone ?? 0.62) * 0.5, dir: "up" },
   });
-  // the long face: bare paper, a little shade under the eaves and at the foot
+  // the long face: sunlit yellow, a little shade under the eaves and at the foot
   const front = poly([F(0, 0), F(1, 0), F(1, 1), F(0, 1)]);
   const nz = noise2((o.seed ?? 1) * 13 + 5);
   layers.push({
     d: front,
     tone: 0.5,
     depth,
+    hue: "yellow",
     knockout: true,
     line: 0.9,
     crisp: true,
@@ -1755,7 +1806,7 @@ function house(x: number, y: number, o: HouseOpts): Layer[] {
       const u = clamp01((x - px) / o.w);
       return clamp01(0.55 * smoothstep(0.82, 1, v) + 0.4 * smoothstep(0.22, 0, v) + 0.1 * nz(px * 0.2, py * 0.2) + 0.12 * (1 - u) - 0.08);
     },
-    marks: [dashes(x - o.w, x, y - 3, y + 1, 10, 3, (o.seed ?? 1) + 2, { a: 0.6, depth })],
+    marks: [dashes(x - o.w, x, y - 3, y + 1, 10, 3, (o.seed ?? 1) + 2, { a: 0.6, depth, hue: "orange" })],
   });
   // windows and a door: small dark shapes with a bare frame
   const quad = (u0: number, v0: number, u1: number, v1: number, arch = 0): string => {
@@ -1769,20 +1820,21 @@ function house(x: number, y: number, o: HouseOpts): Layer[] {
   };
   for (const u of o.windows ?? []) {
     const wu = 0.075;
-    layers.push({ d: quad(u - wu / 2, 0.32, u + wu / 2, 0.74, 0.1), tone: 0.95, depth, knockout: true, line: 0.75, crisp: true, marks: [line(...F(u, 0.32), ...F(u, 0.84)), line(...F(u - wu / 2, 0.55), ...F(u + wu / 2, 0.55))] });
+    layers.push({ d: quad(u - wu / 2, 0.32, u + wu / 2, 0.74, 0.1), tone: 0.95, depth, hue: "blue", knockout: true, line: 0.75, crisp: true, marks: [line(...F(u, 0.32), ...F(u, 0.84)), line(...F(u - wu / 2, 0.55), ...F(u + wu / 2, 0.55))] });
   }
   if (o.door !== undefined) {
     const u = o.door;
-    layers.push({ d: quad(u - 0.055, 0, u + 0.055, 0.66, 0.16), tone: 0.8, depth, knockout: true, line: 0.85, crisp: true });
+    layers.push({ d: quad(u - 0.055, 0, u + 0.055, 0.66, 0.16), tone: 0.8, depth, hue: "green", knockout: true, line: 0.85, crisp: true });
   }
   // a small window in the gable end
-  layers.push({ d: poly([S(0.42, 0.56), S(0.58, 0.56), S(0.58, 0.86), S(0.42, 0.86)]), tone: 0.9, depth, knockout: true, line: 0.65, crisp: true });
+  layers.push({ d: poly([S(0.42, 0.56), S(0.58, 0.56), S(0.58, 0.86), S(0.42, 0.86)]), tone: 0.9, depth, hue: "blue", knockout: true, line: 0.65, crisp: true });
 
   // the roof: hatched down its slope, darker toward the eave
   layers.push({
     d: poly(roofPts),
     tone: o.roofTone ?? 0.78,
     depth,
+    hue: "red",
     knockout: true,
     line: 1,
     crisp: true,
@@ -1794,14 +1846,14 @@ function house(x: number, y: number, o: HouseOpts): Layer[] {
     },
   });
   // roof edge over the gable end: a thin dark verge
-  layers.push({ d: "", tone: 0, marks: [{ d: stroke2([[c0[0], c0[1]], [apex[0], apex[1]]]), w: 1.05, depth }, { d: stroke2([[c0[0] + 1, c0[1] + 2.2], [apex[0] + 0.5, apex[1] + 2.6]]), w: 0.7, a: 0.7, depth }] });
+  layers.push({ d: "", tone: 0, hue: "red", marks: [{ d: stroke2([[c0[0], c0[1]], [apex[0], apex[1]]]), w: 1.05, depth }, { d: stroke2([[c0[0] + 1, c0[1] + 2.2], [apex[0] + 0.5, apex[1] + 2.6]]), w: 0.7, a: 0.7, depth }] });
   if (o.chimney) {
     const cu = 0.7;
     const cb = [ridge[Math.round((1 - cu) * 7)][0], ridge[Math.round((1 - cu) * 7)][1]] as Pt;
     const cw = Math.max(3, o.w * 0.06);
     const chH = o.rise * 0.6 + 3;
-    layers.push({ d: poly([[cb[0] - cw, cb[1] + 1], [cb[0] - cw, cb[1] - chH], [cb[0] + cw * 0.3, cb[1] - chH - 0.6], [cb[0] + cw * 0.3, cb[1] + 1]]), tone: 0.35, depth, knockout: true, line: 0.85, crisp: true, ramp: { to: 0.9, dir: "right" } });
-    layers.push({ d: poly([[cb[0] + cw * 0.3, cb[1] - chH - 0.6], [cb[0] + cw, cb[1] - chH + 0.4], [cb[0] + cw, cb[1] + 1.5], [cb[0] + cw * 0.3, cb[1] + 1]]), tone: 0.9, depth, knockout: true, line: 0.7, crisp: true });
+    layers.push({ d: poly([[cb[0] - cw, cb[1] + 1], [cb[0] - cw, cb[1] - chH], [cb[0] + cw * 0.3, cb[1] - chH - 0.6], [cb[0] + cw * 0.3, cb[1] + 1]]), tone: 0.35, depth, hue: "orange", knockout: true, line: 0.85, crisp: true, ramp: { to: 0.9, dir: "right" } });
+    layers.push({ d: poly([[cb[0] + cw * 0.3, cb[1] - chH - 0.6], [cb[0] + cw, cb[1] - chH + 0.4], [cb[0] + cw, cb[1] + 1.5], [cb[0] + cw * 0.3, cb[1] + 1]]), tone: 0.9, depth, hue: "orange", knockout: true, line: 0.7, crisp: true });
   }
   return layers;
 }
@@ -1824,8 +1876,10 @@ function mist(x0: number, x1: number, y: number, th: number, seed: number, depth
 }
 
 /** A far line of trees: a run of small overlapping canopies. Returns the layers and each silhouette (for reflections). */
-function treeLine(x0: number, x1: number, base: number, h: number, seed: number, depth: number, tone: number, o: { lit?: number; line?: number; under?: number } = {}): { layers: Layer[]; shapes: string[] } {
+function treeLine(x0: number, x1: number, base: number, h: number, seed: number, depth: number, tone: number, o: { lit?: number; line?: number; under?: number; hue?: Hue } = {}): { layers: Layer[]; shapes: string[] } {
   const r = mulberry32(seed * 577 + 5);
+  // the farthest woods turn cobalt, as in a Fauve landscape; nearer ones stay green
+  const hue = o.hue ?? (depth >= 0.9 ? "blue" : "green");
   const layers: Layer[] = [];
   const shapes: string[] = [];
   let x = x0;
@@ -1834,7 +1888,7 @@ function treeLine(x0: number, x1: number, base: number, h: number, seed: number,
     const w = (30 + r() * 34) * Math.max(0.6, h / 26);
     const hh = h * (0.72 + 0.5 * r());
     const c = canopy(x + w / 2, base - hh / 2 + 1, w, hh, seed * 31 + i, { r: Math.max(3.2, h * 0.19) });
-    layers.push(...canopyLayers(c, { depth, tone, lit: o.lit ?? 0.34, under: o.under ?? 0.5, line: o.line ?? 0.8, seed: seed + i }));
+    layers.push(...canopyLayers(c, { depth, tone, lit: o.lit ?? 0.34, under: o.under ?? 0.5, line: o.line ?? 0.8, seed: seed + i, hue }));
     shapes.push(c.d);
     x += w * (0.5 + 0.32 * r());
     i += 1;
@@ -1869,7 +1923,7 @@ function oakTree(o: OakOpts): Layer[] {
     const x0 = o.x + bend * 0.6;
     const tx = cx + side * o.w * (0.1 + 0.16 * r());
     const ty = o.base - o.h + ch * (0.8 + 0.14 * r());
-    limbs.push({ d: branch(x0, y0, tx, ty, tw * 0.5, tw * 0.16, side * (0.6 + 1.2 * r())), tone: 0.85, depth, knockout: true, line: 0.8, side: "all", ramp: { to: 0.95, dir: "right" } });
+    limbs.push({ d: branch(x0, y0, tx, ty, tw * 0.5, tw * 0.16, side * (0.6 + 1.2 * r())), tone: 0.85, depth, hue: "red", knockout: true, line: 0.8, side: "all", ramp: { to: 0.95, dir: "right" } });
   }
   return [...canopyLayers(c, st, 0, 0.5), ...trunkLayers(o.x, o.base, trunkTop, tw * 1.35, tw * 0.9, bend, o.seed, { depth }), ...limbs, ...canopyLayers(c, st, 0.5, 1)];
 }
@@ -1911,11 +1965,13 @@ function birchLayers(x: number, base: number, top: number, w: number, bend: numb
     marks.push(`M${P(x0, y)}Q${P(x0 + l * 0.5, y - 0.9 - r())} ${P(x0 + l, y + (r() - 0.5))}`);
     if (r() < 0.5) tick.push(`M${P(cx(t) + half * 0.2, y + 1.3)}L${P(cx(t) + half * (0.5 + r() * 0.4), y + 1.6)}`);
   }
+  // white bark shaded cobalt down its right side, ringed in black
   const layers: Layer[] = [
     {
       d,
       tone: 0.9,
       depth,
+      hue: "blue",
       knockout: true,
       line: 0.95,
       side: "all",
@@ -1924,7 +1980,7 @@ function birchLayers(x: number, base: number, top: number, w: number, bend: numb
         const u = (px - (cx(t) - hw(t))) / Math.max(1, hw(t) * 2);
         return clamp01(0.9 * smoothstep(0.62, 1, u) + 0.04);
       },
-      marks: [{ d: marks.join(""), w: 1.35, a: 0.95, depth }, { d: tick.join(""), w: 0.8, a: 0.8, depth }],
+      marks: [{ d: marks.join(""), w: 1.35, a: 0.95, depth, hue: "black" }, { d: tick.join(""), w: 0.8, a: 0.8, depth, hue: "black" }],
     },
   ];
   if (o.limbs) {
@@ -1936,7 +1992,7 @@ function birchLayers(x: number, base: number, top: number, w: number, bend: numb
       const x0 = cx(t);
       ld += `M${P(x0, y)}Q${P(x0 + side * 8, y - 6 - r() * 6)} ${P(x0 + side * (14 + r() * 8), y - 14 - r() * 10)}`;
     }
-    layers.push({ d: "", tone: 0, depth, marks: [{ d: ld, w: 0.85, a: 0.9, depth }] });
+    layers.push({ d: "", tone: 0, depth, hue: "black", marks: [{ d: ld, w: 0.85, a: 0.9, depth }] });
   }
   return layers;
 }
@@ -1956,10 +2012,10 @@ function reeds(x: number, base: number, n: number, hMin: number, hMax: number, s
     if (r() < cattails) {
       const hl = 8 + r() * 4;
       const ang = Math.atan2(lean, h * 0.5);
-      heads.push({ d: leaf(tipX - Math.sin(ang) * hl * 0.8, tipY + hl * 0.9, tipX, tipY - 1, 1.9), tone: 0.95, depth, knockout: true, line: 0.6, side: "all" });
+      heads.push({ d: leaf(tipX - Math.sin(ang) * hl * 0.8, tipY + hl * 0.9, tipX, tipY - 1, 1.9), tone: 0.95, depth, hue: "orange", knockout: true, line: 0.6, side: "all" });
     }
   }
-  return [{ d: "", tone: 0, depth, marks: [{ d, tex: true, blade: true, w: wide, a: 0.92, depth }] }, ...heads];
+  return [{ d: "", tone: 0, depth, hue: "green", marks: [{ d, tex: true, blade: true, w: wide, a: 0.92, depth }] }, ...heads];
 }
 
 /** A rock: a rounded lump with a lit top-left and a shadowed underside. */
@@ -1970,11 +2026,11 @@ function rockLayer(cx: number, cy: number, rx: number, ry: number, seed: number,
     const k = 0.84 + r() * 0.3;
     return [cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k * (Math.sin(a) > 0 ? 0.75 : 1)];
   });
-  return { d: smooth(pts), tone, depth, knockout: true, line: 0.95, side: "all", toneAt: (px, py) => clamp01(0.12 + 0.95 * smoothstep(-0.5, 0.9, ((px - cx) * -LIGHT[0] + (py - cy) * -LIGHT[1]) / Math.max(rx, ry))) };
+  return { d: smooth(pts), tone, depth, hue: "violet", knockout: true, line: 0.95, side: "all", toneAt: (px, py) => clamp01(0.12 + 0.95 * smoothstep(-0.5, 0.9, ((px - cx) * -LIGHT[0] + (py - cy) * -LIGHT[1]) / Math.max(rx, ry))) };
 }
 
 /** A far ridge with its own faint texture: a hill in one tone, its crest drawn in a broken line. */
-function ridge(x0: number, x1: number, y: number, amp: number, seed: number, bottom: number, depth: number, tone: number, o: { wl?: number; tilt?: number; line?: number; angle?: number; run?: number } = {}): Layer {
+function ridge(x0: number, x1: number, y: number, amp: number, seed: number, bottom: number, depth: number, tone: number, o: { wl?: number; tilt?: number; line?: number; angle?: number; run?: number; hue?: Hue } = {}): Layer {
   const nz = noise2(seed * 5 + 1);
   const c = crest(x0, x1, y, amp, seed, o.wl ?? 70, o.tilt ?? 0);
   const top = Math.min(...c.map((p) => p[1]));
@@ -1982,6 +2038,8 @@ function ridge(x0: number, x1: number, y: number, amp: number, seed: number, bot
     d: `${smooth(c, false)}L${P(x1, bottom)}L${P(x0, bottom)}Z`,
     tone,
     depth,
+    // distance in colour: cobalt far off, violet between, green close to
+    hue: o.hue ?? (depth >= 0.9 ? "blue" : depth >= 0.6 ? "violet" : "green"),
     knockout: true,
     line: o.line ?? 0.8,
     side: "top",
@@ -1999,7 +2057,7 @@ function sunflower(cx: number, cy: number, R: number, rot: number, squash: numbe
     const t = i / 6;
     return [lerp(cx, cx + bend, t) - Math.sin(Math.PI * t) * bend * 0.35, lerp(cy, stemBase, t)];
   });
-  layers.push({ d: tube(stem, 2.4, 3.6), tone: 0.55, depth, knockout: true, line: 0.85, side: "all", ramp: { to: 0.9, dir: "right" } });
+  layers.push({ d: tube(stem, 2.4, 3.6), tone: 0.55, depth, hue: "green", knockout: true, line: 0.85, side: "all", ramp: { to: 0.9, dir: "right" } });
   for (let i = 0; i < (leaves > 0 ? 2 : 0); i++) {
     const t = 0.42 + i * 0.26;
     const sx = lerp(cx, cx + bend, t);
@@ -2012,6 +2070,7 @@ function sunflower(cx: number, cy: number, R: number, rot: number, squash: numbe
       d: `M${P(sx, sy)}Q${P(sx + side * l * 0.35, sy - 15 + i * 4)} ${P(ex, ey)}Q${P(sx + side * l * 0.6, sy + 5 + i * 3)} ${P(sx, sy)}Z`,
       tone: 0.7,
       depth,
+      hue: "green",
       knockout: true,
       line: 0.9,
       side: "all",
@@ -2027,26 +2086,27 @@ function sunflower(cx: number, cy: number, R: number, rot: number, squash: numbe
     const y = rho * squash * Math.sin(a);
     return [cx + x * cr - y * sr, cy + x * sr + y * cr];
   };
-  const ring = (n: number, r0: number, r1: number, wd: number, off: number, tone: number, sid: number) => {
+  const ring = (n: number, r0: number, r1: number, wd: number, off: number, tone: number, sid: number, hue: Hue) => {
     const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => Math.sin((a / n) * Math.PI * 2 + off) - Math.sin((b / n) * Math.PI * 2 + off));
     for (const i of order) {
       const a = (i / n) * Math.PI * 2 + off + (r() - 0.5) * 0.12;
       const p0 = at(a, R * r0);
       const p1 = at(a + (r() - 0.5) * 0.08, R * (r1 + (r() - 0.5) * 0.14));
-      layers.push({ d: leaf(p0[0], p0[1], p1[0], p1[1], wd * (0.85 + r() * 0.3)), tone, depth, knockout: true, line: 0.7, side: "all", ramp: { to: tone * 1.3, dir: "right" }, angle: (i + sid) % 2 ? 5 : -5, marks: [{ d: line(p0[0], p0[1], lerp(p0[0], p1[0], 0.8), lerp(p0[1], p1[1], 0.8)), w: 0.5, a: 0.55, depth }] });
+      layers.push({ d: leaf(p0[0], p0[1], p1[0], p1[1], wd * (0.85 + r() * 0.3)), tone, depth, hue, knockout: true, line: 0.7, side: "all", ramp: { to: tone * 1.3, dir: "right" }, angle: (i + sid) % 2 ? 5 : -5, marks: [{ d: line(p0[0], p0[1], lerp(p0[0], p1[0], 0.8), lerp(p0[1], p1[1], 0.8)), w: 0.5, a: 0.55, depth }] });
     }
   };
-  ring(17, 0.5, 1.12, 4.1, 0, 0.55, 0);
-  ring(13, 0.46, 0.86, 3.2, 0.24, 0.32, 1);
+  ring(17, 0.5, 1.12, 4.1, 0, 0.55, 0, "yellow");
+  ring(13, 0.46, 0.86, 3.2, 0.24, 0.32, 1, "orange");
   layers.push({
     d: oval(cx, cy, R * 0.52, R * 0.52 * squash, rot),
     tone: 0.95,
     depth,
+    hue: "red",
     knockout: true,
     line: 1,
     side: "all",
     toneAt: (px, py) => clamp01(0.5 + 0.5 * smoothstep(-0.7, 0.9, ((px - cx) * -LIGHT[0] + (py - cy) * -LIGHT[1]) / (R * 0.5))),
-    marks: [stip(cx - R * 0.14, cy - R * 0.12 * squash, R * 0.26, R * 0.22 * squash, 10, seed + 4, 0.95, depth)],
+    marks: [stip(cx - R * 0.14, cy - R * 0.12 * squash, R * 0.26, R * 0.22 * squash, 10, seed + 4, 0.95, depth, "black")],
   });
   return layers;
 }
@@ -2061,7 +2121,7 @@ function sunflower(cx: number, cy: number, R: number, rot: number, squash: numbe
 function sceneFog(): Layer[] {
   const far = treeLine(6, 356, 130, 24, 11, 0.96, 0.62);
   const mid = treeLine(6, 210, 150, 30, 12, 0.72, 0.8);
-  const post = (x: number, y: number, s: number): Layer => ({ d: poly([[x - 1.3 * s, y], [x - 1.1 * s, y - 15 * s], [x + 1.2 * s, y - 15.6 * s], [x + 1.4 * s, y]]), tone: 0.6, depth: 0.5, line: 0.7, crisp: true, ramp: { to: 0.9, dir: "right" } });
+  const post = (x: number, y: number, s: number): Layer => ({ d: poly([[x - 1.3 * s, y], [x - 1.1 * s, y - 15 * s], [x + 1.2 * s, y - 15.6 * s], [x + 1.4 * s, y]]), tone: 0.6, depth: 0.5, hue: "red", line: 0.7, crisp: true, ramp: { to: 0.9, dir: "right" } });
   return [
     ...far.layers,
     mist(0, 360, 128, 20, 1, 0.9),
@@ -2069,11 +2129,11 @@ function sceneFog(): Layer[] {
     groundLayer(6, 356, (x) => 152 + 4 * Math.sin(x * 0.02), 240, { far: 0.05, near: 0.4, depth: 0.5, seed: 1, marks: [tufts(20, 340, 156, 200, 26, 6, 1, 0.5)] }),
     mist(0, 280, 154, 16, 2, 0.5),
     ...[64, 92, 118, 142].map((x, i) => post(x, 168 + i * 1.6, 0.6 + i * 0.16)),
-    { d: "", tone: 0, depth: 0.5, marks: [{ d: stroke2([[58, 155], [92, 157.5], [118, 160], [142, 163], [176, 166]]), w: 0.6, a: 0.75, depth: 0.5 }] },
+    { d: "", tone: 0, depth: 0.5, hue: "red", marks: [{ d: stroke2([[58, 155], [92, 157.5], [118, 160], [142, 163], [176, 166]]), w: 0.6, a: 0.75, depth: 0.5 }] },
     castShadow(232, 196, 62, 6, 4, 0.75, 0.2),
     ...oakTree({ x: 236, base: 194, h: 138, w: 96, seed: 5, depth: 0.12, lean: 6, lobes: 2, tone: 0.8, under: 0.7, lit: 0.26, bend: 12 }),
     mist(120, 350, 186, 16, 3, 0.4),
-    groundLayer(6, 356, (x) => 198 + 3 * Math.sin(x * 0.03 + 1), 240, { far: 0.2, near: 0.8, depth: 0.1, seed: 4, run: 1.2, marks: [tufts(10, 350, 204, 238, 34, 10, 3, 0.05), stip(120, 222, 60, 8, 14, 3, 0.8, 0.1)] }),
+    groundLayer(6, 356, (x) => 198 + 3 * Math.sin(x * 0.03 + 1), 240, { far: 0.2, near: 0.8, depth: 0.1, seed: 4, run: 1.2, marks: [tufts(10, 350, 204, 238, 34, 10, 3, 0.05), stip(120, 222, 60, 8, 14, 3, 0.8, 0.1, "pink")] }),
   ];
 }
 
@@ -2087,7 +2147,7 @@ function sceneOak(): Layer[] {
     groundLayer(6, 356, (x) => 164 + 5 * Math.sin(x * 0.014 + 2), 240, { far: 0.05, near: 0.45, depth: 0.45, seed: 2, shade: (x, y) => (x > 140 && x < 268 && y > 172 && y < 196 ? 0.6 : 0), marks: [tufts(10, 350, 170, 200, 36, 6, 2, 0.4)] }),
     castShadow(150, 190, 72, 8, 6, 0.85, 0.2),
     ...oakTree({ x: 150, base: 186, h: 158, w: 158, seed: 8, depth: 0.1, lean: 8, lobes: 2, tone: 0.8, under: 0.65, lit: 0.22, bend: 14 }),
-    groundLayer(6, 356, (x) => 206 + 4 * Math.sin(x * 0.02 + 4), 240, { far: 0.25, near: 0.85, depth: 0.08, seed: 5, run: 1.3, marks: [tufts(10, 350, 210, 238, 46, 11, 4, 0.05), stip(240, 216, 50, 6, 12, 4, 0.8, 0.1)] }),
+    groundLayer(6, 356, (x) => 206 + 4 * Math.sin(x * 0.02 + 4), 240, { far: 0.25, near: 0.85, depth: 0.08, seed: 5, run: 1.3, marks: [tufts(10, 350, 210, 238, 46, 11, 4, 0.05), stip(240, 216, 50, 6, 12, 4, 0.8, 0.1, "yellow")] }),
   ];
 }
 
@@ -2106,7 +2166,7 @@ function sceneCottage(): Layer[] {
     castShadow(212, 190, 50, 5, 9, 0.7, 0.3),
     ...poplar(246, 188, 150, 30, 33, 0.25, 0.94, 3),
     ...poplar(282, 196, 126, 26, 34, 0.2, 0.94, -3),
-    { d: tube([[153, 181], [149, 194], [162, 208], [188, 220], [214, 234], [228, 246]], 6, 36), tone: 0, knockout: true, depth: 0.25, line: 0.65, side: "all", marks: [dashes(140, 230, 196, 238, 12, 3, 5, { depth: 0.25 }), stip(190, 222, 30, 10, 12, 4, 0.8, 0.2)] },
+    { d: tube([[153, 181], [149, 194], [162, 208], [188, 220], [214, 234], [228, 246]], 6, 36), tone: 0, knockout: true, depth: 0.25, hue: "orange", line: 0.65, side: "all", marks: [dashes(140, 230, 196, 238, 12, 3, 5, { depth: 0.25 }), stip(190, 222, 30, 10, 12, 4, 0.8, 0.2)] },
     ...hedge(84, 178, 200, 20, 15, 0.2, 0.95),
     groundLayer(6, 356, (x) => 226 + 3 * Math.sin(x * 0.03), 240, { far: 0.3, near: 0.85, depth: 0.08, seed: 6, run: 1.2, marks: [tufts(10, 350, 228, 238, 30, 9, 8, 0.05)] }),
   ];
@@ -2144,6 +2204,7 @@ function sceneLavender(): Layer[] {
       d: smooth([...L, ...R.reverse()]),
       tone: 0.9,
       depth: 0.55,
+      hue: "violet",
       knockout: true,
       line: 0.75,
       side: "all",
@@ -2164,7 +2225,7 @@ function sceneLavender(): Layer[] {
     ...farm,
     ...poplar(238, 130, 46, 8, 43, 0.85, 0.85),
     ...poplar(246, 130, 38, 7, 44, 0.85, 0.85),
-    groundLayer(6, 356, () => 130, 240, { far: 0.02, near: 0.16, depth: 0.5, seed: 4, marks: [dashes(60, 340, 150, 236, 40, 4, 4, { depth: 0.3 })] }),
+    groundLayer(6, 356, () => 130, 240, { far: 0.02, near: 0.16, depth: 0.5, seed: 4, hue: "orange", marks: [dashes(60, 340, 150, 236, 40, 4, 4, { depth: 0.3 })] }),
     ...rows,
     { d: "", tone: 0, depth: 0.1, marks: [tufts(10, 350, 230, 238, 20, 8, 3, 0.05)] },
   ];
@@ -2182,8 +2243,8 @@ function sceneLake(): Layer[] {
     ...shore.layers,
     ...boat,
     lakeLayer(6, 356, wl + 2, 240, { seed: 5, depth: 0.45, shore: "top", tone: 0.55, clear: 44 }),
-    ...reflect(shore.shapes, wl, 0.4, 0.75, 30),
-    ...reflect([wall], wl + 2, 0.55, 0.6, 22),
+    ...reflect(shore.shapes, wl, 0.4, 0.75, 30, "green"),
+    ...reflect([wall], wl + 2, 0.55, 0.6, 22, "yellow"),
     ...glints(20, 340, wl + 8, 200, 14, 5),
     { d: "", tone: 0, depth: 0.5, marks: [dashes(20, 340, wl + 30, 240, 70, 9, 5, { depth: 0.5, a: 0.65 })] },
     { d: "", tone: 0, depth: 0.2, marks: [{ d: wavy(200, 300, 205, 1, 20, 0) + wavy(214, 290, 212, 0.8, 18, 1) + wavy(226, 276, 219, 0.6, 14, 2), w: 0.9, a: 0.8 }] },
@@ -2238,7 +2299,7 @@ function sceneSunflowers(): Layer[] {
     ridge(6, 356, 112, 12, 71, 240, 0.97, 0.16, { wl: 120, line: 0.5, tilt: 8 }),
     ...far.layers,
     ridge(6, 356, 138, 8, 72, 240, 0.85, 0.2, { wl: 90, line: 0.6, tilt: -6 }),
-    groundLayer(6, 356, (x) => 144 + 4 * Math.sin(x * 0.02), 240, { far: 0.03, near: 0.24, depth: 0.5, seed: 7, marks: [{ d: dots, tex: true, a: 0.8, depth: 0.5 }] }),
+    groundLayer(6, 356, (x) => 144 + 4 * Math.sin(x * 0.02), 240, { far: 0.03, near: 0.24, depth: 0.5, seed: 7, hue: "yellow", marks: [{ d: dots, tex: true, a: 0.8, depth: 0.5, hue: "orange" }] }),
     ...sunflower(216, 158, 14, 6, 0.85, 240, 74, 0.3, -3),
     ...sunflower(102, 120, 25, 26, 0.5, 250, 75, 0.1, -14),
     ...sunflower(258, 108, 24, -28, 0.56, 250, 76, 0.1, 16),
@@ -2293,7 +2354,7 @@ function sceneBirches(): Layer[] {
     ...canopyLayers(back, { depth: 0.8, tone: 0.7, lit: 0.3, under: 0.5, line: 0.8, seed: 9 }),
     ...treeLine(6, 356, 132, 26, 92, 0.6, 0.85).layers,
     groundLayer(6, 356, (x) => 128 + 2 * Math.sin(x * 0.03), 240, { far: 0.05, near: 0.3, depth: 0.4, seed: 9, marks: [tufts(10, 350, 138, 236, 44, 7, 9, 0.3)] }),
-    { d: path, tone: 0, knockout: true, depth: 0.25, line: 0.7, side: "all", marks: [dashes(160, 270, 150, 238, 40, 3, 9, { depth: 0.25 }), stip(214, 222, 40, 12, 14, 3, 0.8, 0.2)] },
+    { d: path, tone: 0, knockout: true, depth: 0.25, hue: "orange", line: 0.7, side: "all", marks: [dashes(160, 270, 150, 238, 40, 3, 9, { depth: 0.25 }), stip(214, 222, 40, 12, 14, 3, 0.8, 0.2)] },
     ...birchLayers(150, 190, 40, 6.5, 10, 96, 0.4, { limbs: true }),
     ...birchLayers(236, 192, 42, 6.5, -10, 97, 0.4, { limbs: true }),
     ...birchLayers(118, 216, 22, 10, 20, 93, 0.25, { limbs: false }),
@@ -2315,18 +2376,19 @@ function sceneStorm(): Layer[] {
   const cloudEnv = (t: number) => (t < 0.6 ? 0.22 + 0.78 * Math.pow(Math.sin(((Math.PI / 2) * t) / 0.6), 0.75) : 1 - 0.06 * ((t - 0.6) / 0.4));
   const big = canopy(132, 64, 232, 92, 101, { r: 15, env: cloudEnv, lobes: 0 });
   const small = canopy(292, 50, 96, 44, 102, { r: 9, env: cloudEnv, lobes: 0 });
-  const band = (y: number, amp: number, seed: number, bottom: number, depth: number, tone: number, angle: number, run: number): Layer => ridge(6, 356, y, amp, seed, bottom, depth, tone, { wl: 110, line: 0.55, angle, run });
+  const band = (y: number, amp: number, seed: number, bottom: number, depth: number, tone: number, angle: number, run: number, hue: Hue): Layer => ridge(6, 356, y, amp, seed, bottom, depth, tone, { wl: 110, line: 0.55, angle, run, hue });
   return [
-    ...canopyLayers(small, { depth: 0.55, tone: 0.55, lit: 0, under: 1, local: 0.1, curve: 2, line: 0.85, seed: 10 }),
-    ...canopyLayers(big, { depth: 0.25, tone: 0.92, lit: 0, under: 1.15, local: 0.12, curve: 2.4, line: 1.05, seed: 11 }),
+    ...canopyLayers(small, { depth: 0.55, tone: 0.55, lit: 0, under: 1, local: 0.1, curve: 2, line: 0.85, seed: 10, hue: "violet" }),
+    ...canopyLayers(big, { depth: 0.25, tone: 0.92, lit: 0, under: 1.15, local: 0.12, curve: 2.4, line: 1.05, seed: 11, hue: "blue" }),
     { d: poly([[30, 110], [120, 108], [128, 148], [14, 150]]), tone: 0.2, depth: 0.7, angle: 14, run: 1.4, toneAt: (_x, y) => clamp01(1 - (y - 108) / 42) },
-    band(150, 2, 103, 240, 0.9, 0.22, 90, 1.8),
-    band(164, 3, 104, 240, 0.75, 0.3, 84, 1.6),
+    // a patchwork of fields in the flat light before the rain
+    band(150, 2, 103, 240, 0.9, 0.22, 90, 1.8, "yellow"),
+    band(164, 3, 104, 240, 0.75, 0.3, 84, 1.6, "green"),
     ...treeLine(180, 320, 152, 14, 105, 0.85, 0.85).layers,
     ...house(252, 164, { w: 18, d: 10, h: 8, rise: 6, hz: 146, vpL: -700, vpR: 700, depth: 0.6, seed: 10, sag: 0.3, windows: [0.5] }),
-    band(184, 4, 106, 240, 0.55, 0.42, 78, 1.5),
-    band(210, 4, 107, 240, 0.3, 0.6, 0, 1.3),
-    { d: "", tone: 0, depth: 0.3, marks: [{ d: stroke2([[110, 240], [150, 212], [196, 190], [244, 172]]) + stroke2([[132, 240], [166, 214], [204, 194], [246, 174]]), w: 0.9, a: 0.85, depth: 0.3 }] },
+    band(184, 4, 106, 240, 0.55, 0.42, 78, 1.5, "orange"),
+    band(210, 4, 107, 240, 0.3, 0.6, 0, 1.3, "green"),
+    { d: "", tone: 0, depth: 0.3, hue: "red", marks: [{ d: stroke2([[110, 240], [150, 212], [196, 190], [244, 172]]) + stroke2([[132, 240], [166, 214], [204, 194], [246, 174]]), w: 0.9, a: 0.85, depth: 0.3 }] },
     groundLayer(6, 356, (x) => 226 + 4 * Math.sin(x * 0.03), 240, { far: 0.4, near: 0.9, depth: 0.06, seed: 11, run: 1.3, marks: [tufts(10, 350, 228, 238, 30, 9, 11, 0.05)] }),
   ];
 }
@@ -2384,7 +2446,7 @@ function sceneGate(): Layer[] {
     const x = p[0] + (rr() - 0.5) * 16;
     const y = p[1] + (rr() - 0.5) * 14;
     const s = 2.3 + rr() * 1.3;
-    roses.push({ d: circ(x, y, s), tone: 0.1, depth: 0.15, knockout: true, line: 0.75, side: "all", marks: [{ d: stroke2([[x - s * 0.5, y + s * 0.1], [x, y - s * 0.4], [x + s * 0.5, y + s * 0.2], [x + s * 0.1, y + s * 0.5]]), w: 0.75, a: 0.9, depth: 0.15 }] });
+    roses.push({ d: circ(x, y, s), tone: 0.1, depth: 0.15, hue: "pink", knockout: true, line: 0.75, side: "all", marks: [{ d: stroke2([[x - s * 0.5, y + s * 0.1], [x, y - s * 0.4], [x + s * 0.5, y + s * 0.2], [x + s * 0.1, y + s * 0.5]]), w: 0.75, a: 0.9, depth: 0.15, hue: "red" }] });
   }
   const post = (x: number): Layer => ({ d: poly([[x - 6, wallBase + 1], [x - 5.5, wallTop - 20], [x + 6, wallTop - 20.5], [x + 6.5, wallBase + 1]]), tone: 0.45, depth: 0.25, knockout: true, line: 1, crisp: true, ramp: { to: 0.85, dir: "right" } });
   const planks: Layer[] = Array.from({ length: 6 }, (_, i): Layer => {
@@ -2394,8 +2456,8 @@ function sceneGate(): Layer[] {
   const brace = poly([[152, wallBase - 6], [156, wallBase - 12], [212, 138], [208, 144]]);
   return [
     ...oakTree({ x: 296, base: 130, h: 96, w: 88, seed: 113, depth: 0.5, tone: 0.8, lit: 0.26, lobes: 1 }),
-    { d: wallD, tone: 0.55, depth: 0.35, knockout: true, line: 0.9, crisp: true, toneAt: wallTone, marks: [{ d: joints, w: 0.7, a: 0.7, depth: 0.35 }, { d: stones, w: 0.65, a: 0.6, depth: 0.35 }] },
-    { d: wallR, tone: 0.55, depth: 0.35, knockout: true, line: 0.9, crisp: true, toneAt: wallTone, marks: [{ d: joints, w: 0.7, a: 0.7, depth: 0.35 }, { d: stones, w: 0.65, a: 0.6, depth: 0.35 }] },
+    { d: wallD, tone: 0.55, depth: 0.35, hue: "yellow", knockout: true, line: 0.9, crisp: true, toneAt: wallTone, marks: [{ d: joints, w: 0.7, a: 0.7, depth: 0.35, hue: "orange" }, { d: stones, w: 0.65, a: 0.6, depth: 0.35, hue: "orange" }] },
+    { d: wallR, tone: 0.55, depth: 0.35, hue: "yellow", knockout: true, line: 0.9, crisp: true, toneAt: wallTone, marks: [{ d: joints, w: 0.7, a: 0.7, depth: 0.35, hue: "orange" }, { d: stones, w: 0.65, a: 0.6, depth: 0.35, hue: "orange" }] },
     post(144),
     post(220),
     ...planks,
@@ -2406,7 +2468,7 @@ function sceneGate(): Layer[] {
     ...hedge(16, 122, 196, 28, 114, 0.25, 0.85),
     ...hedge(236, 340, 198, 26, 115, 0.25, 0.85),
     groundLayer(6, 356, (x) => 200 + 2 * Math.sin(x * 0.05), 240, { far: 0.2, near: 0.75, depth: 0.15, seed: 11, run: 1.2, marks: [tufts(10, 350, 204, 238, 40, 9, 11, 0.1)] }),
-    ...[[176, 206, 24, 5], [186, 216, 28, 6], [170, 227, 34, 7], [190, 237, 40, 8]].map(([x, y, rx, ry], i): Layer => ({ d: oval(x, y, rx, ry, (i % 2) * 3 - 1.5), tone: 0.2, depth: 0.12, knockout: true, line: 0.85, side: "all", ramp: { to: 0.5, dir: "right" } })),
+    ...[[176, 206, 24, 5], [186, 216, 28, 6], [170, 227, 34, 7], [190, 237, 40, 8]].map(([x, y, rx, ry], i): Layer => ({ d: oval(x, y, rx, ry, (i % 2) * 3 - 1.5), tone: 0.2, depth: 0.12, hue: "violet", knockout: true, line: 0.85, side: "all", ramp: { to: 0.5, dir: "right" } })),
   ];
 }
 
@@ -2428,22 +2490,22 @@ function sceneCliffs(): Layer[] {
   }
   const facetTone = (x0: number, x1: number, lo: number, hi: number) => (px: number, py: number) => clamp01(lo + (hi - lo) * smoothstep(x0, x1, px) + 0.4 * nz(px * 0.07, py * 0.06) + 0.12 * Math.sin(py * 0.6 + nz(px * 0.05, 2) * 3) - 0.14);
   return [
-    ridge(220, 356, hz - 2, 5, 121, hz + 4, 0.95, 0.3, { wl: 80, line: 0.6 }),
+    ridge(220, 356, hz - 2, 5, 121, hz + 4, 0.95, 0.3, { wl: 80, line: 0.6, hue: "violet" }),
     { d: box(6, hz, 350, 128), tone: 0.55, depth: 0.5, angle: 90, run: 0.5, loose: true, toneAt: (px, py) => clamp01(0.16 + 0.45 * Math.pow(1 - clamp01((py - hz) / 128), 1.6) + 0.3 * smoothstep(0.1, 0.9, clamp01((py - 190) / 50)) + 0.28 * nz(px * 0.04, py * 0.5) - 0.14) },
     { d: "", tone: 0, depth: 0.5, marks: [{ d: line(6, hz, 356, hz), w: 0.9, a: 0.9, depth: 0.9 }, dashes(6, 356, hz + 4, 150, 34, 10, 12, { depth: 0.8, a: 0.65 }), dashes(6, 356, 150, 190, 28, 14, 13, { depth: 0.55, a: 0.7 }), dashes(6, 356, 190, 240, 22, 18, 14, { depth: 0.3, a: 0.75 })] },
     ...glints(180, 340, 130, 200, 8, 12),
-    // the headland: a pale shoulder on top, then planes of rock turning into shadow
-    { d: crag([[6, 134], [30, 100], [62, 62], [96, 36], [124, 38], [142, 60], [112, 86], [70, 100], [34, 120]], 1, 2.6), tone: 0.32, depth: 0.18, knockout: true, line: 1, side: "all", angle: 22, run: 0.8, toneAt: facetTone(0, 140, 0.3, 0.75) },
-    { d: crag([[6, 134], [34, 120], [70, 100], [80, 150], [66, 196], [6, 206]], 2, 2), tone: 0.6, depth: 0.15, knockout: true, line: 1, side: "all", toneAt: facetTone(0, 80, 0.3, 0.7), marks: [{ d: strata, w: 0.55, a: 0.7, depth: 0.15 }] },
-    { d: crag([[70, 100], [112, 86], [142, 60], [160, 96], [148, 130], [166, 154], [148, 182], [64, 196], [80, 150]], 3, 2.4), tone: 0.9, depth: 0.12, knockout: true, line: 1.1, side: "all", angle: -4, toneAt: facetTone(70, 160, 0.4, 0.95) },
+    // the headland: a pale shoulder on top, then planes of rock turning into shadow — ochre, orange, violet, cobalt
+    { d: crag([[6, 134], [30, 100], [62, 62], [96, 36], [124, 38], [142, 60], [112, 86], [70, 100], [34, 120]], 1, 2.6), tone: 0.32, depth: 0.18, hue: "yellow", knockout: true, line: 1, side: "all", angle: 22, run: 0.8, toneAt: facetTone(0, 140, 0.3, 0.75) },
+    { d: crag([[6, 134], [34, 120], [70, 100], [80, 150], [66, 196], [6, 206]], 2, 2), tone: 0.6, depth: 0.15, hue: "orange", knockout: true, line: 1, side: "all", toneAt: facetTone(0, 80, 0.3, 0.7), marks: [{ d: strata, w: 0.55, a: 0.7, depth: 0.15, hue: "red" }] },
+    { d: crag([[70, 100], [112, 86], [142, 60], [160, 96], [148, 130], [166, 154], [148, 182], [64, 196], [80, 150]], 3, 2.4), tone: 0.9, depth: 0.12, hue: "violet", knockout: true, line: 1.1, side: "all", angle: -4, toneAt: facetTone(70, 160, 0.4, 0.95) },
     { d: crag([[96, 110], [110, 108], [104, 150], [110, 186], [92, 190], [96, 150]], 4, 1.4, 6), tone: 0.95, depth: 0.1, knockout: true, line: 0.6, side: "all" },
     ...hedge(72, 134, 46, 12, 123, 0.2, 0.75),
     { d: "", tone: 0, depth: 0.15, marks: [tufts(30, 132, 40, 100, 10, 6, 12, 0.15)] },
     // foam at the foot of the cliff
     ...[[152, 184, 12], [136, 194, 9], [168, 178, 7], [120, 200, 8]].map(([x, y, s], i): Layer => ({ d: scallop(x, y, s * 1.6, s * 0.5, 130 + i, 7, 0.6, 0.1), tone: 0, depth: 0.2, knockout: true, line: 0.7, side: "top" })),
-    { d: "", tone: 0, depth: 0.2, marks: [{ d: gull(190, 62, 1) + gull(218, 50, 0.85) + gull(236, 78, 0.7) + gull(168, 86, 0.6), w: 1, a: 0.9, depth: 0.3 }] },
-    { d: crag([[250, 232], [262, 210], [296, 202], [322, 214], [332, 232], [320, 240], [262, 240]], 5, 2), tone: 0.95, depth: 0.08, knockout: true, line: 1.1, side: "all", toneAt: facetTone(240, 340, 0.3, 0.95) },
-    { d: crag([[204, 240], [214, 228], [240, 226], [252, 240]], 6, 1.6), tone: 0.9, depth: 0.1, knockout: true, line: 1, side: "all", toneAt: facetTone(200, 260, 0.3, 0.9) },
+    { d: "", tone: 0, depth: 0.2, hue: "black", marks: [{ d: gull(190, 62, 1) + gull(218, 50, 0.85) + gull(236, 78, 0.7) + gull(168, 86, 0.6), w: 1, a: 0.9, depth: 0.3 }] },
+    { d: crag([[250, 232], [262, 210], [296, 202], [322, 214], [332, 232], [320, 240], [262, 240]], 5, 2), tone: 0.95, depth: 0.08, hue: "violet", knockout: true, line: 1.1, side: "all", toneAt: facetTone(240, 340, 0.3, 0.95) },
+    { d: crag([[204, 240], [214, 228], [240, 226], [252, 240]], 6, 1.6), tone: 0.9, depth: 0.1, hue: "red", knockout: true, line: 1, side: "all", toneAt: facetTone(200, 260, 0.3, 0.9) },
   ];
 }
 
@@ -2484,7 +2546,7 @@ function sceneOrchard(): Layer[] {
     return [
       castShadow(p.x - 5, p.y + 1.5, 20 * s + 5, 3.4 * s + 1, p.seed, 0.7, 0.3),
       ...oakTree({ x: p.x, base: p.y, h: th, w: tw, seed: p.seed, depth: clamp01(0.75 - s * 0.68), tone: 0.85, lit: 0.26, under: 0.65, lobes: 1, canopyFrac: 0.6, bend: p.side * -2 * s }),
-      { d: "", tone: 0, depth: 0.2, marks: [stip(p.x, p.y - th * 0.62, tw * 0.3, th * 0.14, Math.round(4 + 8 * s), p.seed, 0.95, 0.15)] },
+      { d: "", tone: 0, depth: 0.2, marks: [stip(p.x, p.y - th * 0.62, tw * 0.3, th * 0.14, Math.round(4 + 8 * s), p.seed, 0.95, 0.15, "red")] },
     ];
   });
   return [
@@ -2514,14 +2576,14 @@ function sceneMoon(): Layer[] {
       } },
     mist(0, 230, 112, 8, 141, 0.5),
     mist(150, 356, 132, 7, 142, 0.5),
-    { d: circ(mx, my, R), tone: 0.45, depth: 0.2, knockout: true, line: 0.75, side: "all", angle: 20, toneAt: (px, py) => {
+    { d: circ(mx, my, R), tone: 0.45, depth: 0.2, hue: "yellow", knockout: true, line: 0.75, side: "all", angle: 20, toneAt: (px, py) => {
         const u = ((px - mx) * -LIGHT[0] + (py - my) * -LIGHT[1]) / R;
         return clamp01(smoothstep(0.4, 1, u) * 0.95 + 0.2 * smoothstep(0.25, 0.75, nz(px * 0.16, py * 0.16)) * (1 - smoothstep(0.3, 0.8, u)));
       } },
-    { d: "", tone: 0, depth: 0.5, marks: [stip(120, 40, 60, 24, 6, 3, 0.7, 0.4), stip(300, 30, 30, 20, 3, 4, 0.7, 0.4)] },
+    { d: "", tone: 0, depth: 0.5, hue: "yellow", marks: [stip(120, 40, 60, 24, 6, 3, 0.7, 0.4), stip(300, 30, 30, 20, 3, 4, 0.7, 0.4)] },
     ridge(6, 356, 150, 26, 141, 240, 0.85, 0.62, { wl: 130, line: 0.95, tilt: -14, angle: -8 }),
     ...tiny,
-    ridge(6, 356, 178, 26, 142, 240, 0.55, 0.8, { wl: 110, line: 1, tilt: 14, angle: 8 }),
+    ridge(6, 356, 178, 26, 142, 240, 0.55, 0.8, { wl: 110, line: 1, tilt: 14, angle: 8, hue: "blue" }),
     ...tiny2,
     ridge(6, 356, 208, 18, 143, 240, 0.12, 0.85, { wl: 100, line: 1.05, tilt: -8, run: 1.2 }),
     ...oakTree({ x: 92, base: 212, h: 74, w: 58, seed: 144, depth: 0.1, tone: 0.98, lit: 0.6, under: 0.5, lobes: 1 }),
@@ -2552,24 +2614,24 @@ const CELL_RING = true;
 
 const MOTIF_BUILDERS: readonly ((inv: boolean) => Layer[])[] = [
   // 1 a lone oak and a band of mist
-  () => [...miniTree(23, 32, 27, 22, 1), { d: mist(6, 30, 27, 3, 3, 0.3).d, tone: 0, knockout: true, depth: 0.3 }, { d: "", tone: 0, marks: [{ d: stroke2([[8, 32], [18, 31.4], [30, 32.4]]), w: 0.9, a: 0.85 }] }],
+  () => [...miniTree(23, 32, 27, 22, 1), { d: mist(6, 30, 27, 3, 3, 0.3).d, tone: 0, knockout: true, depth: 0.3 }, { d: "", tone: 0, hue: "green", marks: [{ d: stroke2([[8, 32], [18, 31.4], [30, 32.4]]), w: 0.9, a: 0.85 }] }],
   // 2 the old oak
   () => miniTree(20, 35, 28, 27, 2),
   // 3 a cottage roof beside a poplar
   () => [
-    { d: poly([[7, 26], [7, 33], [22, 33], [22, 26]]), tone: 0.12, knockout: true, line: 0.9, crisp: true, depth: 0.1 },
-    { d: poly([[4.5, 27], [14.5, 17], [25, 27]]), tone: 0.85, knockout: true, line: 0.95, crisp: true, angle: -8, depth: 0.1 },
+    { d: poly([[7, 26], [7, 33], [22, 33], [22, 26]]), tone: 0.12, hue: "yellow", knockout: true, line: 0.9, crisp: true, depth: 0.1 },
+    { d: poly([[4.5, 27], [14.5, 17], [25, 27]]), tone: 0.85, hue: "red", knockout: true, line: 0.95, crisp: true, angle: -8, depth: 0.1 },
     { d: poly([[11, 33], [11, 28.5], [14, 28.5], [14, 33]]), tone: 0.9, knockout: true, line: 0.7, crisp: true, depth: 0.1 },
     ...poplar(31, 34, 25, 6.5, 3, 0.1, 0.9),
   ],
   // 4 rows in perspective
   () => [
-    ...[-27, -18, -9, 0, 9, 18, 27].map((b): Layer => ({ d: poly([[20 + b * 0.07, 13], [20 + b * 0.07 + 0.9, 13], [20 + b * 1.05 + 2.6, 34], [20 + b * 1.05 - 2.6, 34]]), tone: 0.85, knockout: true, line: 0.7, depth: 0.1, angle: b * 0.25 })),
-    { d: "", tone: 0, marks: [{ d: line(4, 13, 36, 13), w: 0.7, a: 0.7 }] },
+    ...[-27, -18, -9, 0, 9, 18, 27].map((b): Layer => ({ d: poly([[20 + b * 0.07, 13], [20 + b * 0.07 + 0.9, 13], [20 + b * 1.05 + 2.6, 34], [20 + b * 1.05 - 2.6, 34]]), tone: 0.85, hue: "violet", knockout: true, line: 0.7, depth: 0.1, angle: b * 0.25 })),
+    { d: "", tone: 0, hue: "green", marks: [{ d: line(4, 13, 36, 13), w: 0.7, a: 0.7 }] },
   ],
   // 5 ripples and a boathouse roof
   () => [
-    { d: poly([[11, 14], [18, 9], [26, 14]]), tone: 0.8, knockout: true, line: 0.9, crisp: true, depth: 0.1 },
+    { d: poly([[11, 14], [18, 9], [26, 14]]), tone: 0.8, hue: "red", knockout: true, line: 0.9, crisp: true, depth: 0.1 },
     { d: "", tone: 0, marks: [{ d: wavy(6, 34, 20, 0.7, 12, 0) + wavy(9, 31, 24.5, 0.8, 11, 1) + wavy(5, 28, 29, 0.8, 12, 2) + wavy(12, 34, 33.5, 0.8, 11, 3), w: 1.1, a: 0.9 }] },
   ],
   // 6 a pine
@@ -2605,7 +2667,7 @@ const MOTIF_BUILDERS: readonly ((inv: boolean) => Layer[])[] = [
   },
   // 12 a headland over the sea
   () => [
-    { d: crag([[5, 14], [14, 9], [26, 12], [30, 19], [26, 28], [10, 33], [5, 33]], 12, 1.4, 5), tone: 0.85, knockout: true, line: 0.95, depth: 0.1, toneAt: (px, py) => clamp01(0.25 + 0.6 * smoothstep(8, 28, px) + 0.15 * smoothstep(14, 30, py)) },
+    { d: crag([[5, 14], [14, 9], [26, 12], [30, 19], [26, 28], [10, 33], [5, 33]], 12, 1.4, 5), tone: 0.85, hue: "orange", knockout: true, line: 0.95, depth: 0.1, toneAt: (px, py) => clamp01(0.25 + 0.6 * smoothstep(8, 28, px) + 0.15 * smoothstep(14, 30, py)) },
     { d: "", tone: 0, marks: [{ d: wavy(14, 36, 31, 0.5, 9, 0) + wavy(20, 36, 35, 0.5, 9, 1.4), w: 1, a: 0.9 }, { d: line(28, 22, 36, 22), w: 0.7, a: 0.8 }] },
   ],
   // 13 two orchard trees and a puddle
@@ -2615,14 +2677,14 @@ const MOTIF_BUILDERS: readonly ((inv: boolean) => Layer[])[] = [
     { d: oval(20, 33.5, 9, 2.2), tone: 0, knockout: true, line: 0.85, side: "all", depth: 0.1, marks: [{ d: line(15, 33.4, 21, 33.4), w: 0.7, a: 0.8 }] },
   ],
   // 14 the moon: a crescent, or — on today's dark disc — a bare full moon
-  (inv) => (inv ? [{ d: circ(20, 20, 9.5), tone: 0, knockout: true, depth: 0.1 }] : [{ d: circ(20, 20, 10.5), tone: 0.85, knockout: true, line: 0.9, depth: 0.1 }, { d: circ(24.5, 17, 8.6), tone: 0, knockout: true, line: 0.85, side: "all", depth: 0.1 }]),
+  (inv) => (inv ? [{ d: circ(20, 20, 9.5), tone: 0, knockout: true, depth: 0.1 }] : [{ d: circ(20, 20, 10.5), tone: 0.85, hue: "yellow", knockout: true, line: 0.9, depth: 0.1 }, { d: circ(24.5, 17, 8.6), tone: 0, hue: "yellow", knockout: true, line: 0.85, side: "all", depth: 0.1 }]),
 ];
 
-/** The little disc for a day: an optional loose pen ring, the motif drawn in it. Today's is the negative: a dark disc with the motif left bare. */
+/** The little disc for a day: an optional loose pen ring, the motif drawn in it. Today's is the negative: a dark cobalt disc with the motif left bare. */
 function cellLayers(i: number, inverted: boolean): Layer[] {
   const motif = MOTIF_BUILDERS[i](inverted);
-  if (!inverted) return [...(CELL_RING ? [{ d: circ(20, 20, 19.3), tone: 0, line: 0.55, depth: 0.4 } as Layer] : []), ...motif];
-  const paper = i === 13 ? motif : motif.map((l): Layer => ({ ...l, tone: 0, knockout: true, ramp: undefined, toneAt: undefined, marks: undefined, line: Math.min(l.line ?? 0, 0.6) }));
+  if (!inverted) return [...(CELL_RING ? [{ d: circ(20, 20, 19.3), tone: 0, line: 0.55, depth: 0.4, hue: "black" } as Layer] : []), ...motif];
+  const paper = i === 13 ? motif : motif.map((l): Layer => ({ ...l, tone: 0, knockout: true, ramp: undefined, toneAt: undefined, marks: undefined, hue: undefined, line: Math.min(l.line ?? 0, 0.6) }));
   return [{ d: circ(20, 20, 19.3), tone: 0.98, depth: 0.05 }, ...paper];
 }
 
@@ -2890,7 +2952,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
           <style>
             {`
               .dc-cell { outline: none; border-radius: 50%; }
-              .dc-cell:focus-visible { outline: 2px solid ${INK}; outline-offset: 2px; }
+              .dc-cell:focus-visible { outline: 2px solid ${TEXT}; outline-offset: 2px; }
               .dc-dialog:focus-visible { outline: none; }
             `}
           </style>
@@ -2899,7 +2961,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
             {/* The screen: one uninterrupted sheet of grey paper. */}
             <div
               className="absolute overflow-hidden"
-              style={{ inset: BEZEL, borderRadius: SCREEN_RADIUS, background: PAPER, color: INK }}
+              style={{ inset: BEZEL, borderRadius: SCREEN_RADIUS, background: PAPER, color: TEXT }}
             >
               {/* The month: the heading and the grid share one left edge, PAD from the screen. */}
               <motion.h2
@@ -2922,7 +2984,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                 }}
               >
                 {MONTH_NAME}
-                <span style={{ display: "block", color: ink(0.38), marginTop: 2, marginLeft: "-0.045em" }}>
+                <span style={{ display: "block", color: text(0.4), marginTop: 2, marginLeft: "-0.045em" }}>
                   {openDay ?? YEAR}
                 </span>
               </motion.h2>
@@ -2946,7 +3008,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                         key={w}
                         role="columnheader"
                         className="text-center"
-                        style={{ fontSize: 9, lineHeight: `${WEEKDAY_H}px`, letterSpacing: "0.01em", color: ink(0.55) }}
+                        style={{ fontSize: WEEKDAY_SIZE, lineHeight: `${WEEKDAY_H}px`, letterSpacing: "-0.01em", color: text(0.55), whiteSpace: "nowrap" }}
                       >
                         <abbr title={WEEKDAYS_LONG[i]} style={{ textDecoration: "none" }}>
                           {w}
@@ -2972,7 +3034,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                                 className="flex items-center justify-center"
                                 style={{ aspectRatio: "1 / 1" }}
                               >
-                                <span aria-hidden="true" className="block rounded-full" style={{ width: 6, height: 6, background: ink(0.35) }} />
+                                <span aria-hidden="true" className="block rounded-full" style={{ width: 6, height: 6, boxSizing: "border-box", border: `1.5px solid ${hueCss(DOT_HUES[(day * 3 + row) % DOT_HUES.length])}` }} />
                               </div>
                             );
                           }
@@ -3003,13 +3065,6 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                   </div>
                 </div>
               </motion.div>
-
-              {/* Home indicator */}
-              <div
-                className="absolute left-1/2 -translate-x-1/2"
-                style={{ bottom: 8, width: 100, height: 4, borderRadius: 2, background: ink(0.32), zIndex: 1 }}
-                aria-hidden="true"
-              />
 
               {/* Tap outside the card to put it away. */}
               {scene ? <div className="absolute inset-0" style={{ zIndex: 3 }} onClick={close} aria-hidden="true" /> : null}
@@ -3057,7 +3112,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                           fontSize: 26,
                           lineHeight: "28px",
                           letterSpacing: "-0.025em",
-                          color: INK,
+                          color: TEXT,
                           marginTop: 6,
                         }}
                       >
@@ -3065,7 +3120,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                       </h3>
                       <p
                         className="m-0"
-                        style={{ fontFamily: FONT_SANS, fontWeight: 500, fontSize: 12.5, lineHeight: "17.5px", color: ink(0.7), marginTop: 5 }}
+                        style={{ fontFamily: FONT_SANS, fontWeight: 500, fontSize: 12.5, lineHeight: "17.5px", color: text(0.7), marginTop: 5 }}
                       >
                         {info.sentence}
                       </p>

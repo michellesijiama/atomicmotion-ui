@@ -333,7 +333,7 @@ export const componentRegistry = {
     index: "017",
     title: "Doodle Calendar",
     description:
-      "A white iPhone holding one August as a nature diary in blue ballpoint — a month heading over a grid where every past day is a tiny pen-drawn landscape motif, today is the same drawing printed dark, and the future waits as quiet dots — and tap any day and its circle swells into a sketchbook page, a fog-bound oak, a cottage under poplars, a still lake, a ridge of pines, that draws itself contour first and then hatches in from the left, near things dark and bold and far things faint, with a date, a title and one quiet sentence beneath, all of it pen on grey paper, with no shadows anywhere",
+      "A white iPhone holding one August as a nature diary in Matisse-coloured ballpoint — cobalt, emerald, vermilion, cadmium yellow, rose and violet — a black month heading over a grid where every past day is a tiny pen-drawn landscape motif, today is the same drawing printed dark, and the future waits as small coloured rings — and tap any day and its circle swells into a sketchbook page, a fog-bound oak, a cottage under poplars, a still lake, a ridge of pines, that draws itself contour first and then hatches in from the left, near things dark and bold and far things faint, with a date, a title and one quiet sentence beneath, all of it pen on grey paper, with no shadows anywhere",
     category: "Data Visualization",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
