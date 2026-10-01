@@ -1,19 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, MotionConfig, animate, motion, motionValue, useReducedMotion, useTransform } from "framer-motion";
+import { AnimatePresence, LayoutGroup, MotionConfig, animate, motion, motionValue, useReducedMotion, useTransform } from "framer-motion";
 import type { MotionValue } from "framer-motion";
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// Stamp Tracker — a week of four habits, printed like a risograph zine and held as a deck
-// of tall soft cards on a bare grey phone screen. Each card is a flat wash of its habit's ink,
-// with the habit's name at the top and a sheet of seven big stamps below: tap a day and a
-// rubber stamp comes down on it, leaving a flat disc of ink with a rounded silhouette in a
-// second ink printed a hair out of register, rough at the edge and speckled where the drum
-// ran dry. Swipe the card away and it tucks in behind the others, which fan out above it
-// like a loose stack of paper.
+// Stamp Tracker — four habits, printed like a risograph zine and held as a deck of tall soft
+// cards on a bare grey phone screen. Each card is a sheet of frosted glass. A Day / Week /
+// Month switch at the top chooses what the card shows: one big stamp for today, a row of seven
+// days, or the whole month. Tap a day and a rubber stamp comes down on it, leaving a flat disc
+// of ink with a rounded silhouette in a second ink printed a hair out of register, rough at the
+// edge and speckled where the drum ran dry. Swipe the card away and it tucks in behind the
+// others, which fan out above it like a loose stack of paper.
 
 // Inlined so this folder is self-contained — copy it anywhere and it works.
 function cn(...inputs: ClassValue[]) {
@@ -23,17 +23,19 @@ function cn(...inputs: ClassValue[]) {
 export type HabitId = "coffee" | "move" | "water" | "read";
 
 export type StampTrackerProps = {
-  /** Date treated as today. Defaults to 2026-09-30 so SSR and gallery posters are deterministic. */
+  /** Date treated as today; the cards show its month and its week. Defaults to 2026-09-30 so SSR and gallery posters are deterministic. */
   today?: Date;
   /** Gallery card: stamp today on each card in turn and swipe on, until the user interacts. */
   loop?: boolean;
-  onChange?: (habit: HabitId, day: number, stamped: boolean) => void;
+  /** A person stamped or lifted a day. `date` is an ISO date, e.g. "2026-09-14". */
+  onChange?: (habit: HabitId, date: string, stamped: boolean) => void;
   className?: string;
 };
 
+type View = "day" | "week" | "month";
+
 /* ───────────────────────────── palette & type ───────────────────────────── */
 
-const PAPER = "#FCFBF8";
 const INK = "#2B2A33";
 /** The phone screen the deck sits on: a soft, cool grey with no bezel. */
 const SCREEN = "#F1F2F4";
@@ -42,7 +44,6 @@ const FONT = "var(--font-poppins, Poppins), Poppins, ui-sans-serif, system-ui, s
 type Habit = {
   id: HabitId;
   name: string;
-  frequency: string;
   /** The disc, and the wash of the card. */
   block: string;
   /** The silhouette printed over the block. */
@@ -52,10 +53,16 @@ type Habit = {
 };
 
 const HABITS: readonly Habit[] = [
-  { id: "coffee", name: "Coffee", frequency: "Everyday", block: "#9B6B52", figure: "#F4B6C8", seed: 0.72 },
-  { id: "move", name: "Move", frequency: "5 days a week", block: "#E8684A", figure: "#F6C35B", seed: 0.7 },
-  { id: "water", name: "Water", frequency: "Everyday", block: "#6FB3E6", figure: "#F5DD4B", seed: 0.7 },
-  { id: "read", name: "Read", frequency: "Everyday", block: "#6CC3A0", figure: "#6E6AC2", seed: 0.7 },
+  { id: "coffee", name: "Coffee", block: "#9B6B52", figure: "#F4B6C8", seed: 0.68 },
+  { id: "move", name: "Move", block: "#E8684A", figure: "#F6C35B", seed: 0.62 },
+  { id: "water", name: "Water", block: "#6FB3E6", figure: "#F5DD4B", seed: 0.66 },
+  { id: "read", name: "Read", block: "#6CC3A0", figure: "#6E6AC2", seed: 0.64 },
+];
+
+const VIEWS: readonly { id: View; label: string }[] = [
+  { id: "day", label: "Day" },
+  { id: "week", label: "Week" },
+  { id: "month", label: "Month" },
 ];
 
 /* ───────────────────────────── layout tokens ───────────────────────────── */
@@ -65,35 +72,51 @@ const SURFACE_W = 340;
 const SURFACE_H = 736;
 const SURFACE_RADIUS = 60;
 
+/** The Day / Week / Month switch, centred near the top. */
+const SWITCH_TOP = 64;
+const SWITCH_W = 216;
+const SWITCH_H = 36;
+
 const CARD_MARGIN = 20;
 const CARD_W = SURFACE_W - CARD_MARGIN * 2;
-const CARD_H = 540;
-/** The deck block (the peeks plus the card) sits at the screen's vertical centre. */
-const PEEK_TOP = 37;
-const DECK_TOP = Math.round((SURFACE_H - CARD_H - PEEK_TOP) / 2) + PEEK_TOP;
+const CARD_H = 520;
+/** The deck block (the peeks plus the card) sits centred in the space under the switch. */
+const PEEK_TOP = 46;
+const DECK_REGION_TOP = SWITCH_TOP + SWITCH_H + 16;
+const DECK_REGION_BOTTOM = SURFACE_H - 40;
+const DECK_TOP = Math.round((DECK_REGION_TOP + DECK_REGION_BOTTOM - CARD_H - PEEK_TOP) / 2) + PEEK_TOP;
 const DECK_BOTTOM = SURFACE_H - DECK_TOP - CARD_H;
 const CARD_RADIUS = 36;
 const CARD_PAD = 24;
-/** Where each card sits in the stack: the front one flat, the two behind fanned left and right. */
+/** The grids reach a little into the card's side padding, so a row runs nearly edge to edge. */
+const GRID_BLEED = 4;
+/** Where each card sits in the stack. The two behind are smaller and narrower, pivot about their top edge and tilt a little, so only their rounded tops show above the front card. */
 const SLOTS = [
   { y: 0, scale: 1, rotate: 0 },
-  { y: -34, scale: 0.96, rotate: 4 },
-  { y: -70, scale: 0.92, rotate: -3.5 },
-  { y: -70, scale: 0.88, rotate: 0 },
+  { y: -22, scale: 0.86, rotate: -2.5 },
+  { y: -40, scale: 0.74, rotate: 3 },
+  { y: -40, scale: 0.74, rotate: 0 },
 ] as const;
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const WEEKDAYS_LONG = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] as const;
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 
 const DEFAULT_TODAY = new Date(2026, 8, 30);
 
 const DECK_SPRING = { type: "spring", stiffness: 260, damping: 28 } as const;
 const SNAP_SPRING = { type: "spring", stiffness: 420, damping: 32 } as const;
 
-/** A day's stamp button: its size, and how the stamp head lifts, lands and throws ink. */
-const STAMP = { size: 76, pad: 8, head: 1.4, lift: -10, shadow: "drop-shadow(0 12px 16px rgba(0,0,0,0.13))", speck: [3, 5], reach: 9, tilt: 14 } as const;
+/** A stamp button's size, and how the stamp head lifts, lands and throws ink. */
+const VARIANT = {
+  cell: { size: 31, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 10 },
+  week: { size: 34, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 11 },
+  day: { size: 150, pad: 12, head: 1.4, lift: -10, shadow: "drop-shadow(0 16px 22px rgba(0,0,0,0.14))", speck: [3, 5], reach: 9, fling: 8, tilt: 8, num: 0 },
+} as const;
+type Variant = keyof typeof VARIANT;
 
-/* ───────────────────────────── seeded hashing ───────────────────────────── */
+/* ───────────────────────────── seeded hashing & dates ───────────────────────────── */
 
 /** FNV-1a over a string, mapped to [0, 1). No Math.random, so server and client agree. */
 function hash01(input: string) {
@@ -108,13 +131,23 @@ function hash01(input: string) {
   return (h >>> 0) / 4294967296;
 }
 
-/** Day index in the week → stamped. Indices run Monday 0 … Sunday 6. */
-type Stamps = Record<HabitId, ReadonlySet<number>>;
-
-/** A card's fill: one flat, pale wash of the habit's ink over paper. */
-function wash(h: Habit) {
-  return `color-mix(in srgb, ${h.block} 13%, ${PAPER})`;
+/** A local date as "YYYY-MM-DD". */
+function isoOf(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
+
+/** Habit → the ISO dates that carry a stamp. */
+type Stamps = Record<HabitId, ReadonlySet<string>>;
+
+/** One day of a calendar: its ISO date, its day of the month and how to say it aloud. */
+type Cell = { iso: string; day: number; spoken: string };
+
+type Calendar = {
+  todayIso: string;
+  month: { name: string; cells: (Cell | null)[]; todayCol: number };
+  week: { range: string; cells: Cell[] };
+  day: { weekday: string; label: string };
+};
 
 /* ───────────────────────────── the silhouettes ───────────────────────────── */
 
@@ -188,12 +221,12 @@ function Print({ habit, textured, freshFigure }: { habit: Habit; textured?: stri
 /* ───────────────────────────── a day's stamp button ───────────────────────────── */
 
 type StampButtonProps = {
+  variant: Variant;
   habit: Habit;
-  idx: number;
+  cell: Cell;
   stamped: boolean;
   isToday?: boolean;
   disabled?: boolean;
-  ariaLabel: string;
   /** Non-zero while a stamp has just been pressed onto this button. */
   slam: number;
   inkFilter: string;
@@ -201,22 +234,23 @@ type StampButtonProps = {
   onPress: () => void;
 };
 
-function StampButton({ habit, idx, stamped, isToday, disabled, ariaLabel, slam, inkFilter, reduce, onPress }: StampButtonProps) {
-  const v = STAMP;
+function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, inkFilter, reduce, onPress }: StampButtonProps) {
+  const v = VARIANT[variant];
+  const big = variant === "day";
   const [doneToken, setDoneToken] = React.useState(0);
   const headActive = !reduce && slam !== 0 && slam !== doneToken && stamped;
   const fresh = slam !== 0 && stamped && !reduce;
-  const tilt = (hash01(`${habit.id}:day:tilt:${idx}`) - 0.5) * v.tilt;
+  const tilt = (hash01(`${habit.id}:${variant}:tilt:${cell.iso}`) - 0.5) * v.tilt;
   const svgSize = v.size + v.pad;
   const offset = (v.size - svgSize) / 2;
-  const ring = disabled ? `${habit.block}2E` : isToday ? habit.block : `${habit.block}8C`;
+  const ring = disabled ? `${habit.block}29` : isToday ? habit.block : `${habit.block}80`;
 
   return (
     <button
       type="button"
       className="st-stamp"
       aria-pressed={stamped}
-      aria-label={ariaLabel}
+      aria-label={`${habit.name}, ${cell.spoken} — ${stamped ? "stamped" : "not stamped"}`}
       aria-current={isToday ? "date" : undefined}
       disabled={disabled}
       onClick={onPress}
@@ -236,13 +270,21 @@ function StampButton({ habit, idx, stamped, isToday, disabled, ariaLabel, slam, 
       {/* The empty ring; it gives way to the stamp and comes back when the stamp lifts. */}
       <span
         aria-hidden
-        className="absolute inset-0 rounded-full"
+        className="absolute inset-0 grid place-items-center rounded-full"
         style={{
-          border: `${isToday ? 2.5 : 2}px solid ${ring}`,
+          border: `${big ? 2.5 : isToday ? 2 : 1.5}px ${big ? "dashed" : "solid"} ${ring}`,
           opacity: stamped ? 0 : 1,
           transition: `opacity ${stamped ? 120 : 200}ms ease ${stamped ? 0 : 140}ms`,
         }}
-      />
+      >
+        {big ? (
+          <svg viewBox="0 0 100 100" width="100%" height="100%" style={{ display: "block", opacity: 0.18 }}>
+            <Figure habit={habit.id} ink={habit.block} />
+          </svg>
+        ) : (
+          <span style={{ fontWeight: isToday ? 600 : 500, fontSize: v.num, lineHeight: 1, color: INK, opacity: disabled ? 0.2 : isToday ? 0.85 : 0.45 }}>{cell.day}</span>
+        )}
+      </span>
 
       <AnimatePresence initial={false}>
         {stamped && !headActive ? (
@@ -289,16 +331,16 @@ function StampButton({ habit, idx, stamped, isToday, disabled, ariaLabel, slam, 
       {/* A few flecks of ink thrown past the rim on impact. */}
       {fresh && !headActive
         ? [0, 1, 2, 3, 4].map((i) => {
-            const a = hash01(`${habit.id}:fleck:day:${idx}:${i}`) * Math.PI * 2;
-            const r = v.size / 2 + 1 + hash01(`${habit.id}:fr:day:${idx}:${i}`) * v.reach;
-            const s = v.speck[0] + Math.round(hash01(`${habit.id}:fs:day:${idx}:${i}`) * (v.speck[1] - v.speck[0]));
+            const a = hash01(`${habit.id}:fleck:${variant}:${cell.iso}:${i}`) * Math.PI * 2;
+            const r = v.size / 2 + 1 + hash01(`${habit.id}:fr:${variant}:${cell.iso}:${i}`) * v.reach;
+            const s = v.speck[0] + Math.round(hash01(`${habit.id}:fs:${variant}:${cell.iso}:${i}`) * (v.speck[1] - v.speck[0]));
             return (
               <motion.span
                 key={i}
                 aria-hidden
                 className="pointer-events-none absolute rounded-full"
                 initial={{ opacity: 0.9, x: 0, y: 0 }}
-                animate={{ opacity: 0, x: Math.cos(a) * 5, y: Math.sin(a) * 5 }}
+                animate={{ opacity: 0, x: Math.cos(a) * v.fling, y: Math.sin(a) * v.fling }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 style={{ width: s, height: s, left: v.size / 2 + Math.cos(a) * r - s / 2, top: v.size / 2 + Math.sin(a) * r - s / 2, background: habit.block }}
               />
@@ -316,23 +358,31 @@ type DeckCardProps = {
   /** 0 is the front card, 1 and 2 peek out behind it, 3 is hidden. */
   depth: number;
   entered: boolean;
+  view: View;
   x: MotionValue<number>;
   stamps: Stamps;
-  todayIdx: number;
-  pressed: { habit: HabitId; idx: number; token: number } | null;
-  inkFilters: { day: string; grain: string };
+  cal: Calendar;
+  pressed: { habit: HabitId; iso: string; token: number } | null;
+  inkFilters: { day: string; hero: string; grain: string };
   reduce: boolean;
-  onToggle: (habit: HabitId, idx: number) => void;
+  onToggle: (habit: HabitId, iso: string) => void;
   onSwipe: (dir: 1 | -1) => void;
   draggedRef: React.MutableRefObject<boolean>;
 };
 
-function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilters, reduce, onToggle, onSwipe, draggedRef }: DeckCardProps) {
+/** Swaps a card's contents when the view changes: the old one fades out, the new one rises in. */
+const fade = (reduce: boolean) => ({
+  initial: { opacity: 0, y: reduce ? 0 : 6 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.18, delay: 0.04 } },
+  exit: { opacity: 0, transition: { duration: 0.1 } },
+});
+
+function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFilters, reduce, onToggle, onSwipe, draggedRef }: DeckCardProps) {
   // Dragging tilts the card about its bottom edge, like a sheet pulled off a stack.
   const rotate = useTransform(x, [-220, 0, 220], [-4, 0, 4]);
   const front = depth === 0;
   const slot = SLOTS[Math.min(depth, 3)];
-  const slamFor = (i: number) => (pressed && pressed.habit === habit.id && pressed.idx === i ? pressed.token : 0);
+  const slamFor = (iso: string) => (pressed && pressed.habit === habit.id && pressed.iso === iso ? pressed.token : 0);
 
   // A card that has just flown off goes back to the middle at once, behind the others.
   const lastDepth = React.useRef(depth);
@@ -341,33 +391,41 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
     lastDepth.current = depth;
   }, [depth, x]);
 
-  const guarded = (i: number) => () => {
+  const guarded = (iso: string) => () => {
     if (draggedRef.current) return;
-    onToggle(habit.id, i);
+    onToggle(habit.id, iso);
   };
 
-  const dayCell = (i: number) => (
-    <div key={WEEKDAYS[i]} className="flex flex-col items-center" style={{ gridColumn: i === 6 ? 2 : undefined }}>
-      <StampButton
-        habit={habit}
-        idx={i}
-        stamped={stamps[habit.id].has(i)}
-        isToday={i === todayIdx}
-        disabled={i > todayIdx}
-        ariaLabel={`${habit.name}, ${WEEKDAYS_LONG[i]} — ${stamps[habit.id].has(i) ? "stamped" : "not stamped"}`}
-        slam={slamFor(i)}
-        inkFilter={inkFilters.day}
-        reduce={reduce}
-        onPress={guarded(i)}
-      />
-      <span
-        aria-hidden
-        style={{ marginTop: 6, fontWeight: i === todayIdx ? 600 : 500, fontSize: 12, lineHeight: "16px", opacity: i === todayIdx ? 0.9 : 0.5 }}
-      >
-        {WEEKDAYS[i]}
-      </span>
+  const subtitle = view === "month" ? cal.month.name : view === "week" ? cal.week.range : cal.day.weekday;
+
+  const button = (variant: Variant, cell: Cell) => (
+    <StampButton
+      key={cell.iso}
+      variant={variant}
+      habit={habit}
+      cell={cell}
+      stamped={stamps[habit.id].has(cell.iso)}
+      isToday={cell.iso === cal.todayIso}
+      disabled={cell.iso > cal.todayIso}
+      slam={slamFor(cell.iso)}
+      inkFilter={variant === "day" ? inkFilters.hero : inkFilters.day}
+      reduce={reduce}
+      onPress={guarded(cell.iso)}
+    />
+  );
+
+  const labelRow = (cols: number | null) => (
+    <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
+      {WEEKDAYS.map((w, c) => (
+        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 11, lineHeight: "16px", opacity: c === cols ? 0.85 : 0.45 }}>
+          {w}
+        </span>
+      ))}
     </div>
   );
+
+  const todayWeekCol = cal.week.cells.findIndex((c) => c.iso === cal.todayIso);
+  const todayCell = cal.week.cells[todayWeekCol] ?? cal.week.cells[0];
 
   return (
     // The outer layer holds the card's place in the stack (and fans it); the inner one is the card, which can be dragged.
@@ -376,12 +434,12 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
       initial={{ y: SURFACE_H, scale: slot.scale, rotate: slot.rotate, opacity: depth > 2 ? 0 : 1 }}
       animate={{ y: slot.y, scale: slot.scale, rotate: slot.rotate, opacity: depth > 2 ? 0 : 1 }}
       transition={{ ...DECK_SPRING, delay: entered ? 0 : (3 - Math.min(depth, 3)) * 0.09, opacity: { duration: 0.18 } }}
-      style={{ transformOrigin: "50% 100%", zIndex: 4 - Math.min(depth, 3), pointerEvents: front ? "auto" : "none" }}
+      style={{ transformOrigin: "50% 0%", zIndex: 4 - Math.min(depth, 3), pointerEvents: front ? "auto" : "none" }}
     >
       <motion.div
         role="group"
         aria-roledescription="slide"
-        aria-label={`${habit.name}, ${habit.frequency}`}
+        aria-label={`${habit.name}, ${subtitle}`}
         aria-hidden={front ? undefined : true}
         inert={front ? undefined : true}
         className="absolute inset-0 overflow-hidden"
@@ -407,37 +465,120 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
           rotate,
           transformOrigin: "50% 100%",
           borderRadius: CARD_RADIUS,
-          background: wash(habit),
-          boxShadow: front ? "0 18px 40px -26px rgba(43,42,51,0.28), inset 0 0 0 1px rgba(43,42,51,0.05)" : "inset 0 0 0 1px rgba(43,42,51,0.05)",
+          // Frosted glass: whitish and translucent, so the stack behind blurs through the front card.
+          background: "rgba(255,255,255,0.58)",
+          backdropFilter: "blur(24px) saturate(140%)",
+          WebkitBackdropFilter: "blur(24px) saturate(140%)",
+          boxShadow: front
+            ? "0 18px 40px -26px rgba(43,42,51,0.28), inset 0 0 0 1px rgba(255,255,255,0.75), 0 0 0 0.5px rgba(43,42,51,0.06)"
+            : "inset 0 0 0 1px rgba(255,255,255,0.75), 0 0 0 0.5px rgba(43,42,51,0.06)",
           touchAction: "pan-y",
           cursor: front ? "grab" : "default",
           color: INK,
           padding: CARD_PAD,
         }}
       >
-        {/* Printed grain over the wash, so the card reads as ink on paper, not a screen. */}
-        <svg aria-hidden className="pointer-events-none absolute inset-0" width="100%" height="100%" style={{ opacity: 0.05, mixBlendMode: "multiply" }}>
-          <rect width="100%" height="100%" filter={`url(#${inkFilters.grain})`} />
-        </svg>
-
         <div className="relative flex h-full flex-col">
-          {/* The header: the habit, and under it how often, the same size in grey. */}
+          {/* The header: the habit, and under it what the card is showing, the same size in grey. */}
           <div style={{ fontWeight: 600, fontSize: 24, lineHeight: "30px", letterSpacing: "-0.02em", opacity: depth > 1 ? 0 : 1, transition: "opacity 250ms ease" }}>
             <h3 className="m-0" style={{ font: "inherit", letterSpacing: "inherit" }}>
               {habit.name}
             </h3>
-            <div style={{ opacity: 0.35 }}>{habit.frequency}</div>
+            <div className="relative" style={{ height: 30, opacity: 0.35 }}>
+              <AnimatePresence initial={false} mode="wait">
+                <motion.div key={view} className="absolute inset-x-0 top-0 whitespace-nowrap" {...fade(reduce)}>
+                  {subtitle}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* The week as a sheet of big stamps, low in the card: three across, Sunday under the middle one. */}
-          <div className="flex flex-1 flex-col justify-end" style={{ paddingBottom: 4 }}>
-            <div className="grid" style={{ gridTemplateColumns: `repeat(3, ${STAMP.size}px)`, justifyContent: "center", columnGap: 16, rowGap: 18 }}>
-              {[0, 1, 2, 3, 4, 5, 6].map(dayCell)}
-            </div>
+          {/* The body, low in the card. */}
+          <div className="relative flex-1">
+            <AnimatePresence initial={false} mode="wait">
+              {view === "month" ? (
+                <motion.div key="month" className="absolute inset-x-0 bottom-0" style={{ marginInline: -GRID_BLEED, paddingBottom: 2 }} {...fade(reduce)}>
+                  {labelRow(cal.month.todayCol)}
+                  <div className="grid justify-items-center" style={{ marginTop: 10, gridTemplateColumns: "repeat(7, 1fr)", rowGap: 10 }}>
+                    {cal.month.cells.map((cell, i) =>
+                      cell ? button("cell", cell) : <span key={`blank-${i}`} aria-hidden style={{ width: VARIANT.cell.size, height: VARIANT.cell.size }} />,
+                    )}
+                  </div>
+                </motion.div>
+              ) : null}
+              {view === "week" ? (
+                <motion.div key="week" className="absolute inset-x-0 bottom-0" style={{ marginInline: -GRID_BLEED, paddingBottom: 2 }} {...fade(reduce)}>
+                  {labelRow(todayWeekCol)}
+                  <div className="grid justify-items-center" style={{ marginTop: 10, gridTemplateColumns: "repeat(7, 1fr)" }}>
+                    {cal.week.cells.map((cell) => button("week", cell))}
+                  </div>
+                </motion.div>
+              ) : null}
+              {view === "day" ? (
+                <motion.div key="day" className="absolute inset-x-0 bottom-0 flex flex-col items-center" style={{ paddingBottom: 56 }} {...fade(reduce)}>
+                  {button("day", todayCell)}
+                  <div style={{ marginTop: 18, fontWeight: 400, fontSize: 13, lineHeight: "18px", opacity: 0.45 }}>{cal.day.label}</div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </div>
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+/* ───────────────────────────── the Day / Week / Month switch ───────────────────────────── */
+
+function ViewSwitch({ view, onChange, uid }: { view: View; onChange: (v: View) => void; uid: string }) {
+  const tabs = React.useRef<Record<string, HTMLButtonElement | null>>({});
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    const i = VIEWS.findIndex((v) => v.id === view);
+    const next = event.key === "ArrowRight" ? (i + 1) % VIEWS.length : event.key === "ArrowLeft" ? (i + VIEWS.length - 1) % VIEWS.length : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    onChange(VIEWS[next].id);
+    tabs.current[VIEWS[next].id]?.focus();
+  };
+  return (
+    <div
+      role="tablist"
+      aria-label="View"
+      onKeyDown={onKeyDown}
+      className="absolute flex rounded-full"
+      style={{ top: SWITCH_TOP, left: "50%", width: SWITCH_W, height: SWITCH_H, marginLeft: -SWITCH_W / 2, padding: 3, background: "rgba(43,42,51,0.06)", zIndex: 10 }}
+    >
+      {VIEWS.map((v) => {
+        const active = v.id === view;
+        return (
+          <button
+            key={v.id}
+            ref={(el) => {
+              tabs.current[v.id] = el;
+            }}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            tabIndex={active ? 0 : -1}
+            className="st-tab relative flex-1 rounded-full"
+            onClick={() => onChange(v.id)}
+            style={{ border: 0, background: "transparent", cursor: "pointer", fontFamily: FONT, fontWeight: 500, fontSize: 13, color: INK, padding: 0 }}
+          >
+            {active ? (
+              <motion.span
+                layoutId={`${uid}-thumb`}
+                className="absolute inset-0 rounded-full"
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                style={{ background: "#FFFFFF", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}
+              />
+            ) : null}
+            <span className="relative" style={{ opacity: active ? 0.9 : 0.45, transition: "opacity 200ms ease" }}>
+              {v.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -450,23 +591,52 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
   const year = today.getFullYear();
   const month = today.getMonth();
   const dom = today.getDate();
-  const todayIdx = (today.getDay() + 6) % 7; // Monday first
+  const todayIso = isoOf(today);
+
+  // Everything the cards need to draw this month, this week and today.
+  const cal = React.useMemo<Calendar>(() => {
+    const spokenOf = (d: Date) => `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+    const cellOf = (d: Date): Cell => ({ iso: isoOf(d), day: d.getDate(), spoken: spokenOf(d) });
+    const firstCol = (new Date(year, month, 1).getDay() + 6) % 7; // Monday first
+    const days = new Date(year, month + 1, 0).getDate();
+    const cells: (Cell | null)[] = [];
+    // Whole rows only: blanks before the 1st and after the last day, so every row has seven slots.
+    for (let slot = 0; slot < Math.ceil((firstCol + days) / 7) * 7; slot += 1) {
+      const day = slot - firstCol + 1;
+      cells.push(day < 1 || day > days ? null : cellOf(new Date(year, month, day)));
+    }
+    const col = (today.getDay() + 6) % 7;
+    const week = Array.from({ length: 7 }, (_, i) => cellOf(new Date(year, month, dom - col + i)));
+    const first = new Date(year, month, dom - col);
+    const last = new Date(year, month, dom - col + 6);
+    return {
+      todayIso,
+      month: { name: MONTHS[month], cells, todayCol: (firstCol + dom - 1) % 7 },
+      week: { range: `${MONTHS_SHORT[first.getMonth()]} ${first.getDate()} – ${MONTHS_SHORT[last.getMonth()]} ${last.getDate()}`, cells: week },
+      day: { weekday: WEEKDAYS_LONG[col], label: `${MONTHS_SHORT[month]} ${dom}` },
+    };
+  }, [year, month, dom, today, todayIso]);
+
+  // Past days start stamped at each habit's rate: the month so far, and any earlier days of this week.
   const [initial] = React.useState<Stamps>(() => {
-    const out = {} as Record<HabitId, Set<number>>;
+    const col = (today.getDay() + 6) % 7;
+    const from = Math.min(1, dom - col);
+    const out = {} as Record<HabitId, Set<string>>;
     for (const habit of HABITS) {
-      const set = new Set<number>();
-      for (let i = 0; i < todayIdx; i += 1) {
-        const d = new Date(year, month, dom - todayIdx + i);
-        if (hash01(`${habit.id}:${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`) < habit.seed) set.add(i);
+      const set = new Set<string>();
+      for (let d = from; d < dom; d += 1) {
+        const iso = isoOf(new Date(year, month, d));
+        if (hash01(`${habit.id}:${iso}`) < habit.seed) set.add(iso);
       }
       out[habit.id] = set;
     }
     return out;
   });
   const [stamps, setStamps] = React.useState<Stamps>(initial);
+  const [view, setView] = React.useState<View>(loop ? "month" : "week");
   const [front, setFront] = React.useState(0);
   const [entered, setEntered] = React.useState(false);
-  const [pressed, setPressed] = React.useState<{ habit: HabitId; idx: number; token: number } | null>(null);
+  const [pressed, setPressed] = React.useState<{ habit: HabitId; iso: string; token: number } | null>(null);
   const [interacted, setInteracted] = React.useState(false);
 
   const stampsRef = React.useRef(stamps);
@@ -522,33 +692,30 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     [],
   );
 
-  const setStamped = React.useCallback(
-    (id: HabitId, idx: number, on: boolean, byPerson: boolean) => {
-      if (stampsRef.current[id].has(idx) === on) return;
-      setStamps((prev) => {
-        const next = new Set(prev[id]);
-        if (on) next.add(idx);
-        else next.delete(idx);
-        const out = { ...prev, [id]: next };
-        stampsRef.current = out;
-        return out;
-      });
-      if (on) {
-        tokenRef.current += 1;
-        setPressed({ habit: id, idx, token: tokenRef.current });
-        if (clearRef.current !== null) window.clearTimeout(clearRef.current);
-        clearRef.current = window.setTimeout(() => setPressed(null), 900);
-      } else {
-        setPressed(null);
-      }
-      if (byPerson) onChangeRef.current?.(id, new Date(year, month, dom - todayIdx + idx).getDate(), on);
-    },
-    [year, month, dom, todayIdx],
-  );
+  const setStamped = React.useCallback((id: HabitId, iso: string, on: boolean, byPerson: boolean) => {
+    if (stampsRef.current[id].has(iso) === on) return;
+    setStamps((prev) => {
+      const next = new Set(prev[id]);
+      if (on) next.add(iso);
+      else next.delete(iso);
+      const out = { ...prev, [id]: next };
+      stampsRef.current = out;
+      return out;
+    });
+    if (on) {
+      tokenRef.current += 1;
+      setPressed({ habit: id, iso, token: tokenRef.current });
+      if (clearRef.current !== null) window.clearTimeout(clearRef.current);
+      clearRef.current = window.setTimeout(() => setPressed(null), 900);
+    } else {
+      setPressed(null);
+    }
+    if (byPerson) onChangeRef.current?.(id, iso, on);
+  }, []);
 
   const toggle = React.useCallback(
-    (id: HabitId, idx: number) => {
-      setStamped(id, idx, !stampsRef.current[id].has(idx), true);
+    (id: HabitId, iso: string) => {
+      setStamped(id, iso, !stampsRef.current[id].has(iso), true);
     },
     [setStamped],
   );
@@ -579,7 +746,6 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     [xs],
   );
 
-
   const touched = React.useCallback(() => {
     if (interactedRef.current) return;
     interactedRef.current = true;
@@ -587,7 +753,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
   }, []);
 
   // Gallery loop: stamp today on the front card, let the stamp land, swipe to the next card;
-  // when every habit is done for today, wipe the week back to its seed.
+  // when every habit is done for today, wipe the stamps back to their seed.
   React.useEffect(() => {
     if (!loop || interacted) return;
     let cancelled = false;
@@ -604,12 +770,12 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
       await wait(1800);
       while (!cancelled) {
         const id = HABITS[frontRef.current].id;
-        if (!stampsRef.current[id].has(todayIdx)) {
-          setStamped(id, todayIdx, true, false);
+        if (!stampsRef.current[id].has(todayIso)) {
+          setStamped(id, todayIso, true, false);
           await wait(900);
           if (cancelled) return;
         }
-        if (HABITS.every((h) => stampsRef.current[h.id].has(todayIdx))) {
+        if (HABITS.every((h) => stampsRef.current[h.id].has(todayIso))) {
           await wait(1500);
           if (cancelled) return;
           setStamps(initial);
@@ -625,7 +791,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
       cancelled = true;
       timers.forEach((t) => window.clearTimeout(t));
     };
-  }, [loop, interacted, initial, setStamped, advance, todayIdx]);
+  }, [loop, interacted, initial, setStamped, advance, todayIso]);
 
   const onDeckKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
@@ -633,88 +799,101 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     void advance(event.key === "ArrowRight" ? 1 : -1);
   };
 
-  const inkFilters = { day: `${uid}-day`, grain: `${uid}-grain` };
+  const inkFilters = { day: `${uid}-day`, hero: `${uid}-hero`, grain: `${uid}-grain` };
 
   return (
     <MotionConfig reducedMotion="user">
-      <div
-        ref={hostRef}
-        className={cn("relative flex size-full min-h-[420px] items-center justify-center overflow-hidden", className)}
-        style={{ fontFamily: FONT }}
-        onPointerDownCapture={touched}
-        onKeyDownCapture={touched}
-      >
-        <style>
-          {`
-            .st-stamp { outline: none; border-radius: 50%; }
-            .st-stamp:focus-visible { outline: 2px solid ${INK}; outline-offset: 3px; }
-            .st-deck { outline: none; }
-            .st-deck:focus-visible { outline: 2px solid ${INK}; outline-offset: 4px; border-radius: ${CARD_RADIUS}px; }
-          `}
-        </style>
+      <LayoutGroup id={uid}>
+        <div
+          ref={hostRef}
+          className={cn("relative flex size-full min-h-[420px] items-center justify-center overflow-hidden", className)}
+          style={{ fontFamily: FONT }}
+          onPointerDownCapture={touched}
+          onKeyDownCapture={touched}
+        >
+          <style>
+            {`
+              .st-stamp { outline: none; border-radius: 50%; }
+              .st-stamp:focus-visible { outline: 2px solid ${INK}; outline-offset: 3px; }
+              .st-deck { outline: none; }
+              .st-deck:focus-visible { outline: 2px solid ${INK}; outline-offset: 4px; border-radius: ${CARD_RADIUS}px; }
+              .st-tab { outline: none; }
+              .st-tab:focus-visible { outline: 2px solid ${INK}; outline-offset: 1px; }
+            `}
+          </style>
 
-        {/* Shared textures: the stamps' ink and the cards' paper grain. */}
-        <svg width="0" height="0" aria-hidden style={{ position: "absolute" }}>
-          <defs>
-            <filter id={inkFilters.day} x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
-              <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="11" result="warp" />
-              <feDisplacementMap in="SourceGraphic" in2="warp" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="rough" />
-              <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3" result="grain" />
-              <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  30 0 0 0 -9" result="speck" />
-              <feComposite in="rough" in2="speck" operator="in" />
-            </filter>
-            <filter id={inkFilters.grain} x="0" y="0" width="100%" height="100%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0.17  0 0 0 0 0.16  0 0 0 0 0.2  0 0 0 1.6 -0.35" />
-            </filter>
-          </defs>
-        </svg>
+          {/* Shared textures: the stamps' ink (fine for the little ones, coarse for the big one) and the cards' paper grain. */}
+          <svg width="0" height="0" aria-hidden style={{ position: "absolute" }}>
+            <defs>
+              <filter id={inkFilters.day} x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.4" numOctaves="2" seed="3" result="grain" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="11" result="warp" />
+                <feDisplacementMap in="SourceGraphic" in2="warp" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="rough" />
+                <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  30 0 0 0 -9" result="speck" />
+                <feComposite in="rough" in2="speck" operator="in" />
+              </filter>
+              <filter id={inkFilters.hero} x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="21" result="warp" />
+                <feDisplacementMap in="SourceGraphic" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="rough" />
+                <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="5" result="grain" />
+                <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  30 0 0 0 -9" result="speck" />
+                <feComposite in="rough" in2="speck" operator="in" />
+              </filter>
+              <filter id={inkFilters.grain} x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0.17  0 0 0 0 0.16  0 0 0 0 0.2  0 0 0 1.6 -0.35" />
+              </filter>
+            </defs>
+          </svg>
 
-        <div ref={fitRef} className="relative shrink-0" style={{ width: SURFACE_W, height: SURFACE_H, transformOrigin: "50% 50%" }}>
-          <div
-            role="group"
-            aria-label="Stamp tracker"
-            className="absolute inset-0 overflow-hidden"
-            style={{
-              borderRadius: SURFACE_RADIUS,
-              background: SCREEN,
-              color: INK,
-              fontFamily: FONT,
-              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.6)",
-            }}
-          >
-            {/* The deck. The cards behind peek out above the front one. */}
+          <div ref={fitRef} className="relative shrink-0" style={{ width: SURFACE_W, height: SURFACE_H, transformOrigin: "50% 50%" }}>
             <div
               role="group"
-              aria-roledescription="carousel"
-              aria-label="Habits"
-              tabIndex={0}
-              className="st-deck absolute"
-              onKeyDown={onDeckKeyDown}
-              style={{ left: CARD_MARGIN, right: CARD_MARGIN, top: DECK_TOP, bottom: DECK_BOTTOM }}
+              aria-label="Stamp tracker"
+              className="absolute inset-0 overflow-hidden"
+              style={{
+                borderRadius: SURFACE_RADIUS,
+                background: SCREEN,
+                color: INK,
+                fontFamily: FONT,
+                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.6)",
+              }}
             >
-              {HABITS.map((h, i) => (
-                <DeckCard
-                  key={h.id}
-                  habit={h}
-                  depth={(i - front + HABITS.length) % HABITS.length}
-                  entered={entered}
-                  x={xs[i]}
-                  stamps={stamps}
-                  todayIdx={todayIdx}
-                  pressed={pressed}
-                  inkFilters={inkFilters}
-                  reduce={reduce}
-                  onToggle={toggle}
-                  onSwipe={(dir) => void advance(dir)}
-                  draggedRef={draggedRef}
-                />
-              ))}
-            </div>
+              <ViewSwitch view={view} onChange={setView} uid={uid} />
 
+              {/* The deck. The cards behind peek out above the front one. */}
+              <div
+                role="group"
+                aria-roledescription="carousel"
+                aria-label="Habits"
+                tabIndex={0}
+                className="st-deck absolute"
+                onKeyDown={onDeckKeyDown}
+                style={{ left: CARD_MARGIN, right: CARD_MARGIN, top: DECK_TOP, bottom: DECK_BOTTOM }}
+              >
+                {HABITS.map((h, i) => (
+                  <DeckCard
+                    key={h.id}
+                    habit={h}
+                    depth={(i - front + HABITS.length) % HABITS.length}
+                    entered={entered}
+                    view={view}
+                    x={xs[i]}
+                    stamps={stamps}
+                    cal={cal}
+                    pressed={pressed}
+                    inkFilters={inkFilters}
+                    reduce={reduce}
+                    onToggle={toggle}
+                    onSwipe={(dir) => void advance(dir)}
+                    draggedRef={draggedRef}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </LayoutGroup>
     </MotionConfig>
   );
 }

@@ -83,6 +83,14 @@ try {
     if (id === "voice-bloom") {
       await page.getByRole("button", { name: "Start voice input" }).click();
       await page.waitForTimeout(3200);
+    } else if (id === "stamp-tracker") {
+      // The poster is the Month view at rest, once the cards have risen into place.
+      await page.waitForSelector('[role="tab"]');
+      await page.waitForTimeout(1200);
+      await page.getByRole("tab", { name: "Month" }).click();
+      await page.evaluate(() => document.activeElement?.blur());
+      await page.mouse.move(2, 2);
+      await page.waitForTimeout(900);
     } else if (id === "doodle-calendar") {
       // The poster is the calendar at rest: past days as paper-cut motifs,
       // today inverted, the future as dots. No clicks — just let it hydrate
