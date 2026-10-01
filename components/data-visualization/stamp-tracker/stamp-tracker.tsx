@@ -42,8 +42,6 @@ type Habit = {
   id: HabitId;
   name: string;
   frequency: string;
-  /** How many days a week count as a full week. */
-  goal: number;
   /** The disc and the glow of the card. */
   block: string;
   /** The silhouette printed over the block. */
@@ -53,22 +51,22 @@ type Habit = {
 };
 
 const HABITS: readonly Habit[] = [
-  { id: "coffee", name: "coffee", frequency: "everyday", goal: 7, block: "#9B6B52", figure: "#F4B6C8", seed: 0.72 },
-  { id: "move", name: "move", frequency: "5 days a week", goal: 5, block: "#E8684A", figure: "#F6C35B", seed: 0.7 },
-  { id: "water", name: "water", frequency: "everyday", goal: 7, block: "#6FB3E6", figure: "#F5DD4B", seed: 0.7 },
-  { id: "read", name: "read", frequency: "everyday", goal: 7, block: "#6CC3A0", figure: "#6E6AC2", seed: 0.7 },
+  { id: "coffee", name: "coffee", frequency: "everyday", block: "#9B6B52", figure: "#F4B6C8", seed: 0.72 },
+  { id: "move", name: "move", frequency: "5 days a week", block: "#E8684A", figure: "#F6C35B", seed: 0.7 },
+  { id: "water", name: "water", frequency: "everyday", block: "#6FB3E6", figure: "#F5DD4B", seed: 0.7 },
+  { id: "read", name: "read", frequency: "everyday", block: "#6CC3A0", figure: "#6E6AC2", seed: 0.7 },
 ];
 
 /* ───────────────────────────── layout tokens ───────────────────────────── */
 
 const SURFACE_W = 340;
-const SURFACE_H = 360;
+const SURFACE_H = 300;
 
 const CARD_MARGIN = 20;
 const CARD_W = SURFACE_W - CARD_MARGIN * 2;
-const CARD_H = 300;
+const CARD_H = 236;
 /** The deck block (peeks plus card) is centred in its box. */
-const DECK_TOP = 43;
+const DECK_TOP = 45;
 const DECK_BOTTOM = SURFACE_H - DECK_TOP - CARD_H;
 const CARD_RADIUS = 32;
 const CARD_PAD = 20;
@@ -343,7 +341,6 @@ type DeckCardProps = {
 function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilters, reduce, onToggle, onSwipe, draggedRef }: DeckCardProps) {
   const rotate = useTransform(x, [-220, 0, 220], [-5, 0, 5]);
   const front = depth === 0;
-  const done = stamps[habit.id].size;
   const shown = Math.min(depth, 3);
   const slamFor = (i: number) => (pressed && pressed.habit === habit.id && pressed.idx === i ? pressed.token : 0);
 
@@ -428,8 +425,8 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
           />
         </div>
 
-        {/* 2. The week. This is the point of the card, so it takes the middle and the most weight. */}
-        <div className="flex flex-1 flex-col justify-center" style={{ paddingBottom: 6 }}>
+        {/* 2. The week. This is the point of the card, so it takes the lower half and the most weight. */}
+        <div className="flex flex-1 flex-col justify-end" style={{ paddingBottom: 4 }}>
           <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
             {WEEKDAYS.map((w, i) => (
               <span
@@ -461,18 +458,6 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
           </div>
         </div>
 
-        {/* 3. Progress. Tertiary. */}
-        <div>
-          <div className="relative overflow-hidden rounded-full" style={{ height: 6, background: "rgba(43,42,51,0.06)" }}>
-            <motion.div
-              className="absolute inset-y-0 left-0 rounded-full"
-              style={{ background: habit.block }}
-              initial={false}
-              animate={{ width: `${Math.min(1, done / habit.goal) * 100}%` }}
-              transition={{ duration: reduce ? 0.12 : 0.4, ease: "easeOut" }}
-            />
-          </div>
-        </div>
       </div>
     </motion.div>
   );
