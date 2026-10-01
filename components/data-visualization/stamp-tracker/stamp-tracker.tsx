@@ -746,8 +746,9 @@ function DeckCard({ habit, depth, view, progress, tuck, enter, stamps, cal, pres
   const labelRow = (cols: number | null) => (
     <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
       {WEEKDAYS.map((w, c) => (
-        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 14, lineHeight: "20px" }}>
-          <span style={{ display: "inline-block", borderBottom: c === cols ? "2px solid currentColor" : "2px solid transparent", lineHeight: "18px" }}>{w}</span>
+        // Today's weekday is picked out in the stamp ink, the same colour as the stamps.
+        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 14, lineHeight: "20px", color: c === cols ? habit.stamp : undefined }}>
+          {w}
         </span>
       ))}
     </div>
