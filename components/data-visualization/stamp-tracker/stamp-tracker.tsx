@@ -44,19 +44,19 @@ const FONT = "var(--font-poppins, Poppins), Poppins, ui-sans-serif, system-ui, s
 type Habit = {
   id: HabitId;
   name: string;
-  /** The disc, and the wash of the card. */
-  block: string;
-  /** The silhouette printed over the block. */
-  figure: string;
+  /** The card: a flat block of riso colour, like the blocks on the book cover. */
+  card: string;
+  /** The stamp: the pattern ink printed on that block — the disc, its rings and the card's type. */
+  stamp: string;
   /** Share of past days that start out stamped. */
   seed: number;
 };
 
 const HABITS: readonly Habit[] = [
-  { id: "coffee", name: "Coffee", block: "#9B6B52", figure: "#F4B6C8", seed: 0.68 },
-  { id: "move", name: "Move", block: "#E8684A", figure: "#F6C35B", seed: 0.62 },
-  { id: "water", name: "Water", block: "#6FB3E6", figure: "#F5DD4B", seed: 0.66 },
-  { id: "read", name: "Read", block: "#6CC3A0", figure: "#6E6AC2", seed: 0.64 },
+  { id: "coffee", name: "Coffee", card: "#9C7158", stamp: "#EDBC9F", seed: 0.68 },
+  { id: "move", name: "Move", card: "#E36F4C", stamp: "#F9C76F", seed: 0.62 },
+  { id: "water", name: "Water", card: "#6BAEE5", stamp: "#F8DF3E", seed: 0.66 },
+  { id: "read", name: "Read", card: "#5DB896", stamp: "#6560BE", seed: 0.64 },
 ];
 
 const VIEWS: readonly { id: View; label: string }[] = [
@@ -200,17 +200,12 @@ function Figure({ habit, ink }: { habit: HabitId; ink: string }) {
 function Print({ habit, textured, freshFigure }: { habit: Habit; textured?: string; freshFigure?: boolean }) {
   const content = (
     <>
-      <g style={{ mixBlendMode: "multiply" }}>
-        <circle cx="50" cy="50" r="48" fill={habit.block} opacity="0.92" />
-        {/* Ink pools at the rim of a stamp. */}
-        <circle cx="50" cy="50" r="47.2" fill="none" stroke={habit.block} strokeOpacity="0.35" strokeWidth="3.4" />
-      </g>
+      {/* One ink, like a rubber stamp: a disc of the pattern colour… */}
+      <circle cx="50" cy="50" r="48" fill={habit.stamp} />
+      {/* …with the silhouette left bare, so the card's own colour shows through it, a hair out of register. */}
       <motion.g initial={freshFigure ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.08, delay: 0.04 }}>
-        <g opacity="0.4" transform="translate(1.6 0.9)" style={{ mixBlendMode: "multiply" }}>
-          <Figure habit={habit.id} ink={habit.block} />
-        </g>
-        <g opacity="0.95" transform="translate(3.5 2.4)">
-          <Figure habit={habit.id} ink={habit.figure} />
+        <g transform="translate(2.4 1.6)">
+          <Figure habit={habit.id} ink={habit.card} />
         </g>
       </motion.g>
     </>
@@ -243,7 +238,7 @@ function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, i
   const tilt = (hash01(`${habit.id}:${variant}:tilt:${cell.iso}`) - 0.5) * v.tilt;
   const svgSize = v.size + v.pad;
   const offset = (v.size - svgSize) / 2;
-  const ring = disabled ? `${habit.block}29` : isToday ? habit.block : `${habit.block}80`;
+  const ring = disabled ? `${habit.stamp}4D` : isToday ? habit.stamp : `${habit.stamp}A6`;
 
   return (
     <button
@@ -279,10 +274,10 @@ function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, i
       >
         {big ? (
           <svg viewBox="0 0 100 100" width="100%" height="100%" style={{ display: "block", opacity: 0.18 }}>
-            <Figure habit={habit.id} ink={habit.block} />
+            <Figure habit={habit.id} ink={habit.stamp} />
           </svg>
         ) : (
-          <span style={{ fontWeight: isToday ? 600 : 500, fontSize: v.num, lineHeight: 1, color: INK, opacity: disabled ? 0.2 : isToday ? 0.85 : 0.45 }}>{cell.day}</span>
+          <span style={{ fontWeight: isToday ? 600 : 500, fontSize: v.num, lineHeight: 1, color: habit.stamp, opacity: disabled ? 0.4 : isToday ? 1 : 0.8 }}>{cell.day}</span>
         )}
       </span>
 
@@ -342,7 +337,7 @@ function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, i
                 initial={{ opacity: 0.9, x: 0, y: 0 }}
                 animate={{ opacity: 0, x: Math.cos(a) * v.fling, y: Math.sin(a) * v.fling }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                style={{ width: s, height: s, left: v.size / 2 + Math.cos(a) * r - s / 2, top: v.size / 2 + Math.sin(a) * r - s / 2, background: habit.block }}
+                style={{ width: s, height: s, left: v.size / 2 + Math.cos(a) * r - s / 2, top: v.size / 2 + Math.sin(a) * r - s / 2, background: habit.stamp }}
               />
             );
           })
@@ -363,7 +358,7 @@ type DeckCardProps = {
   stamps: Stamps;
   cal: Calendar;
   pressed: { habit: HabitId; iso: string; token: number } | null;
-  inkFilters: { day: string; hero: string; grain: string };
+  inkFilters: { day: string; hero: string; grain: string; fleck: string };
   reduce: boolean;
   onToggle: (habit: HabitId, iso: string) => void;
   onSwipe: (dir: 1 | -1) => void;
@@ -417,7 +412,7 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
   const labelRow = (cols: number | null) => (
     <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
       {WEEKDAYS.map((w, c) => (
-        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 14, lineHeight: "20px", opacity: c === cols ? 0.85 : 0.45 }}>
+        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 14, lineHeight: "20px", opacity: c === cols ? 1 : 0.75 }}>
           {w}
         </span>
       ))}
@@ -465,27 +460,27 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
           rotate,
           transformOrigin: "50% 100%",
           borderRadius: CARD_RADIUS,
-          // Frosted glass: whitish and translucent over the stack behind.
-          background: "rgba(255,255,255,0.9)",
-          backdropFilter: "blur(24px) saturate(140%)",
-          WebkitBackdropFilter: "blur(24px) saturate(140%)",
-          // Hairlines only — no drop shadow.
-          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.75), 0 0 0 0.5px rgba(43,42,51,0.06)",
+          // A flat block of riso colour; its type and stamps are printed in the pattern ink.
+          background: habit.card,
           touchAction: "pan-y",
           cursor: front ? "grab" : "default",
-          color: INK,
+          color: habit.stamp,
           padding: CARD_PAD,
         }}
       >
-        {/* Only the front card shows its contents, so no colour blurs through the glass from the cards behind. */}
+        {/* Printed noise over the block — dark specks where the ink sat heavy, light ones where the drum ran dry. */}
+        <svg aria-hidden className="pointer-events-none absolute inset-0" width="100%" height="100%">
+          <rect width="100%" height="100%" filter={`url(#${inkFilters.grain})`} style={{ opacity: 0.35, mixBlendMode: "multiply" }} />
+          <rect width="100%" height="100%" filter={`url(#${inkFilters.fleck})`} style={{ opacity: 0.4 }} />
+        </svg>
+        {/* Only the front card shows its contents; the cards behind are bare blocks of colour. */}
         <div className="relative flex h-full flex-col" style={{ opacity: front ? 1 : 0, transition: "opacity 250ms ease" }}>
           {/* The header: the habit, and under it what the card is showing, the same size in grey. */}
-          {/* Printed in the habit's own ink, deepened a touch so the light inks still read on white. */}
-          <div style={{ fontWeight: 600, fontSize: 24, lineHeight: "30px", letterSpacing: "-0.02em", color: `color-mix(in srgb, ${habit.block} 82%, ${INK})` }}>
+                    <div style={{ fontWeight: 600, fontSize: 24, lineHeight: "30px", letterSpacing: "-0.02em" }}>
             <h3 className="m-0" style={{ font: "inherit", letterSpacing: "inherit" }}>
               {habit.name}
             </h3>
-            <div className="relative" style={{ height: 30, opacity: 0.45 }}>
+            <div className="relative" style={{ height: 30, opacity: 0.6 }}>
               <AnimatePresence initial={false} mode="wait">
                 <motion.div key={view} className="absolute inset-x-0 top-0 whitespace-nowrap" {...fade(reduce)}>
                   {subtitle}
@@ -518,7 +513,7 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
               {view === "day" ? (
                 <motion.div key="day" className="absolute inset-x-0 bottom-0 flex flex-col items-center" style={{ paddingBottom: 56 }} {...fade(reduce)}>
                   {button("day", todayCell)}
-                  <div style={{ marginTop: 18, fontWeight: 400, fontSize: 16, lineHeight: "22px", opacity: 0.45 }}>{cal.day.label}</div>
+                  <div style={{ marginTop: 18, fontWeight: 400, fontSize: 16, lineHeight: "22px", opacity: 0.75 }}>{cal.day.label}</div>
                 </motion.div>
               ) : null}
             </AnimatePresence>
@@ -800,7 +795,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     void advance(event.key === "ArrowRight" ? 1 : -1);
   };
 
-  const inkFilters = { day: `${uid}-day`, hero: `${uid}-hero`, grain: `${uid}-grain` };
+  const inkFilters = { day: `${uid}-day`, hero: `${uid}-hero`, grain: `${uid}-grain`, fleck: `${uid}-fleck` };
 
   return (
     <MotionConfig reducedMotion="user">
@@ -843,6 +838,10 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
               <filter id={inkFilters.grain} x="0" y="0" width="100%" height="100%">
                 <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" />
                 <feColorMatrix type="matrix" values="0 0 0 0 0.17  0 0 0 0 0.16  0 0 0 0 0.2  0 0 0 1.6 -0.35" />
+              </filter>
+              <filter id={inkFilters.fleck} x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="9" />
+                <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 2.2 -1.25" />
               </filter>
             </defs>
           </svg>

@@ -345,7 +345,7 @@ export const componentRegistry = {
     index: "018",
     title: "Stamp Tracker",
     description:
-      "Four habits on tall frosted-glass cards in a bare phone screen, stacked like iOS widgets so the sheets behind blur softly through the front one — swipe through coffee, move, water and read, and flip the deck between Day, Week and Month with a quiet segmented switch. Tap a day and a rubber stamp slams down, leaving a flat riso disc with a rounded silhouette printed a hair out of register, rough-edged and speckled",
+      "Four habits as a deck of riso-printed cards on a pale phone screen, each card a flat, noisy block of colour lifted from a risograph book cover — cocoa, coral, sky and mint — with the cards behind fanned just above the front one. Switch between day, week and month; tap a day and a one-ink rubber stamp slams down in the pattern colour, the habit’s silhouette left bare so the card shows through, rough-edged and speckled",
     category: "Data Visualization",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
