@@ -63,9 +63,9 @@ type Habit = {
 };
 
 const HABITS: readonly Habit[] = [
+  { id: "water", name: "Water", card: "#6BAEE5", text: "#113D61", stamp: "#F8DF3E", seed: 0.66 },
   { id: "coffee", name: "Coffee", card: "#9C7158", text: "#0C0603", stamp: "#EDBC9F", seed: 0.68 },
   { id: "move", name: "Move", card: "#F2B6CB", text: "#285949", stamp: "#4FAE8F", seed: 0.62 },
-  { id: "water", name: "Water", card: "#6BAEE5", text: "#113D61", stamp: "#F8DF3E", seed: 0.66 },
   { id: "read", name: "Read", card: "#5DB896", text: "#353178", stamp: "#6560BE", seed: 0.64 },
 ];
 
@@ -594,6 +594,9 @@ function pose(depth: number) {
  * the stack, and `e` is 1 while a card is still below the screen waiting to rise in.
  * The outer layer (o…) holds a card's place in the stack, the inner one (i…) is the card being moved by the hand.
  */
+/** How far below its back slot a card sits when it's tucked out of sight behind the pile. */
+const TUCK_DROP = 84;
+
 function cardState(p0: number, d: number, t: number, e: number) {
   const p = clamp(p0, -1, 1);
   let oy = 0;
@@ -620,20 +623,20 @@ function cardState(p0: number, d: number, t: number, e: number) {
   } else {
     const q = -p;
     if (d === 3) {
-      if (q < 0.1) {
-        // The back card first lets go of its place in the stack (fading, so there's no jump)…
+      if (q < 0.15) {
+        // The back card first slips down out of sight behind the pile, the way it came in…
         const b = pose(3);
-        oy = b.y;
+        oy = b.y + TUCK_DROP * (q / 0.15);
         os = b.scale;
         or = b.rotate;
-        opacity = 1 - q / 0.1;
+        z = 0;
       } else {
         // …then comes in over the top from the left edge.
-        const k = (q - 0.1) / 0.9;
+        const k = (q - 0.15) / 0.85;
         ix = -(1 - k) * FLY;
         ir = -6 * (1 - k);
         z = 8;
-        content = clamp((q - 0.1) / 0.25, 0, 1);
+        content = clamp((q - 0.15) / 0.25, 0, 1);
       }
     } else {
       const b = pose(d + q);
@@ -643,19 +646,20 @@ function cardState(p0: number, d: number, t: number, e: number) {
       content = d === 0 ? 1 - q : 0;
     }
   }
-  // The card that has just left reappears at the back of the pile: already in its slot, invisible, then it fades in there
-  // (a touch smaller and lower, settling up into place) so only its top band shows. It's the lowest card throughout.
+  // The card that has just left goes to the back of the pile by sliding up from BEHIND it, like a card tucked into the
+  // back of a deck: it starts low enough to be hidden by the cards in front, fully opaque, and rises into its slot, so
+  // its top band is uncovered rather than faded in. It's the lowest card throughout.
   // (A card being brought back round to the front has no use for it.)
-  const arriving = p < 0 && d === 3 && -p >= 0.1;
+  const arriving = p < 0 && d === 3 && -p >= 0.15;
   if (t > 0.002 && !arriving) {
     const b = pose(3);
-    oy = b.y + 6 * t;
-    os = b.scale * (1 - 0.06 * t);
+    oy = b.y + TUCK_DROP * t;
+    os = b.scale;
     or = b.rotate;
     ix = 0;
     ir = 0;
     content = 0;
-    opacity = 1 - t;
+    opacity = 1;
     z = 0;
   }
   return { oy: oy + e * SURFACE_H, os, or, ix, ir, z, opacity, content };
@@ -668,7 +672,7 @@ type DeckCardProps = {
   view: View;
   /** The swipe's progress (-1…1), shared by every card. */
   progress: MotionValue<number>;
-  /** 1 while this card is gliding back in behind the stack after flying off. */
+  /** 1 while this card is tucked out of sight behind the pile after flying off; it rises to 0 into its back slot. */
   tuck: MotionValue<number>;
   /** 1 while this card is still below the screen, 0 once it has risen into place. */
   enter: MotionValue<number>;
@@ -1122,7 +1126,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     [setStamped],
   );
 
-  /** The card that has just left is now at the back: it waits there unseen for a moment, then fades in. */
+  /** The card that has just left is now at the back: it starts tucked out of sight behind the pile, then rises into its slot. */
   React.useLayoutEffect(() => {
     const pending = pendingRef.current;
     if (!pending) return;
@@ -1136,7 +1140,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
       const t = tucks[pending.leaver];
       tuckAnims.current[pending.leaver]?.stop();
       t.set(1);
-      tuckAnims.current[pending.leaver] = animate(t, 0, { duration: 0.26, delay: 0.08, ease: [0.25, 0.1, 0.25, 1], onComplete: () => t.set(0) });
+      tuckAnims.current[pending.leaver] = animate(t, 0, { type: "spring", bounce: 0, visualDuration: 0.42, delay: 0.04, onComplete: () => t.set(0) });
     }
   }, [front, progress, tucks]);
 
