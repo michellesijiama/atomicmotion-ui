@@ -16,6 +16,7 @@ import { HalftoneBloom } from "@components/data-visualization/halftone-bloom";
 import { BlossomLight } from "@components/control/blossom-light";
 import { GradientEventCard } from "@components/gradient/gradient-event-card";
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
+import { StampTracker } from "@components/data-visualization/stamp-tracker";
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
@@ -89,6 +90,11 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
   return <DoodleCalendar loop={loop} className={loop ? "scale-[1.2]" : undefined} />;
 }
 
+function StampTrackerPreview({ loop }: { loop?: boolean }) {
+  // The portrait phone scales itself down to fit the tile whole, like Doodle Calendar's.
+  return <StampTracker loop={loop} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
@@ -106,4 +112,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "blossom-light": BlossomLightPreview,
   "gradient-event-card": GradientEventCardPreview,
   "doodle-calendar": DoodleCalendarPreview,
+  "stamp-tracker": StampTrackerPreview,
 };
