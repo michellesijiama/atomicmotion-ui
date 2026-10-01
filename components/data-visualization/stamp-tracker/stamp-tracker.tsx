@@ -110,8 +110,8 @@ const SNAP_SPRING = { type: "spring", stiffness: 420, damping: 32 } as const;
 
 /** A stamp button's size, and how the stamp head lifts, lands and throws ink. */
 const VARIANT = {
-  cell: { size: 31, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 10 },
-  week: { size: 34, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 11 },
+  cell: { size: 31, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 12 },
+  week: { size: 34, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 13 },
   day: { size: 150, pad: 12, head: 1.4, lift: -10, shadow: "drop-shadow(0 16px 22px rgba(0,0,0,0.14))", speck: [3, 5], reach: 9, fling: 8, tilt: 8, num: 0 },
 } as const;
 type Variant = keyof typeof VARIANT;
@@ -417,7 +417,7 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
   const labelRow = (cols: number | null) => (
     <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
       {WEEKDAYS.map((w, c) => (
-        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 11, lineHeight: "16px", opacity: c === cols ? 0.85 : 0.45 }}>
+        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 14, lineHeight: "20px", opacity: c === cols ? 0.85 : 0.45 }}>
           {w}
         </span>
       ))}
@@ -465,26 +465,27 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
           rotate,
           transformOrigin: "50% 100%",
           borderRadius: CARD_RADIUS,
-          // Frosted glass: whitish and translucent, so the stack behind blurs through the front card.
-          background: "rgba(255,255,255,0.58)",
+          // Frosted glass: whitish and translucent over the stack behind.
+          background: "rgba(255,255,255,0.9)",
           backdropFilter: "blur(24px) saturate(140%)",
           WebkitBackdropFilter: "blur(24px) saturate(140%)",
-          boxShadow: front
-            ? "0 18px 40px -26px rgba(43,42,51,0.28), inset 0 0 0 1px rgba(255,255,255,0.75), 0 0 0 0.5px rgba(43,42,51,0.06)"
-            : "inset 0 0 0 1px rgba(255,255,255,0.75), 0 0 0 0.5px rgba(43,42,51,0.06)",
+          // Hairlines only — no drop shadow.
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.75), 0 0 0 0.5px rgba(43,42,51,0.06)",
           touchAction: "pan-y",
           cursor: front ? "grab" : "default",
           color: INK,
           padding: CARD_PAD,
         }}
       >
-        <div className="relative flex h-full flex-col">
+        {/* Only the front card shows its contents, so no colour blurs through the glass from the cards behind. */}
+        <div className="relative flex h-full flex-col" style={{ opacity: front ? 1 : 0, transition: "opacity 250ms ease" }}>
           {/* The header: the habit, and under it what the card is showing, the same size in grey. */}
-          <div style={{ fontWeight: 600, fontSize: 24, lineHeight: "30px", letterSpacing: "-0.02em", opacity: depth > 1 ? 0 : 1, transition: "opacity 250ms ease" }}>
+          {/* Printed in the habit's own ink, deepened a touch so the light inks still read on white. */}
+          <div style={{ fontWeight: 600, fontSize: 24, lineHeight: "30px", letterSpacing: "-0.02em", color: `color-mix(in srgb, ${habit.block} 82%, ${INK})` }}>
             <h3 className="m-0" style={{ font: "inherit", letterSpacing: "inherit" }}>
               {habit.name}
             </h3>
-            <div className="relative" style={{ height: 30, opacity: 0.35 }}>
+            <div className="relative" style={{ height: 30, opacity: 0.45 }}>
               <AnimatePresence initial={false} mode="wait">
                 <motion.div key={view} className="absolute inset-x-0 top-0 whitespace-nowrap" {...fade(reduce)}>
                   {subtitle}
@@ -517,7 +518,7 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
               {view === "day" ? (
                 <motion.div key="day" className="absolute inset-x-0 bottom-0 flex flex-col items-center" style={{ paddingBottom: 56 }} {...fade(reduce)}>
                   {button("day", todayCell)}
-                  <div style={{ marginTop: 18, fontWeight: 400, fontSize: 13, lineHeight: "18px", opacity: 0.45 }}>{cal.day.label}</div>
+                  <div style={{ marginTop: 18, fontWeight: 400, fontSize: 16, lineHeight: "22px", opacity: 0.45 }}>{cal.day.label}</div>
                 </motion.div>
               ) : null}
             </AnimatePresence>
