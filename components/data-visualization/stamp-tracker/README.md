@@ -1,6 +1,6 @@
 # Stamp Tracker
 
-Four habits as a deck of riso-printed cards on a pale phone screen, each card a flat, noisy block of colour lifted from a risograph book cover — cocoa, blossom pink, sky and mint — with the three behind fanned just above the front one. Switch between day, week and month; tap a day and the habit’s silhouette is pressed onto it in the pattern ink, one colour like a rubber stamp, rough-edged and speckled
+Four habits as a deck of tall blocks of risograph colour on a bare black phone screen — cocoa, pink, sky and mint, each with its own pattern ink — fanned like a loose stack. Swipe through coffee, move, water and read with a silky, interruptible gesture that follows a finger or a two-finger trackpad swipe, flip between Day, Week and Month, and tap a day to press a rubber stamp onto it. The middle of each card holds a loose hand-inked line drawing in the style of a Japanese tabletop illustration, with a tiny person getting up to something among the objects
 
 ![Stamp Tracker preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/stamp-tracker.png)
 
