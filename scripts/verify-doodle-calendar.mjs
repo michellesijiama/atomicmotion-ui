@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Static checks for Doodle Calendar: a quiet grey-white August journal with vivid
+// Static checks for Doodle Calendar: a clean white August journal with blue-gradient
 // pencil scenes, a selectable week strip and full-page swipe navigation. Every
 // scene is seeded (no Math.random), drawn with depth planes and no shadows, and
 // the gallery wiring agrees on the id.
@@ -48,8 +48,8 @@ const checks = [
   ["opened illustration is rendered complete without a drawing animation", c.includes("ctx.drawImage(sceneBitmap(index, cv.width, cv.height), 0, 0)") && !c.slice(c.indexOf("function ArtCanvas"), c.indexOf("function CellPen")).includes("requestAnimationFrame")],
   ["finished drawings are cached per scene", c.includes("const bitmaps = new Map") && c.includes("function sceneBitmap(")],
   ["canvas work stays out of render: drawn in effects", c.includes("React.useEffect") && !/document\.createElement\("canvas"\)/.test(c.slice(c.indexOf("export function DoodleCalendar"), c.indexOf("const DayCell")))],
-  ["drawings use the supplied vivid illustration palette one colour per layer", c.includes("const WATERCOLOR = {") && c.includes("#99ACE7") && c.includes("#82C277") && c.includes("#F3C947") && c.includes("#ED9ABB") && c.includes("#562621") && c.includes("WATERCOLOR[layer.hue ?? \"blue\"]")],
-  ["default type uses a high-contrast tea red rather than black", c.includes('const TEXT = "#743B45"') && c.includes('const TEXT_RGB = "116 59 69"')],
+  ["drawing layers use a monochrome blue source palette", c.includes("const WATERCOLOR = {") && c.includes("blue: [0, 65, 255]") && c.includes("black: [7, 27, 74]") && c.includes("WATERCOLOR[layer.hue ?? \"blue\"]")],
+  ["default type uses high-contrast deep navy rather than black", c.includes('const TEXT = "#071B4A"') && c.includes('const TEXT_RGB = "7 27 74"')],
   ["weekday labels are at least 16px", Number((c.match(/const WEEKDAY_SIZE = (\d+)/) ?? [])[1]) >= 16],
   ["days to come are full-size empty rings using the active theme", c.includes('className="block size-full rounded-full"') && c.includes('border: `1.25px solid ${activeText}`') && !c.includes("const DOT_HUES")],
   ["completed days are standalone illustrations without circular containers", c.includes("return MOTIF_BUILDERS[i](false)") && !c.includes("const CELL_RING")],
@@ -57,7 +57,7 @@ const checks = [
   ["fourteen opened days have stable Matisse-inspired paper, ink and accent themes", c.includes("const DAY_THEMES: readonly DayTheme[]") && (c.match(/paper: "#[0-9A-F]{6}", ink: "#[0-9A-F]{6}", inkRgb: "[0-9 ]+", accent: "#[0-9A-F]{6}"/g) ?? []).length === 14],
   ["closed calendar stays blush while every opened day resolves its own theme", c.includes('const PAPER = "#EBCFCB"') && c.includes("DAY_THEMES[openDay - 1]") && c.includes("activeTheme?.paper ?? PAPER") && !c.includes("backgroundImage")],
   ["Garden Gate uses a vivid garden-green, deep-brown and sunflower-yellow theme", c.includes('{ paper: "#75C899", ink: "#562621"') && c.includes('accent: "#FFCB45"')],
-  ["detail and thumbnail canvases preserve dense vivid multi-colour layers", c.includes('function ArtCanvas({ index }') && !c.slice(c.indexOf("function ArtCanvas"), c.indexOf("type EntryScene")).includes('globalCompositeOperation = "source-in"') && c.includes('filter: "saturate(1.55) contrast(1.22)"') && c.includes("spLight: 3.35")],
+  ["detail, prompt and thumbnail canvases share the mist-to-navy gradient map", c.includes("function applyBlueGradient(") && c.includes('globalCompositeOperation = "source-in"') && c.includes('gradient.addColorStop(0, "#DDE7FF")') && c.includes('gradient.addColorStop(0.58, "#0041FF")') && c.includes('gradient.addColorStop(1, "#071B4A")') && (c.match(/applyBlueGradient\(ctx/g) ?? []).length === 4],
   ["text-driven placeholder art uses the selected day’s cut-paper accent", c.includes('function EntryPromptCanvas({ prompt, ink, accent }') && c.includes("activeTheme?.accent") && c.includes("accentEllipse")],
   ["opened date lives inside one connected previous-date-next capsule", c.includes('height: 34, overflow: "hidden", borderRadius: 999') && c.includes('min-w-[94px]') && c.includes('`${MONTH_NAME} ${openDay}`') && c.includes('openDay === today ? "Today"')],
   ["large month heading is hidden while a detail is open", c.includes('aria-hidden={openDay !== null}') && c.includes('opacity: openDay === null ? 1 : 0') && c.includes("{YEAR}")],
@@ -77,7 +77,7 @@ const checks = [
   ["no shadows: no drop-shadow", !c.includes("drop-shadow") && !c.includes("dropShadow")],
   ["no shadows: no text-shadow", !c.includes("textShadow") && !c.includes("text-shadow")],
   ["no shadows: no shadow utility classes", !c.includes("shadow-")],
-  ["no generated gradients or SVG filters", !c.includes("linearGradient") && !c.includes("radialGradient") && !c.includes("linear-gradient") && !c.includes("<filter")],
+  ["the only gradient treatment is the Canvas image map, with no CSS or SVG gradient", c.includes("createLinearGradient") && !c.includes("linear-gradient") && !c.includes("radial-gradient") && !c.includes("<filter")],
   ["no status bar text", !c.includes("9:41")],
   ["no weather icons left in the component", !/weather|sunny|rainbow|thunder|openmoji/i.test(c)],
   ["weekday labels are English", weekdayShort.every((d) => c.includes(`"${d}"`))],
@@ -116,12 +116,12 @@ const checks = [
   ["registry files it under Data Visualization", registryEntry.includes('category: "Data Visualization"')],
   ["registry points to component source", registryEntry.includes("components/data-visualization/doodle-calendar/doodle-calendar.tsx")],
   ["registry keeps Doodle Calendar self-contained", !registryEntry.includes("requiredAssets") && !registryEntry.includes("doodle-calendar-garden-gate-bg-v2.png")],
-  ["registry description records the Matisse-inspired palette and text-driven drawings", /Matisse-inspired colour families/i.test(registryEntry) && /text-driven/i.test(registryEntry) && /coffee, city or food/i.test(registryEntry)],
+  ["registry description records the white, navy and blue-gradient direction", /clean white base/i.test(registryEntry) && /deep-navy typography/i.test(registryEntry) && /gradient-mapped/i.test(registryEntry)],
   ["OpenMoji docs no longer mention the calendar", !files.emojiReadme.includes("doodle-calendar")],
   ["package exposes verification script", files.packageJson.includes('"test:doodle-calendar"')],
   ["current typography uses Poppins", c.includes("--font-poppins") && !c.includes("FONT_MONO") && !c.includes("FONT_SERIF")],
   ["current pagination travels a full card and follows the finger", c.includes("PAGE_TRAVEL = SCREEN_W + 14") && c.includes("direction * PAGE_TRAVEL") && c.includes('mode="popLayout"') && c.includes("dragMomentum={false}")],
-  ["current paper is one quiet grey-white across all fourteen days", c.includes('const PAPER = "#F1F0EB"') && (c.match(/paper: PAPER, ink:/g) ?? []).length === 14],
+  ["current paper is pure white across all fourteen days", c.includes('const PAPER = "#FFFFFF"') && c.includes("Array.from({ length: 14 }") && c.includes('ink: TEXT, inkRgb: TEXT_RGB, accent: "#0041FF"')],
   ["current detail header returns to the month grid", c.includes("CalendarDays") && c.includes('aria-label={`Back to ${MONTH_NAME} ${YEAR} month view`}') && c.includes('onClick={close}') && c.includes("{MONTH_NAME} {YEAR}")],
   ["current detail header includes a selectable seven-day strip", c.includes('aria-label="Choose a completed date"') && c.includes("detailWeek.map") && c.includes('aria-current={selected ? "date" : undefined}') && c.includes("goToOpenDay(day)")],
 ];

@@ -33,7 +33,7 @@ export type CalendarDay = {
 };
 
 export type DoodleCalendarProps = {
-  /** The day the calendar treats as today (August 2026), 1–31. Days before it are open; days after it are rose rings. */
+  /** The day the calendar treats as today (August 2026), 1–31. Days before it are open; days after it are navy rings. */
   today?: number;
   /** Open the days one after another until someone touches it (the gallery card sets it). */
   loop?: boolean;
@@ -44,46 +44,32 @@ export type DoodleCalendarProps = {
 
 /* ───────────────────────────── palette & type ───────────────────────────── */
 
-// Vivid cut-paper colours sampled from the illustration references: clear sky,
-// leaf green, coral, marigold, blossom pink and periwinkle. The darkest tone is
-// a warm brown rather than black, so every scene stays colourful without losing
-// definition against its paper field.
+// A monochrome blue drawing palette. The completed canvases are gradient-mapped
+// from mist blue through electric cobalt into deep navy, so the original layer
+// detail remains visible while every illustration belongs to one visual system.
 const WATERCOLOR = {
-  blue: [153, 172, 231], // #99ACE7
-  green: [12, 107, 69], // #0C6B45
-  red: [240, 125, 105], // coral from the floral reference
-  orange: [255, 203, 69], // #FFCB45
-  yellow: [243, 201, 71], // #F3C947
-  pink: [237, 154, 187], // #ED9ABB
-  violet: [112, 132, 205],
-  black: [86, 38, 33], // #562621
+  blue: [0, 65, 255],
+  green: [70, 113, 235],
+  red: [94, 132, 238],
+  orange: [124, 154, 242],
+  yellow: [158, 181, 248],
+  pink: [183, 201, 252],
+  violet: [88, 119, 225],
+  black: [7, 27, 74],
 } as const satisfies Record<string, readonly [number, number, number]>;
 type Hue = keyof typeof WATERCOLOR;
 type RGB = (typeof WATERCOLOR)[Hue];
-/** Typography is a muted tea red, softened at smaller hierarchy levels. */
-const TEXT = "#743B45";
-const TEXT_RGB = "116 59 69";
+/** Deep navy keeps the white interface crisp without using true black. */
+const TEXT = "#071B4A";
+const TEXT_RGB = "7 27 74";
 const text = (a: number, rgb = TEXT_RGB) => `rgb(${rgb} / ${a})`;
-/** Every state uses one quiet warm-grey paper so the vivid illustration stays legible. */
-const PAPER = "#F1F0EB";
+/** Every state uses a clean white base. */
+const PAPER = "#FFFFFF";
 
 type DayTheme = { paper: string; ink: string; inkRgb: string; accent: string };
-/** Matisse-inspired roles: one saturated paper, one high-contrast ink and one cut-paper accent. */
+/** One white-and-blue theme keeps the calendar visually continuous from day to day. */
 const DAY_THEMES: readonly DayTheme[] = [
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#82C277" }, // Morning Fog
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#99ACE7" }, // The Old Oak
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#F3C947" }, // Cottage and Poplars
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#82C277" }, // Lavender Rows
-  { paper: PAPER, ink: "#0C6B45", inkRgb: "12 107 69", accent: "#ED9ABB" }, // Still Lake
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#FFCB45" }, // Pine Ridge
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#ED9ABB" }, // Sunflowers
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#99ACE7" }, // River Bend
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#F3C947" }, // Birch Path
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#ED9ABB" }, // Storm Coming In
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#FFCB45" }, // The Garden Gate
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#99ACE7" }, // Cliffs and Sea
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#82C277" }, // Orchard After Rain
-  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#F3C947" }, // Moonrise
+  ...Array.from({ length: 14 }, () => ({ paper: PAPER, ink: TEXT, inkRgb: TEXT_RGB, accent: "#0041FF" })),
 ];
 const FONT_SANS = "var(--font-poppins, Poppins), Poppins, ui-sans-serif, system-ui, sans-serif";
 
@@ -2772,6 +2758,22 @@ function sceneBitmap(i: number, w: number, h: number): HTMLCanvasElement {
   return b;
 }
 
+/** Recolours only the drawn pixels, leaving the surrounding canvas transparent. */
+function applyBlueGradient(ctx: CanvasRenderingContext2D, width: number, height: number) {
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = "source-in";
+  const gradient = ctx.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, "#DDE7FF");
+  gradient.addColorStop(0.28, "#9DB6FF");
+  gradient.addColorStop(0.58, "#0041FF");
+  gradient.addColorStop(0.82, "#123A9C");
+  gradient.addColorStop(1, "#071B4A");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+}
+
 /**
  * The opened day's drawing is shown complete as soon as the card appears. The card
  * itself still transitions into place, but the illustration does not animate.
@@ -2786,12 +2788,13 @@ function ArtCanvas({ index }: { index: number }) {
     cv.width = Math.round(ART_W * res);
     cv.height = Math.round(ART_H * res);
     ctx.drawImage(sceneBitmap(index, cv.width, cv.height), 0, 0);
+    applyBlueGradient(ctx, cv.width, cv.height);
   }, [index]);
   return (
     <canvas
       ref={ref}
       aria-hidden="true"
-      style={{ display: "block", width: ART_W, height: ART_H, opacity: 1, filter: "saturate(1.55) contrast(1.22)" }}
+      style={{ display: "block", width: ART_W, height: ART_H, opacity: 1, filter: "contrast(1.08)" }}
     />
   );
 }
@@ -2938,6 +2941,7 @@ function EntryPromptCanvas({ prompt, ink, accent }: { prompt: string; ink: strin
       line([[181, 48], [188, 61], [177, 62], [181, 48]], 1, 0.72, true);
       ellipse(210, 163, 24, 8, 0.42);
     }
+    applyBlueGradient(ctx, cv.width, cv.height);
   }, [accent, ink, prompt]);
 
   return <canvas ref={ref} aria-hidden="true" style={{ display: "block", width: ART_W, height: ART_H }} />;
@@ -2954,8 +2958,9 @@ function CellPen({ index }: { index: number }) {
     cv.width = Math.round(CELL * res);
     cv.height = Math.round(CELL * res);
     paintAll(ctx, cellComposition(index), viewFor(cv.width, cv.height, 40, 40, false), new Path2D(circ(20, 20, 21)));
+    applyBlueGradient(ctx, cv.width, cv.height);
   }, [index]);
-  return <canvas ref={ref} aria-hidden="true" className="absolute inset-0 size-full" style={{ opacity: 1, filter: "saturate(1.35) contrast(1.18)" }} />;
+  return <canvas ref={ref} aria-hidden="true" className="absolute inset-0 size-full" style={{ opacity: 1, filter: "contrast(1.08)" }} />;
 }
 
 /* ───────────────────────────── the component ───────────────────────────── */
@@ -3137,7 +3142,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
   const activeText = activeTheme?.ink ?? TEXT;
   const activeTextRgb = activeTheme?.inkRgb ?? TEXT_RGB;
   const activeBodyText = activeText;
-  const activeAccent = activeTheme?.accent ?? "#F3C947";
+  const activeAccent = activeTheme?.accent ?? "#0041FF";
   const entryText = openDay === null ? "" : entries[openDay] ?? "";
   const activeTitle = entryText.trim() ? entryTitle(entryText) : info?.title;
   const titleId = `${uid}-title`;
@@ -3165,7 +3170,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
           </style>
 
           <div ref={fitRef} className="relative shrink-0" style={{ width: PHONE_W, height: PHONE_H, transformOrigin: "50% 50%" }}>
-            {/* The screen remains one uninterrupted colour field in every state. */}
+            {/* The screen remains one uninterrupted white field in every state. */}
             <div
               className="absolute overflow-hidden"
               style={{
@@ -3447,8 +3452,8 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                           fontSize: 12,
                           lineHeight: "16px",
                           color: activeBodyText,
-                          backgroundColor: "rgb(247 245 240 / 0.62)",
-                          border: "1px solid rgb(255 255 255 / 0.55)",
+                          backgroundColor: "#FFFFFF",
+                          border: "1px solid rgb(40 95 255 / 0.18)",
                           borderRadius: 14,
                           marginTop: 8,
                           minHeight: 62,

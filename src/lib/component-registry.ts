@@ -333,7 +333,7 @@ export const componentRegistry = {
     index: "017",
     title: "Doodle Calendar",
     description:
-      "A Poppins-set tall calendar on quiet grey-white paper, with fourteen Matisse-inspired colour families carried by vivid multi-colour pencil illustrations; an editorial month header and selectable week strip frame the image, full-card swipes track the finger, and a text-driven daily-entry prototype sketches coffee, city or food",
+      "A Poppins-set tall calendar on a clean white base with deep-navy typography and pencil illustrations gradient-mapped from mist blue through electric cobalt to navy; an editorial month header and selectable week strip frame the image, full-card swipes track the finger, and a text-driven daily-entry prototype sketches coffee, city or food",
     category: "Data Visualization",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
