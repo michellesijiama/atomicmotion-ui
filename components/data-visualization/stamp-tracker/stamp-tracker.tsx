@@ -8,13 +8,12 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 // Stamp Tracker — a week of four habits, printed like a risograph zine and held as a deck
-// of small soft cards on a bare grey phone screen. Each card is a flat wash of its habit's ink.
-// The week is the point: seven day-circles, mon to sun, and tapping one brings a rubber
-// stamp down on it, leaving a flat disc of ink with a rounded silhouette in a second ink
-// printed a hair out of register, rough at the edge and speckled where the drum ran dry.
-// Today also has a small stamp in the card's corner (the same state), and a slim track
-// below counts the week. Swipe the card away and it tucks in behind the others, whose tops
-// peek out above it.
+// of tall soft cards on a bare grey phone screen. Each card is a flat wash of its habit's ink,
+// with the habit's name at the top and a sheet of seven big stamps below: tap a day and a
+// rubber stamp comes down on it, leaving a flat disc of ink with a rounded silhouette in a
+// second ink printed a hair out of register, rough at the edge and speckled where the drum
+// ran dry. Swipe the card away and it tucks in behind the others, which fan out above it
+// like a loose stack of paper.
 
 // Inlined so this folder is self-contained — copy it anywhere and it works.
 function cn(...inputs: ClassValue[]) {
@@ -48,17 +47,15 @@ type Habit = {
   block: string;
   /** The silhouette printed over the block. */
   figure: string;
-  /** Three soft pastels smudged together inside a stamp, like chalk rubbed into paper. */
-  haze: readonly [string, string, string];
   /** Share of past days that start out stamped. */
   seed: number;
 };
 
 const HABITS: readonly Habit[] = [
-  { id: "coffee", name: "Coffee", frequency: "Everyday", block: "#9B6B52", figure: "#F4B6C8", haze: ["#C99C84", "#F3B9CA", "#F1DCB8"], seed: 0.72 },
-  { id: "move", name: "Move", frequency: "5 days a week", block: "#E8684A", figure: "#F6C35B", haze: ["#F0907A", "#F7CD7C", "#F5B4C4"], seed: 0.7 },
-  { id: "water", name: "Water", frequency: "Everyday", block: "#6FB3E6", figure: "#F5DD4B", haze: ["#8DBDEB", "#B9B4EA", "#BDE6D8"], seed: 0.7 },
-  { id: "read", name: "Read", frequency: "Everyday", block: "#6CC3A0", figure: "#6E6AC2", haze: ["#8FD3B4", "#ABA7E2", "#EEE6A2"], seed: 0.7 },
+  { id: "coffee", name: "Coffee", frequency: "Everyday", block: "#9B6B52", figure: "#F4B6C8", seed: 0.72 },
+  { id: "move", name: "Move", frequency: "5 days a week", block: "#E8684A", figure: "#F6C35B", seed: 0.7 },
+  { id: "water", name: "Water", frequency: "Everyday", block: "#6FB3E6", figure: "#F5DD4B", seed: 0.7 },
+  { id: "read", name: "Read", frequency: "Everyday", block: "#6CC3A0", figure: "#6E6AC2", seed: 0.7 },
 ];
 
 /* ───────────────────────────── layout tokens ───────────────────────────── */
@@ -67,21 +64,23 @@ const HABITS: readonly Habit[] = [
 const SURFACE_W = 340;
 const SURFACE_H = 736;
 const SURFACE_RADIUS = 60;
-/** The week heading, top left. */
-const HEADING_X = 28;
-const HEADING_TOP = 76;
 
 const CARD_MARGIN = 20;
 const CARD_W = SURFACE_W - CARD_MARGIN * 2;
-const CARD_H = 260;
-/** The deck block (peeks plus card) sits at the screen's centre. */
-const DECK_TOP = 251;
+const CARD_H = 540;
+/** The deck block (the peeks plus the card) sits at the screen's vertical centre. */
+const PEEK_TOP = 37;
+const DECK_TOP = Math.round((SURFACE_H - CARD_H - PEEK_TOP) / 2) + PEEK_TOP;
 const DECK_BOTTOM = SURFACE_H - DECK_TOP - CARD_H;
-const CARD_RADIUS = 32;
-const CARD_PAD = 20;
-/** Cards behind the front one: how far up each is shifted and how much it shrinks. */
-const PEEK_Y = [0, 14, 26, 36] as const;
-const PEEK_SCALE = [1, 0.93, 0.86, 0.79] as const;
+const CARD_RADIUS = 36;
+const CARD_PAD = 24;
+/** Where each card sits in the stack: the front one flat, the two behind fanned left and right. */
+const SLOTS = [
+  { y: 0, scale: 1, rotate: 0 },
+  { y: -34, scale: 0.96, rotate: 4 },
+  { y: -70, scale: 0.92, rotate: -3.5 },
+  { y: -70, scale: 0.88, rotate: 0 },
+] as const;
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const WEEKDAYS_LONG = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
@@ -92,7 +91,7 @@ const DECK_SPRING = { type: "spring", stiffness: 260, damping: 28 } as const;
 const SNAP_SPRING = { type: "spring", stiffness: 420, damping: 32 } as const;
 
 /** A day's stamp button: its size, and how the stamp head lifts, lands and throws ink. */
-const STAMP = { size: 33, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, tilt: 20 } as const;
+const STAMP = { size: 76, pad: 8, head: 1.4, lift: -10, shadow: "drop-shadow(0 12px 16px rgba(0,0,0,0.13))", speck: [3, 5], reach: 9, tilt: 14 } as const;
 
 /* ───────────────────────────── seeded hashing ───────────────────────────── */
 
@@ -161,34 +160,24 @@ function Figure({ habit, ink }: { habit: HabitId; ink: string }) {
 }
 
 /**
- * The inked shape: a round disc with an optional silhouette in the second ink laid over
- * it. A faint multiplied ghost of the silhouette, a hair out of register, shows where the
- * two passes overprint. `textured` is the id of a shared riso-ink filter.
+ * The inked shape: a round disc of flat riso ink with the silhouette in a second ink laid
+ * over it. A faint multiplied ghost of the silhouette, a hair out of register, shows where
+ * the two passes overprint. `textured` is the id of a shared riso-ink filter.
  */
-/** Ids of the shared defs a stamp's pastel haze needs: a disc to clip to and a blur to smudge with. */
-type HazeIds = { clip: string; blur: string };
-
-function Print({ habit, haze, textured, freshFigure }: { habit: Habit; haze: HazeIds; textured?: string; freshFigure?: boolean }) {
-  const [a, b, c] = habit.haze;
+function Print({ habit, textured, freshFigure }: { habit: Habit; textured?: string; freshFigure?: boolean }) {
   const content = (
     <>
-      {/* Three pastels rubbed into each other inside the disc — soft, hazy, no hard edge between them. */}
-      <circle cx="50" cy="50" r="48" fill={c} />
-      <g clipPath={`url(#${haze.clip})`}>
-        <g filter={`url(#${haze.blur})`}>
-          <circle cx="28" cy="30" r="34" fill={a} opacity="0.9" />
-          <circle cx="78" cy="44" r="30" fill={b} opacity="0.85" />
-          <circle cx="40" cy="84" r="28" fill={c} opacity="0.9" />
-        </g>
+      <g style={{ mixBlendMode: "multiply" }}>
+        <circle cx="50" cy="50" r="48" fill={habit.block} opacity="0.92" />
+        {/* Ink pools at the rim of a stamp. */}
+        <circle cx="50" cy="50" r="47.2" fill="none" stroke={habit.block} strokeOpacity="0.35" strokeWidth="3.4" />
       </g>
-      {/* A pale bloom where the stamp pressed hardest. */}
-      <circle cx="50" cy="50" r="47" fill="none" stroke="#FFFFFF" strokeOpacity="0.35" strokeWidth="3" />
       <motion.g initial={freshFigure ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.08, delay: 0.04 }}>
-        <g opacity="0.35" transform="translate(1.6 0.9)" style={{ mixBlendMode: "multiply" }}>
+        <g opacity="0.4" transform="translate(1.6 0.9)" style={{ mixBlendMode: "multiply" }}>
           <Figure habit={habit.id} ink={habit.block} />
         </g>
-        <g opacity="0.9" transform="translate(3.5 2.4)">
-          <Figure habit={habit.id} ink="#FFFDF8" />
+        <g opacity="0.95" transform="translate(3.5 2.4)">
+          <Figure habit={habit.id} ink={habit.figure} />
         </g>
       </motion.g>
     </>
@@ -208,12 +197,11 @@ type StampButtonProps = {
   /** Non-zero while a stamp has just been pressed onto this button. */
   slam: number;
   inkFilter: string;
-  haze: HazeIds;
   reduce: boolean;
   onPress: () => void;
 };
 
-function StampButton({ habit, idx, stamped, isToday, disabled, ariaLabel, slam, inkFilter, haze, reduce, onPress }: StampButtonProps) {
+function StampButton({ habit, idx, stamped, isToday, disabled, ariaLabel, slam, inkFilter, reduce, onPress }: StampButtonProps) {
   const v = STAMP;
   const [doneToken, setDoneToken] = React.useState(0);
   const headActive = !reduce && slam !== 0 && slam !== doneToken && stamped;
@@ -271,7 +259,7 @@ function StampButton({ habit, idx, stamped, isToday, disabled, ariaLabel, slam, 
             exit={{ scale: 0.92, opacity: 0, transition: { duration: reduce ? 0.12 : 0.2 } }}
             transition={fresh ? { duration: 0.22, times: [0, 0.45, 1], ease: "easeOut" } : { duration: reduce ? 0.12 : 0.25 }}
           >
-            <Print habit={habit} haze={haze} textured={inkFilter} freshFigure={fresh} />
+            <Print habit={habit} textured={inkFilter} freshFigure={fresh} />
           </motion.svg>
         ) : null}
       </AnimatePresence>
@@ -294,7 +282,7 @@ function StampButton({ habit, idx, stamped, isToday, disabled, ariaLabel, slam, 
           }}
           onAnimationComplete={() => setDoneToken(slam)}
         >
-          <Print habit={habit} haze={haze} />
+          <Print habit={habit} />
         </motion.svg>
       ) : null}
 
@@ -310,7 +298,7 @@ function StampButton({ habit, idx, stamped, isToday, disabled, ariaLabel, slam, 
                 aria-hidden
                 className="pointer-events-none absolute rounded-full"
                 initial={{ opacity: 0.9, x: 0, y: 0 }}
-                animate={{ opacity: 0, x: Math.cos(a) * 3, y: Math.sin(a) * 3 }}
+                animate={{ opacity: 0, x: Math.cos(a) * 5, y: Math.sin(a) * 5 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 style={{ width: s, height: s, left: v.size / 2 + Math.cos(a) * r - s / 2, top: v.size / 2 + Math.sin(a) * r - s / 2, background: habit.block }}
               />
@@ -332,7 +320,7 @@ type DeckCardProps = {
   stamps: Stamps;
   todayIdx: number;
   pressed: { habit: HabitId; idx: number; token: number } | null;
-  inkFilters: { day: string; grain: string; haze: HazeIds };
+  inkFilters: { day: string; grain: string };
   reduce: boolean;
   onToggle: (habit: HabitId, idx: number) => void;
   onSwipe: (dir: 1 | -1) => void;
@@ -340,9 +328,10 @@ type DeckCardProps = {
 };
 
 function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilters, reduce, onToggle, onSwipe, draggedRef }: DeckCardProps) {
-  const rotate = useTransform(x, [-220, 0, 220], [-5, 0, 5]);
+  // Dragging tilts the card about its bottom edge, like a sheet pulled off a stack.
+  const rotate = useTransform(x, [-220, 0, 220], [-4, 0, 4]);
   const front = depth === 0;
-  const shown = Math.min(depth, 3);
+  const slot = SLOTS[Math.min(depth, 3)];
   const slamFor = (i: number) => (pressed && pressed.habit === habit.id && pressed.idx === i ? pressed.token : 0);
 
   // A card that has just flown off goes back to the middle at once, behind the others.
@@ -357,96 +346,97 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
     onToggle(habit.id, i);
   };
 
+  const dayCell = (i: number) => (
+    <div key={WEEKDAYS[i]} className="flex flex-col items-center" style={{ gridColumn: i === 6 ? 2 : undefined }}>
+      <StampButton
+        habit={habit}
+        idx={i}
+        stamped={stamps[habit.id].has(i)}
+        isToday={i === todayIdx}
+        disabled={i > todayIdx}
+        ariaLabel={`${habit.name}, ${WEEKDAYS_LONG[i]} — ${stamps[habit.id].has(i) ? "stamped" : "not stamped"}`}
+        slam={slamFor(i)}
+        inkFilter={inkFilters.day}
+        reduce={reduce}
+        onPress={guarded(i)}
+      />
+      <span
+        aria-hidden
+        style={{ marginTop: 6, fontWeight: i === todayIdx ? 600 : 500, fontSize: 12, lineHeight: "16px", opacity: i === todayIdx ? 0.9 : 0.5 }}
+      >
+        {WEEKDAYS[i]}
+      </span>
+    </div>
+  );
+
   return (
+    // The outer layer holds the card's place in the stack (and fans it); the inner one is the card, which can be dragged.
     <motion.div
-      role="group"
-      aria-roledescription="slide"
-      aria-label={`${habit.name}, ${habit.frequency}`}
-      aria-hidden={front ? undefined : true}
-      inert={front ? undefined : true}
-      className="absolute inset-x-0 top-0 bottom-0 overflow-hidden"
-      drag={front ? "x" : false}
-      dragMomentum={false}
-      dragElastic={0.9}
-      dragConstraints={{ left: 0, right: 0 }}
-      onDragStart={() => {
-        draggedRef.current = true;
-      }}
-      onDragEnd={(_, info) => {
-        window.setTimeout(() => {
-          draggedRef.current = false;
-        }, 60);
-        const off = info.offset.x;
-        const v = info.velocity.x;
-        if (off < -90 || v < -520) onSwipe(1);
-        else if (off > 90 || v > 520) onSwipe(-1);
-        else animate(x, 0, SNAP_SPRING);
-      }}
-      initial={{ y: SURFACE_H, scale: PEEK_SCALE[shown], opacity: depth > 2 ? 0 : 1 }}
-      animate={{ y: -PEEK_Y[shown], scale: PEEK_SCALE[shown], opacity: depth > 2 ? 0 : 1 }}
-      transition={{ ...DECK_SPRING, delay: entered ? 0 : (3 - shown) * 0.09, opacity: { duration: 0.18 } }}
-      style={{
-        x,
-        rotate,
-        transformOrigin: "50% 0%",
-        zIndex: 4 - shown,
-        borderRadius: CARD_RADIUS,
-        background: wash(habit),
-        boxShadow: front ? "0 18px 36px -24px rgba(43,42,51,0.4), inset 0 0 0 1px rgba(43,42,51,0.06)" : "inset 0 0 0 1px rgba(43,42,51,0.06)",
-        touchAction: "pan-y",
-        cursor: front ? "grab" : "default",
-        color: INK,
-        padding: CARD_PAD,
-      }}
+      className="absolute inset-x-0 top-0 bottom-0"
+      initial={{ y: SURFACE_H, scale: slot.scale, rotate: slot.rotate, opacity: depth > 2 ? 0 : 1 }}
+      animate={{ y: slot.y, scale: slot.scale, rotate: slot.rotate, opacity: depth > 2 ? 0 : 1 }}
+      transition={{ ...DECK_SPRING, delay: entered ? 0 : (3 - Math.min(depth, 3)) * 0.09, opacity: { duration: 0.18 } }}
+      style={{ transformOrigin: "50% 100%", zIndex: 4 - Math.min(depth, 3), pointerEvents: front ? "auto" : "none" }}
     >
-      {/* Printed grain over the wash, so the card reads as ink on paper, not a screen. */}
-      <svg aria-hidden className="pointer-events-none absolute inset-0" width="100%" height="100%" style={{ opacity: 0.05, mixBlendMode: "multiply" }}>
-        <rect width="100%" height="100%" filter={`url(#${inkFilters.grain})`} />
-      </svg>
+      <motion.div
+        role="group"
+        aria-roledescription="slide"
+        aria-label={`${habit.name}, ${habit.frequency}`}
+        aria-hidden={front ? undefined : true}
+        inert={front ? undefined : true}
+        className="absolute inset-0 overflow-hidden"
+        drag={front ? "x" : false}
+        dragMomentum={false}
+        dragElastic={0.9}
+        dragConstraints={{ left: 0, right: 0 }}
+        onDragStart={() => {
+          draggedRef.current = true;
+        }}
+        onDragEnd={(_, info) => {
+          window.setTimeout(() => {
+            draggedRef.current = false;
+          }, 60);
+          const off = info.offset.x;
+          const v = info.velocity.x;
+          if (off < -90 || v < -520) onSwipe(1);
+          else if (off > 90 || v > 520) onSwipe(-1);
+          else animate(x, 0, SNAP_SPRING);
+        }}
+        style={{
+          x,
+          rotate,
+          transformOrigin: "50% 100%",
+          borderRadius: CARD_RADIUS,
+          background: wash(habit),
+          boxShadow: front ? "0 18px 40px -26px rgba(43,42,51,0.28), inset 0 0 0 1px rgba(43,42,51,0.05)" : "inset 0 0 0 1px rgba(43,42,51,0.05)",
+          touchAction: "pan-y",
+          cursor: front ? "grab" : "default",
+          color: INK,
+          padding: CARD_PAD,
+        }}
+      >
+        {/* Printed grain over the wash, so the card reads as ink on paper, not a screen. */}
+        <svg aria-hidden className="pointer-events-none absolute inset-0" width="100%" height="100%" style={{ opacity: 0.05, mixBlendMode: "multiply" }}>
+          <rect width="100%" height="100%" filter={`url(#${inkFilters.grain})`} />
+        </svg>
 
-      <div className="relative flex h-full flex-col">
-        {/* 1. The header: which habit, and how often. Secondary. */}
-        <div>
-          <h3 className="m-0" style={{ fontWeight: 600, fontSize: 18, lineHeight: "24px", letterSpacing: "-0.02em" }}>
-            {habit.name}
-          </h3>
-          <div style={{ fontWeight: 400, fontSize: 12, lineHeight: "18px", opacity: 0.45 }}>{habit.frequency}</div>
-        </div>
-
-        {/* 2. The week. This is the point of the card, so it takes the lower half and the most weight. */}
-        <div className="flex flex-1 flex-col justify-end" style={{ paddingBottom: 4 }}>
-          <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
-            {WEEKDAYS.map((w, i) => (
-              <span
-                key={w}
-                className="text-center"
-                style={{ fontWeight: i === todayIdx ? 600 : 500, fontSize: 11, lineHeight: "16px", opacity: i === todayIdx ? 0.9 : 0.5 }}
-              >
-                {w}
-              </span>
-            ))}
+        <div className="relative flex h-full flex-col">
+          {/* The header: the habit, and under it how often, the same size in grey. */}
+          <div style={{ fontWeight: 600, fontSize: 24, lineHeight: "30px", letterSpacing: "-0.02em", opacity: depth > 1 ? 0 : 1, transition: "opacity 250ms ease" }}>
+            <h3 className="m-0" style={{ font: "inherit", letterSpacing: "inherit" }}>
+              {habit.name}
+            </h3>
+            <div style={{ opacity: 0.35 }}>{habit.frequency}</div>
           </div>
-          <div className="grid justify-items-center" style={{ marginTop: 10, gridTemplateColumns: "repeat(7, 1fr)" }}>
-            {WEEKDAYS.map((w, i) => (
-              <StampButton
-                key={w}
-                habit={habit}
-                idx={i}
-                stamped={stamps[habit.id].has(i)}
-                isToday={i === todayIdx}
-                disabled={i > todayIdx}
-                ariaLabel={`${habit.name}, ${WEEKDAYS_LONG[i]} — ${stamps[habit.id].has(i) ? "stamped" : "not stamped"}`}
-                slam={slamFor(i)}
-                inkFilter={inkFilters.day}
-                haze={inkFilters.haze}
-                reduce={reduce}
-                onPress={guarded(i)}
-              />
-            ))}
+
+          {/* The week as a sheet of big stamps, low in the card: three across, Sunday under the middle one. */}
+          <div className="flex flex-1 flex-col justify-end" style={{ paddingBottom: 4 }}>
+            <div className="grid" style={{ gridTemplateColumns: `repeat(3, ${STAMP.size}px)`, justifyContent: "center", columnGap: 16, rowGap: 18 }}>
+              {[0, 1, 2, 3, 4, 5, 6].map(dayCell)}
+            </div>
           </div>
         </div>
-
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -461,12 +451,6 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
   const month = today.getMonth();
   const dom = today.getDate();
   const todayIdx = (today.getDay() + 6) % 7; // Monday first
-  const weekRange = React.useMemo(() => {
-    const day = (offset: number) => new Date(year, month, dom + offset);
-    const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    return `${fmt(day(-todayIdx))} – ${fmt(day(6 - todayIdx))}`;
-  }, [year, month, dom, todayIdx]);
-
   const [initial] = React.useState<Stamps>(() => {
     const out = {} as Record<HabitId, Set<number>>;
     for (const habit of HABITS) {
@@ -649,7 +633,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     void advance(event.key === "ArrowRight" ? 1 : -1);
   };
 
-  const inkFilters = { day: `${uid}-day`, grain: `${uid}-grain`, haze: { clip: `${uid}-disc`, blur: `${uid}-haze` } };
+  const inkFilters = { day: `${uid}-day`, grain: `${uid}-grain` };
 
   return (
     <MotionConfig reducedMotion="user">
@@ -672,16 +656,10 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
         {/* Shared textures: the stamps' ink and the cards' paper grain. */}
         <svg width="0" height="0" aria-hidden style={{ position: "absolute" }}>
           <defs>
-            <clipPath id={inkFilters.haze.clip}>
-              <circle cx="50" cy="50" r="48" />
-            </clipPath>
-            <filter id={inkFilters.haze.blur} x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="7" />
-            </filter>
             <filter id={inkFilters.day} x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
               <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="11" result="warp" />
-              <feDisplacementMap in="SourceGraphic" in2="warp" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="rough" />
-              <feTurbulence type="fractalNoise" baseFrequency="0.4" numOctaves="2" seed="3" result="grain" />
+              <feDisplacementMap in="SourceGraphic" in2="warp" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="rough" />
+              <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3" result="grain" />
               <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  30 0 0 0 -9" result="speck" />
               <feComposite in="rough" in2="speck" operator="in" />
             </filter>
@@ -705,14 +683,6 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
               boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.6)",
             }}
           >
-            {/* Which week this is. */}
-            <div className="absolute" style={{ left: HEADING_X, top: HEADING_TOP }}>
-              <h2 className="m-0" style={{ fontWeight: 600, fontSize: 24, lineHeight: "32px", letterSpacing: "-0.02em" }}>
-                This week
-              </h2>
-              <div style={{ fontWeight: 400, fontSize: 14, lineHeight: "20px", opacity: 0.45, marginTop: 2 }}>{weekRange}</div>
-            </div>
-
             {/* The deck. The cards behind peek out above the front one. */}
             <div
               role="group"

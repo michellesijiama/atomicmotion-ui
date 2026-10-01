@@ -1,6 +1,6 @@
 # Stamp Tracker
 
-A week of four habits on a bare, pale phone screen — a deck of cards, each a flat wash of its own ink, sits under a quiet “This week” heading; swipe through coffee, move, water and read while the cards behind peek out above the front one. The seven day-circles are the point: tap one and a rubber stamp slams down, leaving a soft disc of three pastels rubbed into each other like chalk, a pale silhouette printed a hair out of register, rough-edged and speckled
+A week of four habits on a tall, pale card in a bare phone screen, with two more cards fanned out behind it at loose angles — swipe through coffee, move, water and read. Each card is a sheet of seven big stamps, three across with Sunday centred below: tap a day and a rubber stamp slams down, leaving a flat riso disc with a rounded silhouette printed a hair out of register, rough-edged and speckled
 
 ![Stamp Tracker preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/stamp-tracker.png)
 
