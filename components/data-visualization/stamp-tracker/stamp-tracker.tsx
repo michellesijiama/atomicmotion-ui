@@ -54,7 +54,7 @@ type Habit = {
 
 const HABITS: readonly Habit[] = [
   { id: "coffee", name: "Coffee", card: "#9C7158", stamp: "#EDBC9F", seed: 0.68 },
-  { id: "move", name: "Move", card: "#E36F4C", stamp: "#F9C76F", seed: 0.62 },
+  { id: "move", name: "Move", card: "#F2B6CB", stamp: "#4FAE8F", seed: 0.62 },
   { id: "water", name: "Water", card: "#6BAEE5", stamp: "#F8DF3E", seed: 0.66 },
   { id: "read", name: "Read", card: "#5DB896", stamp: "#6560BE", seed: 0.64 },
 ];
@@ -79,9 +79,9 @@ const SWITCH_H = 36;
 
 const CARD_MARGIN = 20;
 const CARD_W = SURFACE_W - CARD_MARGIN * 2;
-const CARD_H = 520;
+const CARD_H = 504;
 /** The deck block (the peeks plus the card) sits centred in the space under the switch. */
-const PEEK_TOP = 46;
+const PEEK_TOP = 60;
 const DECK_REGION_TOP = SWITCH_TOP + SWITCH_H + 16;
 const DECK_REGION_BOTTOM = SURFACE_H - 40;
 const DECK_TOP = Math.round((DECK_REGION_TOP + DECK_REGION_BOTTOM - CARD_H - PEEK_TOP) / 2) + PEEK_TOP;
@@ -90,12 +90,12 @@ const CARD_RADIUS = 36;
 const CARD_PAD = 24;
 /** The grids reach a little into the card's side padding, so a row runs nearly edge to edge. */
 const GRID_BLEED = 4;
-/** Where each card sits in the stack. The two behind are smaller and narrower, pivot about their top edge and tilt a little, so only their rounded tops show above the front card. */
+/** Where each card sits in the stack. All four show: the three behind are smaller and narrower, pivot about their top edge and tilt a little, so only their rounded tops show above the front card. */
 const SLOTS = [
   { y: 0, scale: 1, rotate: 0 },
-  { y: -22, scale: 0.86, rotate: -2.5 },
-  { y: -40, scale: 0.74, rotate: 3 },
-  { y: -40, scale: 0.74, rotate: 0 },
+  { y: -20, scale: 0.88, rotate: -2.2 },
+  { y: -38, scale: 0.77, rotate: 2.5 },
+  { y: -54, scale: 0.66, rotate: -1.5 },
 ] as const;
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
@@ -108,11 +108,11 @@ const DEFAULT_TODAY = new Date(2026, 8, 30);
 const DECK_SPRING = { type: "spring", stiffness: 260, damping: 28 } as const;
 const SNAP_SPRING = { type: "spring", stiffness: 420, damping: 32 } as const;
 
-/** A stamp button's size, and how the stamp head lifts, lands and throws ink. */
+/** A stamp button's size, and how far a fresh print throws ink. */
 const VARIANT = {
-  cell: { size: 31, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 12 },
-  week: { size: 34, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 13 },
-  day: { size: 150, pad: 12, head: 1.4, lift: -10, shadow: "drop-shadow(0 16px 22px rgba(0,0,0,0.14))", speck: [3, 5], reach: 9, fling: 8, tilt: 8, num: 0 },
+  cell: { size: 31, pad: 4, speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 12 },
+  week: { size: 34, pad: 4, speck: [2, 3], reach: 5, fling: 3, tilt: 20, num: 13 },
+  day: { size: 150, pad: 12, speck: [3, 5], reach: 9, fling: 8, tilt: 8, num: 0 },
 } as const;
 type Variant = keyof typeof VARIANT;
 
@@ -197,18 +197,13 @@ function Figure({ habit, ink }: { habit: HabitId; ink: string }) {
  * over it. A faint multiplied ghost of the silhouette, a hair out of register, shows where
  * the two passes overprint. `textured` is the id of a shared riso-ink filter.
  */
-function Print({ habit, textured, freshFigure }: { habit: Habit; textured?: string; freshFigure?: boolean }) {
+function Print({ habit, textured }: { habit: Habit; textured?: string }) {
+  // The pattern itself in the stamp ink, printed straight onto the card like the houses on the cover —
+  // no disc behind it. Grown a little so it fills the day's circle.
   const content = (
-    <>
-      {/* One ink, like a rubber stamp: a disc of the pattern colour… */}
-      <circle cx="50" cy="50" r="48" fill={habit.stamp} />
-      {/* …with the silhouette left bare, so the card's own colour shows through it, a hair out of register. */}
-      <motion.g initial={freshFigure ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.08, delay: 0.04 }}>
-        <g transform="translate(2.4 1.6)">
-          <Figure habit={habit.id} ink={habit.card} />
-        </g>
-      </motion.g>
-    </>
+    <g transform="translate(50 50) scale(1.18) translate(-50 -50)">
+      <Figure habit={habit.id} ink={habit.stamp} />
+    </g>
   );
   return textured ? <g filter={`url(#${textured})`}>{content}</g> : content;
 }
@@ -232,8 +227,6 @@ type StampButtonProps = {
 function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, inkFilter, reduce, onPress }: StampButtonProps) {
   const v = VARIANT[variant];
   const big = variant === "day";
-  const [doneToken, setDoneToken] = React.useState(0);
-  const headActive = !reduce && slam !== 0 && slam !== doneToken && stamped;
   const fresh = slam !== 0 && stamped && !reduce;
   const tilt = (hash01(`${habit.id}:${variant}:tilt:${cell.iso}`) - 0.5) * v.tilt;
   const svgSize = v.size + v.pad;
@@ -257,7 +250,7 @@ function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, i
         border: 0,
         background: "transparent",
         cursor: disabled ? "default" : "pointer",
-        zIndex: headActive ? 5 : 1,
+        zIndex: 1,
         overflow: "visible",
         WebkitTapHighlightColor: "transparent",
       }}
@@ -282,7 +275,7 @@ function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, i
       </span>
 
       <AnimatePresence initial={false}>
-        {stamped && !headActive ? (
+        {stamped ? (
           <motion.svg
             key="imprint"
             aria-hidden
@@ -291,40 +284,20 @@ function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, i
             height={svgSize}
             className="pointer-events-none absolute"
             style={{ left: offset, top: offset, overflow: "visible", rotate: tilt }}
-            initial={fresh ? { scale: 1.08, opacity: 1 } : { scale: 0.96, opacity: 0 }}
-            animate={fresh ? { scale: [1.08, 0.97, 1], opacity: 1 } : { scale: 1, opacity: 1 }}
-            exit={{ scale: 0.92, opacity: 0, transition: { duration: reduce ? 0.12 : 0.2 } }}
-            transition={fresh ? { duration: 0.22, times: [0, 0.45, 1], ease: "easeOut" } : { duration: reduce ? 0.12 : 0.25 }}
+            // Pressed, not hovered: the print comes down fast, squashes a touch on impact, and settles.
+            initial={fresh ? { scale: 1.3, opacity: 0 } : { scale: 0.96, opacity: 0 }}
+            animate={fresh ? { scale: [1.3, 0.92, 1], opacity: [0, 1, 1] } : { scale: 1, opacity: 1 }}
+            exit={{ scale: 0.92, opacity: 0, transition: { duration: reduce ? 0.12 : 0.18 } }}
+            transition={fresh ? { duration: 0.28, times: [0, 0.45, 1], ease: [0.3, 0, 0.2, 1] } : { duration: reduce ? 0.12 : 0.2 }}
           >
-            <Print habit={habit} textured={inkFilter} freshFigure={fresh} />
+            <Print habit={habit} textured={inkFilter} />
           </motion.svg>
         ) : null}
       </AnimatePresence>
 
-      {/* The stamp head: the same disc and silhouette, lifted and a little large, then slammed down. */}
-      {headActive ? (
-        <motion.svg
-          aria-hidden
-          viewBox="0 0 100 100"
-          width={svgSize}
-          height={svgSize}
-          className="pointer-events-none absolute"
-          style={{ left: offset, top: offset, overflow: "visible", rotate: tilt, filter: v.shadow }}
-          initial={{ scale: v.head, y: v.lift, opacity: 0 }}
-          animate={{ scale: 1, y: 0, opacity: [0, 0.5, 0.5] }}
-          transition={{
-            scale: { duration: 0.14, ease: [0.55, 0, 1, 0.45] },
-            y: { duration: 0.14, ease: [0.55, 0, 1, 0.45] },
-            opacity: { duration: 0.14, times: [0, 0.4, 1] },
-          }}
-          onAnimationComplete={() => setDoneToken(slam)}
-        >
-          <Print habit={habit} />
-        </motion.svg>
-      ) : null}
 
       {/* A few flecks of ink thrown past the rim on impact. */}
-      {fresh && !headActive
+      {fresh
         ? [0, 1, 2, 3, 4].map((i) => {
             const a = hash01(`${habit.id}:fleck:${variant}:${cell.iso}:${i}`) * Math.PI * 2;
             const r = v.size / 2 + 1 + hash01(`${habit.id}:fr:${variant}:${cell.iso}:${i}`) * v.reach;
@@ -334,9 +307,9 @@ function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, i
                 key={i}
                 aria-hidden
                 className="pointer-events-none absolute rounded-full"
-                initial={{ opacity: 0.9, x: 0, y: 0 }}
-                animate={{ opacity: 0, x: Math.cos(a) * v.fling, y: Math.sin(a) * v.fling }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                initial={{ opacity: 0, x: 0, y: 0 }}
+                animate={{ opacity: [0, 0.9, 0], x: Math.cos(a) * v.fling, y: Math.sin(a) * v.fling }}
+                transition={{ duration: 0.5, delay: 0.12, ease: "easeOut" }}
                 style={{ width: s, height: s, left: v.size / 2 + Math.cos(a) * r - s / 2, top: v.size / 2 + Math.sin(a) * r - s / 2, background: habit.stamp }}
               />
             );
@@ -350,11 +323,13 @@ function StampButton({ variant, habit, cell, stamped, isToday, disabled, slam, i
 
 type DeckCardProps = {
   habit: Habit;
-  /** 0 is the front card, 1 and 2 peek out behind it, 3 is hidden. */
+  /** 0 is the front card; 1, 2 and 3 peek out behind it. */
   depth: number;
   entered: boolean;
   view: View;
   x: MotionValue<number>;
+  /** How far the front card has been pulled aside (px); the card right behind it shows its contents as it's uncovered. */
+  peel: MotionValue<number>;
   stamps: Stamps;
   cal: Calendar;
   pressed: { habit: HabitId; iso: string; token: number } | null;
@@ -372,10 +347,12 @@ const fade = (reduce: boolean) => ({
   exit: { opacity: 0, transition: { duration: 0.1 } },
 });
 
-function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFilters, reduce, onToggle, onSwipe, draggedRef }: DeckCardProps) {
+function DeckCard({ habit, depth, entered, view, x, peel, stamps, cal, pressed, inkFilters, reduce, onToggle, onSwipe, draggedRef }: DeckCardProps) {
   // Dragging tilts the card about its bottom edge, like a sheet pulled off a stack.
   const rotate = useTransform(x, [-220, 0, 220], [-4, 0, 4]);
   const front = depth === 0;
+  // The next card's contents come up as the front card is pulled off it, so it's already readable when it lands.
+  const reveal = useTransform(peel, [10, 120], [0, 1]);
   const slot = SLOTS[Math.min(depth, 3)];
   const slamFor = (iso: string) => (pressed && pressed.habit === habit.id && pressed.iso === iso ? pressed.token : 0);
 
@@ -426,9 +403,9 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
     // The outer layer holds the card's place in the stack (and fans it); the inner one is the card, which can be dragged.
     <motion.div
       className="absolute inset-x-0 top-0 bottom-0"
-      initial={{ y: SURFACE_H, scale: slot.scale, rotate: slot.rotate, opacity: depth > 2 ? 0 : 1 }}
-      animate={{ y: slot.y, scale: slot.scale, rotate: slot.rotate, opacity: depth > 2 ? 0 : 1 }}
-      transition={{ ...DECK_SPRING, delay: entered ? 0 : (3 - Math.min(depth, 3)) * 0.09, opacity: { duration: 0.18 } }}
+      initial={{ y: SURFACE_H, scale: slot.scale, rotate: slot.rotate }}
+      animate={{ y: slot.y, scale: slot.scale, rotate: slot.rotate }}
+      transition={{ ...DECK_SPRING, delay: entered ? 0 : (3 - Math.min(depth, 3)) * 0.09 }}
       style={{ transformOrigin: "50% 0%", zIndex: 4 - Math.min(depth, 3), pointerEvents: front ? "auto" : "none" }}
     >
       <motion.div
@@ -473,8 +450,8 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
           <rect width="100%" height="100%" filter={`url(#${inkFilters.grain})`} style={{ opacity: 0.35, mixBlendMode: "multiply" }} />
           <rect width="100%" height="100%" filter={`url(#${inkFilters.fleck})`} style={{ opacity: 0.4 }} />
         </svg>
-        {/* Only the front card shows its contents; the cards behind are bare blocks of colour. */}
-        <div className="relative flex h-full flex-col" style={{ opacity: front ? 1 : 0, transition: "opacity 250ms ease" }}>
+        {/* The front card shows its contents and the one behind it fades its in while you swipe; the rest are bare blocks of colour. */}
+        <motion.div className="relative flex h-full flex-col" style={{ opacity: front ? 1 : depth === 1 ? reveal : 0 }}>
           {/* The header: the habit, and under it what the card is showing, the same size in grey. */}
                     <div style={{ fontWeight: 600, fontSize: 24, lineHeight: "30px", letterSpacing: "-0.02em" }}>
             <h3 className="m-0" style={{ font: "inherit", letterSpacing: "inherit" }}>
@@ -518,7 +495,7 @@ function DeckCard({ habit, depth, entered, view, x, stamps, cal, pressed, inkFil
               ) : null}
             </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
@@ -656,6 +633,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
 
   // One horizontal offset per card, so a card can be dragged, flung and put back.
   const xs = React.useMemo(() => HABITS.map(() => motionValue(0)), []);
+  const peel = React.useMemo(() => motionValue(0), []);
 
   const hostRef = React.useRef<HTMLDivElement>(null);
   const fitRef = React.useRef<HTMLDivElement>(null);
@@ -724,7 +702,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
       const cur = frontRef.current;
       const n = HABITS.length;
       if (dir === 1) {
-        if (!reduceRef.current) await animate(xs[cur], -(CARD_W + 80), { duration: 0.24, ease: [0.4, 0, 0.9, 0.6] });
+        if (!reduceRef.current) await animate(xs[cur], -(CARD_W + 80), { duration: 0.3, ease: [0.32, 0.72, 0, 1] });
         frontRef.current = (cur + 1) % n;
         setFront((cur + 1) % n);
       } else {
@@ -741,6 +719,13 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     },
     [xs],
   );
+
+  // Track how far the current front card is pulled aside.
+  React.useEffect(() => {
+    const fx = xs[front];
+    peel.set(Math.abs(fx.get()));
+    return fx.on("change", (v) => peel.set(Math.abs(v)));
+  }, [front, xs, peel]);
 
   const touched = React.useCallback(() => {
     if (interactedRef.current) return;
@@ -879,6 +864,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
                     entered={entered}
                     view={view}
                     x={xs[i]}
+                    peel={peel}
                     stamps={stamps}
                     cal={cal}
                     pressed={pressed}

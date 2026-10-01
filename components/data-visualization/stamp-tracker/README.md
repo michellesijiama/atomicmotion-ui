@@ -1,6 +1,6 @@
 # Stamp Tracker
 
-Four habits as a deck of riso-printed cards on a pale phone screen, each card a flat, noisy block of colour lifted from a risograph book cover — cocoa, coral, sky and mint — with the cards behind fanned just above the front one. Switch between day, week and month; tap a day and a one-ink rubber stamp slams down in the pattern colour, the habit’s silhouette left bare so the card shows through, rough-edged and speckled
+Four habits as a deck of riso-printed cards on a pale phone screen, each card a flat, noisy block of colour lifted from a risograph book cover — cocoa, blossom pink, sky and mint — with the three behind fanned just above the front one. Switch between day, week and month; tap a day and the habit’s silhouette is pressed onto it in the pattern ink, one colour like a rubber stamp, rough-edged and speckled
 
 ![Stamp Tracker preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/stamp-tracker.png)
 
