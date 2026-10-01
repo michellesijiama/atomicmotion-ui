@@ -1,12 +1,12 @@
 # Doodle Calendar
 
-A white iPhone holding one August as a nature diary in Matisse-coloured ballpoint — cobalt, emerald, vermilion, cadmium yellow, rose and violet — a black month heading over a grid where every past day is a tiny pen-drawn landscape motif, today is the same drawing printed dark, and the future waits as small coloured rings — and tap any day and its circle swells into a sketchbook page, a fog-bound oak, a cottage under poplars, a still lake, a ridge of pines, that draws itself contour first and then hatches in from the left, near things dark and bold and far things faint, with a date, a title and one quiet sentence beneath, all of it pen on grey paper, with no shadows anywhere
+A Poppins-set tall calendar on quiet grey-white paper, with fourteen Matisse-inspired colour families carried by vivid multi-colour pencil illustrations; an editorial month header and selectable week strip frame the image, full-card swipes track the finger, and a text-driven daily-entry prototype sketches coffee, city or food
 
 ![Doodle Calendar preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/doodle-calendar.png)
 
 - **Category:** Data Visualization
 - **Demo:** https://atomicmotion.dev/components/doodle-calendar
-- **Dependencies:** clsx, framer-motion, tailwind-merge
+- **Dependencies:** clsx, framer-motion, lucide-react, tailwind-merge
 
 This component is self-contained — the entire component is `doodle-calendar.tsx`.
 Copy this folder into your project and adjust the styling.
