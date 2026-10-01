@@ -1037,7 +1037,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     return out;
   });
   const [stamps, setStamps] = React.useState<Stamps>(initial);
-  const [view, setView] = React.useState<View>(loop ? "month" : "week");
+  const [view, setView] = React.useState<View>("week");
   const [front, setFront] = React.useState(0);
   const [pressed, setPressed] = React.useState<{ habit: HabitId; iso: string; token: number } | null>(null);
   const [interacted, setInteracted] = React.useState(false);

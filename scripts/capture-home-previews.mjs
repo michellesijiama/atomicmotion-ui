@@ -84,10 +84,10 @@ try {
       await page.getByRole("button", { name: "Start voice input" }).click();
       await page.waitForTimeout(3200);
     } else if (id === "stamp-tracker") {
-      // The poster is the Month view at rest, once the cards have risen into place.
+      // The poster is the Week view at rest, once the cards have risen into place.
       await page.waitForSelector('[role="tab"]');
       await page.waitForTimeout(1200);
-      await page.getByRole("tab", { name: "Month" }).click();
+      await page.getByRole("tab", { name: "Week" }).click();
       await page.evaluate(() => document.activeElement?.blur());
       await page.mouse.move(2, 2);
       await page.waitForTimeout(900);
