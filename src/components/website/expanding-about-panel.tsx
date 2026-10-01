@@ -32,7 +32,7 @@ export function ExpandingAboutPanel({
         opacity: open ? 1 : 0,
       }}
       transition={panelTransition}
-      className="fixed inset-x-3 top-3 z-40 max-h-[calc(100vh-24px)] overflow-hidden rounded-[28px] bg-[#f5f5f5]/85 backdrop-blur-[72px] backdrop-saturate-150 sm:inset-x-4 sm:top-4 sm:max-h-[calc(100vh-32px)]"
+      className="fixed inset-x-3 top-3 z-40 max-h-[calc(100vh-24px)] overflow-hidden rounded-[20px] border border-black/[0.08] bg-[#f5f5f5] sm:inset-x-4 sm:top-4 sm:max-h-[calc(100vh-32px)]"
       aria-hidden={!open}
       style={{ pointerEvents: open ? "auto" : "none" }}
     >

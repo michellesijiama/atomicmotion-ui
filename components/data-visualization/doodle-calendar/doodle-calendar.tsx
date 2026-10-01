@@ -2,18 +2,17 @@
 
 import * as React from "react";
 import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion } from "framer-motion";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// Doodle Calendar — every picture in this file is drawn in ballpoint, in code, the
-// way a sketchbook landscape is: each scene is a short list of layers (a hill, a
+// Doodle Calendar — every picture in this file is drawn like a translucent pencil
+// and watercolour study: each scene is a short list of layers (a hill, a
 // canopy of scalloped clumps, a cottage in perspective) with a tone, a depth and a
-// colour from Matisse's palette, and a seeded pen draws them on a <canvas> —
+// colour from a faded paper palette, and a seeded pen draws them on a <canvas> —
 // confident tapering contours first, then fine vertical hatching swept in where the
-// shade falls. Far things are light and fine, near things dark and bold. No images,
-// no gradients, no shadows, so the folder is self-contained — copy it anywhere and
-// it works.
+// shade falls. Far things are light and fine, near things a little stronger.
 
 // Inlined so this folder is self-contained — copy it anywhere and it works.
 function cn(...inputs: ClassValue[]) {
@@ -34,7 +33,7 @@ export type CalendarDay = {
 };
 
 export type DoodleCalendarProps = {
-  /** The day the calendar treats as today (August 2026), 1–31. Days before it are open; days after it are dots. */
+  /** The day the calendar treats as today (August 2026), 1–31. Days before it are open; days after it are rose rings. */
   today?: number;
   /** Open the days one after another until someone touches it (the gallery card sets it). */
   loop?: boolean;
@@ -45,36 +44,48 @@ export type DoodleCalendarProps = {
 
 /* ───────────────────────────── palette & type ───────────────────────────── */
 
-// Matisse's cut-out colours, each a ballpoint of its own, on one grey sheet: cobalt
-// for water, sky and far hills, emerald for leaf and grass, vermilion for roofs and
-// trunks, cadmium yellow and orange for fields, flowers and stone, rose and violet
-// for blossom, lavender and rock, and black for birch bark and gulls. A layer names
-// its colour; one that doesn't is drawn in the cobalt.
-const MATISSE = {
-  blue: [30, 76, 170],
-  green: [26, 138, 84],
-  red: [222, 62, 40],
-  orange: [240, 124, 36],
-  yellow: [236, 170, 20],
-  pink: [232, 104, 150],
-  violet: [112, 72, 170],
-  black: [26, 26, 30],
+// Vivid cut-paper colours sampled from the illustration references: clear sky,
+// leaf green, coral, marigold, blossom pink and periwinkle. The darkest tone is
+// a warm brown rather than black, so every scene stays colourful without losing
+// definition against its paper field.
+const WATERCOLOR = {
+  blue: [153, 172, 231], // #99ACE7
+  green: [12, 107, 69], // #0C6B45
+  red: [240, 125, 105], // coral from the floral reference
+  orange: [255, 203, 69], // #FFCB45
+  yellow: [243, 201, 71], // #F3C947
+  pink: [237, 154, 187], // #ED9ABB
+  violet: [112, 132, 205],
+  black: [86, 38, 33], // #562621
 } as const satisfies Record<string, readonly [number, number, number]>;
-type Hue = keyof typeof MATISSE;
-type RGB = (typeof MATISSE)[Hue];
-const hueCss = (h: Hue) => `rgb(${MATISSE[h].join(" ")})`;
-/** The days still to come: small empty rings, each in the next colour of the palette. */
-const DOT_HUES: readonly Hue[] = ["blue", "red", "yellow", "green", "pink", "orange", "violet"];
-/** All the type is black, at a few strengths. */
-const TEXT = "#141416";
-const text = (a: number) => `rgb(20 20 22 / ${a})`;
-/** The page behind the calendar, and the lighter card an opened day is drawn on. */
-const PAPER = "#E6E7EA";
-const CARD = "#F2F3F5";
-/** Today's disc, mid-morph: the dark hatched cobalt circle seen from a distance. */
-const DISC_TODAY = "#5172B6";
+type Hue = keyof typeof WATERCOLOR;
+type RGB = (typeof WATERCOLOR)[Hue];
+/** Typography is a muted tea red, softened at smaller hierarchy levels. */
+const TEXT = "#743B45";
+const TEXT_RGB = "116 59 69";
+const text = (a: number, rgb = TEXT_RGB) => `rgb(${rgb} / ${a})`;
+/** Every state uses one quiet warm-grey paper so the vivid illustration stays legible. */
+const PAPER = "#F1F0EB";
 
-const FONT_SANS = "var(--font-manrope, Manrope), Manrope, ui-sans-serif, system-ui, sans-serif";
+type DayTheme = { paper: string; ink: string; inkRgb: string; accent: string };
+/** Matisse-inspired roles: one saturated paper, one high-contrast ink and one cut-paper accent. */
+const DAY_THEMES: readonly DayTheme[] = [
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#82C277" }, // Morning Fog
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#99ACE7" }, // The Old Oak
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#F3C947" }, // Cottage and Poplars
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#82C277" }, // Lavender Rows
+  { paper: PAPER, ink: "#0C6B45", inkRgb: "12 107 69", accent: "#ED9ABB" }, // Still Lake
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#FFCB45" }, // Pine Ridge
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#ED9ABB" }, // Sunflowers
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#99ACE7" }, // River Bend
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#F3C947" }, // Birch Path
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#ED9ABB" }, // Storm Coming In
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#FFCB45" }, // The Garden Gate
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#99ACE7" }, // Cliffs and Sea
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#82C277" }, // Orchard After Rain
+  { paper: PAPER, ink: "#562621", inkRgb: "86 38 33", accent: "#F3C947" }, // Moonrise
+];
+const FONT_SANS = "var(--font-poppins, Poppins), Poppins, ui-sans-serif, system-ui, sans-serif";
 
 /* ───────────────────────────── layout tokens ───────────────────────────── */
 
@@ -92,8 +103,8 @@ const PAD = 22;
 const GAP = 3;
 const CELL = (SCREEN_W - PAD * 2 - GAP * 6) / 7;
 
-const HEAD_SIZE = 36;
-const HEAD_LINE = 38;
+const HEAD_SIZE = 30;
+const HEAD_LINE = 34;
 /** Weekday labels: 16px type, the smallest the calendar uses. */
 const WEEKDAY_SIZE = 16;
 const WEEKDAY_H = 20;
@@ -121,12 +132,12 @@ const GRID_H = WEEKDAY_H + WEEKDAY_GAP + WEEKS * CELL + (WEEKS - 1) * GAP;
 const HEAD_BLOCK = HEAD_LINE * 2 + 2;
 const HEAD_GAP = 30;
 const HEAD_TOP_CLOSED = SCREEN_H - GRID_BOTTOM - GRID_H - HEAD_GAP - HEAD_BLOCK;
-const HEAD_TOP_OPEN = 56;
+const HEAD_TOP_OPEN = 72;
 
 // The card: a drawing over one date, one title and one sentence, ending well above the
 // bottom of the screen.
 const CARD_X = 10;
-const CARD_BOTTOM = 24;
+const CARD_BOTTOM = 70;
 const ART_W = SCREEN_W - CARD_X * 2;
 /** The drawing is made on a 360 × 240 sheet and shown covering this box. */
 const ART_H = 232;
@@ -134,6 +145,7 @@ const TEXT_H = 188;
 const CARD_W = ART_W;
 const CARD_H = ART_H + TEXT_H;
 const CARD_TOP = SCREEN_H - CARD_BOTTOM - CARD_H;
+const PAGE_TRAVEL = SCREEN_W + 14;
 const CARD_RADIUS = 30;
 
 /* ───────────────────────────── the pen ─────────────────────────────
@@ -230,8 +242,8 @@ type PenStyle = {
   mask: number;
 };
 
-const PEN_ART: PenStyle = { spLight: 4.5, spDark: 1.1, wMin: 0.42, wMax: 0.86, aMin: 0.56, aMax: 0.96, ow: 0.78, tremor: 0.3, run: 1, reach: 46, mask: 2 };
-const PEN_CELL: PenStyle = { spLight: 2.7, spDark: 0.95, wMin: 0.3, wMax: 0.62, aMin: 0.5, aMax: 0.92, ow: 0.55, tremor: 0.1, run: 0.5, reach: 60, mask: 8 };
+const PEN_ART: PenStyle = { spLight: 3.35, spDark: 0.82, wMin: 0.7, wMax: 1.28, aMin: 0.72, aMax: 1, ow: 1.08, tremor: 0.3, run: 1, reach: 46, mask: 2 };
+const PEN_CELL: PenStyle = { spLight: 2.25, spDark: 0.78, wMin: 0.42, wMax: 0.78, aMin: 0.66, aMax: 0.98, ow: 0.72, tremor: 0.1, run: 0.5, reach: 60, mask: 8 };
 
 /** Aerial perspective: what one number, 0 near … 1 far, does to the pen. */
 type DepthMod = { sp: number; w: number; a: number; run: number; tone: number; line: number };
@@ -946,7 +958,7 @@ function compose(layers: readonly Layer[], st: PenStyle, seed: number, dw: numbe
     const hidden = masks[li];
     const hasMask = any[li];
     const subs = layer.d ? flatten(layer.d, 1.6) : [];
-    const pen = MATISSE[layer.hue ?? "blue"];
+    const pen = WATERCOLOR[layer.hue ?? "blue"];
     let o0 = outline.length;
     let h0 = hatch.length;
     hatchLayer(layer, subs, st, rnd, hidden, hasMask, hatch, bounds);
@@ -959,7 +971,7 @@ function compose(layers: readonly Layer[], st: PenStyle, seed: number, dw: numbe
       o0 = outline.length;
       h0 = hatch.length;
       markOps(mk, layer.depth, st, rnd, hidden, hasMask, outline, hatch, bounds);
-      dye(o0, h0, typeof mk !== "string" && mk.hue ? MATISSE[mk.hue] : pen);
+      dye(o0, h0, typeof mk !== "string" && mk.hue ? WATERCOLOR[mk.hue] : pen);
     }
   });
   let total = 0;
@@ -982,7 +994,7 @@ function viewFor(cw: number, ch: number, dw: number, dh: number, cover: boolean)
   return { k, ox: (cw - dw * k) / 2, oy: (ch - dh * k) / 2 };
 }
 
-const penColor = (a: number, c = 1, rgb: RGB = MATISSE.blue) => `rgba(${Math.round(rgb[0] * c)},${Math.round(rgb[1] * c)},${Math.round(rgb[2] * c)},${a.toFixed(2)})`;
+const penColor = (a: number, c = 1, rgb: RGB = WATERCOLOR.blue) => `rgba(${Math.round(rgb[0] * c)},${Math.round(rgb[1] * c)},${Math.round(rgb[2] * c)},${a.toFixed(2)})`;
 
 function beginPen(ctx: CanvasRenderingContext2D, v: View) {
   ctx.setTransform(v.k, 0, 0, v.k, v.ox, v.oy);
@@ -1777,7 +1789,7 @@ function house(x: number, y: number, o: HouseOpts): Layer[] {
   const roofAngle = (Math.atan2(c0[0] - apex[0], c0[1] - apex[1]) * 180) / Math.PI;
   const layers: Layer[] = [];
 
-  // the gable end: in shade (cobalt, as Matisse shades), its edge sloping up to the ridge
+  // the gable end: in a faded blue shade, its edge sloping up to the ridge
   const endWall = poly([F(0, 0), S(1, 0), S(1, 1), apex, F(0, 1)]);
   layers.push({
     d: endWall,
@@ -2597,7 +2609,7 @@ function pineRow(x0: number, x1: number, base: number, n: number, h: number, see
   return Array.from({ length: n }, (_, i) => pineLayers(x0 + ((x1 - x0) * (i + r() * 0.7)) / n, base + (r() - 0.5) * 8, h * (0.7 + r() * 0.7), h * 0.36, seed + i, { depth, tone: 0.9, line: 0.7 })).flat();
 }
 
-/* ───────────────── the small circles: each day's scene boiled down to one or two shapes, on a 40 × 40 disc ───────────────── */
+/* ───────────────── the small illustrations: each day's scene boiled down to one or two shapes ───────────────── */
 
 /** A tiny tree: a scalloped crown on a short curved trunk. */
 function miniTree(x: number, base: number, h: number, w: number, seed: number, tone = 0.85): Layer[] {
@@ -2608,9 +2620,6 @@ function miniTree(x: number, base: number, h: number, w: number, seed: number, t
     ...canopyLayers(c, { depth: 0.1, tone, lit: 0.32, under: 0.7, line: 0.8, seed }, 0.5, 1),
   ];
 }
-
-/** Whether each small disc also gets a loose pen ring. */
-const CELL_RING = true;
 
 const MOTIF_BUILDERS: readonly ((inv: boolean) => Layer[])[] = [
   // 1 a lone oak and a band of mist
@@ -2680,12 +2689,9 @@ const MOTIF_BUILDERS: readonly ((inv: boolean) => Layer[])[] = [
   (inv) => (inv ? [{ d: circ(20, 20, 9.5), tone: 0, knockout: true, depth: 0.1 }] : [{ d: circ(20, 20, 10.5), tone: 0.85, hue: "yellow", knockout: true, line: 0.9, depth: 0.1 }, { d: circ(24.5, 17, 8.6), tone: 0, hue: "yellow", knockout: true, line: 0.85, side: "all", depth: 0.1 }]),
 ];
 
-/** The little disc for a day: an optional loose pen ring, the motif drawn in it. Today's is the negative: a dark cobalt disc with the motif left bare. */
-function cellLayers(i: number, inverted: boolean): Layer[] {
-  const motif = MOTIF_BUILDERS[i](inverted);
-  if (!inverted) return [...(CELL_RING ? [{ d: circ(20, 20, 19.3), tone: 0, line: 0.55, depth: 0.4, hue: "black" } as Layer] : []), ...motif];
-  const paper = i === 13 ? motif : motif.map((l): Layer => ({ ...l, tone: 0, knockout: true, ramp: undefined, toneAt: undefined, marks: undefined, hue: undefined, line: Math.min(l.line ?? 0, 0.6) }));
-  return [{ d: circ(20, 20, 19.3), tone: 0.98, depth: 0.05 }, ...paper];
+/** A completed day is represented by its illustration alone, without a circular container. */
+function cellLayers(i: number): Layer[] {
+  return MOTIF_BUILDERS[i](false);
 }
 
 type Scene = {
@@ -2740,11 +2746,11 @@ function sceneComposition(i: number): Composition {
   }
   return c;
 }
-function cellComposition(i: number, inverted: boolean): Composition {
-  const key = `c${i}${inverted ? "i" : ""}`;
+function cellComposition(i: number): Composition {
+  const key = `c${i}`;
   let c = compositions.get(key);
   if (!c) {
-    c = compose(cellLayers(i, inverted), PEN_CELL, 500 + i * 13 + (inverted ? 7 : 0), 40, 40);
+    c = compose(cellLayers(i), PEN_CELL, 500 + i * 13, 40, 40);
     compositions.set(key, c);
   }
   return c;
@@ -2781,11 +2787,164 @@ function ArtCanvas({ index }: { index: number }) {
     cv.height = Math.round(ART_H * res);
     ctx.drawImage(sceneBitmap(index, cv.width, cv.height), 0, 0);
   }, [index]);
+  return (
+    <canvas
+      ref={ref}
+      aria-hidden="true"
+      style={{ display: "block", width: ART_W, height: ART_H, opacity: 1, filter: "saturate(1.55) contrast(1.22)" }}
+    />
+  );
+}
+
+type EntryScene = "coffee" | "city" | "food" | "note";
+
+function entryScene(prompt: string): EntryScene {
+  const value = prompt.toLowerCase();
+  if (/coffee|café|cafe|latte|espresso|tea/.test(value)) return "coffee";
+  if (/city|street|building|train|bus|walk|office|downtown/.test(value)) return "city";
+  if (/food|breakfast|lunch|dinner|noodle|pasta|pizza|bread|rice|meal|eat/.test(value)) return "food";
+  return "note";
+}
+
+function entryTitle(prompt: string) {
+  const labels: Record<EntryScene, string> = {
+    coffee: "Coffee Moment",
+    city: "City Notes",
+    food: "Today’s Table",
+    note: "Today’s Note",
+  };
+  return labels[entryScene(prompt)];
+}
+
+/** Placeholder for a future image-generation endpoint: entry keywords pick a local hand-drawn scene now. */
+function EntryPromptCanvas({ prompt, ink, accent }: { prompt: string; ink: string; accent: string }) {
+  const ref = React.useRef<HTMLCanvasElement>(null);
+  React.useEffect(() => {
+    const cv = ref.current;
+    const ctx = cv?.getContext("2d");
+    if (!cv || !ctx) return;
+    const res = penRes();
+    cv.width = Math.round(ART_W * res);
+    cv.height = Math.round(ART_H * res);
+    ctx.setTransform(res, 0, 0, res, 0, 0);
+    ctx.clearRect(0, 0, ART_W, ART_H);
+    ctx.strokeStyle = ink;
+    ctx.fillStyle = ink;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    const line = (points: readonly [number, number][], width = 1.15, alpha = 0.74, close = false) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < points.length - 1; i += 1) {
+        const midX = (points[i][0] + points[i + 1][0]) / 2;
+        const midY = (points[i][1] + points[i + 1][1]) / 2;
+        ctx.quadraticCurveTo(points[i][0], points[i][1], midX, midY);
+      }
+      const last = points.at(-1);
+      if (last) ctx.lineTo(last[0], last[1]);
+      if (close) ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    };
+    const ellipse = (x: number, y: number, rx: number, ry: number, alpha = 0.72) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = 1.15;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    };
+    const hatch = (x0: number, x1: number, top: number, bottom: number, step = 5) => {
+      for (let x = x0; x <= x1; x += step) line([[x, top + Math.sin(x) * 2], [x - 1.5, bottom]], 0.65, 0.28);
+    };
+    const accentEllipse = (x: number, y: number, rx: number, ry: number, alpha = 0.5) => {
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = accent;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+
+    const scene = entryScene(prompt);
+    if (scene === "coffee") {
+      accentEllipse(134, 143, 40, 24, 0.52);
+      ellipse(134, 116, 45, 15, 0.82);
+      line([[89, 116], [94, 151], [106, 166], [162, 166], [176, 151], [179, 116]], 1.5, 0.82);
+      ellipse(134, 166, 28, 5, 0.48);
+      ctx.save();
+      ctx.globalAlpha = 0.78;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(184, 139, 22, -Math.PI / 2, Math.PI / 2);
+      ctx.arc(184, 139, 13, Math.PI / 2, -Math.PI / 2, true);
+      ctx.stroke();
+      ctx.restore();
+      ellipse(139, 178, 75, 10, 0.5);
+      line([[112, 91], [105, 77], [116, 62], [110, 48]], 1.1, 0.55);
+      line([[136, 91], [145, 74], [137, 60], [145, 43]], 1.1, 0.55);
+      line([[159, 92], [153, 76], [163, 64], [158, 49]], 1.1, 0.55);
+      hatch(101, 169, 126, 156, 6);
+    } else if (scene === "city") {
+      const buildings = [[35, 93, 42, 82], [82, 63, 47, 112], [134, 82, 37, 93], [176, 48, 55, 127]] as const;
+      buildings.forEach(([x, y, w, h], bi) => {
+        ctx.save();
+        ctx.globalAlpha = bi % 2 === 0 ? 0.42 : 0.26;
+        ctx.fillStyle = accent;
+        ctx.fillRect(x + 2, y + 2, w - 4, h - 2);
+        ctx.restore();
+        line([[x, 175], [x, y], [x + w, y], [x + w, 175]], 1.3, 0.78);
+        for (let wy = y + 13; wy < y + h - 7; wy += 15) {
+          for (let wx = x + 9; wx < x + w - 5; wx += 13) ellipse(wx, wy, 1.4, 2, 0.42 + bi * 0.04);
+        }
+      });
+      line([[20, 176], [260, 176]], 1.2, 0.58);
+      line([[86, 221], [126, 176], [154, 176], [204, 221]], 1.1, 0.48);
+      for (let y = 184; y < 220; y += 8) line([[96 - (y - 184) * 0.25, y], [193 + (y - 184) * 0.18, y]], 0.6, 0.24);
+      ellipse(55, 56, 18, 18, 0.5);
+    } else if (scene === "food") {
+      accentEllipse(140, 148, 78, 31, 0.48);
+      ellipse(140, 151, 91, 34, 0.68);
+      ellipse(140, 126, 67, 23, 0.82);
+      line([[74, 128], [84, 163], [103, 181], [178, 181], [197, 162], [207, 128]], 1.5, 0.82);
+      for (let i = 0; i < 8; i += 1) {
+        const x = 104 + i * 10;
+        line([[x, 119 + (i % 2) * 5], [x + 7, 129], [x - 3, 141], [x + 9, 150]], 0.9, 0.48);
+      }
+      line([[192, 57], [135, 143]], 1.5, 0.7);
+      line([[205, 62], [145, 145]], 1.5, 0.7);
+      line([[107, 108], [113, 90], [122, 105]], 1.1, 0.62);
+      line([[146, 103], [153, 85], [161, 105]], 1.1, 0.62);
+    } else {
+      ctx.save();
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = accent;
+      ctx.fillRect(60, 69, 76, 109);
+      ctx.fillRect(148, 68, 76, 109);
+      ctx.restore();
+      line([[54, 73], [132, 62], [142, 171], [65, 184], [54, 73]], 1.35, 0.76);
+      line([[142, 171], [219, 184], [230, 73], [151, 62], [142, 171]], 1.35, 0.76);
+      for (let y = 88; y < 165; y += 15) {
+        line([[70, y], [124, y - 7]], 0.7, 0.32);
+        line([[158, y - 7], [211, y]], 0.7, 0.32);
+      }
+      line([[181, 48], [166, 143]], 2.2, 0.72);
+      line([[181, 48], [188, 61], [177, 62], [181, 48]], 1, 0.72, true);
+      ellipse(210, 163, 24, 8, 0.42);
+    }
+  }, [accent, ink, prompt]);
+
   return <canvas ref={ref} aria-hidden="true" style={{ display: "block", width: ART_W, height: ART_H }} />;
 }
 
-/** One day's little disc, drawn once: a hatched circle, a pen edge, the motif on top. */
-function CellPen({ index, inverted }: { index: number; inverted: boolean }) {
+/** One day's standalone illustration, drawn once. */
+function CellPen({ index }: { index: number }) {
   const ref = React.useRef<HTMLCanvasElement>(null);
   React.useEffect(() => {
     const cv = ref.current;
@@ -2794,9 +2953,9 @@ function CellPen({ index, inverted }: { index: number; inverted: boolean }) {
     const res = Math.min(4, Math.max(2, (window.devicePixelRatio || 1) * 1.4));
     cv.width = Math.round(CELL * res);
     cv.height = Math.round(CELL * res);
-    paintAll(ctx, cellComposition(index, inverted), viewFor(cv.width, cv.height, 40, 40, false), new Path2D(circ(20, 20, 21)));
-  }, [index, inverted]);
-  return <canvas ref={ref} aria-hidden="true" className="absolute inset-0 size-full" />;
+    paintAll(ctx, cellComposition(index), viewFor(cv.width, cv.height, 40, 40, false), new Path2D(circ(20, 20, 21)));
+  }, [index]);
+  return <canvas ref={ref} aria-hidden="true" className="absolute inset-0 size-full" style={{ opacity: 1, filter: "saturate(1.35) contrast(1.18)" }} />;
 }
 
 /* ───────────────────────────── the component ───────────────────────────── */
@@ -2804,6 +2963,12 @@ function CellPen({ index, inverted }: { index: number; inverted: boolean }) {
 const HOLD_MS = 3800;
 const PAUSE_MS = 700;
 const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
+const PAGE_TRANSITION = { duration: 0.46, ease: [0.22, 1, 0.36, 1] } as const;
+const PAGE_VARIANTS = {
+  enter: (direction: number) => ({ x: direction === 0 ? 0 : direction * PAGE_TRAVEL, opacity: direction === 0 ? 0 : 1 }),
+  center: { x: 0, opacity: 1 },
+  exit: (direction: number) => ({ x: direction === 0 ? 0 : direction * -PAGE_TRAVEL, opacity: direction === 0 ? 0 : 1 }),
+};
 
 type DayState = "past" | "today" | "future";
 
@@ -2815,6 +2980,8 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
   const [openDay, setOpenDay] = React.useState<number | null>(null);
   const [focusDay, setFocusDay] = React.useState(today);
   const [interacted, setInteracted] = React.useState(false);
+  const [direction, setDirection] = React.useState(0);
+  const [entries, setEntries] = React.useState<Record<number, string>>({});
 
   const hostRef = React.useRef<HTMLDivElement>(null);
   const fitRef = React.useRef<HTMLDivElement>(null);
@@ -2877,6 +3044,29 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
     setOpenDay(null);
   }, []);
 
+  const goToOpenDay = React.useCallback(
+    (requestedDay: number) => {
+      const current = openRef.current;
+      if (current === null) return;
+      const next = Math.min(today, Math.max(1, requestedDay));
+      if (next === current) return;
+      byPersonRef.current = true;
+      setInteracted(true);
+      setDirection(next > current ? 1 : -1);
+      open(next);
+    },
+    [open, today],
+  );
+
+  const navigateOpenDay = React.useCallback(
+    (delta: -1 | 1) => {
+      const current = openRef.current;
+      if (current === null) return;
+      goToOpenDay(current + delta);
+    },
+    [goToOpenDay],
+  );
+
   // A person opened it: put focus on the detail panel so Escape is immediately
   // available. Once it closes, hand focus back to the day they opened from.
   React.useEffect(() => {
@@ -2892,11 +3082,17 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
   React.useEffect(() => {
     if (openDay === null) return;
     const onKey = (e: KeyboardEvent) => {
+      const target = e.target;
+      if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement || (target instanceof HTMLElement && target.isContentEditable)) return;
       if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        navigateOpenDay(e.key === "ArrowRight" ? 1 : -1);
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [openDay, close]);
+  }, [openDay, close, navigateOpenDay]);
 
   // The gallery card: open today's page, then each earlier day in turn, until touched.
   React.useEffect(() => {
@@ -2936,8 +3132,19 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
 
   const scene = openDay === null ? undefined : sceneOf(openDay);
   const info = openDay === null ? undefined : CALENDAR_DAYS[openDay - 1];
-  const openIsToday = openDay === today;
+  const activeTheme = openDay === null ? undefined : DAY_THEMES[openDay - 1];
+  const activePaper = activeTheme?.paper ?? PAPER;
+  const activeText = activeTheme?.ink ?? TEXT;
+  const activeTextRgb = activeTheme?.inkRgb ?? TEXT_RGB;
+  const activeBodyText = activeText;
+  const activeAccent = activeTheme?.accent ?? "#F3C947";
+  const entryText = openDay === null ? "" : entries[openDay] ?? "";
+  const activeTitle = entryText.trim() ? entryTitle(entryText) : info?.title;
   const titleId = `${uid}-title`;
+  const canGoPrevious = openDay !== null && openDay > 1;
+  const canGoNext = openDay !== null && openDay < today;
+  const detailWeekStart = openDay === null ? 1 : openDay - ((FIRST_COLUMN + openDay - 1) % 7);
+  const detailWeek = Array.from({ length: 7 }, (_, index) => detailWeekStart + index);
 
   return (
     <MotionConfig reducedMotion="user" transformPagePoint={transformPagePoint}>
@@ -2952,42 +3159,134 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
           <style>
             {`
               .dc-cell { outline: none; border-radius: 50%; }
-              .dc-cell:focus-visible { outline: 2px solid ${TEXT}; outline-offset: 2px; }
+              .dc-cell:focus-visible { outline: 2px solid ${activeText}; outline-offset: 2px; }
               .dc-dialog:focus-visible { outline: none; }
             `}
           </style>
 
           <div ref={fitRef} className="relative shrink-0" style={{ width: PHONE_W, height: PHONE_H, transformOrigin: "50% 50%" }}>
-            {/* The screen: one uninterrupted sheet of grey paper. */}
+            {/* The screen remains one uninterrupted colour field in every state. */}
             <div
               className="absolute overflow-hidden"
-              style={{ inset: BEZEL, borderRadius: SCREEN_RADIUS, background: PAPER, color: TEXT }}
+              style={{
+                inset: BEZEL,
+                borderRadius: SCREEN_RADIUS,
+                backgroundColor: activePaper,
+                color: activeText,
+                transition: "background-color 600ms ease, color 600ms ease",
+              }}
             >
               {/* The month: the heading and the grid share one left edge, PAD from the screen. */}
               <motion.h2
                 className="absolute m-0"
-                aria-label={openDay === null ? `${MONTH_NAME} ${YEAR}` : `${MONTH_NAME} ${openDay}, ${YEAR}`}
+                aria-label={`${MONTH_NAME} ${YEAR}`}
+                aria-hidden={openDay !== null}
                 initial={false}
-                animate={{ y: openDay === null ? HEAD_TOP_CLOSED - HEAD_TOP_OPEN : 0 }}
+                animate={{ y: openDay === null ? HEAD_TOP_CLOSED - HEAD_TOP_OPEN : 0, opacity: openDay === null ? 1 : 0 }}
                 transition={LAYOUT}
                 style={{
                   left: PAD,
                   top: HEAD_TOP_OPEN,
                   fontFamily: FONT_SANS,
-                  fontWeight: 800,
+                  fontWeight: 300,
                   fontSize: HEAD_SIZE,
                   lineHeight: `${HEAD_LINE}px`,
-                  letterSpacing: "-0.035em",
-                  // Manrope's capital A leans in a hair; pull the heading back so the
-                  // letter's foot lines up with the circle below it.
+                  letterSpacing: "-0.02em",
+                  // Poppins' round geometry reads best when its left edge is optically
+                  // aligned with the first calendar column.
                   marginLeft: "-0.03em",
                 }}
               >
                 {MONTH_NAME}
-                <span style={{ display: "block", color: text(0.4), marginTop: 2, marginLeft: "-0.045em" }}>
-                  {openDay ?? YEAR}
+                <span style={{ display: "block", minHeight: HEAD_LINE, overflow: "hidden", color: text(0.88, activeTextRgb), fontWeight: 500, marginTop: 2, marginLeft: "-0.035em", transition: "color 600ms ease" }}>
+                  {YEAR}
                 </span>
               </motion.h2>
+
+              <AnimatePresence>
+                {openDay !== null ? (
+                  <motion.div
+                    className="absolute inset-x-0 top-0"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: reduced ? 0.1 : 0.24 }}
+                    style={{ zIndex: 6, color: activeBodyText }}
+                  >
+                    <div className="absolute left-[22px] right-[22px] top-3 flex h-8 items-center border-b" style={{ borderColor: text(0.16, activeTextRgb) }}>
+                      <motion.button
+                        type="button"
+                        aria-label={`Back to ${MONTH_NAME} ${YEAR} month view`}
+                        onClick={close}
+                        whileTap={{ scale: 0.97 }}
+                        className="flex h-8 items-center gap-1.5 border-0 bg-transparent p-0"
+                        style={{ color: activeBodyText, fontSize: 12, fontWeight: 500, letterSpacing: "-0.01em" }}
+                      >
+                        <CalendarDays aria-hidden="true" size={14} strokeWidth={1.8} />
+                        {MONTH_NAME} {YEAR}
+                      </motion.button>
+                      <div className="ml-auto flex items-center">
+                        <motion.button
+                          type="button"
+                          aria-label="Previous completed date"
+                          disabled={!canGoPrevious}
+                          onClick={() => navigateOpenDay(-1)}
+                          whileTap={canGoPrevious ? { scale: 0.88 } : undefined}
+                          className="flex size-8 items-center justify-center border-0 bg-transparent p-0"
+                          style={{ color: activeBodyText, opacity: canGoPrevious ? 1 : 0.28 }}
+                        >
+                          <ChevronLeft aria-hidden="true" size={15} strokeWidth={1.8} />
+                        </motion.button>
+                        <motion.button
+                          type="button"
+                          aria-label="Next completed date"
+                          disabled={!canGoNext}
+                          onClick={() => navigateOpenDay(1)}
+                          whileTap={canGoNext ? { scale: 0.88 } : undefined}
+                          className="flex size-8 items-center justify-center border-0 bg-transparent p-0"
+                          style={{ color: activeBodyText, opacity: canGoNext ? 1 : 0.28 }}
+                        >
+                          <ChevronRight aria-hidden="true" size={15} strokeWidth={1.8} />
+                        </motion.button>
+                      </div>
+                    </div>
+
+                    <p className="absolute inset-x-0 top-[50px] m-0 text-center" style={{ fontSize: 12, fontWeight: 500, color: text(0.72, activeTextRgb) }}>
+                      Your illustrated day
+                    </p>
+
+                    <nav aria-label="Choose a completed date" className="absolute left-[22px] right-[22px] top-[69px] grid grid-cols-7 gap-1">
+                      {detailWeek.map((day, index) => {
+                        const valid = day >= 1 && day <= DAYS_IN_MONTH;
+                        const available = valid && day <= today;
+                        const selected = day === openDay;
+                        return valid ? (
+                          <motion.button
+                            key={day}
+                            type="button"
+                            disabled={!available}
+                            aria-label={`${WEEKDAYS_LONG[index]}, ${MONTH_NAME} ${day}${selected ? ", selected" : ""}`}
+                            aria-current={selected ? "date" : undefined}
+                            onClick={() => goToOpenDay(day)}
+                            whileTap={available && !selected ? { scale: 0.94 } : undefined}
+                            className="flex h-[46px] flex-col items-center justify-center rounded-[13px] border-0 p-0"
+                            style={{
+                              backgroundColor: selected ? activeText : "transparent",
+                              color: selected ? activePaper : activeBodyText,
+                              opacity: available ? 1 : 0.26,
+                            }}
+                          >
+                            <span style={{ fontSize: 15, lineHeight: "17px", fontWeight: 500 }}>{day}</span>
+                            <span style={{ fontSize: 9, lineHeight: "12px", fontWeight: 500 }}>{WEEKDAYS_SHORT[index]}</span>
+                          </motion.button>
+                        ) : (
+                          <span key={`blank-${index}`} aria-hidden="true" />
+                        );
+                      })}
+                    </nav>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
 
               {/* The weekday row and the grid sit low on the glass: one column template, so labels stand exactly over their circles. */}
               <motion.div
@@ -3008,7 +3307,7 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                         key={w}
                         role="columnheader"
                         className="text-center"
-                        style={{ fontSize: WEEKDAY_SIZE, lineHeight: `${WEEKDAY_H}px`, letterSpacing: "-0.01em", color: text(0.55), whiteSpace: "nowrap" }}
+                        style={{ fontSize: WEEKDAY_SIZE, lineHeight: `${WEEKDAY_H}px`, letterSpacing: "-0.01em", color: text(0.86, activeTextRgb), whiteSpace: "nowrap" }}
                       >
                         <abbr title={WEEKDAYS_LONG[i]} style={{ textDecoration: "none" }}>
                           {w}
@@ -3034,7 +3333,11 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                                 className="flex items-center justify-center"
                                 style={{ aspectRatio: "1 / 1" }}
                               >
-                                <span aria-hidden="true" className="block rounded-full" style={{ width: 6, height: 6, boxSizing: "border-box", border: `1.5px solid ${hueCss(DOT_HUES[(day * 3 + row) % DOT_HUES.length])}` }} />
+                                <span
+                                  aria-hidden="true"
+                                  className="block size-full rounded-full"
+                                  style={{ boxSizing: "border-box", border: `1.25px solid ${activeText}`, opacity: 0.86 }}
+                                />
                               </div>
                             );
                           }
@@ -3043,14 +3346,13 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
                               <DayCell
                                 day={day}
                                 info={CALENDAR_DAYS[day - 1]}
-                                inverted={state === "today"}
                                 isToday={state === "today"}
-                                isOpen={openDay === day}
                                 tabbable={focusDay === day}
                                 onFocus={() => setFocusDay(day)}
                                 onOpen={() => {
                                   byPersonRef.current = true;
                                   setInteracted(true);
+                                  setDirection(0);
                                   open(day);
                                 }}
                                 register={(el) => {
@@ -3069,61 +3371,91 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
               {/* Tap outside the card to put it away. */}
               {scene ? <div className="absolute inset-0" style={{ zIndex: 3 }} onClick={close} aria-hidden="true" /> : null}
 
-              {/* The card's paper: the very circle that was tapped, grown into a page. */}
-              {scene && openDay !== null ? (
-                <motion.div
-                  layoutId="dc-card"
-                  className="absolute"
-                  initial={{ backgroundColor: openIsToday ? DISC_TODAY : CARD }}
-                  animate={{ backgroundColor: CARD }}
-                  transition={{ layout: LAYOUT, backgroundColor: { duration: 0.4 } }}
-                  style={{ left: CARD_X, top: CARD_TOP, width: CARD_W, height: CARD_H, borderRadius: CARD_RADIUS, zIndex: 1 }}
-                  aria-hidden="true"
-                />
-              ) : null}
-
-              <AnimatePresence>
+              <AnimatePresence initial={false} custom={direction} mode="popLayout">
                 {scene && info && openDay !== null ? (
                   <motion.div
-                    key="card"
+                    key={openDay}
+                    custom={direction}
+                    variants={PAGE_VARIANTS}
                     ref={dialogRef}
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby={titleId}
                     tabIndex={-1}
                     className="dc-dialog absolute overflow-hidden"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, transition: { delay: 0.26, duration: 0.24 } }}
-                    exit={{ opacity: 0, transition: { duration: 0.12 } }}
-                    style={{ left: CARD_X, top: CARD_TOP, width: CARD_W, height: CARD_H, borderRadius: CARD_RADIUS, zIndex: 4 }}
+                    drag="x"
+                    dragConstraints={{ left: canGoNext ? -PAGE_TRAVEL : 0, right: canGoPrevious ? PAGE_TRAVEL : 0 }}
+                    dragElastic={reduced ? 0 : 0.025}
+                    dragMomentum={false}
+                    onDragEnd={(_, gesture) => {
+                      const shouldChange = Math.abs(gesture.offset.x) > CARD_W * 0.2 || Math.abs(gesture.velocity.x) > 360;
+                      if (shouldChange) navigateOpenDay(gesture.offset.x < 0 ? 1 : -1);
+                    }}
+                    initial={reduced ? { opacity: 0 } : "enter"}
+                    animate={reduced ? { opacity: 1 } : "center"}
+                    exit={reduced ? { opacity: 0 } : "exit"}
+                    transition={reduced ? { duration: 0.12 } : PAGE_TRANSITION}
+                    style={{
+                      left: CARD_X,
+                      top: CARD_TOP,
+                      width: CARD_W,
+                      height: CARD_H,
+                      borderRadius: CARD_RADIUS,
+                      backgroundColor: activePaper,
+                      touchAction: "pan-y",
+                      cursor: "grab",
+                      zIndex: 4,
+                    }}
                   >
                     <div className="relative" style={{ width: ART_W, height: ART_H }}>
-                      <ArtCanvas key={openDay} index={openDay - 1} />
+                      {entryText.trim() ? (
+                        <EntryPromptCanvas prompt={entryText} ink={activeBodyText} accent={activeAccent} />
+                      ) : (
+                        <ArtCanvas key={openDay} index={openDay - 1} />
+                      )}
                     </div>
 
                     {/* The caption: a small editorial block under the drawing. */}
-                    <div className="absolute inset-x-0 bottom-0 flex flex-col" style={{ top: ART_H, padding: "10px 20px 16px" }}>
+                    <div className="absolute inset-x-0 bottom-0 flex flex-col" style={{ top: ART_H, padding: "10px 12px 16px" }}>
                       <h3
                         id={titleId}
                         className="m-0"
                         style={{
                           fontFamily: FONT_SANS,
                           fontWeight: 500,
-                          fontSize: 26,
-                          lineHeight: "28px",
+                          fontSize: 23,
+                          lineHeight: "26px",
                           letterSpacing: "-0.025em",
-                          color: TEXT,
+                          color: activeText,
                           marginTop: 6,
                         }}
                       >
-                        {info.title}
+                        {activeTitle}
                       </h3>
-                      <p
-                        className="m-0"
-                        style={{ fontFamily: FONT_SANS, fontWeight: 500, fontSize: 12.5, lineHeight: "17.5px", color: text(0.7), marginTop: 5 }}
-                      >
-                        {info.sentence}
-                      </p>
+                      <textarea
+                        aria-label="Write about this day"
+                        value={entryText}
+                        onChange={(event) => setEntries((current) => ({ ...current, [openDay]: event.target.value }))}
+                        onPointerDown={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                        placeholder="Write about coffee, a city walk, or something you ate…"
+                        rows={3}
+                        className="w-full resize-none outline-none"
+                        style={{
+                          fontFamily: FONT_SANS,
+                          fontWeight: 500,
+                          fontSize: 12,
+                          lineHeight: "16px",
+                          color: activeBodyText,
+                          backgroundColor: "rgb(247 245 240 / 0.62)",
+                          border: "1px solid rgb(255 255 255 / 0.55)",
+                          borderRadius: 14,
+                          marginTop: 8,
+                          minHeight: 62,
+                          padding: "9px 11px",
+                          cursor: "text",
+                        }}
+                      />
                     </div>
                   </motion.div>
                 ) : null}
@@ -3141,16 +3473,14 @@ export function DoodleCalendar({ today: todayProp = 14, loop = false, onSelect, 
 type DayCellProps = {
   day: number;
   info: CalendarDay;
-  inverted: boolean;
   isToday: boolean;
-  isOpen: boolean;
   tabbable: boolean;
   onFocus: () => void;
   onOpen: () => void;
   register: (el: HTMLButtonElement | null) => void;
 };
 
-const DayCell = React.memo(function DayCell({ day, info, inverted, isToday, isOpen, tabbable, onFocus, onOpen, register }: DayCellProps) {
+const DayCell = React.memo(function DayCell({ day, info, isToday, tabbable, onFocus, onOpen, register }: DayCellProps) {
   return (
     <motion.button
       type="button"
@@ -3164,19 +3494,9 @@ const DayCell = React.memo(function DayCell({ day, info, inverted, isToday, isOp
       onClick={onOpen}
       whileTap={{ scale: 0.94 }}
     >
-      {/* The paper disc. It is the shared element: opening a day lifts it out of here and into the card. */}
-      {isOpen ? null : (
-        <motion.span
-          layoutId="dc-card"
-          className="absolute inset-0 block"
-          transition={{ layout: LAYOUT }}
-          style={{ background: CARD, borderRadius: CELL / 2, zIndex: 2 }}
-          aria-hidden="true"
-        />
-      )}
-      {/* The pen drawing on the disc. */}
+      {/* The pen drawing stands on its own, without a circular background or ring. */}
       <span className="pointer-events-none absolute inset-0 block" style={{ zIndex: 3 }} aria-hidden="true">
-        <CellPen index={day - 1} inverted={inverted} />
+        <CellPen index={day - 1} />
       </span>
     </motion.button>
   );
