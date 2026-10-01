@@ -328,21 +328,9 @@ export const componentRegistry = {
     createdAt: "2026-09-18",
     codePath: "components/gradient/gradient-event-card/gradient-event-card.tsx",
   }),
-  doodleCalendar: createComponentMeta({
-    id: "doodle-calendar",
-    index: "017",
-    title: "Doodle Calendar",
-    description:
-      "A Poppins-set tall calendar on a clean white base with deep-navy typography and pencil illustrations gradient-mapped from mist blue through electric cobalt to navy; an editorial month header and selectable week strip frame the image, full-card swipes track the finger, and a text-driven daily-entry prototype sketches coffee, city or food",
-    category: "Data Visualization",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
-    createdAt: "2026-09-29",
-    codePath: "components/data-visualization/doodle-calendar/doodle-calendar.tsx",
-  }),
   stampTracker: createComponentMeta({
     id: "stamp-tracker",
-    index: "018",
+    index: "017",
     title: "Stamp Tracker",
     description:
       "Four habits as a deck of tall blocks of risograph colour on a bare black phone screen — sky, cocoa, pink and mint, each with its own pattern ink — fanned like a loose stack. Swipe through water, coffee, move and read with a silky, interruptible gesture that follows a finger or a two-finger trackpad swipe, flip between Day, Week and Month, and tap a day to press a rubber stamp onto it. The middle of each card holds a loose hand-inked line drawing in the style of a Japanese tabletop illustration, with a tiny person getting up to something among the objects",

@@ -91,14 +91,6 @@ try {
       await page.evaluate(() => document.activeElement?.blur());
       await page.mouse.move(2, 2);
       await page.waitForTimeout(900);
-    } else if (id === "doodle-calendar") {
-      // The poster is the calendar at rest: past days as paper-cut motifs,
-      // today inverted, the future as dots. No clicks — just let it hydrate
-      // and settle, and keep the pointer off the phone.
-      await page.waitForTimeout(1200);
-      await page.evaluate(() => document.activeElement?.blur());
-      await page.mouse.move(2, 2);
-      await page.waitForTimeout(600);
     } else {
       // halftone-bloom opens collapsed, so the poster has to open it — and it
       // spends its first seconds part-lit, so shoot during the hold with the
