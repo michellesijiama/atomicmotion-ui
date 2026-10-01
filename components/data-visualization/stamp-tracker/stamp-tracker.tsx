@@ -8,7 +8,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 // Stamp Tracker — a week of four habits, printed like a risograph zine and held as a deck
-// of small soft cards, with nothing around them. Each card is a flat wash of its habit's ink.
+// of small soft cards on a bare grey phone screen. Each card is a flat wash of its habit's ink.
 // The week is the point: seven day-circles, mon to sun, and tapping one brings a rubber
 // stamp down on it, leaving a flat disc of ink with a rounded silhouette in a second ink
 // printed a hair out of register, rough at the edge and speckled where the drum ran dry.
@@ -36,6 +36,8 @@ export type StampTrackerProps = {
 
 const PAPER = "#F6F3EC";
 const INK = "#2B2A33";
+/** The phone screen the deck sits on: a soft, cool grey with no bezel. */
+const SCREEN = "#E4E5E7";
 const FONT = "var(--font-poppins, Poppins), Poppins, ui-sans-serif, system-ui, sans-serif";
 
 type Habit = {
@@ -59,14 +61,19 @@ const HABITS: readonly Habit[] = [
 
 /* ───────────────────────────── layout tokens ───────────────────────────── */
 
+/** The phone: a bare rounded screen in iPhone proportions. */
 const SURFACE_W = 340;
-const SURFACE_H = 260;
+const SURFACE_H = 736;
+const SURFACE_RADIUS = 60;
+/** The week heading, top left. */
+const HEADING_X = 28;
+const HEADING_TOP = 76;
 
 const CARD_MARGIN = 20;
 const CARD_W = SURFACE_W - CARD_MARGIN * 2;
 const CARD_H = 200;
-/** The deck block (peeks plus card) is centred in its box. */
-const DECK_TOP = 43;
+/** The deck block (peeks plus card) sits at the screen's centre. */
+const DECK_TOP = 281;
 const DECK_BOTTOM = SURFACE_H - DECK_TOP - CARD_H;
 const CARD_RADIUS = 32;
 const CARD_PAD = 20;
@@ -443,6 +450,11 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
   const month = today.getMonth();
   const dom = today.getDate();
   const todayIdx = (today.getDay() + 6) % 7; // Monday first
+  const weekRange = React.useMemo(() => {
+    const day = (offset: number) => new Date(year, month, dom + offset);
+    const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return `${fmt(day(-todayIdx))} – ${fmt(day(6 - todayIdx))}`;
+  }, [year, month, dom, todayIdx]);
 
   const [initial] = React.useState<Stamps>(() => {
     const out = {} as Record<HabitId, Set<number>>;
@@ -667,9 +679,23 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
           <div
             role="group"
             aria-label="Stamp tracker"
-            className="absolute inset-0"
-            style={{ color: INK, fontFamily: FONT }}
+            className="absolute inset-0 overflow-hidden"
+            style={{
+              borderRadius: SURFACE_RADIUS,
+              background: SCREEN,
+              color: INK,
+              fontFamily: FONT,
+              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.6)",
+            }}
           >
+            {/* Which week this is. */}
+            <div className="absolute" style={{ left: HEADING_X, top: HEADING_TOP }}>
+              <h2 className="m-0" style={{ fontWeight: 600, fontSize: 24, lineHeight: "32px", letterSpacing: "-0.02em" }}>
+                This week
+              </h2>
+              <div style={{ fontWeight: 400, fontSize: 14, lineHeight: "20px", opacity: 0.45, marginTop: 2 }}>{weekRange}</div>
+            </div>
+
             {/* The deck. The cards behind peek out above the front one. */}
             <div
               role="group"
