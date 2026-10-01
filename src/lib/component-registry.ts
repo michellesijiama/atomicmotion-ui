@@ -340,6 +340,18 @@ export const componentRegistry = {
     createdAt: "2026-09-29",
     codePath: "components/data-visualization/doodle-calendar/doodle-calendar.tsx",
   }),
+  stampTracker: createComponentMeta({
+    id: "stamp-tracker",
+    index: "018",
+    title: "Stamp Tracker",
+    description:
+      "A week of four habits as a deck of big, soft, riso-glowing cards on one rounded sheet of paper — swipe through coffee, move, water and read while the cards behind peek out above the front one. Press the round button for today and a rubber stamp slams down, leaving a flat disc with a rounded silhouette printed a hair out of register, rough-edged and speckled; the week's little circles below stamp the same way",
+    category: "Data Visualization",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-09-30",
+    codePath: "components/data-visualization/stamp-tracker/stamp-tracker.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
