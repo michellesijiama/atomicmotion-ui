@@ -910,6 +910,80 @@ function ViewSwitch({ view, onChange, uid }: { view: View; onChange: (v: View) =
 
 /* ───────────────────────────── the deck ───────────────────────────── */
 
+/* ───────────────────────────── the touch cursor ───────────────────────────── */
+
+/**
+ * Over the phone the mouse pointer becomes a soft round touch, like a finger on a simulator, so it feels like
+ * using an app. Mouse and pen only; touch screens already have a finger. The native cursor is hidden by CSS.
+ */
+function TouchCursor({ hostRef, screenRef }: { hostRef: React.RefObject<HTMLDivElement | null>; screenRef: React.RefObject<HTMLDivElement | null> }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const [shown, setShown] = React.useState(false);
+  const [down, setDown] = React.useState(false);
+
+  React.useEffect(() => {
+    const host = hostRef.current;
+    const screen = screenRef.current;
+    if (!host || !screen || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    const place = (e: PointerEvent) => {
+      const r = host.getBoundingClientRect();
+      x.set(e.clientX - r.left);
+      y.set(e.clientY - r.top);
+    };
+    const move = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      place(e);
+      setShown(true);
+    };
+    const leave = () => {
+      setShown(false);
+      setDown(false);
+    };
+    const press = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      place(e);
+      setDown(true);
+    };
+    const release = () => setDown(false);
+    screen.addEventListener("pointermove", move);
+    screen.addEventListener("pointerenter", move);
+    screen.addEventListener("pointerleave", leave);
+    screen.addEventListener("pointerdown", press);
+    window.addEventListener("pointerup", release);
+    return () => {
+      screen.removeEventListener("pointermove", move);
+      screen.removeEventListener("pointerenter", move);
+      screen.removeEventListener("pointerleave", leave);
+      screen.removeEventListener("pointerdown", press);
+      window.removeEventListener("pointerup", release);
+    };
+  }, [hostRef, screenRef, x, y]);
+
+  return (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none absolute left-0 top-0 rounded-full"
+      style={{
+        x,
+        y,
+        width: 30,
+        height: 30,
+        marginLeft: -15,
+        marginTop: -15,
+        zIndex: 20,
+        background: "rgba(255,255,255,0.32)",
+        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 6px rgba(0,0,0,0.18)",
+        backdropFilter: "blur(2px)",
+        WebkitBackdropFilter: "blur(2px)",
+      }}
+      initial={false}
+      animate={{ opacity: shown ? 1 : 0, scale: shown ? (down ? 0.78 : 1) : 0.6 }}
+      transition={{ type: "spring", bounce: 0, visualDuration: 0.18 }}
+    />
+  );
+}
+
 export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, className }: StampTrackerProps) {
   const reduce = !!useReducedMotion();
   const uid = React.useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -994,6 +1068,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
   const deckOpacity = React.useMemo(() => motionValue(1), []);
 
   const hostRef = React.useRef<HTMLDivElement>(null);
+  const screenRef = React.useRef<HTMLDivElement>(null);
   const fitRef = React.useRef<HTMLDivElement>(null);
 
   // Scale the true-size deck down to the space it has, so it is always whole.
@@ -1277,6 +1352,9 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
               .st-deck:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 4px; border-radius: ${CARD_RADIUS}px; }
               .st-tab { outline: none; }
               .st-tab:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 1px; }
+              @media (hover: hover) and (pointer: fine) {
+                .st-screen, .st-screen * { cursor: none !important; }
+              }
             `}
           </style>
 
@@ -1318,9 +1396,10 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
 
           <div ref={fitRef} className="relative shrink-0" style={{ width: SURFACE_W, height: SURFACE_H, transformOrigin: "50% 50%" }}>
             <div
+              ref={screenRef}
               role="group"
               aria-label="Stamp tracker"
-              className="absolute inset-0 overflow-hidden"
+              className="st-screen absolute inset-0 overflow-hidden"
               style={{
                 borderRadius: SURFACE_RADIUS,
                 background: SCREEN,
@@ -1367,6 +1446,8 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
               </motion.div>
             </div>
           </div>
+
+          <TouchCursor hostRef={hostRef} screenRef={screenRef} />
         </div>
       </LayoutGroup>
     </MotionConfig>
