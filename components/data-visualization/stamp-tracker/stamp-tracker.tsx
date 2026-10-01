@@ -8,12 +8,13 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 // Stamp Tracker — a week of four habits, printed like a risograph zine and held as a deck
-// of big soft cards on one rounded sheet of paper. Each card glows in its habit's inks. In
-// the middle is a single round button for today: press it and a rubber stamp comes down,
-// leaving a flat disc of ink with a rounded silhouette in a second ink printed a hair out
-// of register, rough at the edge and speckled where the drum ran dry. Along the bottom of
-// the card is the week, a small stamp for each day. Swipe the card away and it tucks in
-// behind the others, whose tops peek out above it.
+// of small soft cards on one rounded sheet of paper. Each card glows in its habit's inks.
+// The week is the point: seven day-circles, mon to sun, and tapping one brings a rubber
+// stamp down on it, leaving a flat disc of ink with a rounded silhouette in a second ink
+// printed a hair out of register, rough at the edge and speckled where the drum ran dry.
+// Today also has a small stamp in the card's corner (the same state), and a slim track
+// below counts the week. Swipe the card away and it tucks in behind the others, whose tops
+// peek out above it.
 
 // Inlined so this folder is self-contained — copy it anywhere and it works.
 function cn(...inputs: ClassValue[]) {
@@ -61,18 +62,20 @@ const HABITS: readonly Habit[] = [
 /* ───────────────────────────── layout tokens ───────────────────────────── */
 
 const SURFACE_W = 340;
-const SURFACE_H = 700;
-const SURFACE_RADIUS = 44;
+const SURFACE_H = 430;
+const SURFACE_RADIUS = 40;
 
 const CARD_MARGIN = 20;
 const CARD_W = SURFACE_W - CARD_MARGIN * 2;
-const DECK_TOP = 64;
-const DECK_BOTTOM = 56;
-const CARD_RADIUS = 40;
-const CARD_PAD = 26;
+const CARD_H = 300;
+/** The deck block (peeks, card, gap, dots) is centred in the sheet. */
+const DECK_TOP = 69;
+const DECK_BOTTOM = SURFACE_H - DECK_TOP - CARD_H;
+const CARD_RADIUS = 32;
+const CARD_PAD = 20;
 /** Cards behind the front one: how far up each is shifted and how much it shrinks. */
-const PEEK_Y = [0, 18, 34, 48] as const;
-const PEEK_SCALE = [1, 0.92, 0.85, 0.78] as const;
+const PEEK_Y = [0, 14, 26, 36] as const;
+const PEEK_SCALE = [1, 0.93, 0.86, 0.79] as const;
 
 const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 const WEEKDAYS_LONG = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
@@ -84,8 +87,8 @@ const SNAP_SPRING = { type: "spring", stiffness: 420, damping: 32 } as const;
 
 /** The two sizes a stamp button comes in: the big one for today, the little ones for the week. */
 const VARIANT = {
-  hero: { size: 160, pad: 8, head: 1.4, lift: -16, shadow: "drop-shadow(0 16px 22px rgba(0,0,0,0.14))", speck: [3, 6], reach: 12, tilt: 8 },
-  day: { size: 30, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, tilt: 20 },
+  hero: { size: 56, pad: 5, head: 1.45, lift: -8, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.13))", speck: [2, 4], reach: 7, tilt: 12 },
+  day: { size: 33, pad: 4, head: 1.55, lift: -6, shadow: "drop-shadow(0 8px 12px rgba(0,0,0,0.12))", speck: [2, 3], reach: 5, tilt: 20 },
 } as const;
 
 /* ───────────────────────────── seeded hashing ───────────────────────────── */
@@ -211,7 +214,7 @@ function StampButton({ variant, habit, idx, stamped, isToday, disabled, ariaLabe
   const tilt = (hash01(`${habit.id}:${variant}:tilt:${idx}`) - 0.5) * v.tilt;
   const svgSize = v.size + v.pad;
   const offset = (v.size - svgSize) / 2;
-  const ring = disabled ? `${habit.block}26` : hero ? habit.block : isToday ? `${habit.block}CC` : `${habit.block}80`;
+  const ring = disabled ? `${habit.block}2E` : hero || isToday ? habit.block : `${habit.block}8C`;
 
   return (
     <button
@@ -240,7 +243,7 @@ function StampButton({ variant, habit, idx, stamped, isToday, disabled, ariaLabe
         aria-hidden
         className="absolute inset-0 rounded-full"
         style={{
-          border: `${hero ? 2 : isToday ? 2 : 1.5}px ${hero ? "dashed" : "solid"} ${ring}`,
+          border: `${hero ? 2 : isToday ? 2.5 : 2}px ${hero ? "dashed" : "solid"} ${ring}`,
           opacity: stamped ? 0 : 1,
           transition: `opacity ${stamped ? 120 : 200}ms ease ${stamped ? 0 : 140}ms`,
         }}
@@ -309,7 +312,7 @@ function StampButton({ variant, habit, idx, stamped, isToday, disabled, ariaLabe
                 aria-hidden
                 className="pointer-events-none absolute rounded-full"
                 initial={{ opacity: 0.9, x: 0, y: 0 }}
-                animate={{ opacity: 0, x: Math.cos(a) * (hero ? 8 : 3), y: Math.sin(a) * (hero ? 8 : 3) }}
+                animate={{ opacity: 0, x: Math.cos(a) * 3, y: Math.sin(a) * 3 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 style={{ width: s, height: s, left: v.size / 2 + Math.cos(a) * r - s / 2, top: v.size / 2 + Math.sin(a) * r - s / 2, background: habit.block }}
               />
@@ -405,14 +408,14 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
       </svg>
 
       <div className="relative flex h-full flex-col">
-        <div>
-          <h3 className="m-0" style={{ fontWeight: 600, fontSize: 22, lineHeight: "28px", letterSpacing: "-0.02em" }}>
-            {habit.name}
-          </h3>
-          <div style={{ fontWeight: 400, fontSize: 13, lineHeight: "20px", opacity: 0.4 }}>{habit.frequency}</div>
-        </div>
-
-        <div className="flex flex-1 flex-col items-center justify-center" style={{ gap: 22 }}>
+        {/* 1. The header: which habit, and today's stamp. Secondary. */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="m-0" style={{ fontWeight: 600, fontSize: 18, lineHeight: "24px", letterSpacing: "-0.02em" }}>
+              {habit.name}
+            </h3>
+            <div style={{ fontWeight: 400, fontSize: 12, lineHeight: "18px", opacity: 0.45 }}>{habit.frequency}</div>
+          </div>
           <StampButton
             variant="hero"
             habit={habit}
@@ -424,24 +427,22 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
             reduce={reduce}
             onPress={guarded(todayIdx)}
           />
-          <div className="text-center">
-            <div style={{ fontWeight: 500, fontSize: 15, lineHeight: "22px" }}>
-              {done} of {habit.goal}
-            </div>
-            <div style={{ fontWeight: 400, fontSize: 12, lineHeight: "18px", opacity: 0.45 }}>this week</div>
-          </div>
         </div>
 
-        {/* The week: a label and a small stamp for each day. */}
-        <div style={{ paddingBottom: 12 }}>
+        {/* 2. The week. This is the point of the card, so it takes the middle and the most weight. */}
+        <div className="flex flex-1 flex-col justify-center" style={{ paddingBottom: 6 }}>
           <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
             {WEEKDAYS.map((w, i) => (
-              <span key={w} className="text-center" style={{ fontWeight: i === todayIdx ? 500 : 400, fontSize: 11, lineHeight: "16px", opacity: i === todayIdx ? 0.8 : 0.5 }}>
+              <span
+                key={w}
+                className="text-center"
+                style={{ fontWeight: i === todayIdx ? 600 : 500, fontSize: 11, lineHeight: "16px", opacity: i === todayIdx ? 0.9 : 0.5 }}
+              >
                 {w}
               </span>
             ))}
           </div>
-          <div className="grid justify-items-center" style={{ marginTop: 8, gridTemplateColumns: "repeat(7, 1fr)" }}>
+          <div className="grid justify-items-center" style={{ marginTop: 10, gridTemplateColumns: "repeat(7, 1fr)" }}>
             {WEEKDAYS.map((w, i) => (
               <StampButton
                 key={w}
@@ -452,13 +453,28 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
                 isToday={i === todayIdx}
                 disabled={i > todayIdx}
                 ariaLabel={`${habit.name}, ${WEEKDAYS_LONG[i]} — ${stamps[habit.id].has(i) ? "stamped" : "not stamped"}`}
-                // Today's little circle mirrors the big one, which carries the slam.
-                slam={i === todayIdx ? 0 : slamFor(i)}
+                slam={slamFor(i)}
                 inkFilter={inkFilters.day}
                 reduce={reduce}
                 onPress={guarded(i)}
               />
             ))}
+          </div>
+        </div>
+
+        {/* 3. Progress. Tertiary. */}
+        <div>
+          <div style={{ fontWeight: 400, fontSize: 12, lineHeight: "16px", opacity: 0.5 }}>
+            {done} of {habit.goal} this week
+          </div>
+          <div className="relative overflow-hidden rounded-full" style={{ marginTop: 8, height: 6, background: "rgba(43,42,51,0.06)" }}>
+            <motion.div
+              className="absolute inset-y-0 left-0 rounded-full"
+              style={{ background: habit.block }}
+              initial={false}
+              animate={{ width: `${Math.min(1, done / habit.goal) * 100}%` }}
+              transition={{ duration: reduce ? 0.12 : 0.4, ease: "easeOut" }}
+            />
           </div>
         </div>
       </div>
@@ -697,7 +713,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
             <filter id={inkFilters.hero} x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
               <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="21" result="warp" />
               <feDisplacementMap in="SourceGraphic" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="rough" />
-              <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="5" result="grain" />
+              <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="5" result="grain" />
               <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  30 0 0 0 -9" result="speck" />
               <feComposite in="rough" in2="speck" operator="in" />
             </filter>
@@ -758,7 +774,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
             </div>
 
             {/* Which card is in front. */}
-            <div className="absolute left-0 right-0 flex items-center justify-center" style={{ bottom: 22, gap: 7, height: 10 }}>
+            <div className="absolute left-0 right-0 flex items-center justify-center" style={{ bottom: 35, gap: 7, height: 10 }}>
               {HABITS.map((h, i) => {
                 const active = i === front;
                 return (

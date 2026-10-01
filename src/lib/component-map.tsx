@@ -92,7 +92,7 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
 
 function StampTrackerPreview({ loop }: { loop?: boolean }) {
   // The portrait sheet scales itself down to fit; the gallery tile enlarges it a touch to read.
-  return <StampTracker loop={loop} className={loop ? "scale-[1.2]" : undefined} />;
+  return <StampTracker loop={loop} className={loop ? "scale-[1.9]" : undefined} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
