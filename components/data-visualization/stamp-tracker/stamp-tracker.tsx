@@ -8,7 +8,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 // Stamp Tracker — a week of four habits, printed like a risograph zine and held as a deck
-// of small soft cards on one rounded sheet of paper. Each card glows in its habit's inks.
+// of small soft cards, with nothing around them. Each card glows in its habit's inks.
 // The week is the point: seven day-circles, mon to sun, and tapping one brings a rubber
 // stamp down on it, leaving a flat disc of ink with a rounded silhouette in a second ink
 // printed a hair out of register, rough at the edge and speckled where the drum ran dry.
@@ -62,14 +62,13 @@ const HABITS: readonly Habit[] = [
 /* ───────────────────────────── layout tokens ───────────────────────────── */
 
 const SURFACE_W = 340;
-const SURFACE_H = 430;
-const SURFACE_RADIUS = 40;
+const SURFACE_H = 360;
 
 const CARD_MARGIN = 20;
 const CARD_W = SURFACE_W - CARD_MARGIN * 2;
 const CARD_H = 300;
-/** The deck block (peeks, card, gap, dots) is centred in the sheet. */
-const DECK_TOP = 69;
+/** The deck block (peeks plus card) is centred in its box. */
+const DECK_TOP = 43;
 const DECK_BOTTOM = SURFACE_H - DECK_TOP - CARD_H;
 const CARD_RADIUS = 32;
 const CARD_PAD = 20;
@@ -464,10 +463,7 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
 
         {/* 3. Progress. Tertiary. */}
         <div>
-          <div style={{ fontWeight: 400, fontSize: 12, lineHeight: "16px", opacity: 0.5 }}>
-            {done} of {habit.goal} this week
-          </div>
-          <div className="relative overflow-hidden rounded-full" style={{ marginTop: 8, height: 6, background: "rgba(43,42,51,0.06)" }}>
+          <div className="relative overflow-hidden rounded-full" style={{ height: 6, background: "rgba(43,42,51,0.06)" }}>
             <motion.div
               className="absolute inset-y-0 left-0 rounded-full"
               style={{ background: habit.block }}
@@ -482,7 +478,7 @@ function DeckCard({ habit, depth, entered, x, stamps, todayIdx, pressed, inkFilt
   );
 }
 
-/* ───────────────────────────── the sheet ───────────────────────────── */
+/* ───────────────────────────── the deck ───────────────────────────── */
 
 export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, className }: StampTrackerProps) {
   const reduce = !!useReducedMotion();
@@ -536,7 +532,7 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
   const hostRef = React.useRef<HTMLDivElement>(null);
   const fitRef = React.useRef<HTMLDivElement>(null);
 
-  // Scale the true-size sheet down to the space it has, so it is always whole.
+  // Scale the true-size deck down to the space it has, so it is always whole.
   React.useEffect(() => {
     const host = hostRef.current;
     const fit = fitRef.current;
@@ -621,15 +617,6 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
     [xs],
   );
 
-  const goTo = React.useCallback(
-    (i: number) => {
-      if (i === frontRef.current || busyRef.current) return;
-      xs.forEach((v) => v.set(0));
-      frontRef.current = i;
-      setFront(i);
-    },
-    [xs],
-  );
 
   const touched = React.useCallback(() => {
     if (interactedRef.current) return;
@@ -685,7 +672,6 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
   };
 
   const inkFilters = { hero: `${uid}-hero`, day: `${uid}-day`, grain: `${uid}-grain` };
-  const frontHabit = HABITS[front];
 
   return (
     <MotionConfig reducedMotion="user">
@@ -702,8 +688,6 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
             .st-stamp:focus-visible { outline: 2px solid ${INK}; outline-offset: 3px; }
             .st-deck { outline: none; }
             .st-deck:focus-visible { outline: 2px solid ${INK}; outline-offset: 4px; border-radius: ${CARD_RADIUS}px; }
-            .st-dot { outline: none; }
-            .st-dot:focus-visible { outline: 2px solid ${INK}; outline-offset: 2px; }
           `}
         </style>
 
@@ -735,14 +719,8 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
           <div
             role="group"
             aria-label="Stamp tracker"
-            className="absolute inset-0 overflow-hidden"
-            style={{
-              borderRadius: SURFACE_RADIUS,
-              background: PAPER,
-              color: INK,
-              fontFamily: FONT,
-              boxShadow: "0 0 0 1px rgba(43,42,51,0.06), 0 26px 50px -30px rgba(43,42,51,0.3)",
-            }}
+            className="absolute inset-0"
+            style={{ color: INK, fontFamily: FONT }}
           >
             {/* The deck. The cards behind peek out above the front one. */}
             <div
@@ -773,36 +751,6 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
               ))}
             </div>
 
-            {/* Which card is in front. */}
-            <div className="absolute left-0 right-0 flex items-center justify-center" style={{ bottom: 35, gap: 7, height: 10 }}>
-              {HABITS.map((h, i) => {
-                const active = i === front;
-                return (
-                  <button
-                    key={h.id}
-                    type="button"
-                    className="st-dot rounded-full"
-                    aria-label={`Show ${h.name}`}
-                    aria-current={active ? "true" : undefined}
-                    onClick={() => goTo(i)}
-                    style={{
-                      width: active ? 20 : 8,
-                      height: 8,
-                      padding: 0,
-                      border: 0,
-                      cursor: "pointer",
-                      background: active ? frontHabit.block : "rgba(43,42,51,0.2)",
-                      transition: "width 250ms ease, background-color 250ms ease",
-                    }}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Paper grain, clipped to the sheet. */}
-            <svg aria-hidden className="pointer-events-none absolute inset-0" width="100%" height="100%" style={{ opacity: 0.08, mixBlendMode: "multiply" }}>
-              <rect width="100%" height="100%" filter={`url(#${inkFilters.grain})`} />
-            </svg>
           </div>
         </div>
       </div>
