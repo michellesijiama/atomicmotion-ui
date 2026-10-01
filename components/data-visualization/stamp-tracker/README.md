@@ -1,6 +1,6 @@
 # Stamp Tracker
 
-A week of four habits as a deck of small, soft, riso-glowing cards — swipe through coffee, move, water and read while the cards behind peek out above the front one. The seven day-circles are the point: tap one and a rubber stamp slams down, leaving a flat disc with a rounded silhouette printed a hair out of register, rough-edged and speckled, while today's small stamp sits in the corner
+A week of four habits as a deck of small, soft cards, each a flat wash of its own riso ink — swipe through coffee, move, water and read while the cards behind peek out above the front one. The seven day-circles are the point: tap one and a rubber stamp slams down, leaving a flat disc with a rounded silhouette printed a hair out of register, rough-edged and speckled
 
 ![Stamp Tracker preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/stamp-tracker.png)
 
