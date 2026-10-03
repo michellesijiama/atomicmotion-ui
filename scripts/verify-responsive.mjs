@@ -51,8 +51,8 @@ async function measureReachability(locator) {
   });
 }
 
-async function reachable(locator, label, { click = false } = {}) {
-  let result = await measureReachability(locator);
+async function reachable(locator, label, { click = false, measurement } = {}) {
+  let result = measurement ?? await measureReachability(locator);
   // Already-visible controls need no scrolling. Waiting for scroll stability
   // on every fixed header button can stall CPU-only animated browser runs.
   if (!result.visible || result.clipped.length > 0) {
@@ -115,17 +115,24 @@ try {
     console.log(`Check home width ${width}`);
     await page.setViewportSize({ width, height: 844 });
     await page.waitForTimeout(200);
-    await checkWidth(page, "home");
     const all = categories.getByRole("button", { name: "All", exact: true });
     const filterStrip = all.locator("..");
-    assert.equal(await filterStrip.evaluate((element) => getComputedStyle(element).scrollbarWidth), "none", `home ${width}: hidden category scrollbar`);
+    // These reads are independent. Queue them together so the animated page
+    // need not flush a fresh layout/paint for each separate browser round trip.
+    const [, scrollbarWidth, aboutMeasurement, allMeasurement] = await Promise.all([
+      checkWidth(page, "home"),
+      filterStrip.evaluate((element) => getComputedStyle(element).scrollbarWidth),
+      measureReachability(homeAbout),
+      measureReachability(all),
+    ]);
+    assert.equal(scrollbarWidth, "none", `home ${width}: hidden category scrollbar`);
+    await reachable(homeAbout, `home ${width}: About`, { measurement: aboutMeasurement });
+    await reachable(all, `home ${width}: All`, { measurement: allMeasurement });
     if (width === 768) {
       assert.ok(await filterStrip.evaluate((element) => element.scrollWidth > element.clientWidth), "tablet category strip remains scrollable");
       await reachable(categories.getByRole("button", { name: "Tool", exact: true }), "tablet: final category remains reachable", { click: true });
       await all.click();
     }
-    await reachable(homeAbout, `home ${width}: About`);
-    await reachable(all, `home ${width}: All`);
     if ([390, 1280].includes(width)) await capture(page, `home-${width}`);
   }
   // Active filters survive changing between one and several card columns.
