@@ -37,9 +37,8 @@ async function checkWidth(page, label) {
   report.push({ page: label, ...sizes });
 }
 
-async function reachable(locator, label, { click = false } = {}) {
-  await locator.scrollIntoViewIfNeeded();
-  const result = await locator.evaluate((element) => {
+async function measureReachability(locator) {
+  return locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
     const clipped = [];
     for (let parent = element.parentElement; parent; parent = parent.parentElement) {
@@ -50,6 +49,16 @@ async function reachable(locator, label, { click = false } = {}) {
     }
     return { clipped, visible: rect.width > 0 && rect.height > 0 && rect.top >= -2 && rect.bottom <= innerHeight + 2 };
   });
+}
+
+async function reachable(locator, label, { click = false } = {}) {
+  let result = await measureReachability(locator);
+  // Already-visible controls need no scrolling. Waiting for scroll stability
+  // on every fixed header button can stall CPU-only animated browser runs.
+  if (!result.visible || result.clipped.length > 0) {
+    await locator.scrollIntoViewIfNeeded();
+    result = await measureReachability(locator);
+  }
   assert.ok(result.visible && result.clipped.length === 0, `${label}: inaccessible control ${JSON.stringify(result)}`);
   if (click) await locator.click();
 }
