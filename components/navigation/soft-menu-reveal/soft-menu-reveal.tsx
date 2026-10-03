@@ -84,6 +84,7 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
       ref={rootRef}
       className={cn(
         "relative isolate flex h-full min-h-full w-full items-center justify-center overflow-hidden bg-transparent px-5 py-5 text-[var(--expnav-ink)]",
+        !loop && "[@media(max-height:500px)]:h-auto [@media(max-height:500px)]:min-h-[380px]",
         className,
       )}
       style={
@@ -93,7 +94,12 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
         } as React.CSSProperties
       }
     >
-      <div className="relative w-full max-w-[460px] -translate-y-[142px]">
+      <div
+        className={cn(
+          "relative w-full max-w-[460px] -translate-y-[142px]",
+          !loop && "[@media(max-height:500px)]:self-start [@media(max-height:500px)]:translate-y-0",
+        )}
+      >
         {/* The nav row stays mounted and in-place; the panel expands behind it. */}
         <nav
           className="relative z-40 flex h-14 items-center justify-between px-6"
@@ -126,6 +132,7 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
           transition={panelTransition}
           className="absolute inset-x-0 top-0 z-30 overflow-hidden rounded-[28px] bg-[#f5f5f5]/85 backdrop-blur-[72px] backdrop-saturate-150"
           aria-hidden={!open}
+          inert={!open}
           style={{ pointerEvents: open ? "auto" : "none" }}
         >
           <motion.div

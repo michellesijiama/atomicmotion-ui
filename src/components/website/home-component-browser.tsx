@@ -56,7 +56,7 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
         transition={{ duration: 0.42, ease: [0.45, 0, 0.55, 1] }}
         className="mx-auto mb-10 max-w-none border-t border-black/15 bg-transparent p-2 pt-6"
       >
-        <div className="flex justify-center gap-2 overflow-x-auto">
+        <div className="flex flex-wrap justify-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-nowrap sm:justify-center-safe">
           {filterOptions.map((option) => {
             const isActive = activeFilter === option.value;
 
@@ -66,7 +66,7 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
                 type="button"
                 aria-pressed={isActive}
                 onClick={() => setActiveFilter(option.value)}
-                className="relative inline-flex h-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black/15 px-5 text-[15px] leading-none text-[var(--jitter-ink)] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/15"
+                className="relative inline-flex h-11 shrink-0 sm:h-10 items-center justify-center overflow-hidden rounded-full border border-black/15 px-5 text-[15px] leading-none text-[var(--jitter-ink)] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/15"
               >
                 {isActive && (
                   <motion.span

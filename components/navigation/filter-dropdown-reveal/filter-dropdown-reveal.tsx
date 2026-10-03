@@ -69,15 +69,17 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
   const [activeGroup, setActiveGroup] = React.useState<FilterGroup | null>(null);
   const [loopPressedGroup, setLoopPressedGroup] = React.useState<FilterGroup | null>(null);
   const rootRef = React.useRef<HTMLDivElement>(null);
+  // Below 760px of usable space, keep the panel in flow so every option can scroll.
+  // The authored loop preview retains its original two-column composition.
   const panelClassName = cn(
     "absolute top-[calc(100%+12px)] z-50 overflow-hidden rounded-xl bg-[rgba(1,1,1,0.4)] text-white shadow-none backdrop-blur-[2px] will-change-transform",
     loop
       ? "left-[calc(50%-328px)] w-[336px] p-5"
-      : "left-0 w-[min(360px,calc(100vw-48px))] p-6",
+      : "left-0 w-[min(360px,calc(100vw-48px))] p-6 @max-[760px]:relative @max-[760px]:top-auto @max-[760px]:order-2 @max-[760px]:w-full @max-[760px]:basis-full @max-[760px]:p-4",
   );
   const contentClassName = cn(
     "relative w-full",
-    loop ? "max-w-[560px] -translate-y-24" : "max-w-[620px] -translate-y-24",
+    loop ? "max-w-[560px] -translate-y-24" : "max-w-[620px] -translate-y-24 @max-[760px]:max-h-full @max-[760px]:translate-y-0 @max-[760px]:overflow-y-auto @max-[760px]:overscroll-contain",
   );
   const filterRowClassName = cn(
     "relative z-10 flex items-start justify-center gap-3",
@@ -133,6 +135,7 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
       ref={rootRef}
       className={cn(
         "relative isolate flex h-full min-h-full w-full items-center justify-center overflow-hidden bg-transparent px-5 py-5 text-[var(--filterdrop-ink)]",
+        !loop && "@container",
         className,
       )}
       style={
@@ -149,7 +152,7 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
             const isLoopPressed = loopPressedGroup === group.label;
 
             return (
-              <div key={group.label} className="relative">
+              <div key={group.label} className={cn("relative", !loop && "@max-[760px]:contents")}>
                 <motion.button
                   type="button"
                   onClick={() => setActiveGroup(isActive ? null : group.label)}
@@ -166,6 +169,7 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                   whileTap={{ scale: 0.96, y: 1 }}
                   className={cn(
                     "group inline-flex h-[42px] min-w-[112px] items-center justify-between gap-5 rounded-xl px-5 font-mono text-[13px] font-semibold uppercase tracking-[0.14em] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10",
+                    !loop && "@max-[760px]:order-1 @max-[760px]:h-11",
                     isActive
                       ? "bg-[#999999] text-white"
                       : "bg-[#e6e6e6] text-[var(--filterdrop-ink)] hover:bg-[#dcdcdc]",
@@ -184,11 +188,12 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                     y: isActive ? 0 : 20,
                   }}
                   transition={panelTransition}
-                  className={panelClassName}
+                  className={cn(panelClassName, !loop && !isActive && "@max-[760px]:hidden")}
                   aria-hidden={!isActive}
+                  inert={!isActive}
                   style={{ pointerEvents: isActive ? "auto" : "none" }}
                 >
-                  <div className="grid grid-cols-2 gap-x-3">
+                  <div className={cn("grid grid-cols-2 gap-x-3", !loop && "@max-[360px]:grid-cols-1")}>
                     {group.options.map((option, optionIndex) => (
                       <button
                         key={option}
@@ -197,7 +202,7 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                         onClick={() => setActiveGroup(null)}
                         className={cn(
                           "relative z-10 flex min-h-[31px] items-center overflow-hidden py-1.5 text-left text-[16px] leading-[1.2] text-white/50 transition-all duration-150 ease-out hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30",
-                          loop ? "w-[136px]" : "w-[150px]",
+                          loop ? "w-[136px]" : "w-[150px] @max-[760px]:min-h-11 @max-[760px]:w-full @max-[760px]:min-w-0 @max-[760px]:break-words",
                         )}
                       >
                         <span className="block overflow-hidden">

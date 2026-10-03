@@ -35,7 +35,8 @@
     "test:repo-guards": "node --test tests/repository-guards.test.mjs",
     "test": "node scripts/run-tests.mjs",
     "check": "npm run verify && npm run lint && npm run typecheck && npm test && npm run build && npm run verify:server && npm audit --omit=dev",
-    "verify:server": "node scripts/verify-server.mjs"
+    "verify:server": "node scripts/verify-server.mjs",
+    "verify:responsive": "node scripts/verify-responsive.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

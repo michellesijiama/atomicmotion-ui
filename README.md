@@ -125,11 +125,24 @@ npm run dev
 
 Then open <http://localhost:3000>.
 
-Use Node.js 24 (see `.nvmrc`). Before opening a PR, run the same checks as CI:
+Use Node.js 24 (see `.nvmrc`). Before opening a PR, run the repository checks:
 
 ```bash
 npm run check
 ```
+
+CI also runs browser checks. They cover the home page and all registered component routes at
+phone, tablet, desktop and short landscape sizes, including expanded menus and
+scrollable details:
+
+```bash
+npx playwright install chromium
+npm run build
+npm run verify:responsive
+```
+
+To check a running development server instead, set `RESPONSIVE_BASE_URL` to its
+URL. Set `RESPONSIVE_EVIDENCE_DIR` to save screenshots and a JSON viewport report.
 
 ## Contributing
 

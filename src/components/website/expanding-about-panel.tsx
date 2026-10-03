@@ -32,8 +32,9 @@ export function ExpandingAboutPanel({
         opacity: open ? 1 : 0,
       }}
       transition={panelTransition}
-      className="fixed inset-x-3 top-3 z-40 max-h-[calc(100vh-24px)] overflow-hidden rounded-[20px] border border-black/[0.08] bg-[#f5f5f5] sm:inset-x-4 sm:top-4 sm:max-h-[calc(100vh-32px)]"
+      className="fixed inset-x-3 top-3 z-40 max-h-[calc(100dvh-24px)] overflow-hidden rounded-[20px] border border-black/[0.08] bg-[#f5f5f5] sm:inset-x-4 sm:top-4 sm:max-h-[calc(100dvh-32px)]"
       aria-hidden={!open}
+      inert={!open}
       style={{ pointerEvents: open ? "auto" : "none" }}
     >
       <motion.div
@@ -47,13 +48,13 @@ export function ExpandingAboutPanel({
           delay: open ? 0.12 : 0,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className="flex h-full flex-col px-5 pb-5 pt-28 sm:px-8 sm:pb-6 sm:pt-32"
+        className="flex h-full flex-col gap-6 overflow-y-auto overscroll-contain px-5 pb-5 pt-40 sm:px-8 sm:pb-6 sm:pt-32"
       >
-        <div className="max-w-4xl text-title text-[var(--jitter-ink)] sm:text-[28px] sm:leading-[1.25]">
+        <div className="shrink-0 max-w-4xl break-words text-title text-[var(--jitter-ink)] sm:text-[28px] sm:leading-[1.25]">
           {children}
         </div>
 
-        <div className="mt-auto flex items-end justify-between gap-6 text-body text-[var(--jitter-gray-800)]">
+        <div className="mt-auto flex shrink-0 flex-wrap items-end justify-between gap-4 sm:gap-6 text-body text-[var(--jitter-gray-800)]">
           {footer ?? <DesignerCreditLink />}
           <button type="button" onClick={onClose} className={actionGhostClass}>
             Close
