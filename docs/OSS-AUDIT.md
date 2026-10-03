@@ -23,7 +23,7 @@ drift out of date.
 | `public/emoji/*.svg` | PUBLIC (attributed) | OpenMoji, CC BY-SA 4.0 — see `licenses/OpenMoji-CC-BY-SA-4.0.txt` |
 | `public/gummy-bear-xiaohongshu.mp4` | removed | unreferenced by any component; output of the deleted `render:gummy-xiaohongshu` script |
 | `public/videos/pinterest-floral-scroll.mp4` | removed | provenance never resolved; deleted, and `scroll-scrubbed-video` unlisted from the registry/gallery/README/hero — see `ASSETS.md` |
-| `scripts/verify-*.mjs` | PUBLIC | real Playwright test infrastructure |
+| `scripts/verify-*.mjs`, `scripts/lib/`, `tests/` | PUBLIC | static source checks and fixture-based repository guard tests |
 | `scripts/capture-home-previews.mjs` | PUBLIC | legitimate contributor tooling (regenerate gallery previews) |
 | `scripts/render-*.mjs` | removed | personal social-media content generators, no consumer value |
 | `{package.json,tsconfig.json,eslint.config.mjs,postcss.config.mjs,next.config.ts}` | PUBLIC | build config |

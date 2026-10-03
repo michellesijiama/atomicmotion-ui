@@ -8,10 +8,10 @@
 // output against disk. A second copy of the template would let the checker
 // pass while the docs are stale, which is the failure this exists to prevent.
 //
-// Registry parsing mirrors scripts/verify-component-structure.mjs — same
-// split, same field regexes — so the two agree on what an entry is.
+// Registry parsing is shared with the repository guards.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { readRegistry } from "./lib/registry.mjs";
 
 const REGISTRY_PATH = "src/lib/component-registry.ts";
 const REPO_SLUG = "michellesijiama/atomicmotion-ui";
@@ -64,68 +64,12 @@ export function dependenciesFor(codePath) {
   return [...packages].sort();
 }
 
-/**
- * Parses the registry into { id, title, description, category, codePath }.
- * Uses the same block split as verify-component-structure.mjs.
- */
+/** Read validated metadata and derive each component's dependencies. */
 export function readRegistryEntries(registryPath = REGISTRY_PATH) {
-  const src = readFileSync(registryPath, "utf8");
-  const blocks = src
-    .split(/(?=\n\s+id: ")/)
-    .filter((b) => /\n?\s+id: "/.test(b) && b.includes("codePath"));
-
-  if (blocks.length === 0) {
-    throw new Error(
-      `parsed zero entries from ${registryPath} — regex is out of sync with the registry`
-    );
-  }
-
-  return blocks.map((b) => {
-    const requiredAssetsSource = b.match(
-      /requiredAssets:\s*\[([\s\S]*?)\n\s*\],/
-    )?.[1];
-    const requiredAssets = requiredAssetsSource
-      ? [...requiredAssetsSource.matchAll(/\{([\s\S]*?)\}/g)].map((match) => {
-          const asset = match[1];
-          const readString = (field) =>
-            asset.match(
-              new RegExp(`${field}:\\s*\\n?\\s*(["'])((?:\\\\.|(?!\\1)[\\s\\S])*)\\1`)
-            )?.[2];
-          return {
-            path: readString("path"),
-            license: readString("license"),
-            credit: readString("credit"),
-          };
-        })
-      : [];
-    const entry = {
-      id: b.match(/id: "([^"]+)"/)?.[1],
-      title: b.match(/title: "([^"]+)"/)?.[1],
-      // description is wrapped onto its own line by the formatter
-      description: b.match(/description:\s*\n?\s*"((?:[^"\\]|\\.)*)"/)?.[1],
-      category: b.match(/category: "([^"]+)"/)?.[1],
-      codePath: b.match(/codePath:\s*\n?\s*"([^"]+)"/)?.[1],
-      requiredAssets,
-    };
-    for (const [key, value] of Object.entries(entry).filter(
-      ([key]) => key !== "requiredAssets"
-    )) {
-      if (!value) {
-        throw new Error(`[${entry.id ?? "?"}] registry entry is missing ${key}`);
-      }
-    }
-    for (const [index, asset] of requiredAssets.entries()) {
-      for (const [key, value] of Object.entries(asset)) {
-        if (!value) {
-          throw new Error(
-            `[${entry.id}] requiredAssets[${index}] is missing ${key}`
-          );
-        }
-      }
-    }
-    entry.dependencies = dependenciesFor(entry.codePath);
-    return entry;
-  });
+  return readRegistry(registryPath).entries.map((entry) => ({
+    ...entry,
+    dependencies: dependenciesFor(entry.codePath),
+  }));
 }
 
 /** Absolute path on disk for an entry's README. */

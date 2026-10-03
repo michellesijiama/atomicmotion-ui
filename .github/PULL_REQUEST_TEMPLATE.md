@@ -4,9 +4,8 @@
 
 ## Checklist
 
-- [ ] `npm run lint` and `npm run build` pass (from the repo root)
-- [ ] `node scripts/verify-public-surface.mjs` and
-      `node scripts/verify-registry-paths.mjs` pass (from the repo root)
+- [ ] `npm run check` passes with Node.js 24 (from the repo root)
+- [ ] Any changed guard has a fixture-based regression test
 - [ ] New component: registered in `src/lib/component-registry.ts`, preview
       generated via `npm run capture:home-previews <id>`
 - [ ] Any non-self-authored asset added is listed in `ASSETS.md` with its

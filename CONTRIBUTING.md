@@ -23,19 +23,20 @@ Thanks for considering a contribution to AtomicMotion UI.
 ## Local development
 
 ```bash
-npm install
+nvm use
+npm ci
 npm run dev
 ```
 
 Before opening a PR, from the repo root:
 
 ```bash
-npm run lint
-npm run build
+npm run check
 ```
 
-And the two guard scripts that keep the public surface and gallery links
-honest (also from the repo root):
+`npm run check` includes the public-surface and registry guards, lint,
+TypeScript, every `test:*` script, the production build, HTTP route and header checks, and the production
+dependency audit. To run just the two guards:
 
 ```bash
 npm run verify

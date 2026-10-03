@@ -41,11 +41,13 @@ files and their licence requirements out explicitly.
 | <img src="public/previews/geometric-logo-reveal.png" width="160"> | **Geometric Logo Reveal** — a wordmark assembles from a gray ghost into solid ink in a staggered cascade | Typography | [Form&Fun](https://www.formandfun.co) | [`geometric-logo-reveal.tsx`](components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx) |
 | <img src="public/previews/gradient-gummy-bear.png" width="160"> | **Gradient Gummy Bear** — a translucent 3D gummy bear (Three.js) with a soft pink gradient and cursor parallax | 3D | — | [`gradient-gummy-bear.tsx`](components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx) |
 | <img src="public/previews/scroll-phase-cursor.png" width="160"> | **Scroll Phase Cursor** — a circular pointer whose ring fills with page progress while a sculpted 3D form rotates with scroll | Cursor | [Inversa](https://inversa.com) | [`scroll-phase-cursor.tsx`](components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx) |
+| <img src="public/previews/voice-bloom.png" width="160"> | **Voice Bloom** — a conversational microphone that blooms into an AI response panel | AI | [Atomic Motion](https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion) | [`voice-bloom.tsx`](components/ai/voice-bloom/voice-bloom.tsx) |
+| <img src="public/previews/showreel-sphere.png" width="160"> | **Showreel Sphere** — a draggable 3D sphere wrapped in rotating Renaissance paintings | 3D | [Little Troop](https://littletroop.com) | [`showreel-sphere.tsx`](components/3d/showreel-sphere/showreel-sphere.tsx) |
 | <img src="public/previews/coffee-gauge.png" width="160"> | **Coffee Gauge** — three hand-drawn cups that pour and drain as liquid gauges; open the card and log what you actually drank | Data Visualization | — | [`coffee-gauge.tsx`](components/data-visualization/coffee-gauge/coffee-gauge.tsx) |
 | <img src="public/previews/halftone-bloom.png" width="160"> | **Halftone Bloom** — a progress indicator stippled entirely in dots: a moon that lights left to right like a terminator, new to full | Data Visualization | — | [`halftone-bloom.tsx`](components/data-visualization/halftone-bloom/halftone-bloom.tsx) |
 | <img src="public/previews/blossom-light.png" width="160"> | **Blossom Light** — a square of wall whose light is the controls in the middle of it — leaf shadow dimmed and lifted by a line-by-line brightness pill, toned from cool to amber, its leaf shadow stirring in a wind | Control | — | [`blossom-light.tsx`](components/control/blossom-light/blossom-light.tsx) |
 | <img src="public/previews/gradient-event-card.png" width="160"> | **Gradient Event Card** — eight event cards on a ring inside a phone lying on its side: swipe, and they follow your finger and snap one page at a time, the neighbours turning away like cover flow; each card is a heat-map field with circles, ellipses, arcs and coils painted onto it as heat, every shape its own halo-to-core gradient, in palettes borrowed from painters — most cohesive, Matisse and Delaunay loud | Gradient | — | [`gradient-event-card.tsx`](components/gradient/gradient-event-card/gradient-event-card.tsx) |
-| <img src="public/previews/stamp-tracker.png" width="160"> | **Stamp Tracker** — a weekly habit tracker on a black phone screen: four riso-coloured cards (water, coffee, move, read) fanned in a loose stack, each with a hand-inked tabletop drawing; swipe through them with a silky, interruptible gesture, switch between Day, Week and Month, and tap a day to press a one-ink rubber stamp onto it. |
+| <img src="public/previews/stamp-tracker.png" width="160"> | **Stamp Tracker** — a weekly habit tracker on a black phone screen: four riso-coloured cards (water, coffee, move, read) fanned in a loose stack, each with a hand-inked tabletop drawing; swipe through them with a silky, interruptible gesture, switch between Day, Week and Month, and tap a day to press a one-ink rubber stamp onto it. | Data Visualization | — | [`stamp-tracker.tsx`](components/data-visualization/stamp-tracker/stamp-tracker.tsx) |
 
 ## Using a component
 
@@ -116,17 +118,17 @@ The Next.js gallery app lives at the repo root; run all commands from there.
 ## Local development
 
 ```bash
-npm install
+nvm use
+npm ci
 npm run dev
 ```
 
 Then open <http://localhost:3000>.
 
-Before opening a PR, verify the build:
+Use Node.js 24 (see `.nvmrc`). Before opening a PR, run the same checks as CI:
 
 ```bash
-npm run lint
-npm run build
+npm run check
 ```
 
 ## Contributing
