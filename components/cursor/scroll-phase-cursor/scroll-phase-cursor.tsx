@@ -39,7 +39,7 @@ function SlidePlate({ slide }: { slide: Slide }) {
     <article className="relative w-full shrink-0 overflow-hidden rounded-[12px] bg-gradient-to-b from-black/[0.075] to-black/[0.028] ring-1 ring-inset ring-black/[0.06] [aspect-ratio:16/10]">
       <div className="absolute inset-y-0 left-[47%] w-px bg-black/[0.06]" />
 
-      <div className="absolute right-[4%] top-[6%] flex gap-[6%] text-right font-[var(--font-manrope)] text-[clamp(8px,0.85cqw,10px)] leading-[1.5]">
+      <div className="absolute right-[4%] top-[6%] flex gap-[6%] text-right text-[clamp(8px,0.85cqw,10px)] leading-[1.5]">
         {[
           ["Movement", slide.movement],
           ["Aspect ratio", slide.ratio],
@@ -52,7 +52,7 @@ function SlidePlate({ slide }: { slide: Slide }) {
         ))}
       </div>
 
-      <p className="absolute left-[4%] top-[6%] font-[var(--font-manrope)] text-[clamp(20px,3.1cqw,42px)] font-light tracking-[-0.02em] text-[#a6a6a1]">
+      <p className="absolute left-[4%] top-[6%] text-[clamp(20px,3.1cqw,42px)] font-light tracking-[-0.02em] text-[#a6a6a1]">
         {slide.id}
       </p>
 
@@ -119,7 +119,7 @@ export function ScrollPhaseCursor({ loop = false, className }: ScrollPhaseCursor
           ref={scrollRef}
           onScroll={syncProgress}
           className={cn(
-            "relative z-10 h-full overflow-y-auto overflow-x-hidden",
+            "am-scroll-phase-track relative z-10 h-full overflow-y-auto overflow-x-hidden [scrollbar-width:none]",
             // Smooth behavior would restart on every frame of the loop and pin
             // the preview at zero, so the autoplay track scrolls natively.
             loop ? "pointer-events-none" : "scroll-smooth",
@@ -147,7 +147,7 @@ export function ScrollPhaseCursor({ loop = false, className }: ScrollPhaseCursor
               cy="60"
               r={RADIUS}
               fill="none"
-              stroke="var(--jitter-ink)"
+              stroke="var(--jitter-ink,#0e1011)"
               strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
@@ -160,8 +160,8 @@ export function ScrollPhaseCursor({ loop = false, className }: ScrollPhaseCursor
         </div>
       </div>
 
-      <style jsx>{`
-        div::-webkit-scrollbar { width: 0; height: 0; }
+      <style>{`
+        .am-scroll-phase-track::-webkit-scrollbar { width: 0; height: 0; }
         @media (pointer: fine) { .scroll-phase-surface, .scroll-phase-surface * { cursor: none; } }
       `}</style>
     </div>

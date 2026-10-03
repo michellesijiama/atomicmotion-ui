@@ -113,7 +113,7 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
             className={cn(
               "inline-flex h-7 w-[68px] shrink-0 items-center justify-center rounded-full text-[13px] text-[var(--expnav-ink)] transition-colors",
               open
-                ? "bg-transparent hover:text-[var(--jitter-gray-600)]"
+                ? "bg-transparent hover:text-[var(--jitter-gray-600,#666666)]"
                 : "bg-[#f5f5f5]/85 backdrop-blur-[72px] backdrop-saturate-150 hover:bg-[#eeeeee]/85",
             )}
           >
@@ -154,7 +154,7 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
                   key={row.index}
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="group flex h-12 w-full items-center justify-between border-b border-black/10 text-left text-[15px] text-[var(--expnav-ink)] transition-colors hover:text-[var(--jitter-gray-600)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10"
+                  className="group flex h-12 w-full items-center justify-between border-b border-black/10 text-left text-[15px] text-[var(--expnav-ink)] transition-colors hover:text-[var(--jitter-gray-600,#666666)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10"
                 >
                   <span>{row.label}</span>
                   <span className="font-mono text-[13px] text-[var(--expnav-muted)]">
@@ -164,7 +164,7 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
               ))}
             </div>
 
-            <div className="mt-auto flex items-center justify-between text-[13px] text-[var(--jitter-gray-800)]">
+            <div className="mt-auto flex items-center justify-between text-[13px] text-[var(--jitter-gray-800,#333333)]">
               {/* In loop/card mode the panel renders inside the card's <Link>,
                   so avoid a nested <a> — show plain text there, real link elsewhere. */}
               {loop ? (

@@ -37,6 +37,8 @@ const DOC_FILES = [
   "README.md",
   "ASSETS.md",
   "CONTRIBUTING.md",
+  "components/README.md",
+  "archive/README.md",
   "public/emoji/README.md",
   ...markdownFilesIn("docs"),
   ...markdownFilesIn("licenses"),

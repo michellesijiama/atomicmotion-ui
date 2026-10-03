@@ -14,16 +14,18 @@ drift out of date.
 | Path | Classification | Notes |
 | --- | --- | --- |
 | `README.md`, `LICENSE`, `.gitignore` | PUBLIC | repo root docs |
-| `docs/OSS-AUDIT.md`, `docs/ASSETS.md` (via root `ASSETS.md`) | PUBLIC | this audit itself |
+| `docs/`, root `ASSETS.md` | PUBLIC | this audit itself |
 | `docs/superpowers/` | PRIVATE | AI-agent planning docs, not product docs |
 | `CLAUDE.md`, `AGENTS.md` | PRIVATE | agent instructions for this repo's own maintainer workflow |
 | `.claudecode/` | PRIVATE | agent session context |
-| `src/**` | PUBLIC | the product — components, app, lib |
+| `components/**` | PUBLIC | supported, copyable sources and generated folder docs |
+| `archive/**` | PUBLIC | preserved incomplete examples, excluded from the catalogue |
+| `src/**` | PUBLIC | gallery app, website shell and metadata |
 | `public/**` (svg icons, previews, `models/gummy-bear.glb`) | PUBLIC | credited third-party or self-authored |
 | `public/emoji/*.svg` | PUBLIC (attributed) | OpenMoji, CC BY-SA 4.0 — see `licenses/OpenMoji-CC-BY-SA-4.0.txt` |
 | `public/gummy-bear-xiaohongshu.mp4` | removed | unreferenced by any component; output of the deleted `render:gummy-xiaohongshu` script |
 | `public/videos/pinterest-floral-scroll.mp4` | removed | provenance never resolved; deleted, and `scroll-scrubbed-video` unlisted from the registry/gallery/README/hero — see `ASSETS.md` |
-| `scripts/verify-*.mjs`, `scripts/lib/`, `tests/` | PUBLIC | static source checks and fixture-based repository guard tests |
+| `scripts/verify-*.mjs`, `scripts/lib/`, `tests/` | PUBLIC | source checks, isolated copy-paste compilation and browser/HTTP verification |
 | `scripts/capture-home-previews.mjs` | PUBLIC | legitimate contributor tooling (regenerate gallery previews) |
 | `scripts/render-*.mjs` | removed | personal social-media content generators, no consumer value |
 | `{package.json,tsconfig.json,eslint.config.mjs,postcss.config.mjs,next.config.ts}` | PUBLIC | build config |

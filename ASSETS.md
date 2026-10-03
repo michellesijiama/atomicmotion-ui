@@ -1,7 +1,7 @@
 # Third-party asset provenance
 
 One row per binary/media asset under `public/` that this repo
-did not originate from scratch. `src/**` component code is covered by the
+did not originate from scratch. `components/**` and `src/**` code is covered by the
 repo's [MIT license](LICENSE); this file exists because binary assets can
 carry a different license than the code that ships them. Checked by
 `scripts/verify-public-surface.mjs`.
@@ -15,7 +15,6 @@ carry a different license than the code that ships them. Checked by
 | `public/previews/*.png`, `public/previews/*.mp4` | Self-authored — posters via `npm run capture:home-previews`, looping clips via `npm run capture:preview-loop` — screen captures of this repo's own components | Sijia Ma | MIT (repo default) | — |
 | **⚠ PROVENANCE OUTSTANDING** — `components/data-visualization/halftone-bloom/halftone-bloom.tsx` (`TRACE_*` constants) and therefore `public/previews/halftone-bloom.png` | A mineral-colour lunar photograph supplied by the maintainer, traced to a 132×132 grid of quantised colour dots by `scripts/trace-halftone.mjs`. **Photographer, origin URL and licence terms are not yet recorded.** The maintainer has stated the image is licensed for this use; that statement has not been substantiated here. | Unknown — to be filled in | Unknown — to be filled in | — |
 | **⚠ PROVENANCE OUTSTANDING** — `public/textures/wall-shadow.jpg` (and therefore `public/previews/blossom-light.png`) | A photograph of leaf shadow on a white wall supplied by the maintainer, used as the wallpaper behind `components/control/blossom-light/blossom-light.tsx`. **Photographer, origin URL and licence terms are not yet recorded.** | Unknown — to be filled in | Unknown — to be filled in | `requiredAssets` in `src/lib/component-registry.ts` (flags it as needing confirmation before redistribution) |
-| `public/{next,vercel,globe,file,window}.svg` | Default `create-next-app` scaffold icons | Vercel | MIT (Next.js template default) | — |
 
 ## Already removed
 
@@ -27,7 +26,7 @@ along with the script that generated it (`scripts/render-gummy-xiaohongshu.mjs`)
 license. It was the scrubbed-video content for the `scroll-scrubbed-video`
 component's gallery demo, so removing it also required unlisting that
 component from `component-registry.ts` and `component-map.tsx` (its source
-file at `components/unregistered/scroll-scrubbed-video/` is untouched
+file at `archive/scroll-scrubbed-video/` is preserved outside the catalogue
 and can be re-registered once someone supplies footage they have the rights
 to). The hero image was regenerated to no longer depict a frame from this
 video.

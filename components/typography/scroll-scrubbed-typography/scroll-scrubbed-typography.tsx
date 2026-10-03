@@ -147,7 +147,7 @@ export function ScrollScrubbedTypography({
         <div
           ref={scrollRef}
           className={cn(
-            "relative h-full overflow-y-auto overflow-x-hidden",
+            "am-scrubbed-type-track [scrollbar-width:none] relative h-full overflow-y-auto overflow-x-hidden",
             loop && "pointer-events-none overflow-hidden",
           )}
         >
@@ -213,8 +213,8 @@ export function ScrollScrubbedTypography({
         </motion.div>
       )}
 
-      <style jsx>{`
-        div::-webkit-scrollbar {
+      <style>{`
+        .am-scrubbed-type-track::-webkit-scrollbar {
           width: 0;
           height: 0;
         }

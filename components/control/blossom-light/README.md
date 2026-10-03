@@ -8,11 +8,55 @@ A square of wall whose light is the controls in the middle of it: leaf shadow on
 - **Demo:** https://atomicmotion.dev/components/blossom-light
 - **Dependencies:** clsx, tailwind-merge
 
+## Setup
+
+Use React 19, TypeScript and **Tailwind CSS 4**. Class names use v4 features, including container queries; Tailwind v3 is not a drop-in equivalent.
+Enable Tailwind in your app stylesheet (`@import "tailwindcss";`) and make sure it scans the folder where you copy the component. See [the integration guide](../../../docs/COPY-PASTE.md).
+
+Install the compatible dependency ranges tested by this repository:
+
+```bash
+npm install clsx@^2.1.1 tailwind-merge@^3.6.0
+```
+
+## Usage
+
+Save this example beside the copied source file, or adjust the relative import to its new location:
+
+```tsx
+"use client";
+
+import { BlossomLight } from "./blossom-light";
+
+export function Demo() {
+  return (
+    <div className="@container h-[36rem] w-full">
+      <BlossomLight />
+    </div>
+  );
+}
+```
+
+The wrapper provides a bounded preview area. Resize it or pass `className` to fit your app. Leave demo `loop` mode off when you want manual interaction (see defaults below).
+
+## Props
+
+| Prop | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `defaultBrightness` | `number` | `72` | 0–100. Where the light starts. Until the slider is touched it keeps climbing and falling on its own; after that it stays where it is put. |
+| `label` | `string` | `"Brightness"` | The line under the number. |
+| `defaultWarmth` | `number` | `30` | 0–100, cool daylight to candle amber. |
+| `src` | `string` | `"/textures/wall-shadow.jpg"` | The wall behind everything: leaf shadow on white plaster ships with the component at this path; point it anywhere else you like. |
+| `loop` | `boolean` | — | Accepted for the gallery card; this control has no motion of its own. |
+| `className` | `string` | — | Additional classes for the root container. |
+
+Named export: `BlossomLight`. Public types: `BlossomLightProps`.
+
 ## Required assets
 
 The component code is one file, but it also loads these files at runtime:
 
-- `public/textures/wall-shadow.jpg` — Supplied by the component author; confirm terms before redistributing. Leaf-shadow photograph supplied by the AtomicMotion author.
+- [public/textures/wall-shadow.jpg](../../../public/textures/wall-shadow.jpg) — Supplied by the component author; confirm terms before redistributing. Leaf-shadow photograph supplied by the AtomicMotion author.
 
 Copy the component and every required asset, preserving the attribution above.
 

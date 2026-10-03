@@ -65,6 +65,7 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
   const fileName = meta.codePath.split("/").at(-1) ?? meta.codePath;
   const codeHref = `${REPO_BLOB_BASE}/${meta.codePath}`;
   const requiredAssets = meta.requiredAssets ?? [];
+  const readmeHref = `${REPO_BLOB_BASE}/${meta.codePath.slice(0, meta.codePath.lastIndexOf("/"))}/README.md`;
 
   // Only claim self-containment when it is actually true: a component that
   // fetches a model or texture at runtime needs those files copied too, and
@@ -92,6 +93,8 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
       `Use AtomicMotion UI's ${meta.title} component.`,
       `Source: ${codeHref}`,
       `File: ${fileName}`,
+      `Setup, tested dependencies, props and asset instructions: ${readmeHref}`,
+      "Requires React 19, TypeScript and Tailwind CSS 4 in the host project.",
       "",
       ...selfContainment,
       "Install any dependencies imported by the component if they are missing.",
@@ -112,6 +115,18 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-20",
     codePath: "components/tool/emoji-sketch/emoji-sketch.tsx",
+    requiredAssets: [
+      {
+        path: "public/emoji/ (40 .svg files)",
+        license: "CC BY-SA 4.0",
+        credit: "OpenMoji project and contributors, v15.0.0 black SVGs. Serve at /emoji/; preserve the share-alike notice.",
+      },
+      {
+        path: "licenses/OpenMoji-CC-BY-SA-4.0.txt",
+        license: "CC BY-SA 4.0",
+        credit: "Copy the attribution and share-alike notice with the SVG assets.",
+      },
+    ],
     inspiredBy: { label: "Getty × Gehry", href: "https://gehry.getty.edu" },
   }),
   softMenuReveal: createComponentMeta({
@@ -212,6 +227,11 @@ export const componentRegistry = {
         license: "CC-BY 3.0",
         credit:
           '"Gummy Bear" by Poly by Google, via Poly Pizza (https://poly.pizza/m/5zl16PPAItW) — attribution required.',
+      },
+      {
+        path: "public/gummy-bear-poster.png",
+        license: "MIT (gallery capture)",
+        credit: "Poster captured by Sijia Ma; retain the model attribution above. Used when WebGL or model loading is unavailable.",
       },
     ],
     // Heavy Three.js scene — show the looping video poster in the gallery

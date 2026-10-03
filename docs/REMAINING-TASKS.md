@@ -9,7 +9,9 @@ or server actions. Components such as Gemini Live and Voice Bloom are demos.
 - Use Node.js 24 (`.nvmrc`) and `npm ci` for reproducible installation.
 - Run `npm run check` from the repository root. CI uses the same guards and
   test discovery, plus lint, TypeScript, build, HTTP route and header checks,
-  and production dependency audit.
+  and production dependency audit. Browser checks also cover mobile layouts and
+  expanded controls with `npm run verify:responsive`; copy-paste fixtures compile
+  the public components without gallery or Next.js types.
 - Required checks for `main` are **Guard, lint, build** and **Verify scripts**.
   Branch protection is already enabled; force pushes and deletion are disabled.
 - Next.js and its ESLint config are pinned to 16.3.8. Animation, React, icon,
@@ -38,7 +40,7 @@ rights in `ASSETS.md` once the maintainer supplies evidence; do not invent terms
 
 ## Optional component restoration
 
-`components/unregistered/scroll-scrubbed-video/` remains unregistered because
+`archive/scroll-scrubbed-video/` remains unregistered because
 its previous video had unresolved provenance. Restoring it requires a licensed
 replacement, registry and renderer entries, an asset provenance row, a generated
 README and preview, and a passing `npm run check`.

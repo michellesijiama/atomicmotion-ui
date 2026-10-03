@@ -134,3 +134,9 @@ test("surface rejects an empty provenance document", (t) => {
   f.stage();
   fail(f.run("verify-public-surface.mjs"), /asset not listed/);
 });
+
+test("registry requires complete literal inspiration attribution", (t) => {
+  const metadata = entry.replace(/ }$/, ", inspiredBy: { label: 'Source' } }");
+  fail(registryFixture(t, metadata).run("verify-registry-paths.mjs"), /inspiredBy: missing or nonliteral href/);
+  pass(registryFixture(t, metadata.replace("label: 'Source'", "label: 'Source', href: 'https://example.com'" )).run("verify-registry-paths.mjs"));
+});
