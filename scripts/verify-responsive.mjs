@@ -22,7 +22,7 @@ async function visit(page, path) {
   console.log(`Visit ${path}`);
   const response = await page.goto(`${base}${path}`);
   assert.equal(response.status(), 200, path);
-  await page.getByRole("link", { name: "AtomicMotion", exact: true }).waitFor();
+  await page.locator('a[aria-label="AtomicMotion"]').waitFor();
   // Site entrance and disclosure animations must finish before measuring.
   await page.waitForTimeout(1300);
 }
@@ -106,26 +106,33 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   const { entries } = readRegistry();
   const homeWidths = [320, 375, 390, 430, 480, 639, 640, 641, 768, 960, 1007, 1008, 1023, 1024, 1280, 1366, 1920, 2560];
+  // Limit category/header queries to their controls, rather than repeatedly
+  // walking thousands of animated SVG nodes inside the gallery previews.
+  const categories = page.locator('section[aria-label="UI components"] > div').first();
+  const homeAbout = page.locator('nav[aria-label="Primary"]').getByRole("button", { name: "About", exact: true });
   await visit(page, "/");
   for (const width of homeWidths) {
     console.log(`Check home width ${width}`);
     await page.setViewportSize({ width, height: 844 });
     await page.waitForTimeout(200);
     await checkWidth(page, "home");
-    const filterStrip = page.getByRole("button", { name: "All", exact: true }).locator("..");
+    const all = categories.getByRole("button", { name: "All", exact: true });
+    const filterStrip = all.locator("..");
     assert.equal(await filterStrip.evaluate((element) => getComputedStyle(element).scrollbarWidth), "none", `home ${width}: hidden category scrollbar`);
     if (width === 768) {
       assert.ok(await filterStrip.evaluate((element) => element.scrollWidth > element.clientWidth), "tablet category strip remains scrollable");
-      await reachable(page.getByRole("button", { name: "Tool", exact: true }), "tablet: final category remains reachable", { click: true });
-      await page.getByRole("button", { name: "All", exact: true }).click();
+      await reachable(categories.getByRole("button", { name: "Tool", exact: true }), "tablet: final category remains reachable", { click: true });
+      await all.click();
     }
-    for (const name of ["About", "All"]) await reachable(page.getByRole("button", { name, exact: true }), `home ${width}: ${name}`);
+    await reachable(homeAbout, `home ${width}: About`);
+    await reachable(all, `home ${width}: All`);
     if ([390, 1280].includes(width)) await capture(page, `home-${width}`);
   }
   // Active filters survive changing between one and several card columns.
-  await page.getByRole("button", { name: "Navigation", exact: true }).click();
+  const navigation = categories.getByRole("button", { name: "Navigation", exact: true });
+  await navigation.click();
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.getByRole("button", { name: "Navigation", exact: true }).getAttribute("aria-pressed"), "true");
+  assert.equal(await navigation.getAttribute("aria-pressed"), "true");
 
   const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 430, height: 932 }, { width: 844, height: 390 }];
   console.log("Home widths and preserved filter selection: OK");
