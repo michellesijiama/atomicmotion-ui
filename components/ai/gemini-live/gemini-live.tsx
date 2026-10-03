@@ -317,6 +317,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
       className={cn(
         "relative isolate flex h-full min-h-full w-full items-center justify-center overflow-hidden bg-transparent px-5 py-5",
         "px-3 sm:px-5",
+        !loop && "h-auto min-h-[max(320px,calc(min(920px,100cqw_-_40px)/1.95_+_40px))]",
         className,
       )}
       style={{
@@ -327,6 +328,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
         className={cn(
           "relative aspect-[1.95/1] w-full max-w-[920px] overflow-hidden rounded-[28px] ring-1",
           activeListeningRestrictedEdgeGlow,
+          !loop && "min-h-[280px]",
           loop && "h-[300px] w-[585px]",
         )}
         style={{
@@ -353,7 +355,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
           }}
         />
         <div className="relative z-10 flex h-full flex-col px-4 py-4 sm:px-8 sm:py-5">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <p
               className="text-[20px] font-normal leading-none sm:text-[22px]"
               style={{ color: m3ColorScheme.onSurface }}

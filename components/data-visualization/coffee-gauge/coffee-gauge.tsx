@@ -404,7 +404,7 @@ export function CoffeeGauge({
               <div key={cup.key} className="flex flex-col items-center gap-1">
                 <svg
                   viewBox={`0 0 ${FIELD} ${FIELD}`}
-                  className="h-[86px] w-[86px]"
+                  className="h-auto w-[86px] max-w-full"
                   role="img"
                   aria-label={`${cup.label}: ${reading}%`}
                 >

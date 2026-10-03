@@ -27,6 +27,8 @@
     "test:gradient-gummy": "node scripts/verify-gradient-gummy-material.mjs",
     "test:home-previews": "node scripts/verify-static-home-previews.mjs",
     "test:doc-links": "node scripts/verify-doc-links.mjs",
+    "test:copy-paste": "node scripts/verify-copy-paste.mjs",
+    "test:component-source": "node --test tests/component-source.test.mjs",
     "test:structure": "node scripts/verify-component-structure.mjs",
     "test:readmes": "node scripts/verify-component-readmes.mjs",
     "test:stamp-tracker-contrast": "node scripts/verify-stamp-tracker-contrast.mjs",
@@ -35,7 +37,8 @@
     "test:repo-guards": "node --test tests/repository-guards.test.mjs",
     "test": "node scripts/run-tests.mjs",
     "check": "npm run verify && npm run lint && npm run typecheck && npm test && npm run build && npm run verify:server && npm audit --omit=dev",
-    "verify:server": "node scripts/verify-server.mjs"
+    "verify:server": "node scripts/verify-server.mjs",
+    "verify:responsive": "node scripts/verify-responsive.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -9,6 +9,8 @@ import {
   readRegistryEntries,
   readmePath,
   renderReadme,
+  renderCatalogue,
+  CATALOGUE_BLOCK,
 } from "./generate-component-readmes.mjs";
 
 function firstDiffLine(expected, actual) {
@@ -49,6 +51,10 @@ function main() {
       );
     }
   }
+
+  const rootReadme = readFileSync("README.md", "utf8");
+  const expectedCatalogue = `<!-- component-catalogue:start -->\n${renderCatalogue(entries)}\n<!-- component-catalogue:end -->`;
+  if (rootReadme.match(CATALOGUE_BLOCK)?.[0] !== expectedCatalogue) violations.push("README.md: stale component catalogue — run npm run generate:readmes");
 
   if (violations.length > 0) {
     console.error(

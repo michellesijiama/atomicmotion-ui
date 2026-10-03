@@ -56,6 +56,11 @@ export function readRegistry(path = "src/lib/component-registry.ts") {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.id)) throw new Error(`invalid component id: ${entry.id}`);
     if (ids.has(entry.id)) throw new Error(`duplicate component id: ${entry.id}`);
     ids.add(entry.id);
+    const inspiration = properties.get("inspiredBy");
+    if (inspiration) {
+      const fields = objectProperties(inspiration, `[${entry.id}] inspiredBy`);
+      entry.inspiredBy = Object.fromEntries(["label", "href"].map((key) => [key, stringProperty(fields, key, `[${entry.id}] inspiredBy`)]));
+    }
     const assets = properties.get("requiredAssets");
     if (assets && !ts.isArrayLiteralExpression(assets)) throw new Error(`[${entry.id}]: requiredAssets must be an array literal`);
     entry.requiredAssets = assets ? assets.elements.map((asset, index) => {

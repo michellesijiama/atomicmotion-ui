@@ -84,7 +84,7 @@ export function GeometricLogoReveal({
       >
         {/* The wordmark that assembles from its ghost. */}
         <div
-          className="relative flex items-start font-[family-name:var(--font-plus-jakarta-sans)] text-[clamp(28px,9.5cqw,120px)] font-medium leading-[0.9] tracking-[-0.04em]"
+          className="relative flex items-start font-[family-name:var(--font-plus-jakarta-sans,system-ui)] text-[clamp(28px,9.5cqw,120px)] font-medium leading-[0.9] tracking-[-0.04em]"
           aria-label={text}
         >
           {letters.map((ch, i) => {

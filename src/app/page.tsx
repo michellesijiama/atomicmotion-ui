@@ -8,7 +8,7 @@ import { componentList } from "@/lib/component-registry";
 export default function Home() {
   return (
     <main className="min-h-screen bg-[var(--jitter-bg)] px-6 py-8 text-[var(--jitter-ink)] sm:px-8 lg:px-12">
-      <div className="grid min-h-[calc(100vh-4rem)] content-between gap-16">
+      <div className="grid grid-cols-1 min-h-[calc(100vh-4rem)] content-between gap-16">
         <div>
           <Reveal>
             <header className="relative z-50 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] pb-8">

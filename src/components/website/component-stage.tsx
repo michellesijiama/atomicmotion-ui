@@ -44,7 +44,7 @@ export function ComponentStage({ children }: ComponentStageProps) {
 
   return (
     <div
-      className="flex h-screen flex-col overflow-hidden transition-colors duration-300 ease-out"
+      className="flex h-dvh flex-col overflow-hidden transition-colors duration-300 ease-out"
       style={{
         backgroundColor: isGray ? "var(--jitter-card)" : "var(--jitter-bg)",
       }}

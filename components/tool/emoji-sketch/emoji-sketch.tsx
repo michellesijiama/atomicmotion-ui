@@ -355,7 +355,7 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
       </style>
 
       {traces.length === 0 ? (
-        <span className="absolute inset-0 grid place-items-center text-body text-[var(--jitter-gray-400)]">
+        <span className="absolute inset-0 grid place-items-center text-[14px] leading-[1.4] tracking-[-0.015em] font-normal text-[var(--jitter-gray-400,#999999)]">
           inking stickers…
         </span>
       ) : (

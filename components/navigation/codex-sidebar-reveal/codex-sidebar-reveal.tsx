@@ -135,6 +135,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
     };
   }, [loop]);
 
+  // Compact frames overlay the drawer; a 290px drawer plus workspace does not fit.
   const sidebarWidth = loop ? 250 : 290;
   const collapsedWidth = 0;
 
@@ -147,7 +148,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
     >
       <div
         className={cn(
-          "relative overflow-hidden rounded-[18px] border border-black/5",
+          "@container relative overflow-hidden rounded-[18px] border border-black/5",
           loop ? "h-[560px] w-[620px]" : "h-[min(72vh,680px)] w-[min(100%,980px)]",
         )}
       >
@@ -189,10 +190,12 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
           initial={false}
           animate={{ width: open ? sidebarWidth : collapsedWidth, borderRightWidth: open ? 1 : 0 }}
           transition={{ duration: 0.52, ease }}
-          className="absolute inset-y-0 left-0 z-30 overflow-hidden border-black/10 bg-[#f0f0f0]"
+          className="absolute inset-y-0 left-0 z-30 max-w-full overflow-hidden border-black/10 bg-[#f0f0f0]"
+          aria-hidden={!open}
+          inert={!open}
           style={{ borderRightStyle: "solid" }}
         >
-          <div className="flex h-full min-w-[250px] flex-col px-3 pb-3 pt-[68px]">
+          <div className="flex h-full min-w-[250px] flex-col overflow-y-auto @max-[560px]:w-full @max-[560px]:min-w-0 overscroll-contain px-3 pb-3 pt-[68px]">
             <motion.div
               initial={false}
               animate={open ? visibleSidebarChrome : hiddenSidebarChrome}
@@ -228,7 +231,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
               initial={false}
               animate={{ opacity: open ? 1 : 0, y: open ? 0 : 8 }}
               transition={{ duration: 0.34, delay: open ? 0.08 : 0, ease }}
-              className="mt-7 min-w-[220px]"
+              className="mt-7 min-w-[220px] @max-[560px]:min-w-0"
             >
               <p className="px-2 text-[12px] text-[#8a8a8a]">Group One</p>
               <div className="mt-2 space-y-1">
@@ -251,7 +254,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
               initial={false}
               animate={{ opacity: open ? 1 : 0, y: open ? 0 : 8 }}
               transition={{ duration: 0.34, delay: open ? 0.14 : 0, ease }}
-              className="mt-6 min-w-[220px]"
+              className="mt-6 min-w-[220px] @max-[560px]:min-w-0"
             >
               <p className="px-2 text-[12px] text-[#8a8a8a]">Group Two</p>
               <div className="mt-2 space-y-1">
@@ -274,7 +277,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
               animate={open ? visibleSidebarChrome : hiddenSidebarChrome}
               transition={{ duration: open ? 0.3 : 0.16, ease }}
               style={{ pointerEvents: open ? "auto" : "none" }}
-              className="mt-auto flex h-9 items-center gap-3 rounded-lg px-2 text-[13px] text-[#444]"
+              className="mt-auto flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-[13px] text-[#444]"
               aria-hidden={!open}
             >
               <Settings className="size-4 shrink-0 text-[#5d5d5d]" aria-hidden="true" />
@@ -294,7 +297,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
           initial={false}
           animate={{ paddingLeft: open ? sidebarWidth : collapsedWidth }}
           transition={{ duration: 0.52, ease }}
-          className="relative h-full bg-transparent"
+          className="relative h-full bg-transparent @max-[560px]:!pl-0"
         >
           <motion.div
             initial={false}
@@ -306,7 +309,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
               initial={false}
               animate={{ paddingLeft: open ? 32 : 200, paddingRight: 32 }}
               transition={{ duration: 0.52, ease }}
-              className="flex h-16 shrink-0 items-center border-b border-black/10"
+              className="flex h-16 shrink-0 items-center border-b border-black/10 @max-[560px]:h-28 @max-[560px]:items-end @max-[560px]:!px-4 @max-[560px]:pb-4"
             >
               <motion.div
                 initial={false}

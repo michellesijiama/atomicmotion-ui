@@ -36,6 +36,10 @@ jobs:
       - run: npm run build
       - name: Verify production server
         run: npm run verify:server
+      - name: Install browser for responsive checks
+        run: npx playwright install --with-deps chromium
+      - name: Verify responsive layouts and expanded controls
+        run: npm run verify:responsive
       - name: Audit production dependencies
         run: npm audit --omit=dev
 

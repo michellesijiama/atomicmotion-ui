@@ -50,7 +50,7 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
     notFound();
   }
 
-  // Single screen, no scrolling: fixed-height header + preview fills the rest.
+  // Fixed header; the preview can scroll when a short viewport needs more room.
   // Same Jitter-style cascade as the home page so entering any component page
   // reveals the header then the preview.
   return (
@@ -60,7 +60,7 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
       </div>
 
       <div
-        className="am-reveal grid min-h-0 flex-1 grid-cols-1 overflow-hidden px-6 pb-6 sm:px-8 lg:px-12"
+        className="am-reveal @container grid min-h-0 flex-1 grid-cols-1 overflow-x-hidden overflow-y-auto px-6 pb-6 sm:px-8 lg:px-12"
         style={{ animationDelay: "0.1s" }}
       >
         <Preview />
