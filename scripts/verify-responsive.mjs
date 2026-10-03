@@ -19,6 +19,7 @@ const report = [];
 const errors = [];
 
 async function visit(page, path) {
+  console.log(`Visit ${path}`);
   const response = await page.goto(`${base}${path}`);
   assert.equal(response.status(), 200, path);
   await page.getByRole("link", { name: "AtomicMotion", exact: true }).waitFor();
@@ -85,13 +86,20 @@ try {
     await delay(100);
   }
   assert.ok(ready, `Server did not become ready: ${logs}`);
-  browser = await chromium.launch();
+  // Use the full Chromium headless renderer: headless-shell can spend minutes
+  // rasterising the animated gallery on CPU-only CI runners. SwiftShader keeps
+  // the 3D examples active even when the runner has no graphics hardware.
+  browser = await chromium.launch({
+    channel: "chromium",
+    args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+  });
   const page = await browser.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
   const { entries } = readRegistry();
   const homeWidths = [320, 375, 390, 430, 480, 639, 640, 641, 768, 960, 1007, 1008, 1023, 1024, 1280, 1366, 1920, 2560];
   await visit(page, "/");
   for (const width of homeWidths) {
+    console.log(`Check home width ${width}`);
     await page.setViewportSize({ width, height: 844 });
     await page.waitForTimeout(200);
     await checkWidth(page, "home");
