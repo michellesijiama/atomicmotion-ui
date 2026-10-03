@@ -87,11 +87,11 @@ try {
   }
   assert.ok(ready, `Server did not become ready: ${logs}`);
   // Use the full Chromium headless renderer: headless-shell can spend minutes
-  // rasterising the animated gallery on CPU-only CI runners. SwiftShader keeps
-  // the 3D examples active even when the runner has no graphics hardware.
+  // rasterising the animated gallery on CPU-only CI runners. Limit SwiftShader
+  // to WebGL so ordinary SVG/CSS painting does not use the emulated GPU.
   browser = await chromium.launch({
     channel: "chromium",
-    args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+    args: ["--use-angle=swiftshader-webgl", "--enable-unsafe-swiftshader"],
   });
   const page = await browser.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
