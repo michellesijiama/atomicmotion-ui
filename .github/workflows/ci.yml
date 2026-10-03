@@ -5,15 +5,25 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Guard, lint, build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          node-version: 20
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
@@ -22,29 +32,26 @@ jobs:
       - name: Verify registry paths
         run: node scripts/verify-registry-paths.mjs
       - run: npm run lint
+      - run: npm run typecheck
       - run: npm run build
+      - name: Verify production server
+        run: npm run verify:server
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
 
   verify-scripts:
     name: Verify scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          node-version: 20
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - name: Run verify:* scripts
-        run: |
-          test_scripts="$(node -p "Object.keys(require('./package.json').scripts).filter(s => s.startsWith('test:')).join(' ')")"
-          set -- $test_scripts
-          if [ "$#" -lt 11 ]; then
-            echo "Expected at least 11 test:* scripts, found $#"
-            exit 1
-          fi
-          for script in "$@"; do
-            echo "::group::npm run $script"
-            npm run "$script"
-            echo "::endgroup::"
-          done
+      - name: Run all test:* scripts
+        run: npm test

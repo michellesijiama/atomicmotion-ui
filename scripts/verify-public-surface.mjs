@@ -25,14 +25,26 @@ const DENYLIST_PATTERNS = [
 ];
 
 const ASSET_EXEMPT = [
-  /\.svg$/i,
+  /\.md$/i,
   /(^|\/)ASSETS\.md$/,
   /(^|\/)public\/previews\//, // self-authored gallery screenshots/clips, regenerated via capture:home-previews
 ];
 
+// Only the provenance table's Path column declares assets. Basename matches
+// previously let an undocumented file pass if another directory had that name.
+function documentedAssetPatterns(doc) {
+  const paths = doc.split("\n").filter((line) => line.startsWith("|"))
+    .flatMap((line) => [...(line.split("|")[1] ?? "").matchAll(/`(public\/[^`]+)`/g)].map((match) => match[1]));
+  return paths.flatMap((path) => {
+    const brace = path.match(/\{([^{}]+)\}/);
+    const expanded = brace ? brace[1].split(",").map((part) => path.replace(brace[0], part)) : [path];
+    return expanded.map((pattern) => new RegExp(`^${pattern.split("*").map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[^/]*")}$`));
+  });
+}
+
 function trackedFiles() {
-  return execFileSync("git", ["ls-files"], { encoding: "utf8" })
-    .split("\n")
+  return execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
+    .split("\0")
     .filter(Boolean);
 }
 
@@ -52,7 +64,8 @@ function main() {
     try {
       size = statSync(file).size;
     } catch {
-      continue; // deleted-but-still-staged, or a submodule path; not our concern here
+      violations.push(`tracked file is missing: ${file}`);
+      continue;
     }
     if (size > MAX_BYTES) {
       violations.push(
@@ -70,12 +83,10 @@ function main() {
   } catch {
     violations.push("ASSETS.md is missing at the repo root");
   }
-  if (assetsDoc) {
-    for (const f of publicFiles) {
-      const name = f.split("/").pop();
-      if (!assetsDoc.includes(name)) {
-        violations.push(`public/ asset not listed in ASSETS.md: ${f}`);
-      }
+  const assetPatterns = documentedAssetPatterns(assetsDoc);
+  for (const f of publicFiles) {
+    if (!assetPatterns.some((pattern) => pattern.test(f))) {
+      violations.push(`public/ asset not listed in ASSETS.md: ${f}`);
     }
   }
 

@@ -1,112 +1,44 @@
-# AtomicMotion UI — Remaining Open-Source Release Tasks
+# Repository maintenance status
 
-> This document tracks the work that still needs to happen before the repository is fully public-release ready. It is intended for the next agent (or human) that picks up the project.
+Reviewed against `main` on October 3, 2026. The repository contains a Next.js
+component gallery; it has no application API, database, authentication service,
+or server actions. Components such as Gemini Live and Voice Bloom are demos.
 
-## Current state
+## Checks and security
 
-- Git history has been cleaned with `git filter-repo` to remove private AI planning docs (`CLAUDE.md`, `AGENTS.md`, `.claudecode/`, `docs/superpowers/`).
-- OSS scaffolding is in place: `README.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `ASSETS.md`, `licenses/`, `.github/` templates, `dependabot.yml`, and CI guard scripts.
-- `scroll-scrubbed-video` was removed from the registry and its unresolved video asset deleted because the source could not be proven. The component source files still exist in the repo if you want to re-instate it later with a properly licensed video.
-- Build and guard scripts pass locally.
+- Use Node.js 24 (`.nvmrc`) and `npm ci` for reproducible installation.
+- Run `npm run check` from the repository root. CI uses the same guards and
+  test discovery, plus lint, TypeScript, build, HTTP route and header checks,
+  and production dependency audit.
+- Required checks for `main` are **Guard, lint, build** and **Verify scripts**.
+  Branch protection is already enabled; force pushes and deletion are disabled.
+- Next.js and its ESLint config are pinned to 16.3.8. Animation, React, icon,
+  Three.js, and Tailwind package versions remain unchanged.
+- `npm audit --omit=dev` reports zero vulnerabilities at review time.
+- Full `npm audit` reports five high-severity findings in the development-only
+  chain `eslint-config-next → @next/eslint-plugin-next → fast-glob → micromatch
+  → braces`. The underlying issue is
+  [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm),
+  and the latest published `braces` (3.0.3) has no patched release at review time.
+  Do not use `npm audit fix --force`: its suggested Next.js ESLint downgrade
+  would break the supported configuration. Revisit when upstream ships a fix.
+- Dependabot excludes automatic major-version updates. Major upgrades require
+  deliberate compatibility and visual review, particularly TypeScript and
+  frontend libraries. Security updates remain separately managed by GitHub.
 
-## Remaining tasks
+## Open asset provenance
 
-### 1. GitHub repository metadata — DONE
+Two maintainer-supplied images still need their original source and license:
 
-Description, website (`https://atomicmotion.dev`), and all eight topics are set.
-Wiki is already disabled.
+- The lunar photograph traced into Halftone Bloom's `TRACE_*` constants.
+- `public/textures/wall-shadow.jpg`, used by Blossom Light.
 
-Still outstanding (both optional, and both **UI-only** — the GitHub API has no
-endpoint for them):
+The existing assets and component appearance are preserved. Record the actual
+rights in `ASSETS.md` once the maintainer supplies evidence; do not invent terms.
 
-- **Social preview**: upload `docs/images/hero.png` in Settings → Social preview.
-- Disable Projects, and enable Discussions if you want questions routed away
-  from Issues.
+## Optional component restoration
 
-### 2. Make the repository public — DONE
-
-The repository is public.
-
-### 3. Create the first tag and release — DONE
-
-`v0.1.0` is tagged and pushed, and the release is published at
-<https://github.com/michellesijiama/atomicmotion-ui/releases/tag/v0.1.0>.
-
-### 4. Branch protection for `main` — deferred by choice
-
-Still open. Both required checks now pass on `main`, so this can be turned on
-whenever you want it.
-
-Recommended rules (for a solo maintainer, do not require PR approvals or you will lock yourself out):
-
-- `Settings → Rules → Branches → Add rule`
-- Branch name pattern: `main`
-- Check `Require status checks to pass before merging`
-- Select:
-  - `Guard, lint, build`
-  - `Playwright verify scripts`
-- Do **not** require pull request reviews unless you have a second maintainer.
-- Keep `Allow force pushes` unchecked unless you really need it.
-
-### 5. Verify CI is green — DONE
-
-CI is green on `main`. It had been red because every `test:*` verify script
-still asserted an older UI shape (single-component gallery, all-static
-previews, hard-coded colors that have since become design tokens). The scripts
-were resynced with the current design; see the commit
-`fix: resync verify scripts with the current gallery design`.
-
-Two follow-ups worth doing, neither blocking:
-
-- The `Playwright verify scripts` job installs Chromium and boots a dev server,
-  but **none of the `test:*` scripts actually use Playwright or hit the server**
-  — they are all static source-text checks. Dropping those two steps would cut
-  about a minute per run. The job name is also misleading.
-- `actions/checkout@v4` and `actions/setup-node@v4` emit Node 20 deprecation
-  warnings. Dependabot has already opened a PR bumping them.
-
-### 6. Keep the verify scripts honest
-
-These scripts assert on exact source strings, so they drift silently every time
-the design moves and then fail in a batch. When you change a component, run the
-matching `npm run test:*` and update the assertion in the same commit. Prefer
-asserting the *intent* (a blurred blue glow, a transparent backdrop) over exact
-pixel values, so re-tuning does not break CI.
-
-### 7. Re-instate `scroll-scrubbed-video` (optional)
-
-If you find a properly licensed video to replace `public/videos/pinterest-floral-scroll.mp4`:
-
-1. Add the new video under `public/videos/`.
-2. Register the component in `src/lib/component-registry.ts` and `component-map.tsx`.
-3. Add the asset to `ASSETS.md` with full provenance.
-4. Run `npm run capture:home-previews scroll-scrubbed-video` to generate a new preview.
-5. Run `node scripts/verify-public-surface.mjs` and `node scripts/verify-registry-paths.mjs`.
-6. Re-add the row in `README.md` Components table.
-
-## Verification commands
-
-Always run these before any commit:
-
-```bash
-npm run lint
-npm run build
-for s in design soft-menu-reveal codex-sidebar card-padding \
-         gemini-live home-filter gradient-gummy home-previews; do
-  npm run "test:$s" || echo "FAILED: test:$s"
-done
-node scripts/verify-public-surface.mjs
-node scripts/verify-registry-paths.mjs
-```
-
-The `test:*` loop matters: CI runs those scripts and they are what turned `main`
-red. The `|| echo` keeps the loop going so you see every failure at once — CI
-stops at the first one, which hides the rest.
-
-## Do not re-introduce
-
-- `CLAUDE.md`, `AGENTS.md`, `.claudecode/`, `docs/superpowers/` planning docs
-- Social-media render scripts (`scripts/render-*`)
-- Unsourced binary assets larger than 3 MB
-
-`verify-public-surface.mjs` will fail the build if any of these return.
+`components/unregistered/scroll-scrubbed-video/` remains unregistered because
+its previous video had unresolved provenance. Restoring it requires a licensed
+replacement, registry and renderer entries, an asset provenance row, a generated
+README and preview, and a passing `npm run check`.

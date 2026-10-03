@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Open-source micro-interactions for designers and developers \u2014 a gallery of polished, animated UI components you can copy-paste into your own project one file at a time.",
+  "description": "Open-source micro-interactions for designers and developers — a gallery of polished, animated UI components you can copy-paste into your own project one file at a time.",
   "homepage": "https://atomicmotion.dev",
   "repository": {
     "type": "git",
@@ -30,13 +30,18 @@
     "test:structure": "node scripts/verify-component-structure.mjs",
     "test:readmes": "node scripts/verify-component-readmes.mjs",
     "test:stamp-tracker-contrast": "node scripts/verify-stamp-tracker-contrast.mjs",
-    "test:gradient-event-card": "node scripts/verify-gradient-event-card.mjs"
+    "test:gradient-event-card": "node scripts/verify-gradient-event-card.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:repo-guards": "node --test tests/repository-guards.test.mjs",
+    "test": "node scripts/run-tests.mjs",
+    "check": "npm run verify && npm run lint && npm run typecheck && npm test && npm run build && npm run verify:server && npm audit --omit=dev",
+    "verify:server": "node scripts/verify-server.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.18.0",
-    "next": "16.2.9",
+    "next": "16.3.8",
     "perfect-freehand": "^1.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -51,9 +56,17 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.169.0",
     "eslint": "^9",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "16.3.8",
     "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "overrides": {
+    "@tailwindcss/postcss": {
+      "postcss": "^8.5.28"
+    }
   }
 }

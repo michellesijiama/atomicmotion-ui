@@ -6,21 +6,14 @@
 // category without moving its folder and this fails.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 
-const src = readFileSync("src/lib/component-registry.ts", "utf8");
-const blocks = src.split(/(?=\n\s+id: ")/).filter((b) => /\n?\s+id: "/.test(b) && b.includes("codePath"));
+import { readRegistry } from "./lib/registry.mjs";
+
+const { entries } = readRegistry();
 
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const violations = [];
 
-if (blocks.length === 0) violations.push("parsed zero entries — regex is out of sync with component-registry.ts");
-
-for (const b of blocks) {
-  const id = b.match(/id: "([^"]+)"/)?.[1];
-  const category = b.match(/category: "([^"]+)"/)?.[1];
-  const codePath = b.match(/codePath:\s*\n?\s*"([^"]+)"/)?.[1];
-  const title = b.match(/title: "([^"]+)"/)?.[1];
-  if (!id || !category || !codePath) { violations.push(`[${id ?? "?"}] missing id, category, or codePath`); continue; }
-
+for (const { id, category, codePath, title } of entries) {
   const expected = `components/${slug(category)}/${id}/${id}.tsx`;
   if (codePath !== expected) violations.push(`[${id}] codePath is ${codePath}, expected ${expected}`);
   if (!existsSync(codePath)) violations.push(`[${id}] file does not exist: ${codePath}`);
@@ -40,8 +33,8 @@ for (const b of blocks) {
 }
 
 if (violations.length) {
-  console.error(`verify-component-structure: FAILED (${blocks.length} entries)\n`);
+  console.error(`verify-component-structure: FAILED (${entries.length} entries)\n`);
   for (const v of violations) console.error(`  - ${v}`);
   process.exit(1);
 }
-console.log(`verify-component-structure: OK (${blocks.length} entries checked)`);
+console.log(`verify-component-structure: OK (${entries.length} entries checked)`);
