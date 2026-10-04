@@ -1,3 +1,5 @@
+import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
+
 import type { ComponentType } from "react";
 
 import { CodexSidebarReveal } from "@components/navigation/codex-sidebar-reveal";
@@ -88,6 +90,10 @@ function StampTrackerPreview({ loop }: { loop?: boolean }) {
   return <StampTracker loop={loop} />;
 }
 
+function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
+  return <DoodleCalendar loop={loop} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
@@ -105,4 +111,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "blossom-light": BlossomLightPreview,
   "gradient-event-card": GradientEventCardPreview,
   "stamp-tracker": StampTrackerPreview,
+  "doodle-calendar": DoodleCalendarPreview,
 };

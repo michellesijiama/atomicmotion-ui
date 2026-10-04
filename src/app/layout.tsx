@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif, Manrope, Plus_Jakarta_Sans, Poppins } from "next/font/google";
+import { Caveat, Geist, Geist_Mono, Instrument_Serif, Manrope, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import "../styles/globals.css";
 
 const geistSans = Geist({
@@ -34,6 +34,8 @@ const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
 });
 
+const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+
 export const metadata: Metadata = {
   title: "AtomicMotion UI",
   description: "Premium copy-paste micro-interactions for React interfaces.",
@@ -47,7 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${manrope.variable} ${poppins.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${manrope.variable} ${poppins.variable} ${instrumentSerif.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-[var(--jitter-bg)] text-[var(--jitter-ink)]">
         {children}

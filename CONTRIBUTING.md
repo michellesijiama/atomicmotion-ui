@@ -70,3 +70,7 @@ original source and license in your PR.
 
 Use the issue templates. See [SECURITY.md](SECURITY.md) instead for security
 vulnerabilities — please don't file those as public issues.
+
+### Push code without deploying
+
+Include `[skip deploy]` in the tip commit message to keep a Git push from deploying to Vercel. The repository’s `vercel.json` ignored build step skips that deployment; GitHub CI still runs. Commits without this marker deploy normally.

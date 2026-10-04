@@ -360,6 +360,34 @@ export const componentRegistry = {
     createdAt: "2026-09-30",
     codePath: "components/data-visualization/stamp-tracker/stamp-tracker.tsx",
   }),
+  doodleCalendar: createComponentMeta({
+    id: "doodle-calendar",
+    index: "018",
+    title: "Doodle Calendar",
+    description:
+      "A monochrome daily diary about life in Japan: coffee, bento, exercise, commuting, rainy walks and home rituals. Seven generated illustrations use thin textured black pencil strokes with fully transparent interiors. Caveat handwriting and a borderless transparent note area and a pencil action below the card make it feel like a sketchbook. Top Home and Filter buttons return to the full month and filter saved notes by everyday topics, keeping dates in place and fading non-matching entries. Each card shows the full weekday above the date number. A fixed, softly connected control below the cards places the pencil between previous and next arrows. Rounded date cards form a continuous strip with curved narrow bridges and visible neighboring edges; swiping moves the connected strip and snaps to the next date. Thursday is today, marked by a blue illustration and blue circle without an extra date badge; other dates keep black illustrations, including when opened; Friday onward stays empty. Write a daily note and preview a matching prepared sketch; an optional image-service callback supports real generation. Notes and illustrated calendar thumbnails stay saved on this device.",
+    category: "Data Visualization",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-09-29",
+    codePath: "components/data-visualization/doodle-calendar/doodle-calendar.tsx",
+    requiredAssets: [
+      { path: "public/illustrations/doodle-calendar-diary/coffee.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/coffee-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/bento.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/bento-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/exercise.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/exercise-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/train.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/train-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/rain.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/rain-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/home.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/home-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/shrine.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/shrine-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+    ],
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
