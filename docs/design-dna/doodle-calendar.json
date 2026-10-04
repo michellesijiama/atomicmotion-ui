@@ -110,7 +110,7 @@
         "48px"
       ],
       "content_density": "comfortable",
-      "section_rhythm": "compact navigation, generous image field, tightly aligned caption and input"
+      "section_rhythm": "Top navigation has 32px side insets and a 28px top inset; a 16px gap separates its 44px buttons from the diary card. The illustration keeps its size, with captions and input aligned beneath it."
     },
     "layout": {
       "grid_system": "single-column mobile canvas with a seven-column closed calendar",

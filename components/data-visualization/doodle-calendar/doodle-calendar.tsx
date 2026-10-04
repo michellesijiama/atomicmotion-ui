@@ -104,12 +104,14 @@ const HEAD_TOP_CLOSED = SCREEN_H - GRID_BOTTOM - GRID_H - HEAD_GAP - HEAD_BLOCK;
 
 // The card: a drawing over one date, one title and one sentence, ending well above the
 // bottom of the screen.
+const NAV_INSET = 32;
+const NAV_TOP = 28;
 const CARD_X = 28;
 const CARD_BOTTOM = 70;
 const ART_W = SCREEN_W - CARD_X * 2;
 /** Pencil illustrations sit above each card’s diary entry. */
 const ART_H = 192;
-const TEXT_H = 188;
+const TEXT_H = 168;
 const DAY_HEADER_H = 100;
 const CARD_W = ART_W;
 const CARD_H = DAY_HEADER_H + ART_H + TEXT_H;
@@ -519,7 +521,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                 transition: "background-color 600ms ease, color 600ms ease",
               }}
             >
-              <nav aria-label="Diary navigation" className="absolute inset-x-0" style={{ top: 8, height: 44, zIndex: 9 }}>
+              <nav aria-label="Diary navigation" className="absolute inset-x-0" style={{ top: NAV_TOP, height: 44, zIndex: 9 }}>
                 <motion.button
                   type="button"
                   aria-label="Home — month view"
@@ -528,7 +530,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                   whileHover={{ backgroundColor: "#E8E8E8" }}
                   whileTap={reduced ? undefined : { scale: 0.94 }}
                   className="dc-sketch absolute flex size-11 items-center justify-center rounded-full border-0 bg-white p-0"
-                  style={{ left: PAD, color: TEXT, cursor: "pointer" }}
+                  style={{ left: NAV_INSET, color: TEXT, cursor: "pointer" }}
                 >
                   <Home size={18} strokeWidth={1.5} aria-hidden="true" />
                 </motion.button>
@@ -545,7 +547,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                   whileHover={{ backgroundColor: filterTopic === "all" ? "#E8E8E8" : "#444444" }}
                   whileTap={reduced ? undefined : { scale: 0.94 }}
                   className="dc-sketch absolute flex size-11 items-center justify-center rounded-full border-0 p-0"
-                  style={{ right: PAD, backgroundColor: filterTopic === "all" ? CARD_PAPER : TEXT, color: filterTopic === "all" ? TEXT : CARD_PAPER, cursor: "pointer" }}
+                  style={{ right: NAV_INSET, backgroundColor: filterTopic === "all" ? CARD_PAPER : TEXT, color: filterTopic === "all" ? TEXT : CARD_PAPER, cursor: "pointer" }}
                 >
                   <SlidersHorizontal size={18} strokeWidth={1.5} aria-hidden="true" />
                 </motion.button>
@@ -859,7 +861,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: reduced ? 0 : -4 }}
                     transition={{ duration: reduced ? 0.1 : 0.16 }}
-                    style={{ top: 64, left: PAD, right: PAD, padding: 14, border: "1px solid #D4D4D4", borderRadius: 22, backgroundColor: CARD_PAPER, zIndex: 12 }}
+                    style={{ top: NAV_TOP + 56, left: PAD, right: PAD, padding: 14, border: "1px solid #D4D4D4", borderRadius: 22, backgroundColor: CARD_PAPER, zIndex: 12 }}
                   >
                     <p className="m-0 mb-2" style={{ fontSize: 24, lineHeight: "28px" }}>Show moments</p>
                     <div className="grid grid-cols-2 gap-1.5">
