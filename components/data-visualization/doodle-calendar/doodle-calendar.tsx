@@ -181,9 +181,19 @@ const INITIAL_IMAGES: Record<number, DiaryImage> = Object.fromEntries(SCENES.sli
   note: scene.sentence,
 }]));
 
+/** The URL DiaryArtwork requests, so a preload warms the exact same cache entry. */
+const artworkUrl = (source: string) => (source.startsWith(ARTWORK_BASE) ? `${source}?v=pencil-3` : source);
+const preloadImage = (src: string) =>
+  new Promise<void>((resolve) => {
+    const img = new window.Image();
+    img.onload = img.onerror = () => resolve();
+    img.src = src;
+    if (img.complete) resolve();
+  });
+
 function DiaryArtwork({ image, compact = false, blue = false }: { image: DiaryImage; compact?: boolean; blue?: boolean }) {
   const source = compact ? image.thumbnailSrc ?? image.src : image.src;
-  const src = source.startsWith(ARTWORK_BASE) ? `${source}?v=pencil-3` : source;
+  const src = artworkUrl(source);
   if (blue) {
     return (
       <span
@@ -299,11 +309,14 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const releaseVelocityRef = React.useRef(0);
   const [entries, setEntries] = React.useState<Record<number, string>>(INITIAL_ENTRIES);
   const [images, setImages] = React.useState<Record<number, DiaryImage>>(INITIAL_IMAGES);
-  const [generatingDay, setGeneratingDay] = React.useState<number | null>(null);
   const [entryErrors, setEntryErrors] = React.useState<Record<number, string>>({});
   const [composing, setComposing] = React.useState(false);
   const [sketchPhase, setSketchPhase] = React.useState<"idle" | "glow" | "reveal">("idle");
   const sketchingRef = React.useRef(false);
+  const mountedRef = React.useRef(true);
+  React.useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
+  /** Pencil button starts writing with the caret at the end; a tap keeps the browser's caret. */
+  const caretToEndRef = React.useRef(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const storageReady = React.useRef(false);
 
@@ -353,11 +366,11 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
 
   const illustrateEntry = async (day: number) => {
     const note = entries[day]?.trim();
-    if (!note || generatingDay !== null) return;
+    if (!note || sketchingRef.current) return;
     setComposing(false);
     textareaRef.current?.blur();
+    if (byPersonRef.current) dialogRef.current?.focus({ preventScroll: true });
     setEntryErrors((current) => ({ ...current, [day]: "" }));
-    setGeneratingDay(day);
     sketchingRef.current = true;
     setSketchPhase("glow");
     try {
@@ -368,30 +381,36 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
           : Promise.resolve(demo),
         wait(reduced ? 300 : SKETCH_MIN_MS),
       ]);
+      if (!mountedRef.current) return;
       if (!image) {
         failSketch(day, "Try coffee, bento, exercise, trains, rain, home or a walk in this preview.");
         return;
       }
+      await preloadImage(artworkUrl(image.src));
+      if (!mountedRef.current) return;
       setImages((current) => ({ ...current, [day]: image }));
       setSketchPhase("reveal");
       await wait(reduced ? 200 : REVEAL_MS);
+      if (!mountedRef.current) return;
       setSketchPhase("idle");
     } catch {
+      if (!mountedRef.current) return;
       failSketch(day, "Couldn’t create the sketch. Please try again.");
     } finally {
       sketchingRef.current = false;
-      setGeneratingDay(null);
     }
   };
 
   const startComposing = () => {
     if (openRef.current === null || sketchingRef.current) return;
     byPersonRef.current = true;
+    caretToEndRef.current = true;
     setComposing(true);
   };
   const cancelComposing = () => {
     setComposing(false);
     textareaRef.current?.blur();
+    if (byPersonRef.current) dialogRef.current?.focus({ preventScroll: true });
   };
 
   const hostRef = React.useRef<HTMLDivElement>(null);
@@ -404,9 +423,11 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
-  // Writing starts with the caret at the end of the note.
+  // Writing started from the pencil puts the caret at the end of the note; a tap keeps its own caret.
   React.useEffect(() => {
     if (!composing) return;
+    if (!caretToEndRef.current) return;
+    caretToEndRef.current = false;
     const field = textareaRef.current;
     if (!field) return;
     field.focus({ preventScroll: true });
@@ -837,6 +858,9 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       zIndex: 4,
                     }}
                   >
+                    <p role="status" aria-live="polite" className="sr-only">
+                      {sketchPhase === "glow" ? "Sketching your drawing…" : sketchPhase === "reveal" ? "Your drawing is ready." : ""}
+                    </p>
                     {Array.from({ length: today }, (_, index) => {
                       const day = index + 1;
                       const isActive = day === openDay;
@@ -887,16 +911,10 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                     <span style={{ fontSize: 18 }}>A little moment from today.</span>
                                   </div>
                                 );
-                                if (isActive && sketchPhase === "reveal") return <RevealWipe reduced={reduced}>{art}</RevealWipe>;
                                 return (
-                                  <motion.div
-                                    className="size-full"
-                                    initial={false}
-                                    animate={isActive && sketchPhase === "glow" ? { opacity: 0, filter: "blur(8px)" } : { opacity: isActive && composing ? 0.28 : 1, filter: "blur(0px)" }}
-                                    transition={{ duration: 0.45, ease: EASE_OUT }}
-                                  >
+                                  <RevealWipe reduced={reduced} active={isActive} phase={isActive ? sketchPhase : "idle"} dimmed={isActive && composing}>
                                     {art}
-                                  </motion.div>
+                                  </RevealWipe>
                                 );
                               })() : null}
                               <AnimatePresence>{isActive && sketchPhase === "glow" ? <ArtGlow key="art-glow" reduced={reduced} /> : null}</AnimatePresence>
@@ -1061,7 +1079,10 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       title={onGenerateImage ? "Generate an illustration from this note" : "Preview a prepared demo illustration from this note"}
                       disabled={!canSubmit}
                       onClick={() => void illustrateEntry(openDay)}
-                      onKeyDown={(event) => event.stopPropagation()}
+                      onKeyDown={(event) => {
+                        event.stopPropagation();
+                        if (event.key === "Escape") { event.preventDefault(); cancelComposing(); }
+                      }}
                       whileTap={canSubmit && !reduced ? { scale: 0.96 } : undefined}
                       className="dc-sketch flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border-0 px-4 disabled:opacity-35"
                       style={{ backgroundColor: TEXT, color: CARD_PAPER, fontFamily: FONT_HANDWRITING, fontSize: 21, lineHeight: "24px", cursor: canSubmit ? "pointer" : "default" }}
@@ -1166,18 +1187,30 @@ function ArtGlow({ reduced }: { reduced: boolean }) {
   );
 }
 
-/** Wipes the fresh drawing in from top-left, like a pencil passing over the page. */
-function RevealWipe({ reduced, children }: { reduced: boolean; children: React.ReactNode }) {
+/**
+ * One wrapper for the whole sketch flow so the artwork never remounts: hidden while
+ * the glow gathers, wiped in from top-left like a pencil passing over the page, then rests.
+ */
+function RevealWipe({ reduced, active, phase, dimmed, children }: { reduced: boolean; active: boolean; phase: "idle" | "glow" | "reveal"; dimmed: boolean; children: React.ReactNode }) {
   const mask = "linear-gradient(115deg, #000 42%, transparent 58%)";
-  if (reduced) {
-    return <motion.div className="size-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>{children}</motion.div>;
-  }
+  const wiping = active && phase === "reveal";
+  const resting = { opacity: dimmed ? 0.28 : 1, filter: "blur(0px)", scale: 1, maskPosition: "0% 0%" };
+  const animateTo = active && phase === "glow"
+    ? { opacity: 0, filter: "blur(8px)", scale: 1, maskPosition: "0% 0%" }
+    : wiping
+      ? reduced
+        ? { opacity: [0, 1], filter: "blur(0px)", scale: 1, maskPosition: "0% 0%" }
+        : { opacity: [1, 1], filter: ["blur(6px)", "blur(0px)"], scale: [1.03, 1], maskPosition: ["100% 0%", "0% 0%"] }
+      : resting;
+  const transition = wiping
+    ? { duration: reduced ? 0.2 : REVEAL_MS / 1000, ease: [0.4, 0, 0.2, 1] as const, opacity: { duration: reduced ? 0.2 : 0 } }
+    : { duration: 0.45, ease: EASE_OUT };
   return (
     <motion.div
       className="size-full"
-      initial={{ maskPosition: "100% 0%", filter: "blur(6px)", scale: 1.03 }}
-      animate={{ maskPosition: "0% 0%", filter: "blur(0px)", scale: 1 }}
-      transition={{ duration: REVEAL_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
+      initial={false}
+      animate={animateTo}
+      transition={transition}
       style={{ maskImage: mask, WebkitMaskImage: mask, maskSize: "260% 100%", WebkitMaskSize: "260% 100%", maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" }}
     >
       {children}
