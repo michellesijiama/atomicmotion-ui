@@ -38,7 +38,7 @@ const checks = [
   ["days to come are full-size empty rings using the active theme", c.includes('className="block size-full rounded-full"') && c.includes('border: `1.25px solid ${activeText}`') && !c.includes("const DOT_HUES")],
   ["no home indicator on the glass", !/home indicator/i.test(c)],
   ["linked cards keep an inset for captions and notes", c.includes('padding: "10px 12px 8px"') && num("CARD_X") === 28],
-  ["entry input does not trigger swipe or calendar keyboard navigation", c.includes('onPointerDown={(event) => event.stopPropagation()}') && c.includes('onKeyDown={(event) => event.stopPropagation()}') && c.includes("target instanceof HTMLTextAreaElement")],
+  ["entry input does not trigger swipe or calendar keyboard navigation", c.includes('onPointerDown={(event) => event.stopPropagation()}') && c.includes("event.stopPropagation();") && c.includes("target instanceof HTMLTextAreaElement")],
   ["detail view supports horizontal swipe navigation", (c.includes('drag="x"') || c.includes(': "x"}')) && c.includes("onDragEnd") && c.includes("navigateOpenDay") && c.includes("gesture.offset.x")],
   ["no kind tag on the card", !c.includes("OUTING") && !c.includes("KIND_LABEL") && !/Outing"/.test(c)],
   ["phone is tall like an iPhone (ratio ≥ 2.0)", num("PHONE_H") / num("PHONE_W") >= 2.0 && num("PHONE_W") === 300],

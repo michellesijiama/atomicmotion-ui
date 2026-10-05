@@ -258,7 +258,11 @@ const SWIPE_VELOCITY = 420;
 /** Even the instant demo shows the whole sketching moment. */
 const SKETCH_MIN_MS = 2400;
 const REVEAL_MS = 1100;
+const GENERATE_TIMEOUT_MS = 8000;
+const PRELOAD_TIMEOUT_MS = 3000;
 const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+const withTimeout = <T,>(promise: Promise<T>, ms: number) =>
+  Promise.race([promise, new Promise<"timeout">((resolve) => window.setTimeout(() => resolve("timeout"), ms))]);
 const MORPH = { type: "spring", duration: 0.56, bounce: 0.1 } as const;
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -375,18 +379,24 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     setSketchPhase("glow");
     try {
       const demo = demoImageFor(note);
-      const [image] = await Promise.all([
-        onGenerateImage
-          ? onGenerateImage(note, CALENDAR_DAYS[day - 1]).then((src): DiaryImage => ({ src, title: "Today’s Little Moment", note }))
-          : Promise.resolve(demo),
-        wait(reduced ? 300 : SKETCH_MIN_MS),
-      ]);
+      const generation: Promise<DiaryImage | undefined | "timeout"> = onGenerateImage
+        ? withTimeout(onGenerateImage(note, CALENDAR_DAYS[day - 1]).then((src): DiaryImage => ({ src, title: "Today’s Little Moment", note })), GENERATE_TIMEOUT_MS)
+        : Promise.resolve(demo);
+      const [image] = await Promise.all([generation, wait(reduced ? 300 : SKETCH_MIN_MS)]);
       if (!mountedRef.current) return;
+      if (image === "timeout") {
+        failSketch(day, "Couldn’t create the sketch. Please try again.");
+        return;
+      }
       if (!image) {
         failSketch(day, "Try coffee, bento, exercise, trains, rain, home or a walk in this preview.");
         return;
       }
-      await preloadImage(artworkUrl(image.src));
+      // Warm the thumbnail too, so the month circle never pops in late; never wait on it for long.
+      await withTimeout(
+        Promise.all([preloadImage(artworkUrl(image.src)), image.thumbnailSrc ? preloadImage(artworkUrl(image.thumbnailSrc)) : Promise.resolve()]),
+        PRELOAD_TIMEOUT_MS,
+      );
       if (!mountedRef.current) return;
       setImages((current) => ({ ...current, [day]: image }));
       setSketchPhase("reveal");
@@ -521,7 +531,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
       const target = e.target;
       if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement || (target instanceof HTMLElement && target.isContentEditable)) return;
       if (sketchPhase !== "idle") return;
-      if (e.key === "Escape") { if (composing) setComposing(false); else close(); }
+      if (e.key === "Escape") { if (composing) cancelComposing(); else close(); }
       else if (composing) return;
       else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         e.preventDefault();
@@ -635,10 +645,14 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   };
   const cellMotion = (day: number) => {
     const isAnchor = day === anchorDay;
-    // The opened circle hands itself to the flying page at once, and comes back only when the page lands.
-    const hidden = gridHidden || (isAnchor && morph?.direction === "close");
+    // The opened circle hands itself to the flying page at once, and is revealed only when the page lands.
+    const landing = isAnchor && morph?.direction === "close";
+    const hidden = gridHidden;
     return {
       initial: false as const,
+      // The landing circle is masked by React state, not an animation, so it shows in the very commit the
+      // flying page unmounts (an animated opacity would only start a frame later and blink). It stays focusable.
+      style: { aspectRatio: "1 / 1", clipPath: landing ? "inset(100%)" : undefined },
       animate: hidden ? { opacity: 0, scale: isAnchor ? 1 : 0.86 } : { opacity: 1, scale: 1 },
       transition: isAnchor ? { duration: 0 } : { duration: 0.32, ease: EASE_OUT, delay: recedeDelay(day) },
     };
@@ -767,7 +781,6 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                 role="gridcell"
                                 aria-label={`${MONTH_NAME} ${day}, still to come`}
                                 className="flex items-center justify-center"
-                                style={{ aspectRatio: "1 / 1" }}
                                 {...cellMotion(day)}
                               >
                                 <span
@@ -779,7 +792,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                             );
                           }
                           return (
-                            <motion.div key={col} role="gridcell" style={{ aspectRatio: "1 / 1" }} {...cellMotion(day)}>
+                            <motion.div key={col} role="gridcell" {...cellMotion(day)}>
                               <DayCell
                                 day={day}
                                 info={CALENDAR_DAYS[day - 1]}
@@ -1006,10 +1019,9 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                     </motion.button>
                     <motion.button
                       type="button"
-                      aria-label="Write about this day"
+                      aria-label="Write a note"
                       title="Write a note, then sketch it"
                       onClick={startComposing}
-                      onKeyDown={(event) => event.stopPropagation()}
                       disabled={sketchPhase !== "idle"}
                       initial="rest"
                       whileHover={sketchPhase === "idle" ? "hover" : undefined}
