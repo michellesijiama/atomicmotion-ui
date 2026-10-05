@@ -917,7 +917,6 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                   </RevealWipe>
                                 );
                               })() : null}
-                              <AnimatePresence>{isActive && sketchPhase === "glow" ? <ArtGlow key="art-glow" reduced={reduced} /> : null}</AnimatePresence>
                             </Parallax>
                             <motion.div
                               className="absolute inset-x-0 bottom-0 flex flex-col"
@@ -1141,49 +1140,33 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   );
 }
 
-const GLOW_BLOBS = [
-  { rgb: "0 65 255", alpha: 0.5, size: 380, left: -150, top: -170, x: [0, 46, -18, 0], y: [0, 34, 70, 0], duration: 5.2 },
-  { rgb: "142 123 255", alpha: 0.48, size: 360, left: 110, top: 150, x: [0, -40, 24, 0], y: [0, 50, -30, 0], duration: 6.4 },
-  { rgb: "127 178 255", alpha: 0.5, size: 400, left: -120, top: 390, x: [0, 54, 10, 0], y: [0, -36, 20, 0], duration: 5.8 },
-] as const;
+const GLOW_SPREAD = 12; // lit shape extends this far past the card edge, before blur
+const GLOW_BLUR = 12;
+const GEMINI_CONIC = "conic-gradient(from 42deg at 50% 50%, rgba(66,133,244,0) 0deg, rgba(66,133,244,0.88) 34deg, rgba(138,180,248,0.92) 58deg, rgba(66,133,244,0.16) 92deg, rgba(66,133,244,0) 132deg, rgba(66,133,244,0.74) 188deg, rgba(138,180,248,0.82) 214deg, rgba(66,133,244,0) 258deg, rgba(66,133,244,0.72) 316deg, rgba(66,133,244,0) 360deg)";
 
-/** Soft blue light that breathes behind the card while a drawing is being made. */
+/** Gemini-style light that runs around the card's outline while a drawing is being made. */
 function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) {
+  const pad = GLOW_SPREAD + GLOW_BLUR * 2; // room for the blur so it is never clipped
+  const side = Math.hypot(CARD_RECT.w, CARD_RECT.h) + GLOW_SPREAD * 2; // square that covers the card at any rotation
   return (
     <motion.div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0"
+      className="pointer-events-none absolute"
       initial={{ opacity: 0 }}
       animate={{ opacity: fading ? 0 : 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: fading ? 0.9 : 0.6, ease: "easeInOut" }}
-      style={{ zIndex: 3 }}
+      transition={{ duration: fading ? 0.8 : 0.5, ease: "easeInOut" }}
+      style={{ left: CARD_RECT.x - pad, top: CARD_RECT.y - pad, width: CARD_RECT.w + pad * 2, height: CARD_RECT.h + pad * 2, filter: `blur(${GLOW_BLUR}px)`, zIndex: 3 }}
     >
-      {GLOW_BLOBS.map((blob) => (
+      <div className="absolute overflow-hidden" style={{ inset: pad - GLOW_SPREAD, borderRadius: CARD_RADIUS + GLOW_SPREAD }}>
         <motion.span
-          key={blob.rgb}
-          className="absolute rounded-full"
-          style={{ left: blob.left, top: blob.top, width: blob.size, height: blob.size, background: `radial-gradient(circle, rgb(${blob.rgb} / ${blob.alpha}) 0%, rgb(${blob.rgb} / 0) 68%)` }}
-          animate={reduced ? undefined : { x: [...blob.x], y: [...blob.y], scale: [1, 1.1, 0.95, 1] }}
-          transition={{ duration: blob.duration, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute left-1/2 top-1/2 block"
+          style={{ width: side, height: side, marginLeft: -side / 2, marginTop: -side / 2, background: GEMINI_CONIC }}
+          animate={reduced ? { opacity: 0.7 } : { rotate: [0, 74, 148, 221, 288, 360], opacity: [0.83, 0.56, 0.9, 0.5, 0.78, 0.6, 0.87] }}
+          transition={reduced ? { duration: 0.2 } : { rotate: { duration: 4.2, ease: "easeInOut", repeat: Infinity }, opacity: { duration: 3.4, ease: "easeInOut", repeat: Infinity, times: [0, 0.17, 0.33, 0.51, 0.7, 0.86, 1] } }}
         />
-      ))}
+      </div>
     </motion.div>
-  );
-}
-
-/** The same light, gathered where the new drawing will appear. */
-function ArtGlow({ reduced }: { reduced: boolean }) {
-  return (
-    <motion.div
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0"
-      initial={{ opacity: 0 }}
-      animate={reduced ? { opacity: 0.8 } : { opacity: [0.55, 1, 0.55], scale: [0.9, 1.06, 0.9] }}
-      exit={{ opacity: 0, transition: { duration: 0.6 } }}
-      transition={reduced ? { duration: 0.2 } : { duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-      style={{ background: "radial-gradient(closest-side, rgb(0 65 255 / 0.3), rgb(142 123 255 / 0.16) 55%, rgb(142 123 255 / 0) 100%)" }}
-    />
   );
 }
 
