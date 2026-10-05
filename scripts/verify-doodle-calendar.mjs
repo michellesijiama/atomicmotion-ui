@@ -84,7 +84,7 @@ const checks = [
   ["package exposes verification script", files.packageJson.includes('"test:doodle-calendar"')],
   ["current typography uses Caveat", c.includes("--font-caveat") && !c.includes("FONT_MONO") && !c.includes("FONT_SERIF")],
   ["linked pagination follows the finger and snaps by one card", c.includes("PAGE_TRAVEL = CARD_W + CARD_GAP") && c.includes("x: pageX") && c.includes("animate(pageX") && c.includes("dragMomentum={false}")],
-  ["the oversized selected date returns to the month grid", c.includes('`Back to ${MONTH_NAME} ${YEAR} month view`') && c.includes('className="dc-date absolute') && c.includes("onClick={close}")],
+  ["the oversized selected date returns to the month grid", c.includes('`Back to ${MONTH_NAME} ${YEAR} month view`') && c.includes('className="dc-date relative') && c.includes("onClick={close}")],
   ["connected bottom controls keep previous and next arrows around the pencil", c.includes('aria-label="Navigate completed dates"') && c.includes('aria-label="Previous completed date"') && c.includes('aria-label="Next completed date"') && c.includes("left: 52, width: 88, height: 44") && c.includes("bottom: 18, width: 192, height: 44") && !c.includes('aria-label="Choose a completed date"') && !c.includes("detailWeek.map") && !c.includes("Your illustrated day")],
   ["neutral paper and monochrome text", c.includes('const PAPER = "#F0F0F0"') && c.includes('const TEXT = "#242424"')],
   ["fourteen diary dates use daily moments", sceneRows.length === 14 && sceneRows.every((row) => row.kind === "daily")],
@@ -100,6 +100,10 @@ const checks = [
   ["opening grows the tapped day into the card and closing shrinks it back", c.includes("function MorphLayer") && c.includes("gridCellRect(") && c.includes('direction: "open"') && c.includes('direction: "close"') && c.includes("const CARD_RECT")],
   ["month cells recede and return by distance from the opened day", c.includes("Math.hypot(") && c.includes("recedeDelay")],
   ["taps are ignored while a morph is running", c.includes("if (morphRef.current) return;")],
+  ["swipe snaps with a spring that keeps the release velocity", c.includes("const PAGE_SPRING") && c.includes("velocity: gesture.velocity.x") && c.includes("releaseVelocityRef")],
+  ["pages drift with parallax as the strip moves", c.includes("function Parallax") && c.includes("useTransform(")],
+  ["neighbouring artwork is pre-rendered two pages out", c.includes("Math.abs(day - openDay) <= 2")],
+  ["the strip stretches a little past the first and last day", c.includes("dragElastic={reduced ? 0 : 0.16}")],
 
 ];
 
