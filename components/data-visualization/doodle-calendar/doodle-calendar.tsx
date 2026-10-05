@@ -119,6 +119,19 @@ const CARD_TOP = SCREEN_H - CARD_BOTTOM - CARD_H;
 const CARD_GAP = 14;
 const PAGE_TRAVEL = CARD_W + CARD_GAP;
 const CARD_RADIUS = 34;
+const GRID_TOP = SCREEN_H - GRID_BOTTOM - GRID_H;
+
+type Rect = { x: number; y: number; w: number; h: number };
+/** Where a day's circle sits on the screen, from the same constants the grid is laid out with. */
+function gridCellRect(day: number): Rect {
+  const index = day - 1 + FIRST_COLUMN;
+  const row = Math.floor(index / 7);
+  const col = index % 7;
+  return { x: PAD + col * (CELL + GAP), y: GRID_TOP + WEEKDAY_H + WEEKDAY_GAP + row * (CELL + GAP), w: CELL, h: CELL };
+}
+const CARD_RECT: Rect = { x: CARD_X, y: CARD_TOP, w: CARD_W, h: CARD_H };
+/** The square artwork is contained in ART_W × ART_H, so it draws ART_H wide, centred. */
+const ART_RECT: Rect = { x: CARD_X + (ART_W - ART_H) / 2, y: CARD_TOP + DAY_HEADER_H, w: ART_H, h: ART_H };
 const CARD_PAPER = "#FFFFFF";
 
 /* ───────────────────────────── city diary artwork ───────────────────────────── */
@@ -228,6 +241,8 @@ const HOLD_MS = 3800;
 const PAUSE_MS = 700;
 const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
 const PAGE_TRANSITION = { duration: 0.46, ease: [0.22, 1, 0.36, 1] } as const;
+const MORPH = { type: "spring", duration: 0.56, bounce: 0.1 } as const;
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
 type DayState = "past" | "today" | "future";
 
@@ -237,6 +252,17 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const uid = React.useId();
 
   const [openDay, setOpenDay] = React.useState<number | null>(null);
+  const [morph, setMorph] = React.useState<{ day: number; direction: "open" | "close" } | null>(null);
+  const morphRef = React.useRef<{ day: number; direction: "open" | "close" } | null>(null);
+  const screenRef = React.useRef<HTMLDivElement>(null);
+  const startMorph = React.useCallback((next: { day: number; direction: "open" | "close" }) => {
+    morphRef.current = next;
+    setMorph(next);
+  }, []);
+  const endMorph = React.useCallback(() => {
+    morphRef.current = null;
+    setMorph(null);
+  }, []);
   const [focusDay, setFocusDay] = React.useState(today);
   const [interacted, setInteracted] = React.useState(false);
   const [filterOpen, setFilterOpen] = React.useState(false);
@@ -338,17 +364,25 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const transformPagePoint = React.useCallback((p: { x: number; y: number }) => ({ x: p.x / scaleRef.current, y: p.y / scaleRef.current }), []);
 
   const open = React.useCallback((day: number) => {
-    if (openRef.current === null) pageX.set(-(day - 1) * PAGE_TRAVEL);
+    if (openRef.current === null) {
+      if (morphRef.current) return;
+      pageX.set(-(day - 1) * PAGE_TRAVEL);
+      if (!reduced) startMorph({ day, direction: "open" });
+    }
     openRef.current = day;
     setOpenDay(day);
     onSelectRef.current?.(CALENDAR_DAYS[day - 1]);
-  }, [pageX]);
+  }, [pageX, reduced, startMorph]);
 
   const close = React.useCallback(() => {
-    if (byPersonRef.current) returnFocusRef.current = openRef.current;
+    const day = openRef.current;
+    if (day === null) return;
+    if (morphRef.current) return;
+    if (byPersonRef.current) returnFocusRef.current = day;
     openRef.current = null;
     setOpenDay(null);
-  }, []);
+    if (!reduced) startMorph({ day, direction: "close" });
+  }, [reduced, startMorph]);
 
   const goToOpenDay = React.useCallback(
     (requestedDay: number) => {
@@ -408,15 +442,14 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     const show = () => {
       open(order[i % order.length]);
       timer = window.setTimeout(() => {
-        openRef.current = null;
-        setOpenDay(null);
+        close();
         i += 1;
         timer = window.setTimeout(show, PAUSE_MS);
       }, HOLD_MS);
     };
     timer = window.setTimeout(show, 900);
     return () => window.clearTimeout(timer);
-  }, [loop, interacted, reduced, today, open]);
+  }, [loop, interacted, reduced, today, open, close]);
 
   const touched = () => {
     setInteracted(true);
@@ -488,6 +521,26 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     return () => playback.stop();
   }, [openDay, pageX, reduced]);
 
+  const anchorDay = openDay ?? morph?.day ?? null;
+  const gridHidden = openDay !== null;
+  const recedeDelay = (day: number) => {
+    if (anchorDay === null || reduced) return 0;
+    const a = gridCellRect(anchorDay);
+    const b = gridCellRect(day);
+    const distance = Math.hypot((a.x - b.x) / (CELL + GAP), (a.y - b.y) / (CELL + GAP));
+    return (gridHidden ? 0 : 0.14) + distance * 0.018;
+  };
+  const cellMotion = (day: number) => {
+    const isAnchor = day === anchorDay;
+    // The opened circle hands itself to the flying page at once, and comes back only when the page lands.
+    const hidden = gridHidden || (isAnchor && morph?.direction === "close");
+    return {
+      initial: false as const,
+      animate: hidden ? { opacity: 0, scale: isAnchor ? 1 : 0.86 } : { opacity: 1, scale: 1 },
+      transition: isAnchor ? { duration: 0 } : { duration: 0.32, ease: EASE_OUT, delay: recedeDelay(day) },
+    };
+  };
+
   return (
     <MotionConfig reducedMotion="user" transformPagePoint={transformPagePoint}>
       <LayoutGroup id={uid}>
@@ -512,6 +565,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
           <div ref={fitRef} className="relative shrink-0" style={{ width: PHONE_W, height: PHONE_H, transformOrigin: "50% 50%" }}>
             {/* The screen remains one uninterrupted soft-grey field in every state. */}
             <div
+              ref={screenRef}
               className="absolute overflow-hidden"
               style={{
                 inset: BEZEL,
@@ -559,8 +613,8 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                 inert={openDay !== null}
                 className="absolute text-left"
                 initial={false}
-                animate={{ opacity: openDay === null ? 1 : 0 }}
-                transition={LAYOUT}
+                animate={{ opacity: openDay === null ? 1 : 0, y: openDay === null ? 0 : -10 }}
+                transition={openDay === null ? { ...LAYOUT, delay: reduced ? 0 : 0.18 } : { duration: 0.32, ease: EASE_OUT }}
                 style={{ left: PAD, top: HEAD_TOP_CLOSED, fontFamily: FONT_HANDWRITING, fontWeight: 400, fontSize: HEAD_SIZE, lineHeight: `${HEAD_LINE}px`, letterSpacing: "-0.02em", marginLeft: "-0.03em", color: activeText, pointerEvents: "none", zIndex: 2 }}
               >
                 {MONTH_NAME}
@@ -568,18 +622,19 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
               </motion.div>
 
               {/* The weekday row and the grid sit low on the glass: one column template, so labels stand exactly over their circles. */}
-              <motion.div
+              <div
                 className="absolute"
                 style={{ left: PAD, right: PAD, bottom: GRID_BOTTOM, zIndex: 2 }}
-                animate={{ opacity: openDay === null ? 1 : 0 }}
-                transition={openDay === null ? { duration: 0.22 } : { duration: 0.28 }}
                 inert={openDay !== null}
               >
                 <div role="grid" aria-label={`${MONTH_NAME} ${YEAR}`} onKeyDown={onGridKeyDown}>
-                  <div
+                  <motion.div
                     role="row"
                     className="grid"
                     style={{ gridTemplateColumns: "repeat(7, 1fr)", columnGap: GAP, height: WEEKDAY_H, marginBottom: WEEKDAY_GAP }}
+                    initial={false}
+                    animate={{ opacity: openDay === null ? 1 : 0 }}
+                    transition={{ duration: 0.28, delay: openDay === null && !reduced ? 0.2 : 0 }}
                   >
                     {WEEKDAYS_SHORT.map((w, i) => (
                       <div
@@ -593,7 +648,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                         </abbr>
                       </div>
                     ))}
-                  </div>
+                  </motion.div>
 
                   <div className="flex flex-col" style={{ rowGap: GAP }}>
                     {Array.from({ length: WEEKS }, (_, row) => (
@@ -605,23 +660,24 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                           const s = sceneOf(day);
                           if (state === "future" || !s) {
                             return (
-                              <div
+                              <motion.div
                                 key={col}
                                 role="gridcell"
                                 aria-label={`${MONTH_NAME} ${day}, still to come`}
                                 className="flex items-center justify-center"
                                 style={{ aspectRatio: "1 / 1" }}
+                                {...cellMotion(day)}
                               >
                                 <span
                                   aria-hidden="true"
                                   className="block size-full rounded-full"
                                   style={{ boxSizing: "border-box", border: `1.25px solid ${activeText}`, opacity: 0.86 }}
                                 />
-                              </div>
+                              </motion.div>
                             );
                           }
                           return (
-                            <div key={col} role="gridcell" style={{ aspectRatio: "1 / 1" }}>
+                            <motion.div key={col} role="gridcell" style={{ aspectRatio: "1 / 1" }} {...cellMotion(day)}>
                               <DayCell
                                 day={day}
                                 info={CALENDAR_DAYS[day - 1]}
@@ -639,14 +695,14 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                   cells.current[day] = el;
                                 }}
                               />
-                            </div>
+                            </motion.div>
                           );
                         })}
                       </div>
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Tap outside the card to put it away. */}
               {scene ? <div className="absolute inset-0" style={{ zIndex: 3 }} onClick={close} aria-hidden="true" /> : null}
@@ -673,9 +729,9 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       else void animate(pageX, -(openDay - 1) * PAGE_TRAVEL, reduced ? { duration: 0 } : PAGE_TRANSITION);
                     }}
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: reduced ? 0.1 : 0.22 }}
+                    animate={{ opacity: morph?.direction === "open" ? 0 : 1 }}
+                    exit={{ opacity: 0, transition: { duration: reduced ? 0.1 : 0 } }}
+                    transition={{ duration: reduced ? 0.1 : 0 }}
                     style={{
                       x: pageX,
                       left: CARD_X,
@@ -693,6 +749,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       const image = images[day];
                       const note = entries[day] ?? "";
                       const error = entryErrors[day];
+                      const textShown = !(isActive && morph?.direction === "open");
                       return (
                         <React.Fragment key={day}>
                           <section
@@ -709,18 +766,21 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                               pointerEvents: isActive ? "auto" : "none",
                             }}
                           >
-                            <button
+                            <motion.button
                               type="button"
                               aria-label={`Back to ${MONTH_NAME} ${YEAR} month view`}
                               disabled={!isActive}
                               onClick={close}
                               onPointerDown={(event) => event.stopPropagation()}
+                              initial={false}
+                              animate={{ opacity: textShown ? 1 : 0, y: textShown ? 0 : 6 }}
+                              transition={{ duration: reduced ? 0.1 : 0.26, ease: EASE_OUT }}
                               className="dc-date absolute m-0 border-0 bg-transparent p-0 text-left"
                               style={{ left: 12, top: 12, fontFamily: FONT_HANDWRITING, fontWeight: 400, fontSize: 40, lineHeight: "42px", color: activeText, cursor: isActive ? "pointer" : "default", zIndex: 1 }}
                             >
                               {CALENDAR_DAYS[day - 1].weekday}
                               <span className="block" style={{ marginTop: 2, color: day === today ? TODAY_BLUE : activeText }}>{day}</span>
-                            </button>
+                            </motion.button>
                             <div className="absolute" style={{ top: DAY_HEADER_H, width: ART_W, height: ART_H }}>
                               {Math.abs(day - openDay) <= 1 ? image ? <DiaryArtwork image={image} blue={day === today} /> : (
                                 <div className="flex size-full flex-col items-center justify-center gap-3" style={{ color: text(0.42, TEXT_RGB) }}>
@@ -729,7 +789,13 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                 </div>
                               ) : null}
                             </div>
-                            <div className="absolute inset-x-0 bottom-0 flex flex-col" style={{ top: DAY_HEADER_H + ART_H, padding: "10px 12px 8px" }}>
+                            <motion.div
+                              className="absolute inset-x-0 bottom-0 flex flex-col"
+                              style={{ top: DAY_HEADER_H + ART_H, padding: "10px 12px 8px" }}
+                              initial={false}
+                              animate={{ opacity: textShown ? 1 : 0, y: textShown ? 0 : 6 }}
+                              transition={{ duration: reduced ? 0.1 : 0.26, ease: EASE_OUT }}
+                            >
                               <div className="flex items-center gap-1" style={{ marginTop: 6 }}>
                                 <h3
                                   id={isActive ? titleId : undefined}
@@ -751,7 +817,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                 style={{ fontFamily: FONT_HANDWRITING, fontWeight: 400, fontSize: 19, lineHeight: "23px", color: activeBodyText, backgroundColor: "transparent", border: 0, borderRadius: 0, marginTop: 8, minHeight: error ? 62 : 85, padding: "4px 0 8px", cursor: "text" }}
                               /> : <p className="m-0 mt-2" style={{ fontSize: 19, lineHeight: "23px", paddingTop: 4 }}>{note}</p>}
                               {isActive && error ? <p role="alert" className="m-0 mt-1" style={{ fontSize: 14, lineHeight: "16px" }}>{error}</p> : null}
-                            </div>
+                            </motion.div>
                           </section>
                           {day < today ? (
                             <svg
@@ -771,6 +837,16 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                   </motion.div>
                 ) : null}
               </AnimatePresence>
+              {morph ? (
+                <MorphLayer
+                  key={`${morph.direction}-${morph.day}`}
+                  day={morph.day}
+                  direction={morph.direction}
+                  image={images[morph.day]}
+                  blue={morph.day === today}
+                  onDone={endMorph}
+                />
+              ) : null}
               <AnimatePresence>
                 {openDay !== null ? (
                   <motion.nav
@@ -779,7 +855,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                     initial={{ opacity: 0, y: reduced ? 0 : 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: reduced ? 0 : 8 }}
-                    transition={{ duration: reduced ? 0.1 : 0.2 }}
+                    transition={{ duration: reduced ? 0.1 : 0.24, delay: reduced || openDay === null ? 0 : 0.22 }}
                     style={{ left: (SCREEN_W - 192) / 2, bottom: 18, width: 192, height: 44, zIndex: 6, color: activeBodyText }}
                   >
                     <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full" viewBox="0 0 192 44">
@@ -893,6 +969,52 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
         </div>
       </LayoutGroup>
     </MotionConfig>
+  );
+}
+
+type MorphLayerProps = {
+  day: number;
+  direction: "open" | "close";
+  image?: DiaryImage;
+  blue: boolean;
+  onDone: () => void;
+};
+
+/** A white page and its drawing that fly between a month circle and the card. */
+function MorphLayer({ day, direction, image, blue, onDone }: MorphLayerProps) {
+  const cell = gridCellRect(day);
+  const inset = blue && image ? 3 : 0;
+  const artCell: Rect = { x: cell.x + inset, y: cell.y + inset, w: cell.w - inset * 2, h: cell.h - inset * 2 };
+  const opening = direction === "open";
+  const paperFrom = opening ? { x: cell.x, y: cell.y, width: cell.w, height: cell.h, borderRadius: cell.w / 2 } : { x: CARD_RECT.x, y: CARD_RECT.y, width: CARD_RECT.w, height: CARD_RECT.h, borderRadius: CARD_RADIUS };
+  const paperTo = opening ? { x: CARD_RECT.x, y: CARD_RECT.y, width: CARD_RECT.w, height: CARD_RECT.h, borderRadius: CARD_RADIUS } : { x: cell.x, y: cell.y, width: cell.w, height: cell.h, borderRadius: cell.w / 2 };
+  const artAt = (r: Rect) => ({ x: r.x, y: r.y, scale: r.w / ART_RECT.w });
+  const artFrom = artAt(opening ? artCell : ART_RECT);
+  const artTo = artAt(opening ? ART_RECT : artCell);
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ zIndex: 5 }}>
+      <motion.div
+        className="absolute left-0 top-0"
+        initial={{ ...paperFrom, opacity: opening ? 0 : 1 }}
+        animate={{ ...paperTo, opacity: opening ? 1 : 0 }}
+        transition={{ ...MORPH, opacity: { duration: 0.18, delay: opening ? 0 : 0.36, ease: "linear" } }}
+        style={{ backgroundColor: CARD_PAPER }}
+        onAnimationComplete={onDone}
+      />
+      {image ? (
+        <motion.div
+          className="absolute left-0 top-0"
+          initial={artFrom}
+          animate={artTo}
+          transition={MORPH}
+          style={{ width: ART_RECT.w, height: ART_RECT.h, transformOrigin: "0 0" }}
+        >
+          {/* The thumbnail is already loaded from the grid; the full drawing settles on top. */}
+          <span className="absolute inset-0"><DiaryArtwork image={image} compact blue={blue} /></span>
+          <span className="absolute inset-0"><DiaryArtwork image={{ ...image, thumbnailSrc: undefined }} compact blue={blue} /></span>
+        </motion.div>
+      ) : null}
+    </div>
   );
 }
 
