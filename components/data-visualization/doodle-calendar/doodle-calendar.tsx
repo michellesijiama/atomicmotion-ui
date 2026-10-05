@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, LayoutGroup, MotionConfig, motion, animate, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
-import { ChevronLeft, ChevronRight, Plus, PenLine, LoaderCircle, Home, SlidersHorizontal, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, PenLine, Home, SlidersHorizontal, Check, X, ArrowUp } from "lucide-react";
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -144,7 +144,7 @@ type Scene = {
   artwork: string;
 };
 
-// The demo treats Thursday, August 13 as today; Friday has not been written yet.
+// The demo treats Thursday, August 13 as today; its page starts blank for the visitor to write.
 const SCENES: readonly Scene[] = [
   { kind: "daily", title: "Morning Coffee", sentence: "Stopped for a coffee at the little kissaten before work.", artwork: "coffee" },
   { kind: "daily", title: "A Little Bento", sentence: "Packed a bento with rice, tamagoyaki and vegetables for lunch.", artwork: "bento" },
@@ -171,10 +171,10 @@ const CALENDAR_DAYS: readonly CalendarDay[] = SCENES.map((scene, i) => ({
 }));
 const sceneOf = (day: number): Scene | undefined => SCENES[day - 1];
 const ARTWORK_BASE = "/illustrations/doodle-calendar-diary/";
-const STORAGE_KEY = "doodle-japan-diary-2026-08-v1";
+const STORAGE_KEY = "doodle-japan-diary-2026-08-v2";
 type DiaryImage = { src: string; thumbnailSrc?: string; title: string; note: string };
-const INITIAL_ENTRIES = Object.fromEntries(SCENES.slice(0, 13).map((scene, i) => [i + 1, scene.sentence]));
-const INITIAL_IMAGES: Record<number, DiaryImage> = Object.fromEntries(SCENES.slice(0, 13).map((scene, i) => [i + 1, {
+const INITIAL_ENTRIES = Object.fromEntries(SCENES.slice(0, 12).map((scene, i) => [i + 1, scene.sentence]));
+const INITIAL_IMAGES: Record<number, DiaryImage> = Object.fromEntries(SCENES.slice(0, 12).map((scene, i) => [i + 1, {
   src: `${ARTWORK_BASE}${scene.artwork}.webp`,
   thumbnailSrc: `${ARTWORK_BASE}${scene.artwork}-thumb.webp`,
   title: scene.title,
@@ -245,6 +245,10 @@ const PAGE_SPRING = { type: "spring", stiffness: 320, damping: 34, mass: 1 } as 
 const PARALLAX_ART = 22;
 const PARALLAX_HEAD = 10;
 const SWIPE_VELOCITY = 420;
+/** Even the instant demo shows the whole sketching moment. */
+const SKETCH_MIN_MS = 2400;
+const REVEAL_MS = 1100;
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 const MORPH = { type: "spring", duration: 0.56, bounce: 0.1 } as const;
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -297,6 +301,10 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const [images, setImages] = React.useState<Record<number, DiaryImage>>(INITIAL_IMAGES);
   const [generatingDay, setGeneratingDay] = React.useState<number | null>(null);
   const [entryErrors, setEntryErrors] = React.useState<Record<number, string>>({});
+  const [composing, setComposing] = React.useState(false);
+  const [sketchPhase, setSketchPhase] = React.useState<"idle" | "glow" | "reveal">("idle");
+  const sketchingRef = React.useRef(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const storageReady = React.useRef(false);
 
   React.useEffect(() => {
@@ -331,39 +339,79 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     catch { /* The diary still works in this session if storage is unavailable. */ }
   }, [entries, images]);
 
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const openRef = React.useRef<number | null>(null);
+  /** Set once a person, not the loop, has opened or touched the card — only then does focus move. */
+  const byPersonRef = React.useRef(false);
+
+  const failSketch = (day: number, message: string) => {
+    setEntryErrors((current) => ({ ...current, [day]: message }));
+    setSketchPhase("idle");
+    const page = dialogRef.current?.querySelector<HTMLElement>(`[data-diary-day="${day}"]`);
+    if (page && !reduced) void animate(page, { x: [0, -7, 7, -4, 4, 0] }, { duration: 0.42, ease: "easeInOut" });
+  };
+
   const illustrateEntry = async (day: number) => {
     const note = entries[day]?.trim();
     if (!note || generatingDay !== null) return;
+    setComposing(false);
+    textareaRef.current?.blur();
     setEntryErrors((current) => ({ ...current, [day]: "" }));
     setGeneratingDay(day);
+    sketchingRef.current = true;
+    setSketchPhase("glow");
     try {
       const demo = demoImageFor(note);
-      const image = onGenerateImage
-        ? { src: await onGenerateImage(note, CALENDAR_DAYS[day - 1]), title: "Today’s Little Moment", note }
-        : demo;
+      const [image] = await Promise.all([
+        onGenerateImage
+          ? onGenerateImage(note, CALENDAR_DAYS[day - 1]).then((src): DiaryImage => ({ src, title: "Today’s Little Moment", note }))
+          : Promise.resolve(demo),
+        wait(reduced ? 300 : SKETCH_MIN_MS),
+      ]);
       if (!image) {
-        setEntryErrors((current) => ({ ...current, [day]: "Try coffee, bento, exercise, trains, rain, home or a walk in this preview." }));
+        failSketch(day, "Try coffee, bento, exercise, trains, rain, home or a walk in this preview.");
         return;
       }
       setImages((current) => ({ ...current, [day]: image }));
+      setSketchPhase("reveal");
+      await wait(reduced ? 200 : REVEAL_MS);
+      setSketchPhase("idle");
     } catch {
-      setEntryErrors((current) => ({ ...current, [day]: "Couldn’t create the sketch. Please try again." }));
-    } finally { setGeneratingDay(null); }
+      failSketch(day, "Couldn’t create the sketch. Please try again.");
+    } finally {
+      sketchingRef.current = false;
+      setGeneratingDay(null);
+    }
+  };
+
+  const startComposing = () => {
+    if (openRef.current === null || sketchingRef.current) return;
+    byPersonRef.current = true;
+    setComposing(true);
+  };
+  const cancelComposing = () => {
+    setComposing(false);
+    textareaRef.current?.blur();
   };
 
   const hostRef = React.useRef<HTMLDivElement>(null);
   const fitRef = React.useRef<HTMLDivElement>(null);
   const scaleRef = React.useRef(1);
   const cells = React.useRef<Record<number, HTMLButtonElement | null>>({});
-  const dialogRef = React.useRef<HTMLDivElement>(null);
-  const openRef = React.useRef<number | null>(null);
-  /** Set once a person, not the loop, has opened or touched the card — only then does focus move. */
-  const byPersonRef = React.useRef(false);
   const returnFocusRef = React.useRef<number | null>(null);
   const onSelectRef = React.useRef(onSelect);
   React.useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+
+  // Writing starts with the caret at the end of the note.
+  React.useEffect(() => {
+    if (!composing) return;
+    const field = textareaRef.current;
+    if (!field) return;
+    field.focus({ preventScroll: true });
+    field.setSelectionRange(field.value.length, field.value.length);
+  }, [composing]);
 
   // Scale the true-size phone down to the space it has, so it is always whole.
   React.useEffect(() => {
@@ -397,10 +445,12 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   }, [pageX, reduced, startMorph]);
 
   const close = React.useCallback(() => {
+    if (sketchingRef.current) return;
     const day = openRef.current;
     if (day === null) return;
     if (morphRef.current) return;
     if (byPersonRef.current) returnFocusRef.current = day;
+    setComposing(false);
     openRef.current = null;
     setOpenDay(null);
     if (!reduced) startMorph({ day, direction: "close" });
@@ -410,11 +460,13 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     (requestedDay: number): boolean => {
       const current = openRef.current;
       if (current === null) return false;
+      if (sketchingRef.current) return false;
       if (morphRef.current) return false;
       const next = Math.min(today, Math.max(1, requestedDay));
       if (next === current) return false;
       byPersonRef.current = true;
       setInteracted(true);
+      setComposing(false);
       open(next);
       return true;
     },
@@ -447,7 +499,9 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     const onKey = (e: KeyboardEvent) => {
       const target = e.target;
       if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement || (target instanceof HTMLElement && target.isContentEditable)) return;
-      if (e.key === "Escape") close();
+      if (sketchPhase !== "idle") return;
+      if (e.key === "Escape") { if (composing) setComposing(false); else close(); }
+      else if (composing) return;
       else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         e.preventDefault();
         navigateOpenDay(e.key === "ArrowRight" ? 1 : -1);
@@ -455,12 +509,13 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [openDay, filterOpen, close, navigateOpenDay]);
+  }, [openDay, filterOpen, close, navigateOpenDay, composing, sketchPhase]);
 
   // The gallery card: open today's page, then each earlier day in turn, until touched.
   React.useEffect(() => {
     if (!loop || interacted || reduced) return;
-    const order = [today, ...Array.from({ length: today - 1 }, (_, i) => i + 1)];
+    // Today is blank until someone writes it, so the loop starts with yesterday.
+    const order = today > 1 ? [today - 1, ...Array.from({ length: today - 2 }, (_, i) => i + 1)] : [today];
     let i = 0;
     let timer = 0;
     const show = () => {
@@ -536,7 +591,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const titleId = `${uid}-title`;
   const canGoPrevious = openDay !== null && openDay > 1;
   const canGoNext = openDay !== null && openDay < today;
-  const canSketch = openDay !== null && Boolean(entries[openDay]?.trim()) && generatingDay === null;
+  const canSubmit = openDay !== null && Boolean(entries[openDay]?.trim()) && sketchPhase === "idle";
   React.useEffect(() => {
     if (openDay === null) return;
     const target = -(openDay - 1) * PAGE_TRAVEL;
@@ -731,7 +786,10 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
               </div>
 
               {/* Tap outside the card to put it away. */}
-              {scene ? <div className="absolute inset-0" style={{ zIndex: 3 }} onClick={close} aria-hidden="true" /> : null}
+              {scene ? <div className="absolute inset-0" style={{ zIndex: 3 }} onClick={composing ? cancelComposing : close} aria-hidden="true" /> : null}
+              <AnimatePresence>
+                {openDay !== null && sketchPhase !== "idle" ? <SketchGlow key="sketch-glow" reduced={reduced} fading={sketchPhase === "reveal"} /> : null}
+              </AnimatePresence>
 
               <AnimatePresence initial={false}>
                 {scene && info && openDay !== null ? (
@@ -743,7 +801,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                     aria-labelledby={titleId}
                     tabIndex={-1}
                     className="dc-dialog absolute"
-                    drag="x"
+                    drag={composing || sketchPhase !== "idle" ? false : "x"}
                     dragConstraints={{ left: -(today - 1) * PAGE_TRAVEL, right: 0 }}
                     dragElastic={reduced ? 0 : 0.16}
                     dragMomentum={false}
@@ -775,7 +833,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       width: today * PAGE_TRAVEL - CARD_GAP,
                       height: CARD_H,
                       touchAction: "pan-y",
-                      cursor: "grab",
+                      cursor: composing || sketchPhase !== "idle" ? "default" : "grab",
                       zIndex: 4,
                     }}
                   >
@@ -787,8 +845,8 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       const error = entryErrors[day];
                       const textShown = !(isActive && flying && !morphCue);
                       return (
-                        <React.Fragment key={day}>
                           <section
+                            key={day}
                             data-diary-day={day}
                             aria-hidden={isActive ? undefined : true}
                             inert={!isActive}
@@ -822,12 +880,26 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                             </motion.button>
                             </Parallax>
                             <Parallax pageX={pageX} index={index} depth={reduced ? 0 : PARALLAX_ART} className="absolute" style={{ top: DAY_HEADER_H, width: ART_W, height: ART_H, opacity: isActive && flying ? 0 : 1 }}>
-                              {Math.abs(day - openDay) <= 2 ? image ? <DiaryArtwork image={image} blue={day === today} /> : (
-                                <div className="flex size-full flex-col items-center justify-center gap-3" style={{ color: text(0.42, TEXT_RGB) }}>
-                                  <PenLine size={28} strokeWidth={1.2} aria-hidden="true" />
-                                  <span style={{ fontSize: 18 }}>A little moment from today.</span>
-                                </div>
-                              ) : null}
+                              {Math.abs(day - openDay) <= 2 ? (() => {
+                                const art = image ? <DiaryArtwork image={image} blue={day === today} /> : (
+                                  <div className="flex size-full flex-col items-center justify-center gap-3" style={{ color: text(0.42, TEXT_RGB) }}>
+                                    <PenLine size={28} strokeWidth={1.2} aria-hidden="true" />
+                                    <span style={{ fontSize: 18 }}>A little moment from today.</span>
+                                  </div>
+                                );
+                                if (isActive && sketchPhase === "reveal") return <RevealWipe reduced={reduced}>{art}</RevealWipe>;
+                                return (
+                                  <motion.div
+                                    className="size-full"
+                                    initial={false}
+                                    animate={isActive && sketchPhase === "glow" ? { opacity: 0, filter: "blur(8px)" } : { opacity: isActive && composing ? 0.28 : 1, filter: "blur(0px)" }}
+                                    transition={{ duration: 0.45, ease: EASE_OUT }}
+                                  >
+                                    {art}
+                                  </motion.div>
+                                );
+                              })() : null}
+                              <AnimatePresence>{isActive && sketchPhase === "glow" ? <ArtGlow key="art-glow" reduced={reduced} /> : null}</AnimatePresence>
                             </Parallax>
                             <motion.div
                               className="absolute inset-x-0 bottom-0 flex flex-col"
@@ -842,7 +914,9 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                   className="m-0 min-w-0"
                                   style={{ fontFamily: FONT_HANDWRITING, fontWeight: 500, fontSize: 25, lineHeight: "28px", letterSpacing: "0", color: activeText }}
                                 >
-                                  {image?.title ?? "Today’s Little Moment"}
+                                  {isActive && sketchPhase === "glow" ? (
+                                    <motion.span animate={reduced ? undefined : { opacity: [0.45, 1, 0.45] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}>Sketching…</motion.span>
+                                  ) : image?.title ?? "Today’s Little Moment"}
                                 </h3>
                               </div>
                               {isActive ? <textarea
@@ -850,7 +924,14 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                 value={note}
                                 onChange={(event) => { setEntries((current) => ({ ...current, [day]: event.target.value })); setEntryErrors((current) => ({ ...current, [day]: "" })); }}
                                 onPointerDown={(event) => event.stopPropagation()}
-                                onKeyDown={(event) => event.stopPropagation()}
+                                ref={textareaRef}
+                                readOnly={sketchPhase !== "idle"}
+                                onFocus={() => { if (sketchPhase === "idle") setComposing(true); }}
+                                onKeyDown={(event) => {
+                                  event.stopPropagation();
+                                  if (event.key === "Escape" && composing) { event.preventDefault(); cancelComposing(); }
+                                  else if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && composing) { event.preventDefault(); void illustrateEntry(day); }
+                                }}
                                 placeholder="A coffee, a bento, a little exercise… what made today yours?"
                                 rows={error ? 2 : 3}
                                 className="dc-entry w-full resize-none outline-none"
@@ -859,19 +940,6 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                               {isActive && error ? <p role="alert" className="m-0 mt-1" style={{ fontSize: 14, lineHeight: "16px" }}>{error}</p> : null}
                             </motion.div>
                           </section>
-                          {day < today ? (
-                            <svg
-                              aria-hidden="true"
-                              className="pointer-events-none absolute"
-                              width={CARD_GAP + 2}
-                              height={60}
-                              viewBox="0 0 16 60"
-                              style={{ left: index * PAGE_TRAVEL + CARD_W - 1, top: CARD_H / 2 - 30, opacity: flying ? 0 : 1, transition: "opacity 220ms ease" }}
-                            >
-                              <path d="M0 0 C1 19 4 26 8 26 C12 26 15 19 16 0 L16 60 C15 41 12 34 8 34 C4 34 1 41 0 60 Z" fill={CARD_PAPER} />
-                            </svg>
-                          ) : null}
-                        </React.Fragment>
                       );
                     })}
                   </motion.div>
@@ -887,9 +955,10 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                   onDone={endMorph}
                 />
               ) : null}
-              <AnimatePresence>
-                {openDay !== null ? (
+              <AnimatePresence mode="popLayout">
+                {openDay !== null && !composing && sketchPhase === "idle" ? (
                   <motion.nav
+                    key="date-nav"
                     aria-label="Navigate completed dates"
                     className="absolute"
                     initial={{ opacity: 0, y: reduced ? 0 : 8 }}
@@ -922,24 +991,24 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                     </motion.button>
                     <motion.button
                       type="button"
-                      aria-label={generatingDay === openDay ? "Creating sketch" : onGenerateImage ? "Generate sketch" : "Preview sketch (demo)"}
-                      title={onGenerateImage ? "Generate an illustration from this note" : "Preview a prepared demo illustration from this note"}
-                      onClick={() => void illustrateEntry(openDay)}
+                      aria-label="Write about this day"
+                      title="Write a note, then sketch it"
+                      onClick={startComposing}
                       onKeyDown={(event) => event.stopPropagation()}
-                      disabled={!canSketch}
+                      disabled={sketchPhase !== "idle"}
                       initial="rest"
-                      whileHover={canSketch ? "hover" : undefined}
-                      whileTap={canSketch && !reduced ? "pressed" : undefined}
+                      whileHover={sketchPhase === "idle" ? "hover" : undefined}
+                      whileTap={sketchPhase === "idle" && !reduced ? "pressed" : undefined}
                       transition={{ type: "spring", stiffness: 420, damping: 24 }}
                       className="dc-sketch absolute top-0 flex items-center justify-center rounded-full border-0 bg-transparent p-0 disabled:opacity-35"
-                      style={{ left: 52, width: 88, height: 44, color: activeText, cursor: canSketch ? "pointer" : "default" }}
+                      style={{ left: 52, width: 88, height: 44, color: activeText, cursor: sketchPhase === "idle" ? "pointer" : "default" }}
                     >
                       <motion.span
                         className="flex"
                         variants={{ rest: { scale: 1, rotate: 0, y: 0 }, hover: reduced ? { scale: 1, rotate: 0, y: 0 } : { scale: 1.08, rotate: -5, y: -1 }, pressed: { scale: 0.96, rotate: 0, y: 0 } }}
                         transition={{ type: "spring", stiffness: 420, damping: 24 }}
                       >
-                        {generatingDay === openDay ? <LoaderCircle size={20} className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <PenLine size={20} strokeWidth={1.4} aria-hidden="true" />}
+                        <PenLine size={20} strokeWidth={1.4} aria-hidden="true" />
                       </motion.span>
                     </motion.button>
                     <motion.button
@@ -962,6 +1031,45 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       </motion.span>
                     </motion.button>
                   </motion.nav>
+                ) : null}
+                {openDay !== null && composing ? (
+                  <motion.div
+                    key="write-bar"
+                    role="group"
+                    aria-label="Sketch this note"
+                    className="absolute flex items-center"
+                    initial={{ opacity: 0, y: reduced ? 0 : 8, scale: reduced ? 1 : 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: reduced ? 0 : 8, scale: reduced ? 1 : 0.96 }}
+                    transition={{ duration: reduced ? 0.1 : 0.22, ease: EASE_OUT }}
+                    style={{ left: (SCREEN_W - 192) / 2, bottom: 18, width: 192, height: 44, gap: 8, zIndex: 6 }}
+                  >
+                    <motion.button
+                      type="button"
+                      aria-label="Cancel writing"
+                      onClick={cancelComposing}
+                      whileHover={{ backgroundColor: "#E8E8E8" }}
+                      whileTap={reduced ? undefined : { scale: 0.94 }}
+                      className="dc-sketch flex size-11 shrink-0 items-center justify-center rounded-full border-0 p-0"
+                      style={{ backgroundColor: CARD_PAPER, color: TEXT, cursor: "pointer" }}
+                    >
+                      <X size={18} strokeWidth={1.5} aria-hidden="true" />
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      aria-label={onGenerateImage ? "Generate sketch" : "Preview sketch (demo)"}
+                      title={onGenerateImage ? "Generate an illustration from this note" : "Preview a prepared demo illustration from this note"}
+                      disabled={!canSubmit}
+                      onClick={() => void illustrateEntry(openDay)}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      whileTap={canSubmit && !reduced ? { scale: 0.96 } : undefined}
+                      className="dc-sketch flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border-0 px-4 disabled:opacity-35"
+                      style={{ backgroundColor: TEXT, color: CARD_PAPER, fontFamily: FONT_HANDWRITING, fontSize: 21, lineHeight: "24px", cursor: canSubmit ? "pointer" : "default" }}
+                    >
+                      Sketch it
+                      <ArrowUp size={16} strokeWidth={1.6} aria-hidden="true" />
+                    </motion.button>
+                  </motion.div>
                 ) : null}
               </AnimatePresence>
               <AnimatePresence>
@@ -1009,6 +1117,71 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
         </div>
       </LayoutGroup>
     </MotionConfig>
+  );
+}
+
+const GLOW_BLOBS = [
+  { rgb: "0 65 255", alpha: 0.5, size: 380, left: -150, top: -170, x: [0, 46, -18, 0], y: [0, 34, 70, 0], duration: 5.2 },
+  { rgb: "142 123 255", alpha: 0.48, size: 360, left: 110, top: 150, x: [0, -40, 24, 0], y: [0, 50, -30, 0], duration: 6.4 },
+  { rgb: "127 178 255", alpha: 0.5, size: 400, left: -120, top: 390, x: [0, 54, 10, 0], y: [0, -36, 20, 0], duration: 5.8 },
+] as const;
+
+/** Soft blue light that breathes behind the card while a drawing is being made. */
+function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) {
+  return (
+    <motion.div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: fading ? 0 : 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: fading ? 0.9 : 0.6, ease: "easeInOut" }}
+      style={{ zIndex: 3 }}
+    >
+      {GLOW_BLOBS.map((blob) => (
+        <motion.span
+          key={blob.rgb}
+          className="absolute rounded-full"
+          style={{ left: blob.left, top: blob.top, width: blob.size, height: blob.size, background: `radial-gradient(circle, rgb(${blob.rgb} / ${blob.alpha}) 0%, rgb(${blob.rgb} / 0) 68%)` }}
+          animate={reduced ? undefined : { x: [...blob.x], y: [...blob.y], scale: [1, 1.1, 0.95, 1] }}
+          transition={{ duration: blob.duration, repeat: Infinity, ease: "easeInOut" }}
+        />
+      ))}
+    </motion.div>
+  );
+}
+
+/** The same light, gathered where the new drawing will appear. */
+function ArtGlow({ reduced }: { reduced: boolean }) {
+  return (
+    <motion.div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0"
+      initial={{ opacity: 0 }}
+      animate={reduced ? { opacity: 0.8 } : { opacity: [0.55, 1, 0.55], scale: [0.9, 1.06, 0.9] }}
+      exit={{ opacity: 0, transition: { duration: 0.6 } }}
+      transition={reduced ? { duration: 0.2 } : { duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+      style={{ background: "radial-gradient(closest-side, rgb(0 65 255 / 0.3), rgb(142 123 255 / 0.16) 55%, rgb(142 123 255 / 0) 100%)" }}
+    />
+  );
+}
+
+/** Wipes the fresh drawing in from top-left, like a pencil passing over the page. */
+function RevealWipe({ reduced, children }: { reduced: boolean; children: React.ReactNode }) {
+  const mask = "linear-gradient(115deg, #000 42%, transparent 58%)";
+  if (reduced) {
+    return <motion.div className="size-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>{children}</motion.div>;
+  }
+  return (
+    <motion.div
+      className="size-full"
+      initial={{ maskPosition: "100% 0%", filter: "blur(6px)", scale: 1.03 }}
+      animate={{ maskPosition: "0% 0%", filter: "blur(0px)", scale: 1 }}
+      transition={{ duration: REVEAL_MS / 1000, ease: [0.4, 0, 0.2, 1] }}
+      style={{ maskImage: mask, WebkitMaskImage: mask, maskSize: "260% 100%", WebkitMaskSize: "260% 100%", maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" }}
+    >
+      {children}
+    </motion.div>
   );
 }
 
@@ -1068,7 +1241,7 @@ function MorphLayer({ day, direction, image, blue, onDone }: MorphLayerProps) {
           style={{ width: ART_RECT.w, height: ART_RECT.h, transformOrigin: "0 0" }}
         >
           {/* The thumbnail is already loaded from the grid; the full drawing settles on top. */}
-          <span className="absolute inset-0"><DiaryArtwork image={image} compact blue={blue} /></span>
+          <motion.span className="absolute inset-0" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 0.12, delay: 0.12 }}><DiaryArtwork image={image} compact blue={blue} /></motion.span>
           <span className="absolute inset-0"><DiaryArtwork image={{ ...image, thumbnailSrc: undefined }} compact blue={blue} /></span>
         </motion.div>
       ) : null}

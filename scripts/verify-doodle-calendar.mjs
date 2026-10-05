@@ -39,7 +39,7 @@ const checks = [
   ["no home indicator on the glass", !/home indicator/i.test(c)],
   ["linked cards keep an inset for captions and notes", c.includes('padding: "10px 12px 8px"') && num("CARD_X") === 28],
   ["entry input does not trigger swipe or calendar keyboard navigation", c.includes('onPointerDown={(event) => event.stopPropagation()}') && c.includes('onKeyDown={(event) => event.stopPropagation()}') && c.includes("target instanceof HTMLTextAreaElement")],
-  ["detail view supports horizontal swipe navigation", c.includes('drag="x"') && c.includes("onDragEnd") && c.includes("navigateOpenDay") && c.includes("gesture.offset.x")],
+  ["detail view supports horizontal swipe navigation", (c.includes('drag="x"') || c.includes(': "x"}')) && c.includes("onDragEnd") && c.includes("navigateOpenDay") && c.includes("gesture.offset.x")],
   ["no kind tag on the card", !c.includes("OUTING") && !c.includes("KIND_LABEL") && !/Outing"/.test(c)],
   ["phone is tall like an iPhone (ratio ≥ 2.0)", num("PHONE_H") / num("PHONE_W") >= 2.0 && num("PHONE_W") === 300],
   ["watercolour UI has no outer white bezel", num("BEZEL") === 0 && c.includes("const SCREEN_RADIUS = 51")],
@@ -70,7 +70,7 @@ const checks = [
   ["keyboard is clamped to the days that can be opened", c.includes("Math.min(today, Math.max(1,")],
   ["focus ring is an outline in ink", c.includes(":focus-visible") && c.includes("outline: 2px solid")],
   ["loop stops at first interaction", c.includes("interacted") && c.includes("onPointerDownCapture") && c.includes("onKeyDownCapture")],
-  ["loop opens today, then day 1, 2, 3", c.includes("[today, ...Array.from({ length: today - 1 }")],
+  ["loop opens yesterday, then day 1, 2, 3 (today is blank)", c.includes("[today - 1, ...Array.from({ length: today - 2 }")],
   ["exposes onSelect", c.includes("onSelect?:")],
   ["motion respects reduced motion", c.includes('reducedMotion="user"') && c.includes("useReducedMotion")],
   ["index re-exports component and props", files.index.includes("DoodleCalendar") && files.index.includes("DoodleCalendarProps")],
@@ -93,7 +93,8 @@ const checks = [
   ["all shipped illustrations preserve transparency", ["coffee", "bento", "exercise", "train", "rain", "home", "shrine"].every((key) => [".webp", "-thumb.webp"].every((suffix) => { const path = `public/illustrations/doodle-calendar-diary/${key}${suffix}`; return existsSync(path) && readFileSync(path).includes(Buffer.from("ALPH")); }))],
   ["registry lists all required image assets", registryEntry.includes("requiredAssets") && (registryEntry.match(/doodle-calendar-diary\/[a-z-]+\.webp/g) ?? []).length === 14],
   ["notes and illustrated thumbnails persist locally", c.includes("localStorage.setItem") && c.includes("localStorage.getItem") && c.includes("image={images[day]}")],
-  ["the demo includes entries through Thursday, leaving Friday unwritten", c.includes("SCENES.slice(0, 13)") && c.includes("today: todayProp = 13")],
+  ["the demo includes entries through Wednesday; today (Thursday) starts blank", c.includes("SCENES.slice(0, 12)") && !c.includes("SCENES.slice(0, 13)") && c.includes("today: todayProp = 13") && c.includes('"doodle-japan-diary-2026-08-v2"')],
+  ["tapping the empty note starts writing", c.includes("onFocus={() => { if (sketchPhase === \"idle\") setComposing(true); }}")],
   ["demo and real generation are clearly separated", c.includes("onGenerateImage?:") && c.includes("prepared demo illustration") && c.includes("Preview sketch") && c.includes("Generate sketch") && c.includes("demoImageFor(note)")],
   ["diary stays on each date when requesting a sketch", c.includes("illustrateEntry(openDay)") && c.includes("[day]: image") && c.includes("const note = entries[day]?.trim()")],
   ["registry describes everyday Japan and demo limitations", /life in Japan/.test(registryEntry) && /prepared sketch/.test(registryEntry) && /optional image-service callback/.test(registryEntry)],
@@ -104,7 +105,11 @@ const checks = [
   ["pages drift with parallax as the strip moves", c.includes("function Parallax") && c.includes("useTransform(")],
   ["neighbouring artwork is pre-rendered two pages out", c.includes("Math.abs(day - openDay) <= 2")],
   ["the strip stretches a little past the first and last day", c.includes("dragElastic={reduced ? 0 : 0.16}")],
-
+  ["the pencil opens a writing state with a Sketch it submit and a cancel", c.includes("Sketch it") && c.includes('aria-label="Cancel writing"') && c.includes("setComposing(true)")],
+  ["writing and sketching pause swiping", c.includes('drag={composing || sketchPhase !== "idle" ? false : "x"}')],
+  ["generation glows for a minimum time before the drawing appears", c.includes("function SketchGlow") && c.includes("function ArtGlow") && c.includes("SKETCH_MIN_MS") && c.includes("Promise.all(")],
+  ["the new drawing is wiped in", c.includes("function RevealWipe") && c.includes("maskPosition")],
+  ["a failed sketch shakes the card", c.includes("x: [0, -7, 7, -4, 4, 0]")],
 ];
 
 const activeChecks = checks;
