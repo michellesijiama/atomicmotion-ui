@@ -808,9 +808,6 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
 
               {/* Tap outside the card to put it away. */}
               {scene ? <div className="absolute inset-0" style={{ zIndex: 3 }} onClick={composing ? cancelComposing : close} aria-hidden="true" /> : null}
-              <AnimatePresence>
-                {openDay !== null && sketchPhase !== "idle" ? <SketchGlow key="sketch-glow" reduced={reduced} fading={sketchPhase === "reveal"} /> : null}
-              </AnimatePresence>
 
               <AnimatePresence initial={false}>
                 {scene && info && openDay !== null ? (
@@ -886,6 +883,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                               pointerEvents: isActive ? "auto" : "none",
                             }}
                           >
+                            <AnimatePresence>{isActive && sketchPhase !== "idle" ? <SketchGlow key="sketch-glow" reduced={reduced} fading={sketchPhase === "reveal"} /> : null}</AnimatePresence>
                             <Parallax pageX={pageX} index={index} depth={reduced ? 0 : PARALLAX_HEAD} className="absolute" style={{ left: 12, top: 12, zIndex: 1 }}>
                             <motion.button
                               type="button"
@@ -1140,25 +1138,35 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   );
 }
 
-const GLOW_SPREAD = 12; // lit shape extends this far past the card edge, before blur
-const GLOW_BLUR = 12;
+const GLOW_RING = 16; // thickness of the lit band along the inner edge, before blur
+const GLOW_BLUR = 10;
 const GEMINI_CONIC = "conic-gradient(from 42deg at 50% 50%, rgba(66,133,244,0) 0deg, rgba(66,133,244,0.88) 34deg, rgba(138,180,248,0.92) 58deg, rgba(66,133,244,0.16) 92deg, rgba(66,133,244,0) 132deg, rgba(66,133,244,0.74) 188deg, rgba(138,180,248,0.82) 214deg, rgba(66,133,244,0) 258deg, rgba(66,133,244,0.72) 316deg, rgba(66,133,244,0) 360deg)";
 
-/** Gemini-style light that runs around the card's outline while a drawing is being made. */
+/** Gemini-style light that runs along the inside of the card's edge while a drawing is being made. */
 function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) {
-  const pad = GLOW_SPREAD + GLOW_BLUR * 2; // room for the blur so it is never clipped
-  const side = Math.hypot(CARD_RECT.w, CARD_RECT.h) + GLOW_SPREAD * 2; // square that covers the card at any rotation
+  const side = Math.hypot(CARD_W, CARD_H) + 40; // covers the card at any rotation
   return (
     <motion.div
       aria-hidden="true"
-      className="pointer-events-none absolute"
+      className="pointer-events-none absolute inset-0"
       initial={{ opacity: 0 }}
       animate={{ opacity: fading ? 0 : 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: fading ? 0.8 : 0.5, ease: "easeInOut" }}
-      style={{ left: CARD_RECT.x - pad, top: CARD_RECT.y - pad, width: CARD_RECT.w + pad * 2, height: CARD_RECT.h + pad * 2, filter: `blur(${GLOW_BLUR}px)`, zIndex: 3 }}
+      style={{ filter: `blur(${GLOW_BLUR}px)` }}
     >
-      <div className="absolute overflow-hidden" style={{ inset: pad - GLOW_SPREAD, borderRadius: CARD_RADIUS + GLOW_SPREAD }}>
+      {/* A ring the shape of the card: everything but the inner area, so only the edge band is lit. */}
+      <div
+        className="absolute overflow-hidden"
+        style={{
+          inset: -GLOW_BLUR,
+          borderRadius: CARD_RADIUS + GLOW_BLUR,
+          padding: GLOW_RING + GLOW_BLUR,
+          WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+          WebkitMaskComposite: "xor",
+          mask: "linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)",
+        }}
+      >
         <motion.span
           className="absolute left-1/2 top-1/2 block"
           style={{ width: side, height: side, marginLeft: -side / 2, marginTop: -side / 2, background: GEMINI_CONIC }}
