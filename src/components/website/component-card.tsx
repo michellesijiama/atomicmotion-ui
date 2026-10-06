@@ -61,11 +61,11 @@ export function ComponentCard({ component }: ComponentCardProps) {
           <p className="m-0 min-w-0 flex-1 text-body leading-tight tracking-[-0.02em] text-[var(--jitter-ink)] [overflow-wrap:anywhere]">
             {component.title}
           </p>
-          <div className="flex max-w-[55%] shrink-0 flex-col items-end gap-1 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
-            <span className="max-w-full rounded-full bg-gray-500/40 px-2.5 py-1 text-right text-caption text-white backdrop-blur-sm [overflow-wrap:anywhere]">
+          <div className="flex shrink-0 flex-nowrap items-end gap-1 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
+            <span className="shrink-0 whitespace-nowrap rounded-full bg-gray-500/40 px-2.5 py-1 text-right text-caption text-white backdrop-blur-sm">
               {component.category}
             </span>
-            <span className="rounded-full bg-gray-500/40 px-2.5 py-1 text-caption lowercase first-letter:uppercase text-white backdrop-blur-sm">
+            <span className="shrink-0 whitespace-nowrap rounded-full bg-gray-500/40 px-2.5 py-1 text-caption lowercase first-letter:uppercase text-white backdrop-blur-sm">
               {component.status}
             </span>
           </div>
