@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, LayoutGroup, MotionConfig, motion, animate, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
+import { AnimatePresence, LayoutGroup, MotionConfig, motion, animate, cubicBezier, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { ChevronLeft, ChevronRight, Plus, PenLine, Home, SlidersHorizontal, Check, X, ArrowUp } from "lucide-react";
 
 import { type ClassValue, clsx } from "clsx";
@@ -253,6 +253,7 @@ const PAUSE_MS = 700;
 const DEMO_NOTE = "It rained today. I walked home under my umbrella.";
 const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
 const PAGE_SPRING = { type: "spring", stiffness: 320, damping: 34, mass: 1 } as const;
+const PAGE_SCALE_EASE = cubicBezier(0.4, 0, 0.2, 1);
 const PARALLAX_ART = 22;
 const PARALLAX_HEAD = 10;
 const SWIPE_VELOCITY = 420;
@@ -923,8 +924,12 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       const error = entryErrors[day] === SKETCH_ERROR ? SKETCH_ERROR : undefined;
                       const textShown = !(isActive && flying && !morphCue);
                       return (
-                          <section
+                          <DiaryPage
                             key={day}
+                            pageX={pageX}
+                            index={index}
+                            reduced={reduced}
+                            stationary={flying}
                             data-diary-day={day}
                             aria-hidden={isActive ? undefined : true}
                             inert={!isActive}
@@ -1008,7 +1013,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                               /> : <p className="m-0 mt-2" style={{ fontSize: 19, lineHeight: "23px", paddingTop: 4 }}>{note}</p>}
                               {isActive && error ? <p role="alert" className="m-0 mt-1" style={{ fontSize: 14, lineHeight: "16px" }}>{error}</p> : null}
                             </motion.div>
-                          </section>
+                          </DiaryPage>
                       );
                     })}
                   </motion.div>
@@ -1348,6 +1353,16 @@ function RevealWipe({ reduced, active, phase, dimmed, children }: { reduced: boo
       {children}
     </motion.div>
   );
+}
+
+/** The page's distance from the centre controls its size, so the motion follows the finger. */
+function DiaryPage({ pageX, index, reduced, stationary, style, ...props }: React.ComponentProps<typeof motion.section> & { pageX: MotionValue<number>; index: number; reduced: boolean; stationary: boolean }) {
+  const scale = useTransform(pageX, (value) => {
+    if (reduced || stationary) return 1;
+    const distance = Math.min(1, Math.abs((value + index * PAGE_TRAVEL) / PAGE_TRAVEL));
+    return 1 - 0.05 * PAGE_SCALE_EASE(distance);
+  });
+  return <motion.section {...props} style={{ ...style, scale, transformOrigin: "50% 50%" }} />;
 }
 
 type ParallaxProps = {
