@@ -102,7 +102,11 @@ const checks = [
   ["tapping the empty note starts writing", c.includes("onFocus={() => { if (sketchPhase === \"idle\") setComposing(true); }}")],
   ["demo and real generation are clearly separated", c.includes("onGenerateImage?:") && c.includes("prepared demo illustration") && c.includes("Preview sketch") && c.includes("Generate sketch") && c.includes("demoImageFor(note)")],
   ["diary stays on each date when requesting a sketch", c.includes("illustrateEntry(openDay)") && c.includes("[day]: image") && c.includes("const note = entries[day]?.trim()")],
-  ["registry describes everyday Japan and demo limitations", /life in Japan/.test(registryEntry) && /prepared sketch/.test(registryEntry) && /optional image-service callback/.test(registryEntry)],
+  ["registry description is at most three sentences and identifies the drawing preview", (() => {
+    const description = registryEntry.match(/description:\s*"([^"]+)"/)?.[1] ?? "";
+    const sentences = description.split(/[.!?]+/).filter((sentence) => sentence.trim());
+    return sentences.length > 0 && sentences.length <= 3 && /preview a matching pencil illustration/.test(description);
+  })()],
   ["opening grows the tapped day into the card and closing shrinks it back", c.includes("function MorphLayer") && c.includes("gridCellRect(") && c.includes('direction: "open"') && c.includes('direction: "close"') && c.includes("const CARD_RECT")],
   ["month cells recede and return by distance from the opened day", c.includes("Math.hypot(") && c.includes("recedeDelay")],
   ["taps are ignored while a morph is running", c.includes("if (morphRef.current) return;")],
