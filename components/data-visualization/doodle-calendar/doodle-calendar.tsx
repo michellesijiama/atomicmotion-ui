@@ -599,15 +599,13 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
         setDemoEntry({ note: "" });
         const monday = today - (FIRST_COLUMN + today - 1) % 7;
         if (!persist && monday >= 1 && monday < today) {
-          open(monday);
-          if (!await pause(3200)) return;
-          if (monday + 1 < today) {
-            open(monday + 1);
-            if (!await pause(3800)) return;
+          for (let day = monday; day < today; day++) {
+            open(day);
+            if (!await pause(2600)) return;
           }
         }
         open(today);
-        if (!await pause(persist ? 1300 : 3000)) return;
+        if (!await pause(persist ? 1300 : 2600)) return;
         setComposing(true);
         if (!await pause(persist ? 450 : 650)) return;
         for (let length = 1; length <= note.length; length++) {
