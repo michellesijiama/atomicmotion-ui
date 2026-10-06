@@ -51,22 +51,26 @@ export function ComponentCard({ component }: ComponentCardProps) {
             />
           )
         ) : (
-          <PreviewStage>
-            <Preview loop />
-          </PreviewStage>
+          <div className="absolute inset-x-0 bottom-0 top-16">
+            <PreviewStage>
+              <Preview loop />
+            </PreviewStage>
+          </div>
         )}
-        <div className="pointer-events-none absolute left-4 top-4 z-20 flex flex-wrap gap-1 opacity-0 transition duration-300 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
-          <span className="rounded-full bg-gray-500/40 px-2.5 py-1 text-caption text-white backdrop-blur-sm">
-            {component.category}
-          </span>
-          <span className="rounded-full bg-gray-500/40 px-2.5 py-1 text-caption lowercase first-letter:uppercase text-white backdrop-blur-sm">
-            {component.status}
-          </span>
+        <div className="pointer-events-none absolute left-4 right-4 top-4 z-20 flex items-start justify-between gap-3">
+          <p className="m-0 min-w-0 flex-1 text-body leading-tight tracking-[-0.02em] text-[var(--jitter-ink)] [overflow-wrap:anywhere]">
+            {component.title}
+          </p>
+          <div className="flex max-w-[55%] shrink-0 flex-col items-end gap-1 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
+            <span className="max-w-full rounded-full bg-gray-500/40 px-2.5 py-1 text-right text-caption text-white backdrop-blur-sm [overflow-wrap:anywhere]">
+              {component.category}
+            </span>
+            <span className="rounded-full bg-gray-500/40 px-2.5 py-1 text-caption lowercase first-letter:uppercase text-white backdrop-blur-sm">
+              {component.status}
+            </span>
+          </div>
         </div>
       </div>
-      <p className="mt-3 px-1 text-heading text-[var(--jitter-ink)] transition-transform duration-200 ease-out will-change-transform group-hover:translate-x-1.5">
-        {component.title}
-      </p>
     </Link>
   );
 }

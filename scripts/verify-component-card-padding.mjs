@@ -18,7 +18,7 @@ const checks = [
   ["interactive preview renders inside safe area", componentCard.includes("<PreviewStage>") && componentCard.includes("<Preview loop />")],
   // Heavy WebGL components opt out of a live preview and show a poster instead.
   ["static poster fills the preview shell", componentCard.includes("component.previewVideo") && componentCard.includes("component.previewImage") && componentCard.includes("size-full object-cover")],
-  ["hover badges also respect 16px inset", componentCard.includes("absolute left-4 top-4 z-20")],
+  ["card titles and hover badges respect the 16px inset", componentCard.includes("absolute left-4 right-4 top-4 z-20") && componentCard.includes("items-end")],
   ["old 15px badge inset removed", !componentCard.includes("left-[15px]") && !componentCard.includes("top-[15px]")],
 ];
 
