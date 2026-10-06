@@ -1236,8 +1236,8 @@ function DiaryPlaceholder({ reduced, active }: { reduced: boolean; active: boole
   );
 }
 
-const GLOW_RING = 32; // thickness of the lit band along the inner edge, before blur
-const GLOW_BLUR = 20;
+const GLOW_RING = 14; // thickness of the lit band along the inner edge, before blur
+const GLOW_BLUR = 10;
 const GEMINI_CONIC = "conic-gradient(from 0deg at 50% 50%, rgba(159,125,175,0.94) 0deg, rgba(56,123,213,0.96) 50deg, rgba(195,155,168,0.94) 110deg, rgba(206,170,152,0.92) 150deg, rgba(224,215,165,0.96) 180deg, rgba(206,170,152,0.92) 210deg, rgba(195,155,168,0.94) 250deg, rgba(56,123,213,0.96) 310deg, rgba(159,125,175,0.94) 360deg)";
 
 /** Gemini-style light that runs along the inside of the card's edge while a drawing is being made. */
