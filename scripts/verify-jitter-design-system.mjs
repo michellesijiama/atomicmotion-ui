@@ -69,7 +69,7 @@ const checks = [
   ["component card preview is prominent", files.componentCard.includes("aspect-[4/5]") && files.previewStage.includes("DESIGN_WIDTH")],
   ["component card avoids long descriptions", !files.componentCard.includes("component.description")],
   ["component card renders title without index", files.componentCard.includes("component.title") && !files.componentCard.includes("component.index")],
-  ["component card uses hover category and status tags", files.componentCard.includes("component.category") && files.componentCard.includes("component.status")],
+  ["component card uses hover category and source price tags", files.componentCard.includes("component.category") && files.componentCard.includes("formatComponentPrice(offer)") && files.componentCard.includes('"Free"')],
   ["component actions owns copy buttons", files.componentActions.includes("Copy link") && files.componentActions.includes("Copy for AI")],
   ["component actions uses black CTA", files.componentActions.includes("actionPrimaryClass") && files.websiteStyles.includes("bg-[var(--jitter-ink)]")],
   ["component map covers every registry id", registryIds.length > 0 && registryIds.every((id) => files.componentMap.includes(`"${id}"`))],

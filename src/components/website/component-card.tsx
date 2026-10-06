@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { componentMap } from "@/lib/component-map";
+import { formatComponentPrice, getComponentOffer } from "@/lib/component-offers";
 import { PreviewStage } from "@/components/website/preview-stage";
 
 type ComponentCardProps = {
@@ -10,6 +11,7 @@ type ComponentCardProps = {
 
 export function ComponentCard({ component }: ComponentCardProps) {
   const componentHref = `/components/${component.id}`;
+  const offer = getComponentOffer(component.id);
   const Preview = componentMap[component.id];
   // Light components render their live animation on the gray card (via
   // PreviewStage, which insets the preview so the `bg-card` gray frames it).
@@ -65,8 +67,8 @@ export function ComponentCard({ component }: ComponentCardProps) {
             <span className="shrink-0 whitespace-nowrap rounded-full bg-gray-500/40 px-2.5 py-1 text-right text-caption text-white backdrop-blur-sm">
               {component.category}
             </span>
-            <span className="shrink-0 whitespace-nowrap rounded-full bg-gray-500/40 px-2.5 py-1 text-caption lowercase first-letter:uppercase text-white backdrop-blur-sm">
-              {component.status}
+            <span className="shrink-0 whitespace-nowrap rounded-full bg-gray-500/40 px-2.5 py-1 text-caption text-white backdrop-blur-sm">
+              {offer ? formatComponentPrice(offer) : "Free"}
             </span>
           </div>
         </div>
