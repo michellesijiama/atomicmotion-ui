@@ -257,6 +257,7 @@ const DEMO_NOTE = "It rained today. I walked home under my umbrella.";
 const HOMEPAGE_DEMO_NOTE = "Packed a bento for lunch before a busy afternoon at work.";
 const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
 const PAGE_SPRING = { type: "spring", stiffness: 320, damping: 34, mass: 1 } as const;
+const DEMO_PAGE_TWEEN = { type: "tween", ease: [0.45, 0, 0.55, 1] } as const;
 const PAGE_SCALE_EASE = cubicBezier(0.4, 0, 0.2, 1);
 const PARALLAX_ART = 22;
 const PARALLAX_HEAD = 10;
@@ -587,7 +588,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
       timer = window.setTimeout(() => resolve(!cancelled), ms);
     });
     const show = async () => {
-      if (!await pause(900)) return;
+      if (!await pause(persist ? 900 : 1400)) return;
       demoActiveRef.current = true;
       const note = persist ? DEMO_NOTE : HOMEPAGE_DEMO_NOTE;
       const image = demoImageFor(note);
@@ -599,23 +600,23 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
         const monday = today - (FIRST_COLUMN + today - 1) % 7;
         if (!persist && monday >= 1 && monday < today) {
           open(monday);
-          if (!await pause(2200)) return;
+          if (!await pause(3200)) return;
           if (monday + 1 < today) {
             open(monday + 1);
-            if (!await pause(1800)) return;
+            if (!await pause(3800)) return;
           }
         }
         open(today);
-        if (!await pause(1300)) return;
+        if (!await pause(persist ? 1300 : 3000)) return;
         setComposing(true);
-        if (!await pause(450)) return;
+        if (!await pause(persist ? 450 : 650)) return;
         for (let length = 1; length <= note.length; length++) {
           setDemoEntry({ note: note.slice(0, length) });
-          if (!await pause(48)) return;
+          if (!await pause(persist ? 48 : 70)) return;
         }
-        if (!await pause(650)) return;
+        if (!await pause(persist ? 650 : 1100)) return;
         setDemoPressed(true);
-        if (!await pause(180)) return;
+        if (!await pause(persist ? 180 : 250)) return;
         setDemoPressed(false);
         setComposing(false);
         sketchingRef.current = true;
@@ -626,11 +627,11 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
         if (!await pause(REVEAL_MS)) return;
         setSketchPhase("idle");
         sketchingRef.current = false;
-        if (!await pause(HOLD_MS)) return;
+        if (!await pause(persist ? HOLD_MS : 5500)) return;
         close();
-        if (!await pause(1300)) return;
+        if (!await pause(persist ? 1300 : 1700)) return;
         setDemoEntry(null);
-        if (!await pause(PAUSE_MS)) return;
+        if (!await pause(persist ? PAUSE_MS : 1200)) return;
       }
     };
     void show();
@@ -706,9 +707,13 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
     const velocity = releaseVelocityRef.current;
     releaseVelocityRef.current = 0;
     if (reduced) { pageX.set(target); return; }
-    const playback = animate(pageX, target, { ...PAGE_SPRING, velocity });
+    const distance = Math.abs(target - pageX.get()) / PAGE_TRAVEL;
+    const transition = !persist && demoActiveRef.current
+      ? { ...DEMO_PAGE_TWEEN, duration: Math.min(2.2, 1.65 + 0.35 * Math.max(0, distance - 1)) }
+      : { ...PAGE_SPRING, velocity };
+    const playback = animate(pageX, target, transition);
     return () => playback.stop();
-  }, [openDay, pageX, reduced]);
+  }, [openDay, pageX, persist, reduced]);
 
   const anchorDay = openDay ?? morph?.day ?? null;
   const flying = morph?.direction === "open";
