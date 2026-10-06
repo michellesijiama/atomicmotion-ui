@@ -229,7 +229,7 @@ function DiaryArtwork({ image, compact = false, blue = false }: { image: DiaryIm
 }
 
 const DIARY_TOPICS = [
-  { label: "Coffee", pattern: /coffee|café|cafe|latte|espresso|kissaten|コーヒー|咖啡/i, artwork: "coffee", title: "A Cup of Coffee" },
+  { label: "Coffee", pattern: /cof{1,2}e{1,2}|café|cafe|latte|espresso|kissaten|コーヒー|咖啡/i, artwork: "coffee", title: "A Cup of Coffee" },
   { label: "Bento", pattern: /bento|lunch|rice|tamagoyaki|弁当|便当|午饭|午餐/i, artwork: "bento", title: "A Little Bento" },
   { label: "Movement", pattern: /run|jog|exercise|gym|yoga|stretch|workout|运动|跑步|瑜伽|锻炼/i, artwork: "exercise", title: "A Little Movement" },
   { label: "Train rides", pattern: /train|commut|station|電車|电车|通勤|地铁/i, artwork: "train", title: "The Train Home" },

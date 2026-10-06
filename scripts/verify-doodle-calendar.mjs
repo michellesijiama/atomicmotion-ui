@@ -23,8 +23,13 @@ const c = files.component;
 const num = (name) => Number((c.match(new RegExp(`const ${name} = (\\d+)`)) ?? [])[1]);
 const sceneRows = [...c.matchAll(/kind: "(\w+)", title: "([^"]+)", sentence: "([^"]+)"/g)].map((m) => ({ kind: m[1], title: m[2], sentence: m[3] }));
 const weekdayShort = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const topicPatterns = [...c.matchAll(/pattern: \/(.*?)\/i, artwork: "([^"]+)"/g)]
+  .map(([, pattern, artwork]) => ({ pattern: new RegExp(pattern, "i"), artwork }));
+const matchArtwork = (note) => topicPatterns.find((topic) => topic.pattern.test(note))?.artwork;
 
 const checks = [
+  ["coffee notes tolerate missing repeated letters", ["drinking cofee.", "drinking coffe.", "drinking coffee.", "A cup of COFEE", "今天喝咖啡"].every((note) => matchArtwork(note) === "coffee")],
+  ["other diary topics keep their matching artwork", matchArtwork("It rained today.") === "rain" && matchArtwork("A little bento for lunch.") === "bento" && matchArtwork("I wrote a letter.") === undefined],
   ["component exists", c.length > 0],
   ["component exports DoodleCalendar", c.includes("export function DoodleCalendar")],
   ["component exports its props type", c.includes("export type DoodleCalendarProps")],
