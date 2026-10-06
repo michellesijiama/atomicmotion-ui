@@ -329,6 +329,8 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const caretToEndRef = React.useRef(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const storageReady = React.useRef(false);
+  const [diaryReady, setDiaryReady] = React.useState(false);
+  const hasTodayEntry = Boolean(entries[today]?.trim() || images[today]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -352,6 +354,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
         }
       } catch { /* Private browsing or malformed storage keeps the sample diary available. */ }
       storageReady.current = true;
+      setDiaryReady(true);
     });
     return () => { cancelled = true; };
   }, []);
@@ -558,7 +561,14 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
 
   // A separate, unsaved entry demonstrates the whole flow without changing the visitor's diary.
   React.useEffect(() => {
-    if (!loop || interacted || reduced) return;
+    if (!loop || !diaryReady || interacted) return;
+    // Once today's own note exists, reopen it instead of covering it with the sample.
+    if (hasTodayEntry) {
+      let cancelled = false;
+      queueMicrotask(() => { if (!cancelled) open(today); });
+      return () => { cancelled = true; };
+    }
+    if (reduced) return;
     let cancelled = false;
     let timer = 0;
     const pause = (ms: number) => new Promise<boolean>((resolve) => {
@@ -603,7 +613,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     };
     void show();
     return () => { cancelled = true; window.clearTimeout(timer); stopDemo(); };
-  }, [loop, interacted, reduced, today, open, close, stopDemo]);
+  }, [loop, diaryReady, hasTodayEntry, interacted, reduced, today, open, close, stopDemo]);
 
   const touched = () => {
     stopDemo();
