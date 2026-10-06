@@ -91,7 +91,7 @@ function StampTrackerPreview({ loop }: { loop?: boolean }) {
 }
 
 function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
-  return <DoodleCalendar loop={loop ?? true} persist={loop !== true} />;
+  return <DoodleCalendar loop={loop ?? false} persist={loop !== true} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {

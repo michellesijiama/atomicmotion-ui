@@ -1,6 +1,6 @@
 # Doodle Calendar
 
-A sketchbook-style diary for everyday life in Japan. Swipe through dates, write a note, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and your entries stay saved on this device.
+A sketchbook-style diary for everyday life in Japan. Use + to write today’s note, swipe through dates, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and your entries stay saved on this device.
 
 ![Doodle Calendar preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/doodle-calendar.png)
 

@@ -537,13 +537,13 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
   // available. Once it closes, hand focus back to the day they opened from.
   React.useEffect(() => {
     if (openDay !== null) {
-      if (byPersonRef.current) dialogRef.current?.focus({ preventScroll: true });
+      if (byPersonRef.current && !composing) dialogRef.current?.focus({ preventScroll: true });
     } else if (returnFocusRef.current !== null) {
       cells.current[returnFocusRef.current]?.focus({ preventScroll: true });
       returnFocusRef.current = null;
       byPersonRef.current = false;
     }
-  }, [openDay]);
+  }, [openDay, composing]);
 
   React.useEffect(() => {
     if (openDay === null || filterOpen) return;
@@ -787,7 +787,29 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                 >
                   <Home size={18} strokeWidth={1.5} aria-hidden="true" />
                 </motion.button>
-                {filterTopic !== "all" ? <span className="absolute inset-x-20 text-center" style={{ top: 10, fontSize: 18, lineHeight: "24px" }}>{FILTER_OPTIONS.find((option) => option.id === filterTopic)?.label}</span> : null}
+                {openDay === null ? (
+                  <motion.button
+                    type="button"
+                    aria-label="Write today’s note"
+                    title="Write today’s note"
+                    onClick={() => {
+                      if (morphRef.current || sketchingRef.current) return;
+                      setFilterTopic("all");
+                      setFilterOpen(false);
+                      byPersonRef.current = true;
+                      caretToEndRef.current = true;
+                      open(today);
+                      setComposing(true);
+                    }}
+                    whileHover={{ backgroundColor: "#E8E8E8" }}
+                    whileTap={reduced ? undefined : { scale: 0.94 }}
+                    className="dc-sketch absolute flex size-11 items-center justify-center rounded-full border-0 bg-white p-0"
+                    style={{ left: (SCREEN_W - 44) / 2, color: TEXT, cursor: "pointer" }}
+                  >
+                    <Plus size={20} strokeWidth={1.5} aria-hidden="true" />
+                  </motion.button>
+                ) : null}
+                {filterTopic !== "all" ? <span className="absolute inset-x-20 text-center" style={{ top: openDay === null ? 52 : 10, fontSize: 18, lineHeight: "24px" }}>{FILTER_OPTIONS.find((option) => option.id === filterTopic)?.label}</span> : null}
                 <motion.button
                   ref={filterButtonRef}
                   type="button"

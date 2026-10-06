@@ -365,7 +365,7 @@ export const componentRegistry = {
     index: "018",
     title: "Doodle Calendar",
     description:
-      "A sketchbook-style diary for everyday life in Japan. Swipe through dates, write a note, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and your entries stay saved on this device.",
+      "A sketchbook-style diary for everyday life in Japan. Use + to write today’s note, swipe through dates, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and your entries stay saved on this device.",
     category: "Data Visualization",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
