@@ -33,6 +33,8 @@ export type DoodleCalendarProps = {
   today?: number;
   /** Demonstrate writing and submitting a rainy-day note until someone touches it. Demo notes are never saved. */
   loop?: boolean;
+  /** Save this diary on the device. Set false for an isolated gallery demonstration. */
+  persist?: boolean;
   /** A day's page was opened — by a click, the keyboard, or the loop. */
   onSelect?: (day: CalendarDay) => void;
   className?: string;
@@ -272,7 +274,7 @@ const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
 type DayState = "past" | "today" | "future";
 
-export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, className, onGenerateImage }: DoodleCalendarProps) {
+export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = true, onSelect, className, onGenerateImage }: DoodleCalendarProps) {
   const today = Math.min(clampDay(todayProp), SCENES.length);
   const reduced = useReducedMotion() === true;
   const uid = React.useId();
@@ -334,9 +336,17 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const hasTodayEntry = Boolean(entries[today]?.trim() || images[today]);
 
   React.useEffect(() => {
+    storageReady.current = false;
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
+      if (!persist) {
+        setEntries(INITIAL_ENTRIES);
+        setImages(INITIAL_IMAGES);
+        storageReady.current = true;
+        setDiaryReady(true);
+        return;
+      }
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
@@ -358,13 +368,13 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
       setDiaryReady(true);
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [persist]);
 
   React.useEffect(() => {
-    if (!storageReady.current) return;
+    if (!persist || !storageReady.current) return;
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ entries, images })); }
     catch { /* The diary still works in this session if storage is unavailable. */ }
-  }, [entries, images]);
+  }, [persist, entries, images]);
 
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const openRef = React.useRef<number | null>(null);
