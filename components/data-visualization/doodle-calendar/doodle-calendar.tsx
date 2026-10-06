@@ -965,13 +965,28 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                             </Parallax>
                             <Parallax pageX={pageX} index={index} depth={reduced ? 0 : PARALLAX_ART} className="absolute" style={{ top: DAY_HEADER_H, width: ART_W, height: ART_H, opacity: isActive && flying ? 0 : 1 }}>
                               {Math.abs(day - openDay) <= 2 ? (() => {
+                                const processing = isActive && sketchPhase === "glow";
                                 const art = image ? <SketchInkReveal image={image} blue={day === today} reduced={reduced} active={isActive && sketchPhase === "reveal"} /> : (
                                   <DiaryPlaceholder reduced={reduced} active={isActive && !flying} />
                                 );
                                 return (
-                                  <RevealWipe reduced={reduced} active={isActive} phase={isActive ? sketchPhase : "idle"} dimmed={isActive && composing}>
-                                    {art}
-                                  </RevealWipe>
+                                  <div className="relative size-full">
+                                    <RevealWipe reduced={reduced} active={isActive} phase={isActive ? sketchPhase : "idle"} dimmed={isActive && composing}>
+                                      {art}
+                                    </RevealWipe>
+                                    <AnimatePresence>
+                                      {processing ? <motion.div
+                                        key="writing-notebook"
+                                        className="pointer-events-none absolute inset-0"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: reduced ? 0.1 : 0.45 }}
+                                      >
+                                        <DiaryPlaceholder reduced={reduced} active />
+                                      </motion.div> : null}
+                                    </AnimatePresence>
+                                  </div>
                                 );
                               })() : null}
                             </Parallax>
@@ -988,9 +1003,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                   className="m-0 min-w-0"
                                   style={{ fontFamily: FONT_HANDWRITING, fontWeight: 500, fontSize: 25, lineHeight: "28px", letterSpacing: "0", color: activeText }}
                                 >
-                                  {isActive && sketchPhase === "glow" ? (
-                                    <motion.span animate={reduced ? undefined : { opacity: [0.45, 1, 0.45] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}>Sketching…</motion.span>
-                                  ) : image?.title ?? "Today’s Little Moment"}
+                                  {image?.title ?? "Today’s Little Moment"}
                                 </h3>
                               </div>
                               {isActive ? <textarea
