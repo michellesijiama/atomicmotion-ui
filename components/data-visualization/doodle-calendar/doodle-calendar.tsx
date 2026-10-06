@@ -261,6 +261,7 @@ const SKETCH_MIN_MS = 4200;
 const REVEAL_MS = 2600;
 const GENERATE_TIMEOUT_MS = 8000;
 const PRELOAD_TIMEOUT_MS = 3000;
+const SKETCH_ERROR = "Couldn’t create the sketch. Please try again.";
 const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 const withTimeout = <T,>(promise: Promise<T>, ms: number) =>
   Promise.race([promise, new Promise<"timeout">((resolve) => window.setTimeout(() => resolve("timeout"), ms))]);
@@ -365,8 +366,8 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   /** Set once a person, not the loop, has opened or touched the card — only then does focus move. */
   const byPersonRef = React.useRef(false);
 
-  const failSketch = (day: number, message: string) => {
-    setEntryErrors((current) => ({ ...current, [day]: message }));
+  const failSketch = (day: number) => {
+    setEntryErrors((current) => ({ ...current, [day]: SKETCH_ERROR }));
     setSketchPhase("idle");
   };
 
@@ -387,11 +388,11 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
       const [image] = await Promise.all([generation, wait(reduced ? 300 : SKETCH_MIN_MS)]);
       if (!mountedRef.current) return;
       if (image === "timeout") {
-        failSketch(day, "Couldn’t create the sketch. Please try again.");
+        failSketch(day);
         return;
       }
       if (!image) {
-        failSketch(day, "Try coffee, bento, exercise, trains, rain, home or a walk in this preview.");
+        setSketchPhase("idle");
         return;
       }
       // Warm the thumbnail too, so the month circle never pops in late; never wait on it for long.
@@ -407,7 +408,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
       setSketchPhase("idle");
     } catch {
       if (!mountedRef.current) return;
-      failSketch(day, "Couldn’t create the sketch. Please try again.");
+      failSketch(day);
     } finally {
       sketchingRef.current = false;
     }
@@ -919,7 +920,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       const isActive = day === openDay;
                       const image = demoEntry && day === today ? demoEntry.image : images[day];
                       const note = demoEntry && day === today ? demoEntry.note : entries[day] ?? "";
-                      const error = entryErrors[day];
+                      const error = entryErrors[day] === SKETCH_ERROR ? SKETCH_ERROR : undefined;
                       const textShown = !(isActive && flying && !morphCue);
                       return (
                           <section
