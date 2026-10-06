@@ -917,10 +917,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                             <Parallax pageX={pageX} index={index} depth={reduced ? 0 : PARALLAX_ART} className="absolute" style={{ top: DAY_HEADER_H, width: ART_W, height: ART_H, opacity: isActive && flying ? 0 : 1 }}>
                               {Math.abs(day - openDay) <= 2 ? (() => {
                                 const art = image ? <DiaryArtwork image={image} blue={day === today} /> : (
-                                  <div className="flex size-full flex-col items-center justify-center gap-3" style={{ color: text(0.42, TEXT_RGB) }}>
-                                    <PenLine size={28} strokeWidth={1.2} aria-hidden="true" />
-                                    <span style={{ fontSize: 18 }}>A little moment from today.</span>
-                                  </div>
+                                  <DiaryPlaceholder reduced={reduced} active={isActive && !flying} />
                                 );
                                 return (
                                   <RevealWipe reduced={reduced} active={isActive} phase={isActive ? sketchPhase : "idle"} dimmed={isActive && composing}>
@@ -1147,6 +1144,45 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
         </div>
       </LayoutGroup>
     </MotionConfig>
+  );
+}
+
+/** A quiet empty page, with the pencil following the line as it is written. */
+function DiaryPlaceholder({ reduced, active }: { reduced: boolean; active: boolean }) {
+  const writing = active && !reduced;
+  const cycle = { duration: 3.6, repeat: Infinity, ease: "linear" as const };
+  const times = [0, 0.16, 0.32, 0.48, 0.64, 0.82, 1];
+
+  return (
+    <div
+      role="img"
+      aria-label="An open notebook with a pencil writing on the page"
+      className="flex size-full items-center justify-center"
+      style={{ color: text(0.46, TEXT_RGB) }}
+    >
+      <svg width="176" height="142" viewBox="0 0 176 142" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M24 43 Q55 34 87 44 Q117 34 150 43 L155 108 Q120 100 87 111 Q55 100 19 108 Z" />
+        <path d="M87 44 Q84 76 87 111 M24 47 L16 112 Q53 105 87 115 Q120 105 158 112 L150 47 M87 111 L87 115" opacity="0.65" />
+        <g opacity="0.38">
+          <path d="M35 59 Q54 55 73 59 M33 70 Q54 66 73 71 M32 82 Q51 78 72 83 M31 94 Q51 90 71 95" />
+          <path d="M99 82 Q116 78 137 82 M99 94 Q117 90 139 94" />
+        </g>
+        <motion.path
+          d="M99 67 q2 -4 4 -1 t4 0 t4 -1 t4 1 t4 0 t4 0"
+          initial={false}
+          animate={writing ? { pathLength: [0, 0.25, 0.5, 0.75, 1, 1, 0], opacity: [1, 1, 1, 1, 1, 0, 0] } : { pathLength: 1, opacity: 1 }}
+          transition={writing ? { ...cycle, times } : { duration: 0 }}
+        />
+        <motion.g
+          initial={false}
+          animate={writing ? { x: [0, 6, 12, 18, 24, 24, 0], y: [0, -1, 1, -1, 0, -8, 0], rotate: [0, -2, 1, -2, 0, -5, 0] } : { x: 0, y: 0, rotate: 0 }}
+          transition={writing ? { ...cycle, times } : { duration: 0 }}
+          style={{ transformOrigin: "99px 67px" }}
+        >
+          <path d="M99 67 L103 56 L127 24 Q129 21 132 23 L135 25 Q138 27 135 30 L110 62 Z M103 56 L110 62 M106 59 L131 26 M126 26 L133 32 M99 67 L102 64" />
+        </motion.g>
+      </svg>
+    </div>
   );
 }
 
