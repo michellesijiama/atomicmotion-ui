@@ -67,7 +67,7 @@ Manage enabled payment methods in the Stripe Dashboard. Optionally set
 Without configuration the pricing UI is visible, purchases are unavailable,
 and paid source endpoints stay locked. There is no pretend-payment mode.
 
-## Purchase and access flow
+## Stripe purchase and access flow
 
 1. The purchase dialog explains the component, price, dependencies and license.
 2. `POST /api/checkout` validates the same-origin request and looks up the price
@@ -89,7 +89,7 @@ Source and access responses are private and not cached. Signing keys and
 Stripe credentials never reach the browser. The original source of the paid
 components and the license are bundled into a server-only generated file by
 `generate:purchase-sources`, automatically before development, production
-builds and purchase tests. Run it again after editing a paid component while
+builds, type checks and purchase tests. Run it again after editing a paid component while
 the development server is already running. The generated JSON is ignored by
 Git and must never be imported by a client component or moved into `public/`.
 
@@ -103,12 +103,16 @@ durable entitlement store and a verified, idempotent Stripe webhook.
 
 ## Repository distribution and existing licenses
 
-The repository's existing source remains publicly available under MIT.
-This implementation gates the site's source delivery, not the public
-repository or compiled live demos. Do not advertise the existing components
-as exclusive or retroactively restrict their MIT permissions. Commercial
-source exclusivity requires a new private distribution and appropriately
-licensed original code. The root LICENSE remains unchanged.
+The complete `atomicmotion-ui` repository is now private. The public
+[`atomicmotion-free`](https://github.com/michellesijiama/atomicmotion-free)
+repository contains the 14 free components and their required assets.
+Previously published MIT source can still exist in earlier copies and public
+forks, with its original permissions. This implementation gates the site's
+source delivery; it does not revoke those rights or hide the compiled live
+demos. Do not advertise the existing components as exclusive or retroactively
+restrict their MIT permissions. Future exclusive paid originals need an
+appropriate license and private distribution. The root LICENSE remains
+unchanged.
 
 Use the [GitHub distribution workflow](github-distribution.md) to prepare a
 separate public repository containing only free components. The exporter
@@ -122,13 +126,15 @@ it to `.gitignore` does not remove it from Git history.
 
 Run `npm run test:purchases` for checkout/access/source tests using a mocked
 Stripe SDK (no network, payment credentials or charges), then `npm run lint`,
-`npx tsc --noEmit`, and `npm run build`.
+`npm run typecheck`, and `npm run build`.
 Run `npm run test:paypal` for the equivalent PayPal order, capture, refund,
 receipt and repeated-return checks; its API responses are mocked as well.
 
-Before accepting live payments, configure a Stripe sandbox and verify a
-complete test-card checkout, cancellation, return, source download and
-refresh in the same browser. Never use a live card to test the flow.
+Before accepting live payments, configure the chosen provider's sandbox and
+verify checkout, cancellation, return, source download and refresh in the
+same browser. For PayPal, also verify a refund using sandbox buyer and
+merchant accounts. For Stripe, use a test card. Never use real payments to
+test the flow.
 
 References: [Stripe Checkout](https://docs.stripe.com/payments/checkout),
 [Checkout Session retrieval](https://docs.stripe.com/api/checkout/sessions/retrieve),
