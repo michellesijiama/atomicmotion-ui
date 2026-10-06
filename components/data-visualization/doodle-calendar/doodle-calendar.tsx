@@ -1242,7 +1242,7 @@ const GEMINI_CONIC = "conic-gradient(from 0deg at 50% 50%, rgba(159,125,175,0.94
 
 /** Gemini-style light that runs along the inside of the card's edge while a drawing is being made. */
 function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) {
-  const side = Math.hypot(CARD_W, CARD_H) + 40; // covers the card at any rotation
+  const side = Math.hypot(CARD_W, CARD_H) + 180; // covers the card throughout rotation and the wider drift
   return (
     <motion.div
       aria-hidden="true"
@@ -1268,8 +1268,8 @@ function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) 
         <motion.span
           className="absolute left-1/2 top-1/2 block"
           style={{ width: side, height: side, marginLeft: -side / 2, marginTop: -side / 2, background: GEMINI_CONIC }}
-          animate={reduced ? { opacity: 0.9 } : { rotate: [0, 360], opacity: [0.9, 1, 0.9] }}
-          transition={reduced ? { duration: 0.2 } : { rotate: { duration: 9, ease: "linear", repeat: Infinity }, opacity: { duration: 5.8, ease: "easeInOut", repeat: Infinity } }}
+          animate={reduced ? { opacity: 0.9, rotate: 0, x: 0, y: 0 } : { rotate: [0, 360], x: [-44, 44, -44], y: [0, -56, 0, 56, 0], opacity: [0.9, 1, 0.9] }}
+          transition={reduced ? { duration: 0.2 } : { rotate: { duration: 6.4, ease: "linear", repeat: Infinity }, x: { duration: 6.4, ease: "easeInOut", repeat: Infinity }, y: { duration: 7.2, ease: "easeInOut", repeat: Infinity }, opacity: { duration: 5.8, ease: "easeInOut", repeat: Infinity } }}
         />
       </div>
     </motion.div>
