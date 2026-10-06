@@ -172,6 +172,7 @@ const CALENDAR_DAYS: readonly CalendarDay[] = SCENES.map((scene, i) => ({
 const sceneOf = (day: number): Scene | undefined => SCENES[day - 1];
 const ARTWORK_BASE = "/illustrations/doodle-calendar-diary/";
 const STORAGE_KEY = "doodle-japan-diary-2026-08-v2";
+const TOUCH_CURSOR = `url("data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#808080" fill-opacity="0.25" stroke="#fff" stroke-width="1.5"/><circle cx="16" cy="16" r="11.75" fill="none" stroke="#343434" stroke-opacity="0.3" stroke-width="0.5"/></svg>')}") 16 16, auto`;
 type DiaryImage = { src: string; thumbnailSrc?: string; title: string; note: string };
 const INITIAL_ENTRIES = Object.fromEntries(SCENES.slice(0, 12).map((scene, i) => [i + 1, scene.sentence]));
 const INITIAL_IMAGES: Record<number, DiaryImage> = Object.fromEntries(SCENES.slice(0, 12).map((scene, i) => [i + 1, {
@@ -731,10 +732,13 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
               .dc-date:focus-visible { outline: 2px solid ${activeText}; outline-offset: 3px; border-radius: 8px; }
               .dc-sketch:focus-visible { outline: 2px solid ${activeText}; outline-offset: 2px; }
               .dc-entry::placeholder { color: ${text(0.42)}; opacity: 1; }
+              @media (hover: hover) and (pointer: fine) {
+                .dc-phone, .dc-phone * { cursor: ${TOUCH_CURSOR} !important; }
+              }
             `}
           </style>
 
-          <div ref={fitRef} className="relative shrink-0" style={{ width: PHONE_W, height: PHONE_H, transformOrigin: "50% 50%" }}>
+          <div ref={fitRef} className="dc-phone relative shrink-0" style={{ width: PHONE_W, height: PHONE_H, transformOrigin: "50% 50%" }}>
             {/* The screen remains one uninterrupted soft-grey field in every state. */}
             <div
               className="absolute overflow-hidden"
