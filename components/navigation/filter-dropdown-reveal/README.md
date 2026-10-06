@@ -2,7 +2,7 @@
 
 A project filter bar with a soft gray dropdown and clipped text reveal
 
-![Filter Dropdown Reveal preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/filter-dropdown-reveal.png)
+![Filter Dropdown Reveal preview](https://atomicmotion.dev/previews/filter-dropdown-reveal.png)
 
 - **Category:** Navigation
 - **Demo:** https://atomicmotion.dev/components/filter-dropdown-reveal
@@ -48,6 +48,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `loop` | `boolean` | `false` | Automatic preview mode. |
 
 Named export: `FilterDropdownReveal`. Public types: `FilterDropdownRevealProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `filter-dropdown-reveal.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

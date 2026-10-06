@@ -102,6 +102,7 @@ function docsFixture(t) {
 test("README guard rejects a stale root catalogue while folder docs are current", (t) => {
   const fixture = docsFixture(t);
   fixture.put("package.json", '{"dependencies":{},"devDependencies":{}}');
+  fixture.put("src/lib/component-offers.ts", "export function getComponentOffer() { return undefined; }");
   fixture.put("src/lib/component-registry.ts", `const COMPONENTS_WITH_PREVIEW_VIDEO = new Set([]); export const componentRegistry = { example: createComponentMeta({ id: 'example', title: 'Example', description: 'Example', category: 'Tool', codePath: 'components/tool/example/example.tsx' }) };`);
   fixture.put("components/tool/example/example.tsx", "export function Example() { return null; }");
   const entry = { id: "example", title: "Example", description: "Example", category: "Tool", codePath: "components/tool/example/example.tsx", dependencies: [], requiredAssets: [], ...componentContract(join(fixture.dir, "components/tool/example/example.tsx")) };

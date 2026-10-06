@@ -59,7 +59,7 @@ const checks = [
   ["layout uses Jitter shell background", files.layout.includes("bg-[var(--jitter-bg)]")],
   ["home page is a gallery", files.homeBrowser.includes("ComponentCard") && files.page.includes("componentList")],
   ["home page does not render live preview", !files.page.includes("ComponentPlate")],
-  ["home page keeps minimal copy", files.page.includes("Open-sourced interaction inspirations designed for") && !files.page.includes("ready for AI-assisted reuse")],
+  ["home page keeps minimal copy", files.page.includes("A design library for") && !files.page.includes("ready for AI-assisted reuse")],
   ["home page removes footer repo copy", !files.page.includes("Public GitHub repo") && !files.page.includes("npx shadcn-style copy-paste architecture")],
   ["home page uses visual grid", files.homeBrowser.includes("grid-cols-1") && files.homeBrowser.includes("sm:grid-cols-2")],
   ["component card links to detail pages", files.componentCard.includes("next/link") && files.componentCard.includes("/components/${component.id}")],

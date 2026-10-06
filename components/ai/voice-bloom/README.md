@@ -2,7 +2,7 @@
 
 A conversational microphone that blooms into an AI response panel, reveals replies word by word, and offers copy or regenerate actions
 
-![Voice Bloom preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/voice-bloom.png)
+![Voice Bloom preview](https://atomicmotion.dev/previews/voice-bloom.png)
 
 - **Category:** AI
 - **Demo:** https://atomicmotion.dev/components/voice-bloom
@@ -48,6 +48,11 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `loop` | `boolean` | `false` | Automatic preview mode. |
 
 Named export: `VoiceBloom`. Public types: `VoiceBloomProps`.
+- **Source access:** Purchase in the design library — $5 USD
+- **Code license:** MIT (existing source); asset licenses are listed separately.
+
+The gallery unlocks source after purchase. This existing version was previously
+published under MIT; moving repositories does not revoke those permissions.
 
 This component is self-contained — the entire component is `voice-bloom.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

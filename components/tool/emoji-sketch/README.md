@@ -2,7 +2,7 @@
 
 Pick an emoji and watch it drawn on, stroke by stroke, as a hand-sketched line animation — real OpenMoji vector paths self-drawing with a subtle pencil wobble.
 
-![Emoji Sketch preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/emoji-sketch.png)
+![Emoji Sketch preview](https://atomicmotion.dev/previews/emoji-sketch.png)
 
 - **Category:** Tool
 - **Demo:** https://atomicmotion.dev/components/emoji-sketch
@@ -48,6 +48,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `EmojiSketch`. Public types: `EmojiSketchProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 ## Required assets
 

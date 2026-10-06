@@ -37,8 +37,8 @@ const instrumentSerif = Instrument_Serif({
 const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "AtomicMotion UI",
-  description: "Premium copy-paste micro-interactions for React interfaces.",
+  title: "AtomicMotion — Design Library",
+  description: "A design library of expressive interfaces and interactions for designers and frontend developers.",
 };
 
 export default function RootLayout({

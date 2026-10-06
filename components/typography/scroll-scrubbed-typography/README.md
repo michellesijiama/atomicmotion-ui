@@ -2,7 +2,7 @@
 
 A sticky editorial title that stretches tall, then compresses as scroll progress scrubs its vertical scale
 
-![Scroll-Scrubbed Typography preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/scroll-scrubbed-typography.png)
+![Scroll-Scrubbed Typography preview](https://atomicmotion.dev/previews/scroll-scrubbed-typography.png)
 
 - **Category:** Typography
 - **Demo:** https://atomicmotion.dev/components/scroll-scrubbed-typography
@@ -48,6 +48,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `loop` | `boolean` | `false` | Automatic preview mode. |
 
 Named export: `ScrollScrubbedTypography`. Public types: `ScrollScrubbedTypographyProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `scroll-scrubbed-typography.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

@@ -2,6 +2,12 @@
 
 Thanks for considering a contribution to AtomicMotion UI.
 
+AtomicMotion is a design library with free components and a curated paid
+collection. This is the complete application checkout. Public releases are
+prepared with `npm run export:free`; only free components and their required
+assets are copied into that separate repository. See
+[GitHub distribution](docs/github-distribution.md).
+
 ## Adding a component
 
 1. Create a new folder under `components/<category>/<your-component>/`.
@@ -21,6 +27,11 @@ Thanks for considering a contribution to AtomicMotion UI.
    from the repo root to generate `public/previews/<id>.png`.
 6. Preserve keyboard access and focus states — components in this gallery
    are expected to stay usable without a mouse.
+6. Free is the default. A paid offer must be explicitly registered in
+   `src/lib/component-offers.ts`, which controls both checkout and public
+   export. Do not put paid source into the public free-component repository
+   or copy complete application history there. Existing MIT components keep
+   their license even if they are offered through paid delivery.
 
 ## Local development
 
@@ -55,6 +66,7 @@ To run just the two guards:
 
 ```bash
 npm run verify
+npm run test:free-export
 ```
 
 ## Licensing of contributions
@@ -65,6 +77,10 @@ model, font, or other asset you didn't create yourself, you must have the
 rights to relicense it (or it must already carry a compatible open license),
 and you need to add a row for it to [`ASSETS.md`](ASSETS.md) crediting the
 original source and license in your PR.
+
+New exclusive paid originals need a separate explicit license and release
+process in the private repository before contribution or distribution.
+Do not assume this MIT contribution policy covers a future commercial edition.
 
 ## Reporting bugs / requesting components
 

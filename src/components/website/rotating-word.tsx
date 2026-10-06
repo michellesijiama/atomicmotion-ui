@@ -63,18 +63,24 @@ export function RotatingWord({
 
       {/* Animated layer, absolutely filling the fixed-width box. */}
       <span className="relative col-start-1 row-start-1 block">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.span
-            key={word}
-            className="absolute inset-0 block whitespace-nowrap leading-[1.3]"
-            initial={reduce ? false : { y: "108%", opacity: 0, filter: "blur(4px)" }}
-            animate={{ y: "0%", opacity: 1, filter: "blur(0px)" }}
-            exit={reduce ? { opacity: 0 } : { y: "-108%", opacity: 0, filter: "blur(4px)" }}
-            transition={spring}
-          >
+        {reduce ? (
+          <span className="absolute inset-0 block whitespace-nowrap leading-[1.3]">
             {word}
-          </motion.span>
-        </AnimatePresence>
+          </span>
+        ) : (
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={word}
+              className="absolute inset-0 block whitespace-nowrap leading-[1.3]"
+              initial={{ y: "108%", opacity: 0, filter: "blur(4px)" }}
+              animate={{ y: "0%", opacity: 1, filter: "blur(0px)" }}
+              exit={{ y: "-108%", opacity: 0, filter: "blur(4px)" }}
+              transition={spring}
+            >
+              {word}
+            </motion.span>
+          </AnimatePresence>
+        )}
       </span>
     </span>
   );

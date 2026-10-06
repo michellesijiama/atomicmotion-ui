@@ -9,6 +9,9 @@ import { createServer } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
 import { readRegistry } from "./lib/registry.mjs";
+import { readComponentData } from "./component-data.mjs";
+
+const { getComponentOffer, formatComponentPrice } = readComponentData("src/lib/component-offers.ts");
 
 let base = process.env.RESPONSIVE_BASE_URL;
 let server;
@@ -152,7 +155,9 @@ try {
       if (viewport.width === 320) {
         await page.getByRole("button", { name: `Details about ${title}`, exact: true }).click();
         await page.waitForTimeout(650);
-        await reachable(page.getByRole("button", { name: "Copy for AI", exact: true }), `${id}: copy action`);
+        const offer = getComponentOffer(id);
+        const action = offer ? `Purchase — ${formatComponentPrice(offer)}` : "Copy for AI";
+        await reachable(page.getByRole("button", { name: action, exact: true }), `${id}: source action`);
         await reachable(page.getByRole("button", { name: "Close", exact: true }), `${id}: close details`, { click: true });
         await page.waitForTimeout(650);
       }

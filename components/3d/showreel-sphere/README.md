@@ -2,7 +2,7 @@
 
 A studio landing page whose whole hero is one draggable 3D sphere, wrapped in a Renaissance painting that the next one sweeps around to replace every four seconds
 
-![Showreel Sphere preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/showreel-sphere.png)
+![Showreel Sphere preview](https://atomicmotion.dev/previews/showreel-sphere.png)
 
 - **Category:** 3D
 - **Demo:** https://atomicmotion.dev/components/showreel-sphere
@@ -54,6 +54,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `loop` | `boolean` | — | Automatic preview mode. |
 
 Named export: `ShowreelSphere`. Public types: `ShowreelSphereProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 ## Required assets
 

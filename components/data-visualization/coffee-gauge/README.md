@@ -2,7 +2,7 @@
 
 Three hand-drawn coffee cups on a periwinkle card, each a liquid gauge that pours and drains on its own rhythm — empty they read as outlines, full they read as the solid silhouette; open the card and you can log what you actually drank
 
-![Coffee Gauge preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/coffee-gauge.png)
+![Coffee Gauge preview](https://atomicmotion.dev/previews/coffee-gauge.png)
 
 - **Category:** Data Visualization
 - **Demo:** https://atomicmotion.dev/components/coffee-gauge
@@ -49,6 +49,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `CoffeeGauge`. Public types: `CoffeeGaugeProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `coffee-gauge.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

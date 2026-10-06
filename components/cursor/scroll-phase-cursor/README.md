@@ -2,7 +2,7 @@
 
 A circular pointer whose ring fills with page progress while a sculpted 3D form rotates with the scroll
 
-![Scroll Phase Cursor preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/scroll-phase-cursor.png)
+![Scroll Phase Cursor preview](https://atomicmotion.dev/previews/scroll-phase-cursor.png)
 
 - **Category:** Cursor
 - **Demo:** https://atomicmotion.dev/components/scroll-phase-cursor
@@ -48,6 +48,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `ScrollPhaseCursor`. Public types: `ScrollPhaseCursorProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `scroll-phase-cursor.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

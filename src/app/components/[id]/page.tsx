@@ -10,6 +10,7 @@ type ComponentDetailPageProps = {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{ checkout?: string }>;
 };
 
 export function generateStaticParams() {
@@ -36,8 +37,10 @@ export async function generateMetadata({
   };
 }
 
-export default async function ComponentDetailPage({ params }: ComponentDetailPageProps) {
+export default async function ComponentDetailPage({ params, searchParams }: ComponentDetailPageProps) {
   const { id } = await params;
+  const { checkout } = await searchParams;
+  const checkoutStatus = checkout === "success" || checkout === "cancelled" || checkout === "failed" ? checkout : undefined;
   const component = getComponentById(id);
 
   if (!component) {
@@ -56,7 +59,7 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   return (
     <ComponentStage>
       <div className="am-reveal relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
-        <SiteHeader component={component} />
+        <SiteHeader component={component} checkoutStatus={checkoutStatus} />
       </div>
 
       <div

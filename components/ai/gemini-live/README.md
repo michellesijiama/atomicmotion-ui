@@ -2,7 +2,7 @@
 
 A floating live-assistant panel with source chips, blue edge glow, listening pulses, and compact pause and keyboard controls
 
-![Gemini Live preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/gemini-live.png)
+![Gemini Live preview](https://atomicmotion.dev/previews/gemini-live.png)
 
 - **Category:** AI
 - **Demo:** https://atomicmotion.dev/components/gemini-live
@@ -48,6 +48,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `loop` | `boolean` | `false` | Automatic preview mode. |
 
 Named export: `GeminiLive`. Public types: `GeminiLiveProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `gemini-live.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

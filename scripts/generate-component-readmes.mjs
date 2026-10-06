@@ -13,11 +13,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { componentContract, importSpecifiers, renderIndex } from "./lib/component-source.mjs";
 import { readRegistry, readSource } from "./lib/registry.mjs";
+import { dirname } from "node:path";
+import { readComponentData } from "./component-data.mjs";
 
 const REGISTRY_PATH = "src/lib/component-registry.ts";
-const REPO_SLUG = "michellesijiama/atomicmotion-ui";
-const REPO_BRANCH = "main";
 const SITE = "https://atomicmotion.dev";
+const { getComponentOffer, formatComponentPrice } = readComponentData("src/lib/component-offers.ts");
 
 // Imports that are already there in any React project — listing them as
 // things to install would be noise.
@@ -70,7 +71,7 @@ export function readRegistryEntries(registryPath = REGISTRY_PATH) {
 
 /** Absolute path on disk for an entry's README. */
 export function readmePath(entry) {
-  return `components/${slug(entry.category)}/${entry.id}/README.md`;
+  return `${dirname(entry.codePath)}/README.md`;
 }
 
 /**
@@ -96,7 +97,8 @@ export function usageExample(entry) {
 }
 
 export function renderReadme(entry) {
-  const previewUrl = `https://raw.githubusercontent.com/${REPO_SLUG}/${REPO_BRANCH}/public/previews/${entry.id}.png`;
+  const previewUrl = `${SITE}/previews/${entry.id}.png`;
+  const offer = getComponentOffer(entry.id);
   const dependencies =
     entry.dependencies.length > 0
       ? entry.dependencies.join(", ")
@@ -161,6 +163,9 @@ export function renderReadme(entry) {
     ...entry.props.map((prop) => `| \`${cell(prop.name)}\` | \`${cell(prop.type)}\` | ${prop.default ? `\`${cell(prop.default)}\`` : prop.required ? "Required" : "—"} | ${cell(prop.description || (prop.name === "className" ? "Additional classes for the root container." : prop.name === "loop" ? "Automatic preview mode." : ""))} |`),
     "",
     `Named export: \`${entry.component}\`. ${entry.types.length ? `Public types: ${entry.types.map((name) => `\`${name}\``).join(", ")}.` : ""}`,
+    `- **Source access:** ${offer ? `Purchase in the design library — ${formatComponentPrice(offer)} USD` : "Free"}`,
+    "- **Code license:** MIT (existing source); asset licenses are listed separately.",
+    ...(offer ? ["", "The gallery unlocks source after purchase. This existing version was previously", "published under MIT; moving repositories does not revoke those permissions."] : []),
     "",
     ...usageNotes,
     "",
@@ -173,7 +178,11 @@ export function renderCatalogue(entries) {
   return [
     "| Preview | Component | Category | Source | Setup |",
     "| --- | --- | --- | --- | --- |",
-    ...entries.map((entry) => `| <img src="public/previews/${entry.id}.png" width="160" alt="${cell(entry.title)} preview"> | **${cell(entry.title)}** | ${cell(entry.category)} | [Source](${entry.codePath}) | [README](${readmePath(entry)}) |`),
+    ...entries.map((entry) => {
+      const offer = getComponentOffer(entry.id);
+      const access = offer ? `[Purchase — ${formatComponentPrice(offer)}](${SITE}/components/${entry.id})` : `[Free source](${entry.codePath})`;
+      return `| <img src="public/previews/${entry.id}.png" width="160" alt="${cell(entry.title)} preview"> | **${cell(entry.title)}** | ${cell(entry.category)} | ${access} | [README](${readmePath(entry)}) |`;
+    }),
   ].join("\n");
 }
 export const CATALOGUE_BLOCK = /<!-- component-catalogue:start -->[\s\S]*?<!-- component-catalogue:end -->/;

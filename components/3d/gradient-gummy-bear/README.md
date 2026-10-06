@@ -2,7 +2,7 @@
 
 A translucent 3D gummy bear (Three.js) with a soft pink gradient, light glowing through the jelly, and cursor parallax
 
-![Gradient Gummy Bear preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/gradient-gummy-bear.png)
+![Gradient Gummy Bear preview](https://atomicmotion.dev/previews/gradient-gummy-bear.png)
 
 - **Category:** 3D
 - **Demo:** https://atomicmotion.dev/components/gradient-gummy-bear
@@ -53,6 +53,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `loop` | `boolean` | `false` | Automatic preview mode. |
 
 Named export: `GradientGummyBear`. Public types: `GradientGummyBearProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 ## Required assets
 

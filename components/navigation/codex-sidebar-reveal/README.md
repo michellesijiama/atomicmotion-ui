@@ -2,7 +2,7 @@
 
 A compact app shell where a top-left icon press expands the left sidebar and shifts the workspace
 
-![Codex Sidebar Reveal preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/codex-sidebar-reveal.png)
+![Codex Sidebar Reveal preview](https://atomicmotion.dev/previews/codex-sidebar-reveal.png)
 
 - **Category:** Navigation
 - **Demo:** https://atomicmotion.dev/components/codex-sidebar-reveal
@@ -48,6 +48,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `loop` | `boolean` | `false` | Automatic preview mode. |
 
 Named export: `CodexSidebarReveal`. Public types: `CodexSidebarRevealProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `codex-sidebar-reveal.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

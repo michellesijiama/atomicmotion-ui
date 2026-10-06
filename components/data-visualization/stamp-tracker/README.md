@@ -2,7 +2,7 @@
 
 Four habits as a deck of tall blocks of risograph colour on a bare black phone screen — sky, cocoa, pink and mint, each with its own pattern ink — fanned like a loose stack. Swipe through water, coffee, move and read with a silky, interruptible gesture that follows a finger or a two-finger trackpad swipe, flip between Day, Week and Month, and tap a day to press a rubber stamp onto it. The middle of each card holds a loose hand-inked line drawing in the style of a Japanese tabletop illustration, with a tiny person getting up to something among the objects
 
-![Stamp Tracker preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/stamp-tracker.png)
+![Stamp Tracker preview](https://atomicmotion.dev/previews/stamp-tracker.png)
 
 - **Category:** Data Visualization
 - **Demo:** https://atomicmotion.dev/components/stamp-tracker
@@ -49,6 +49,11 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `StampTracker`. Public types: `HabitId`, `StampTrackerProps`.
+- **Source access:** Purchase in the design library — $8 USD
+- **Code license:** MIT (existing source); asset licenses are listed separately.
+
+The gallery unlocks source after purchase. This existing version was previously
+published under MIT; moving repositories does not revoke those permissions.
 
 This component is self-contained — the entire component is `stamp-tracker.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

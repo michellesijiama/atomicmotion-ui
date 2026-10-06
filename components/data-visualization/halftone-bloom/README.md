@@ -2,7 +2,7 @@
 
 A progress indicator drawn as a stippled moon — a lunar photograph resampled into coloured dots that light left to right like a terminator crossing the disc, from new moon at nothing to full at a hundred; collapsed it sits as a glance-sized moon at the same phase
 
-![Halftone Bloom preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/halftone-bloom.png)
+![Halftone Bloom preview](https://atomicmotion.dev/previews/halftone-bloom.png)
 
 - **Category:** Data Visualization
 - **Demo:** https://atomicmotion.dev/components/halftone-bloom
@@ -51,6 +51,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `HalftoneBloom`. Public types: `HalftoneBloomProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `halftone-bloom.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

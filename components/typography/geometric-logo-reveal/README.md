@@ -2,7 +2,7 @@
 
 A geometric wordmark assembles from a gray ghost — letters fill to ink in a staggered left-to-right cascade, settling into the solid logo
 
-![Geometric Logo Reveal preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/geometric-logo-reveal.png)
+![Geometric Logo Reveal preview](https://atomicmotion.dev/previews/geometric-logo-reveal.png)
 
 - **Category:** Typography
 - **Demo:** https://atomicmotion.dev/components/geometric-logo-reveal
@@ -50,6 +50,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `mark` | `string` | `"™"` | Small superscript after the wordmark (e.g. a trademark). |
 
 Named export: `GeometricLogoReveal`. Public types: `GeometricLogoRevealProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `geometric-logo-reveal.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

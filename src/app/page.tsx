@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[var(--jitter-bg)] px-6 py-8 text-[var(--jitter-ink)] sm:px-8 lg:px-12">
       <div className="grid grid-cols-1 min-h-[calc(100vh-4rem)] content-between gap-16">
-        <div>
+        <div className="min-w-0">
           <Reveal>
             <header className="relative z-50 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] pb-8">
               <SiteHeader />
@@ -20,8 +20,8 @@ export default function Home() {
             <div className="py-20 sm:py-28 lg:py-32">
               <Reveal delay={0.1}>
                 <h1 className="mx-auto max-w-3xl text-balance text-center text-[26px] leading-[1.3] tracking-[-0.02em] text-[var(--jitter-ink)]">
-                  Open-sourced interaction inspirations designed for{" "}
-                  <RotatingWord words={["designers", "agents"]} />
+                  A design library for{" "}
+                  <RotatingWord words={["designers", "frontend developers"]} />
                 </h1>
               </Reveal>
             </div>

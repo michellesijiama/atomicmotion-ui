@@ -1,17 +1,35 @@
-# AtomicMotion UI
+# AtomicMotion — Design Library
 
 [![CI](https://github.com/michellesijiama/atomicmotion-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/michellesijiama/atomicmotion-ui/actions/workflows/ci.yml)
 
 ![Four AtomicMotion UI components: Gemini Live, Gradient Gummy Bear, Emoji Sketch, and Scroll Phase Cursor](docs/images/hero.png)
 
-Animated React interfaces you can copy into your own project, one component at
-a time. Browse the [live gallery](https://atomicmotion.dev), open a component's
-folder README, and copy its source, dependencies and any required assets.
+A design library of expressive interfaces and interactions for designers and
+frontend developers. Explore every [live demo](https://atomicmotion.dev) for
+free, copy free component code, or purchase source access for a curated selection.
 
 The components use **React 19, TypeScript and Tailwind CSS 4**. They have no
 private gallery imports or Next.js dependency. The gallery itself is a Next.js
 app. This repository distributes source, rather than an npm component package;
 adapt the code and connect it to your own application behaviour.
+
+## Source access and repositories
+
+All demos are free. Voice Bloom ($5), Gradient Event Card ($5) and Stamp Tracker
+($8) unlock source through verified PayPal Checkout or Stripe payment. Other
+registered components have free source access. Prices are in USD.
+
+This is the private complete application repository. The public
+[atomicmotion-free repository](https://github.com/michellesijiama/atomicmotion-free)
+contains only exported free source, runtime assets and their notices, and a
+catalog linking to paid previews. Current MIT versions retain their existing
+permissions; previously released paid selections are not exclusive.
+
+See [commerce setup](docs/commerce.md) and
+[GitHub distribution](docs/github-distribution.md). To prepare another public
+release: `npm run export:free`, then
+`node scripts/export-free-library.mjs --verify .artifacts/atomicmotion-free`.
+The export never includes paid source, application/payment code or Git history.
 
 ## Using a component
 
@@ -53,23 +71,23 @@ assets for an AI coding tool to integrate the component.
 <!-- component-catalogue:start -->
 | Preview | Component | Category | Source | Setup |
 | --- | --- | --- | --- | --- |
-| <img src="public/previews/emoji-sketch.png" width="160" alt="Emoji Sketch preview"> | **Emoji Sketch** | Tool | [Source](components/tool/emoji-sketch/emoji-sketch.tsx) | [README](components/tool/emoji-sketch/README.md) |
-| <img src="public/previews/soft-menu-reveal.png" width="160" alt="Soft Menu Reveal preview"> | **Soft Menu Reveal** | Navigation | [Source](components/navigation/soft-menu-reveal/soft-menu-reveal.tsx) | [README](components/navigation/soft-menu-reveal/README.md) |
-| <img src="public/previews/filter-dropdown-reveal.png" width="160" alt="Filter Dropdown Reveal preview"> | **Filter Dropdown Reveal** | Navigation | [Source](components/navigation/filter-dropdown-reveal/filter-dropdown-reveal.tsx) | [README](components/navigation/filter-dropdown-reveal/README.md) |
-| <img src="public/previews/scroll-scrubbed-typography.png" width="160" alt="Scroll-Scrubbed Typography preview"> | **Scroll-Scrubbed Typography** | Typography | [Source](components/typography/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) | [README](components/typography/scroll-scrubbed-typography/README.md) |
-| <img src="public/previews/codex-sidebar-reveal.png" width="160" alt="Codex Sidebar Reveal preview"> | **Codex Sidebar Reveal** | Navigation | [Source](components/navigation/codex-sidebar-reveal/codex-sidebar-reveal.tsx) | [README](components/navigation/codex-sidebar-reveal/README.md) |
-| <img src="public/previews/gemini-live.png" width="160" alt="Gemini Live preview"> | **Gemini Live** | AI | [Source](components/ai/gemini-live/gemini-live.tsx) | [README](components/ai/gemini-live/README.md) |
-| <img src="public/previews/geometric-logo-reveal.png" width="160" alt="Geometric Logo Reveal preview"> | **Geometric Logo Reveal** | Typography | [Source](components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx) | [README](components/typography/geometric-logo-reveal/README.md) |
-| <img src="public/previews/gradient-gummy-bear.png" width="160" alt="Gradient Gummy Bear preview"> | **Gradient Gummy Bear** | 3D | [Source](components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx) | [README](components/3d/gradient-gummy-bear/README.md) |
-| <img src="public/previews/scroll-phase-cursor.png" width="160" alt="Scroll Phase Cursor preview"> | **Scroll Phase Cursor** | Cursor | [Source](components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx) | [README](components/cursor/scroll-phase-cursor/README.md) |
-| <img src="public/previews/voice-bloom.png" width="160" alt="Voice Bloom preview"> | **Voice Bloom** | AI | [Source](components/ai/voice-bloom/voice-bloom.tsx) | [README](components/ai/voice-bloom/README.md) |
-| <img src="public/previews/showreel-sphere.png" width="160" alt="Showreel Sphere preview"> | **Showreel Sphere** | 3D | [Source](components/3d/showreel-sphere/showreel-sphere.tsx) | [README](components/3d/showreel-sphere/README.md) |
-| <img src="public/previews/coffee-gauge.png" width="160" alt="Coffee Gauge preview"> | **Coffee Gauge** | Data Visualization | [Source](components/data-visualization/coffee-gauge/coffee-gauge.tsx) | [README](components/data-visualization/coffee-gauge/README.md) |
-| <img src="public/previews/halftone-bloom.png" width="160" alt="Halftone Bloom preview"> | **Halftone Bloom** | Data Visualization | [Source](components/data-visualization/halftone-bloom/halftone-bloom.tsx) | [README](components/data-visualization/halftone-bloom/README.md) |
-| <img src="public/previews/blossom-light.png" width="160" alt="Blossom Light preview"> | **Blossom Light** | Control | [Source](components/control/blossom-light/blossom-light.tsx) | [README](components/control/blossom-light/README.md) |
-| <img src="public/previews/gradient-event-card.png" width="160" alt="Gradient Event Card preview"> | **Gradient Event Card** | Gradient | [Source](components/gradient/gradient-event-card/gradient-event-card.tsx) | [README](components/gradient/gradient-event-card/README.md) |
-| <img src="public/previews/stamp-tracker.png" width="160" alt="Stamp Tracker preview"> | **Stamp Tracker** | Data Visualization | [Source](components/data-visualization/stamp-tracker/stamp-tracker.tsx) | [README](components/data-visualization/stamp-tracker/README.md) |
-| <img src="public/previews/doodle-calendar.png" width="160" alt="Doodle Calendar preview"> | **Doodle Calendar** | Data Visualization | [Source](components/data-visualization/doodle-calendar/doodle-calendar.tsx) | [README](components/data-visualization/doodle-calendar/README.md) |
+| <img src="public/previews/emoji-sketch.png" width="160" alt="Emoji Sketch preview"> | **Emoji Sketch** | Tool | [Free source](components/tool/emoji-sketch/emoji-sketch.tsx) | [README](components/tool/emoji-sketch/README.md) |
+| <img src="public/previews/soft-menu-reveal.png" width="160" alt="Soft Menu Reveal preview"> | **Soft Menu Reveal** | Navigation | [Free source](components/navigation/soft-menu-reveal/soft-menu-reveal.tsx) | [README](components/navigation/soft-menu-reveal/README.md) |
+| <img src="public/previews/filter-dropdown-reveal.png" width="160" alt="Filter Dropdown Reveal preview"> | **Filter Dropdown Reveal** | Navigation | [Free source](components/navigation/filter-dropdown-reveal/filter-dropdown-reveal.tsx) | [README](components/navigation/filter-dropdown-reveal/README.md) |
+| <img src="public/previews/scroll-scrubbed-typography.png" width="160" alt="Scroll-Scrubbed Typography preview"> | **Scroll-Scrubbed Typography** | Typography | [Free source](components/typography/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) | [README](components/typography/scroll-scrubbed-typography/README.md) |
+| <img src="public/previews/codex-sidebar-reveal.png" width="160" alt="Codex Sidebar Reveal preview"> | **Codex Sidebar Reveal** | Navigation | [Free source](components/navigation/codex-sidebar-reveal/codex-sidebar-reveal.tsx) | [README](components/navigation/codex-sidebar-reveal/README.md) |
+| <img src="public/previews/gemini-live.png" width="160" alt="Gemini Live preview"> | **Gemini Live** | AI | [Free source](components/ai/gemini-live/gemini-live.tsx) | [README](components/ai/gemini-live/README.md) |
+| <img src="public/previews/geometric-logo-reveal.png" width="160" alt="Geometric Logo Reveal preview"> | **Geometric Logo Reveal** | Typography | [Free source](components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx) | [README](components/typography/geometric-logo-reveal/README.md) |
+| <img src="public/previews/gradient-gummy-bear.png" width="160" alt="Gradient Gummy Bear preview"> | **Gradient Gummy Bear** | 3D | [Free source](components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx) | [README](components/3d/gradient-gummy-bear/README.md) |
+| <img src="public/previews/scroll-phase-cursor.png" width="160" alt="Scroll Phase Cursor preview"> | **Scroll Phase Cursor** | Cursor | [Free source](components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx) | [README](components/cursor/scroll-phase-cursor/README.md) |
+| <img src="public/previews/voice-bloom.png" width="160" alt="Voice Bloom preview"> | **Voice Bloom** | AI | [Purchase — $5](https://atomicmotion.dev/components/voice-bloom) | [README](components/ai/voice-bloom/README.md) |
+| <img src="public/previews/showreel-sphere.png" width="160" alt="Showreel Sphere preview"> | **Showreel Sphere** | 3D | [Free source](components/3d/showreel-sphere/showreel-sphere.tsx) | [README](components/3d/showreel-sphere/README.md) |
+| <img src="public/previews/coffee-gauge.png" width="160" alt="Coffee Gauge preview"> | **Coffee Gauge** | Data Visualization | [Free source](components/data-visualization/coffee-gauge/coffee-gauge.tsx) | [README](components/data-visualization/coffee-gauge/README.md) |
+| <img src="public/previews/halftone-bloom.png" width="160" alt="Halftone Bloom preview"> | **Halftone Bloom** | Data Visualization | [Free source](components/data-visualization/halftone-bloom/halftone-bloom.tsx) | [README](components/data-visualization/halftone-bloom/README.md) |
+| <img src="public/previews/blossom-light.png" width="160" alt="Blossom Light preview"> | **Blossom Light** | Control | [Free source](components/control/blossom-light/blossom-light.tsx) | [README](components/control/blossom-light/README.md) |
+| <img src="public/previews/gradient-event-card.png" width="160" alt="Gradient Event Card preview"> | **Gradient Event Card** | Gradient | [Purchase — $5](https://atomicmotion.dev/components/gradient-event-card) | [README](components/gradient/gradient-event-card/README.md) |
+| <img src="public/previews/stamp-tracker.png" width="160" alt="Stamp Tracker preview"> | **Stamp Tracker** | Data Visualization | [Purchase — $8](https://atomicmotion.dev/components/stamp-tracker) | [README](components/data-visualization/stamp-tracker/README.md) |
+| <img src="public/previews/doodle-calendar.png" width="160" alt="Doodle Calendar preview"> | **Doodle Calendar** | Data Visualization | [Free source](components/data-visualization/doodle-calendar/doodle-calendar.tsx) | [README](components/data-visualization/doodle-calendar/README.md) |
 <!-- component-catalogue:end -->
 
 Gemini Live and Voice Bloom are interface demos; they do not connect to an AI

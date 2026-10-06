@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
-import { AnimatedGithubLink } from "@/components/website/animated-github-link";
 import { AnimatedLogoLink } from "@/components/website/animated-logo-link";
 import { ComponentActions } from "@/components/website/component-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
@@ -19,11 +18,13 @@ type ActivePanel = "about" | "component" | null;
 export function SiteHeader({
   component,
   tagline,
+  checkoutStatus,
 }: {
   component?: ComponentMeta;
   tagline?: string;
+  checkoutStatus?: "success" | "cancelled" | "failed";
 }) {
-  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  const [activePanel, setActivePanel] = useState<ActivePanel>(checkoutStatus ? "component" : null);
   const containerRef = useRef<HTMLDivElement>(null);
   const panelOpen = activePanel !== null;
 
@@ -36,6 +37,7 @@ export function SiteHeader({
     }
 
     function onKeyDown(event: KeyboardEvent) {
+      if (event.target instanceof Element && event.target.closest("dialog")) return;
       if (event.key === "Escape") setActivePanel(null);
     }
 
@@ -54,7 +56,7 @@ export function SiteHeader({
         onClose={() => setActivePanel(null)}
         footer={
           activePanel === "component" && component ? (
-            <ComponentActions component={component} />
+            <ComponentActions key={component.id} component={component} checkoutStatus={checkoutStatus} />
           ) : undefined
         }
       >
@@ -84,9 +86,9 @@ export function SiteHeader({
           </div>
         ) : (
           <>
-            AtomicMotion UI is an open-source collection of copy-paste
-            micro-interactions for React — each one a self-contained component you
-            can drop into your project.
+            AtomicMotion is a design library of expressive interfaces and
+            interactions. Explore live demos, discover free components, and
+            unlock source code for a curated selection of designs.
           </>
         )}
       </ExpandingAboutPanel>
@@ -130,7 +132,6 @@ export function SiteHeader({
           >
             About
           </button>
-          <AnimatedGithubLink className={navLinkClass} />
         </nav>
       </div>
     </div>

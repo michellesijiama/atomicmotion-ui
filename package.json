@@ -3,19 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Open-source micro-interactions for designers and developers — a gallery of polished, animated UI components you can copy-paste into your own project one file at a time.",
+  "description": "A design library of expressive interfaces and interactions, with free components and a curated paid collection.",
   "homepage": "https://atomicmotion.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/michellesijiama/atomicmotion-ui"
   },
   "scripts": {
+    "predev": "npm run generate:purchase-sources",
     "dev": "next dev",
+    "prebuild": "npm run generate:purchase-sources",
     "build": "next build",
     "start": "next start",
     "capture:home-previews": "node scripts/capture-home-previews.mjs",
     "capture:preview-loop": "node scripts/capture-preview-loop.mjs",
     "generate:readmes": "node scripts/generate-component-readmes.mjs",
+    "generate:purchase-sources": "node scripts/generate-purchase-sources.mjs",
+    "export:free": "node scripts/export-free-library.mjs",
     "lint": "eslint",
     "verify": "node scripts/verify-public-surface.mjs && node scripts/verify-registry-paths.mjs",
     "test:design": "node scripts/verify-jitter-design-system.mjs",
@@ -31,6 +35,7 @@
     "test:component-source": "node --test tests/component-source.test.mjs",
     "test:structure": "node scripts/verify-component-structure.mjs",
     "test:readmes": "node scripts/verify-component-readmes.mjs",
+    "test:free-export": "node scripts/verify-free-library.mjs",
     "test:stamp-tracker-contrast": "node scripts/verify-stamp-tracker-contrast.mjs",
     "test:gradient-event-card": "node scripts/verify-gradient-event-card.mjs",
     "typecheck": "tsc --noEmit",
@@ -39,7 +44,11 @@
     "check": "npm run verify && npm run lint && npm run typecheck && npm test && npm run build && npm run verify:server && npm audit --omit=dev",
     "verify:server": "node scripts/verify-server.mjs",
     "verify:responsive": "node scripts/verify-responsive.mjs",
-    "test:doodle-calendar": "node scripts/verify-doodle-calendar.mjs"
+    "test:doodle-calendar": "node scripts/verify-doodle-calendar.mjs",
+    "pretest:purchases": "npm run generate:purchase-sources",
+    "test:purchases": "node scripts/verify-component-purchases.mjs",
+    "pretest:paypal": "npm run generate:purchase-sources",
+    "test:paypal": "node scripts/verify-paypal-purchases.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -49,6 +58,7 @@
     "perfect-freehand": "^1.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "stripe": "^23.0.0",
     "tailwind-merge": "^3.6.0",
     "three": "^0.169.0",
     "three-subdivide": "^1.1.5"

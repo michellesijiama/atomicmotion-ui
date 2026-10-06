@@ -2,7 +2,7 @@
 
 A square of wall whose light is the controls in the middle of it: leaf shadow on white plaster, dimmed and lifted by a brightness pill that fills line by line, turned from cool to amber by a tone slider, and sent to follow the weather outside by an Adaptive toggle, while the leaf shadow on the wall stirs in a wind — all flat frosted glass, scaling itself to fit wherever it is put
 
-![Blossom Light preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/blossom-light.png)
+![Blossom Light preview](https://atomicmotion.dev/previews/blossom-light.png)
 
 - **Category:** Control
 - **Demo:** https://atomicmotion.dev/components/blossom-light
@@ -51,6 +51,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `BlossomLight`. Public types: `BlossomLightProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 ## Required assets
 

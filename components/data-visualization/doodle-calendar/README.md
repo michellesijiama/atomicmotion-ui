@@ -2,7 +2,7 @@
 
 A sketchbook-style diary for everyday life in Japan. Tap today’s +, write a note, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and refreshing the preview starts a fresh diary.
 
-![Doodle Calendar preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/doodle-calendar.png)
+![Doodle Calendar preview](https://atomicmotion.dev/previews/doodle-calendar.png)
 
 - **Category:** Data Visualization
 - **Demo:** https://atomicmotion.dev/components/doodle-calendar
@@ -51,6 +51,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `onGenerateImage` | `(note: string, day: CalendarDay) => Promise<string>` | — | Optional real image service. Without this, Preview sketch uses prepared demo art. |
 
 Named export: `DoodleCalendar`. Public types: `MomentKind`, `CalendarDay`, `DoodleCalendarProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 ## Required assets
 

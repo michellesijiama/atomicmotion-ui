@@ -1,5 +1,5 @@
 export const REPO_OWNER = "michellesijiama";
-export const REPO_NAME = "atomicmotion-ui";
+export const REPO_NAME = process.env.NEXT_PUBLIC_FREE_REPO_NAME ?? "atomicmotion-free";
 export const REPO_BRANCH = "main";
 
 const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REPO_BRANCH}`;

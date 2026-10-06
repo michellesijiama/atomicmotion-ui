@@ -31,6 +31,8 @@ jobs:
         run: node scripts/verify-public-surface.mjs
       - name: Verify registry paths
         run: node scripts/verify-registry-paths.mjs
+      - name: Verify free publication excludes paid source
+        run: npm run test:free-export
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build

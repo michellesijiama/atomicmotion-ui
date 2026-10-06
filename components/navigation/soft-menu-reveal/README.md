@@ -2,7 +2,7 @@
 
 A frosted menu that unfolds from a stable nav row with a smooth bell-curve transition
 
-![Soft Menu Reveal preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/soft-menu-reveal.png)
+![Soft Menu Reveal preview](https://atomicmotion.dev/previews/soft-menu-reveal.png)
 
 - **Category:** Navigation
 - **Demo:** https://atomicmotion.dev/components/soft-menu-reveal
@@ -48,6 +48,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `loop` | `boolean` | `false` | Automatic preview mode. |
 
 Named export: `SoftMenuReveal`. Public types: `SoftMenuRevealProps`.
+- **Source access:** Free
+- **Code license:** MIT (existing source); asset licenses are listed separately.
 
 This component is self-contained — the entire component is `soft-menu-reveal.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.

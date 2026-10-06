@@ -2,7 +2,7 @@
 
 Eight event cards on a ring inside a phone lying on its side — swipe and they follow your finger and snap one page at a time, the neighbours turning away like cover flow. Each card is a heat-map field with circles, ellipses, arcs and coils painted onto it as heat, every shape its own halo-to-core gradient, in palettes borrowed from painters — Monet, Rothko, Hilma af Klint, O'Keeffe kept cohesive; Matisse and Delaunay loud — rippling, breathing, orbiting and swaying under printed grain
 
-![Gradient Event Card preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/gradient-event-card.png)
+![Gradient Event Card preview](https://atomicmotion.dev/previews/gradient-event-card.png)
 
 - **Category:** Gradient
 - **Demo:** https://atomicmotion.dev/components/gradient-event-card
@@ -51,6 +51,11 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `GradientEventCard`. Public types: `EventItem`, `GradientEventCardProps`, `AuraPattern`, `AuraMood`, `AuraMoodName`.
+- **Source access:** Purchase in the design library — $5 USD
+- **Code license:** MIT (existing source); asset licenses are listed separately.
+
+The gallery unlocks source after purchase. This existing version was previously
+published under MIT; moving repositories does not revoke those permissions.
 
 This component is self-contained — the entire component is `gradient-event-card.tsx`.
 Copy the source file or this folder into your project. No gallery imports or global theme file are required.
