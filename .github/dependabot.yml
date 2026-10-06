@@ -7,8 +7,19 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # Three.js uses 0.x releases; a minor bump can change its API.
+      - dependency-name: "three"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "@types/three"
+        update-types: ["version-update:semver-minor"]
     groups:
-      npm-dependencies:
+      next:
+        patterns: ["next", "eslint-config-next"]
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      tailwind:
+        patterns: ["tailwindcss", "@tailwindcss/*"]
+      remaining-dependencies:
         patterns:
           - "*"
 

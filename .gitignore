@@ -33,12 +33,9 @@ public/gummy-bear-backdrop.png
 # ---- from the app (build output, deps, local env) ----
 *.pem
 *.tsbuildinfo
-.DS_Store
 .env*
 .pnp.*
 .pnpm-debug.log*
-.tmp/
-.vercel
 .yarn/*
 !.yarn/patches
 !.yarn/plugins

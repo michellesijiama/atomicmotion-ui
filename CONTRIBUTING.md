@@ -27,7 +27,7 @@ assets are copied into that separate repository. See
    from the repo root to generate `public/previews/<id>.png`.
 6. Preserve keyboard access and focus states — components in this gallery
    are expected to stay usable without a mouse.
-6. Free is the default. A paid offer must be explicitly registered in
+7. Free is the default. A paid offer must be explicitly registered in
    `src/lib/component-offers.ts`, which controls both checkout and public
    export. Do not put paid source into the public free-component repository
    or copy complete application history there. Existing MIT components keep
@@ -61,6 +61,12 @@ isolated compilation of copied components and their README examples, source
 contract regressions, and checks for stale README and entry-point exports.
 Keep generated files current with `npm run generate:readmes`. Put incomplete
 examples in `archive/`; only registered, verified folders belong in `components/`.
+
+After changing package versions or free component imports, regenerate the
+public verification lock with `npm run generate:free-lock`. The
+`test:free-dependencies` check installs an exported release outside this
+checkout and compiles its sources and README examples using only its declared
+dependencies, then compiles Tailwind styles and runs a full dependency audit.
 
 To run just the two guards:
 

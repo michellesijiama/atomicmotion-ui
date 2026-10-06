@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { exportFreeLibrary, verifyPublicLibrary } from "./export-free-library.mjs";
 import { readComponentCatalog, readComponentData } from "./component-data.mjs";
 
@@ -25,6 +26,13 @@ try {
   const catalog = readComponentCatalog();
   const publicCatalog = JSON.parse(readFileSync(path.join(output, "catalog.json"), "utf8"));
   const manifest = JSON.parse(readFileSync(path.join(output, "publication-manifest.json"), "utf8"));
+  const publicPackage = JSON.parse(readFileSync(path.join(output, "package.json"), "utf8"));
+  const publicLock = JSON.parse(readFileSync(path.join(output, "package-lock.json"), "utf8"));
+  const publicVerify = () => spawnSync(process.execPath, ["scripts/verify-library.mjs"], { cwd: output, encoding: "utf8" });
+  check(publicVerify().status === 0, "Standalone public verifier accepts a clean release without gallery dependencies");
+  check(publicPackage.private && !publicPackage.dependencies.next && !publicPackage.dependencies.stripe, "Public verification environment excludes gallery and payment dependencies");
+  check(JSON.stringify(publicLock.packages[""].dependencies) === JSON.stringify(publicPackage.dependencies), "Public lock matches its runtime dependencies");
+  check(JSON.stringify(publicLock.packages[""].devDependencies) === JSON.stringify(publicPackage.devDependencies), "Public lock matches its development dependencies");
   for (const filename of Object.keys(manifest.files).filter((name) => name.endsWith(".md"))) {
     for (const match of readFileSync(path.join(output, filename), "utf8").matchAll(/!?\[[^\]]*\]\(([^)\s]+)\)/g)) {
       if (/^(?:[a-z][a-z\d+.-]*:|#)/i.test(match[1])) continue;
@@ -35,7 +43,11 @@ try {
   for (const component of catalog) {
     const published = path.join(output, component.codePath);
     check(existsSync(published) === !component.offer, `${component.id}: source follows free/paid classification`);
-    if (!component.offer) check(readFileSync(published).equals(readFileSync(component.codePath)), `${component.id}: exact source`);
+    if (!component.offer) {
+      check(readFileSync(published).equals(readFileSync(component.codePath)), `${component.id}: exact source`);
+      const readme = readFileSync(path.join(path.dirname(published), "README.md"), "utf8");
+      check(readme.includes("```tsx\n") && readme.includes("## Props"), `${component.id}: publishes full usage and props instructions`);
+    }
     else {
       const entry = publicCatalog.paid.find(({ id }) => id === component.id);
       check(entry.priceInCents === component.offer.priceInCents && !entry.source, `${component.id}: paid metadata without source link`);
@@ -49,11 +61,13 @@ try {
   const leakedSource = path.join(output, "voice-bloom.tsx");
   writeFileSync(leakedSource, readFileSync("components/ai/voice-bloom/voice-bloom.tsx"));
   rejected(() => verifyPublicLibrary(output), "Rejects an extra paid source file");
+  check(publicVerify().status !== 0, "Standalone public verifier rejects an extra paid source file");
   rmSync(leakedSource);
   const freeSource = path.join(output, publicCatalog.free[0].source);
   const original = readFileSync(freeSource);
   writeFileSync(freeSource, readFileSync("components/ai/voice-bloom/voice-bloom.tsx"));
   rejected(() => verifyPublicLibrary(output), "Rejects paid source hidden in a permitted filename");
+  check(publicVerify().status !== 0, "Standalone public verifier rejects source hidden in a permitted filename");
   writeFileSync(freeSource, original);
   const secretFile = path.join(output, ".env.local");
   writeFileSync(secretFile, "STRIPE_SECRET_KEY=mock-not-a-secret\n");

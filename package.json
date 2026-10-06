@@ -19,6 +19,7 @@
     "capture:preview-loop": "node scripts/capture-preview-loop.mjs",
     "generate:readmes": "node scripts/generate-component-readmes.mjs",
     "generate:purchase-sources": "node scripts/generate-purchase-sources.mjs",
+    "generate:free-lock": "node scripts/generate-free-library-lock.mjs",
     "export:free": "node scripts/export-free-library.mjs",
     "lint": "eslint",
     "verify": "node scripts/verify-public-surface.mjs && node scripts/verify-registry-paths.mjs",
@@ -36,6 +37,7 @@
     "test:structure": "node scripts/verify-component-structure.mjs",
     "test:readmes": "node scripts/verify-component-readmes.mjs",
     "test:free-export": "node scripts/verify-free-library.mjs",
+    "test:free-dependencies": "node scripts/verify-free-library-dependencies.mjs",
     "test:stamp-tracker-contrast": "node scripts/verify-stamp-tracker-contrast.mjs",
     "test:gradient-event-card": "node scripts/verify-gradient-event-card.mjs",
     "pretypecheck": "npm run generate:purchase-sources",
@@ -65,15 +67,15 @@
     "three-subdivide": "^1.1.5"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.19.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.169.0",
-    "eslint": "^9",
+    "eslint": "^9.39.5",
     "eslint-config-next": "16.3.8",
     "playwright": "^1.61.1",
-    "tailwindcss": "^4",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5"
   },
   "engines": {

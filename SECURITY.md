@@ -1,9 +1,9 @@
 # Security policy
 
-This repo is a copy-paste component gallery — there's no hosted service or
-backend, so the realistic security surface is limited to the source code
-itself (e.g. an XSS-shaped bug in a component) and the demo site's build
-pipeline.
+AtomicMotion is a design library with a server-hosted Next.js gallery,
+Stripe/PayPal checkout, and purchase-gated source delivery. The public
+`atomicmotion-free` repository contains only free components and their
+verification environment. The complete application repository is private.
 
 ## Reporting a vulnerability
 
@@ -17,7 +17,10 @@ ready, and lets GitHub coordinate a CVE/advisory if warranted.
 
 ## Scope
 
-In scope: vulnerabilities in the component source under `src/`, or in this
-repo's build/CI configuration. Out of scope: the hosted demo at
-atomicmotion.dev's infrastructure (report those to the hosting provider), and
-issues in upstream dependencies (report those upstream).
+In scope: component source under `components/`, application source under
+`src/` (including checkout verification, purchase cookies and source access),
+the publication boundary between free and paid code, and build/CI
+configuration. Do not include payment credentials or customer data in a report.
+Issues in upstream dependencies belong upstream; infrastructure issues in
+the hosting platform belong to its provider. Application issues on
+atomicmotion.dev are in scope.

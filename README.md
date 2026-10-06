@@ -62,9 +62,10 @@ export function Demo() {
 }
 ```
 
-The gallery's **Copy link** action copies the GitHub source URL. **Copy for AI**
-provides the source and setup README links, framework requirements and required
-assets for an AI coding tool to integrate the component.
+For free components, **Copy link** copies the public source URL and **Copy for AI**
+provides integration instructions. Paid components offer **Purchase**, then
+source copying and download after a verified payment. Checkout requires the
+provider configuration described in [commerce setup](docs/commerce.md).
 
 ## Components
 
@@ -158,10 +159,14 @@ npm run verify:responsive
 
 `check` covers repository and asset guards, documentation freshness, public
 exports, isolated copy-paste compilation, lint, TypeScript, regression tests,
-the production build, HTTP routes and headers, and production dependency audit.
+an independent install and check of the public free export, the production
+build, HTTP routes and headers, and production dependency audit.
 Browser checks cover the home page and all component routes at phone, tablet,
 desktop and short landscape sizes, including expanded menus and scroll endings.
 CI runs both suites.
+
+After updating dependencies, run `npm run generate:free-lock` to refresh the
+public repository's tested dependency lock before exporting another release.
 
 For a running development server, set `RESPONSIVE_BASE_URL` to its URL.
 Set `RESPONSIVE_EVIDENCE_DIR` to save browser screenshots and a JSON report.

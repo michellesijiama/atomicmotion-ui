@@ -34,12 +34,14 @@ The exporter refuses to overwrite non-empty output; use
 another release. It uses an allowlist rather than copying the whole tree.
 
 Included: each free component's TSX and entry point, a generated component
-README, explicitly listed runtime files, applicable license notices, root
-README, catalog and a checksum manifest. Preview images are linked from the
+README with setup, usage and props, the integration guide, explicitly listed
+runtime files, applicable license notices, root README, catalog and a checksum
+manifest. The export also contains a pinned dependency verification environment
+and its GitHub CI workflow. Preview images are linked from the
 website so no full-app source or paid deliverable is needed in this repository.
 
 Excluded: paid source, unregistered experiments, the Next.js application,
-checkout code, source bundles, secrets, local tooling, build output and
+checkout code, source bundles, secrets, private tooling, build output and
 Git history. The verifier rejects extra files and modified approved files.
 Review `ASSETS.md`: the existing wall-shadow and traced lunar artwork notices
 still have unresolved attribution/redistribution terms.
@@ -92,3 +94,15 @@ free source, runtime assets, MIT notice and catalog prices. It also verifies
 that extra paid code, paid code hidden in a free filename, environment files
 and copied Git history fail publication checks. The complete repository's
 CI runs this guard before building and in the verification suite.
+
+`npm run test:free-dependencies` exports into an isolated temporary directory,
+runs `npm ci`, and verifies source imports, public exports, README examples,
+Tailwind CSS compilation and dependencies without gallery or Next.js packages.
+The public repository runs the same checks on every push and pull request.
+
+Public verification package versions are derived from the complete
+application's tested lockfile and free component imports. After dependency or
+import changes, run `npm run generate:free-lock`, then `npm run check`. Publish
+the approved export as a normal commit in the existing public repository;
+preserve its independent history. Do not independently copy package files or
+push the complete application's history into it.
