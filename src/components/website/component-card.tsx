@@ -1,17 +1,14 @@
 import Link from "next/link";
-import { LockKeyhole } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { componentMap } from "@/lib/component-map";
 import { PreviewStage } from "@/components/website/preview-stage";
-import { formatComponentPrice, getComponentOffer } from "@/lib/component-offers";
 
 type ComponentCardProps = {
   component: ComponentMeta;
 };
 
 export function ComponentCard({ component }: ComponentCardProps) {
-  const offer = getComponentOffer(component.id);
   const componentHref = `/components/${component.id}`;
   const Preview = componentMap[component.id];
   // Light components render their live animation on the gray card (via
@@ -73,10 +70,6 @@ export function ComponentCard({ component }: ComponentCardProps) {
             </span>
           </div>
         </div>
-        <span className={`pointer-events-none absolute bottom-4 right-4 z-20 inline-flex items-center gap-1 rounded-full px-2 py-1 text-caption ${offer ? "bg-[var(--jitter-ink)] text-white" : "bg-white/80 text-[var(--jitter-gray-600)]"}`} aria-label={offer ? `Source code ${formatComponentPrice(offer)} USD` : "Free source code"}>
-          {offer ? <LockKeyhole className="size-3" aria-hidden="true" /> : null}
-          {offer ? formatComponentPrice(offer) : "Free"}
-        </span>
       </div>
     </Link>
   );
