@@ -1090,8 +1090,8 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                         if (event.key === "Escape") { event.preventDefault(); cancelComposing(); }
                       }}
                       whileTap={canSubmit && !reduced ? { scale: 0.96 } : undefined}
-                      className="dc-sketch flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border-0 px-4 disabled:opacity-35"
-                      style={{ backgroundColor: TEXT, color: CARD_PAPER, fontFamily: FONT_HANDWRITING, fontSize: 21, lineHeight: "24px", cursor: canSubmit ? "pointer" : "default" }}
+                      className="dc-sketch flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border-0 px-4"
+                      style={{ backgroundColor: "#000000", color: "#FFFFFF", fontFamily: FONT_HANDWRITING, fontSize: 21, lineHeight: "24px", cursor: canSubmit ? "pointer" : "default" }}
                     >
                       Sketch it
                       <ArrowUp size={16} strokeWidth={1.6} aria-hidden="true" />
