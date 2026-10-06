@@ -31,7 +31,7 @@ export type CalendarDay = {
 export type DoodleCalendarProps = {
   /** The day the calendar treats as today (August 2026), 1–31. Days before it are open; days after it are charcoal rings. */
   today?: number;
-  /** Open the days one after another until someone touches it (the gallery card sets it). */
+  /** Demonstrate writing and submitting a rainy-day note until someone touches it. Demo notes are never saved. */
   loop?: boolean;
   /** A day's page was opened — by a click, the keyboard, or the loop. */
   onSelect?: (day: CalendarDay) => void;
@@ -250,13 +250,14 @@ function demoImageFor(note: string): DiaryImage | undefined {
 
 const HOLD_MS = 3800;
 const PAUSE_MS = 700;
+const DEMO_NOTE = "It rained today. I walked home under my umbrella.";
 const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
 const PAGE_SPRING = { type: "spring", stiffness: 320, damping: 34, mass: 1 } as const;
 const PARALLAX_ART = 22;
 const PARALLAX_HEAD = 10;
 const SWIPE_VELOCITY = 420;
 /** Even the instant demo shows the whole sketching moment. */
-const SKETCH_MIN_MS = 2400;
+const SKETCH_MIN_MS = 4200;
 const REVEAL_MS = 1100;
 const GENERATE_TIMEOUT_MS = 8000;
 const PRELOAD_TIMEOUT_MS = 3000;
@@ -316,6 +317,9 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const [entryErrors, setEntryErrors] = React.useState<Record<number, string>>({});
   const [composing, setComposing] = React.useState(false);
   const [sketchPhase, setSketchPhase] = React.useState<"idle" | "glow" | "reveal">("idle");
+  const [demoEntry, setDemoEntry] = React.useState<{ note: string; image?: DiaryImage } | null>(null);
+  const [demoPressed, setDemoPressed] = React.useState(false);
+  const demoActiveRef = React.useRef(false);
   const sketchingRef = React.useRef(false);
   const mountedRef = React.useRef(true);
   React.useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
@@ -542,26 +546,67 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
     return () => document.removeEventListener("keydown", onKey);
   }, [openDay, filterOpen, close, navigateOpenDay, composing, sketchPhase]);
 
-  // The gallery card: open today's page, then each earlier day in turn, until touched.
+  const stopDemo = React.useCallback(() => {
+    if (!demoActiveRef.current) return;
+    demoActiveRef.current = false;
+    sketchingRef.current = false;
+    setDemoEntry(null);
+    setDemoPressed(false);
+    setComposing(false);
+    setSketchPhase("idle");
+  }, []);
+
+  // A separate, unsaved entry demonstrates the whole flow without changing the visitor's diary.
   React.useEffect(() => {
     if (!loop || interacted || reduced) return;
-    // Today is blank until someone writes it, so the loop starts with yesterday.
-    const order = today > 1 ? [today - 1, ...Array.from({ length: today - 2 }, (_, i) => i + 1)] : [today];
-    let i = 0;
+    let cancelled = false;
     let timer = 0;
-    const show = () => {
-      open(order[i % order.length]);
-      timer = window.setTimeout(() => {
+    const pause = (ms: number) => new Promise<boolean>((resolve) => {
+      timer = window.setTimeout(() => resolve(!cancelled), ms);
+    });
+    const show = async () => {
+      if (!await pause(900)) return;
+      demoActiveRef.current = true;
+      const image = demoImageFor(DEMO_NOTE);
+      if (!image) return;
+      void preloadImage(artworkUrl(image.src));
+      void preloadImage(artworkUrl(image.thumbnailSrc!));
+      while (!cancelled) {
+        setDemoEntry({ note: "" });
+        open(today);
+        if (!await pause(1300)) return;
+        setComposing(true);
+        if (!await pause(450)) return;
+        for (let length = 1; length <= DEMO_NOTE.length; length++) {
+          setDemoEntry({ note: DEMO_NOTE.slice(0, length) });
+          if (!await pause(48)) return;
+        }
+        if (!await pause(650)) return;
+        setDemoPressed(true);
+        if (!await pause(180)) return;
+        setDemoPressed(false);
+        setComposing(false);
+        sketchingRef.current = true;
+        setSketchPhase("glow");
+        if (!await pause(SKETCH_MIN_MS)) return;
+        setDemoEntry({ note: DEMO_NOTE, image });
+        setSketchPhase("reveal");
+        if (!await pause(REVEAL_MS)) return;
+        setSketchPhase("idle");
+        sketchingRef.current = false;
+        if (!await pause(HOLD_MS)) return;
         close();
-        i += 1;
-        timer = window.setTimeout(show, PAUSE_MS);
-      }, HOLD_MS);
+        if (!await pause(1300)) return;
+        setDemoEntry(null);
+        if (!await pause(PAUSE_MS)) return;
+      }
     };
-    timer = window.setTimeout(show, 900);
-    return () => window.clearTimeout(timer);
-  }, [loop, interacted, reduced, today, open, close]);
+    void show();
+    return () => { cancelled = true; window.clearTimeout(timer); stopDemo(); };
+  }, [loop, interacted, reduced, today, open, close, stopDemo]);
 
   const touched = () => {
+    stopDemo();
     setInteracted(true);
     if (openRef.current !== null) byPersonRef.current = true;
   };
@@ -622,7 +667,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const titleId = `${uid}-title`;
   const canGoPrevious = openDay !== null && openDay > 1;
   const canGoNext = openDay !== null && openDay < today;
-  const canSubmit = openDay !== null && Boolean(entries[openDay]?.trim()) && sketchPhase === "idle";
+  const canSubmit = openDay !== null && Boolean((demoEntry && openDay === today ? demoEntry.note : entries[openDay])?.trim()) && sketchPhase === "idle";
   React.useEffect(() => {
     if (openDay === null) return;
     const target = -(openDay - 1) * PAGE_TRAVEL;
@@ -797,7 +842,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                                 day={day}
                                 info={CALENDAR_DAYS[day - 1]}
                                 isToday={state === "today"}
-                                image={images[day]}
+                                image={demoEntry && day === today ? demoEntry.image : images[day]}
                                 dimmed={!matchesTopic(day)}
                                 tabbable={focusDay === day}
                                 onFocus={() => setFocusDay(day)}
@@ -874,8 +919,8 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                     {Array.from({ length: today }, (_, index) => {
                       const day = index + 1;
                       const isActive = day === openDay;
-                      const image = images[day];
-                      const note = entries[day] ?? "";
+                      const image = demoEntry && day === today ? demoEntry.image : images[day];
+                      const note = demoEntry && day === today ? demoEntry.note : entries[day] ?? "";
                       const error = entryErrors[day];
                       const textShown = !(isActive && flying && !morphCue);
                       return (
@@ -975,7 +1020,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                   key={`${morph.direction}-${morph.day}`}
                   day={morph.day}
                   direction={morph.direction}
-                  image={images[morph.day]}
+                  image={demoEntry && morph.day === today ? demoEntry.image : images[morph.day]}
                   blue={morph.day === today}
                   onDone={endMorph}
                 />
@@ -1084,6 +1129,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                       aria-label={onGenerateImage ? "Generate sketch" : "Preview sketch (demo)"}
                       title={onGenerateImage ? "Generate an illustration from this note" : "Preview a prepared demo illustration from this note"}
                       disabled={!canSubmit}
+                      animate={{ scale: demoPressed ? 0.96 : 1 }}
                       onClick={() => void illustrateEntry(openDay)}
                       onKeyDown={(event) => {
                         event.stopPropagation();
@@ -1188,7 +1234,7 @@ function DiaryPlaceholder({ reduced, active }: { reduced: boolean; active: boole
 
 const GLOW_RING = 16; // thickness of the lit band along the inner edge, before blur
 const GLOW_BLUR = 10;
-const GEMINI_CONIC = "conic-gradient(from 42deg at 50% 50%, rgba(66,133,244,0) 0deg, rgba(66,133,244,0.88) 34deg, rgba(138,180,248,0.92) 58deg, rgba(66,133,244,0.16) 92deg, rgba(66,133,244,0) 132deg, rgba(66,133,244,0.74) 188deg, rgba(138,180,248,0.82) 214deg, rgba(66,133,244,0) 258deg, rgba(66,133,244,0.72) 316deg, rgba(66,133,244,0) 360deg)";
+const GEMINI_CONIC = "conic-gradient(from 42deg at 50% 50%, rgba(66,133,244,0.84) 0deg, rgba(164,137,235,0.8) 60deg, rgba(233,155,192,0.78) 120deg, rgba(247,184,130,0.8) 180deg, rgba(174,211,157,0.76) 240deg, rgba(133,201,224,0.82) 300deg, rgba(66,133,244,0.84) 360deg)";
 
 /** Gemini-style light that runs along the inside of the card's edge while a drawing is being made. */
 function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) {
@@ -1218,8 +1264,8 @@ function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) 
         <motion.span
           className="absolute left-1/2 top-1/2 block"
           style={{ width: side, height: side, marginLeft: -side / 2, marginTop: -side / 2, background: GEMINI_CONIC }}
-          animate={reduced ? { opacity: 0.7 } : { rotate: [0, 74, 148, 221, 288, 360], opacity: [0.83, 0.56, 0.9, 0.5, 0.78, 0.6, 0.87] }}
-          transition={reduced ? { duration: 0.2 } : { rotate: { duration: 4.2, ease: "easeInOut", repeat: Infinity }, opacity: { duration: 3.4, ease: "easeInOut", repeat: Infinity, times: [0, 0.17, 0.33, 0.51, 0.7, 0.86, 1] } }}
+          animate={reduced ? { opacity: 0.7 } : { rotate: [0, 360], opacity: [0.76, 0.9, 0.76] }}
+          transition={reduced ? { duration: 0.2 } : { rotate: { duration: 9, ease: "linear", repeat: Infinity }, opacity: { duration: 5.8, ease: "easeInOut", repeat: Infinity } }}
         />
       </div>
     </motion.div>
