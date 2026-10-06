@@ -55,14 +55,14 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "framer-motion": "^12.40.0",
-    "lucide-react": "^1.18.0",
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^1.51.0",
     "next": "16.3.8",
     "perfect-freehand": "^1.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "stripe": "^23.0.0",
-    "tailwind-merge": "^3.6.0",
+    "tailwind-merge": "^3.7.0",
     "three": "^0.169.0",
     "three-subdivide": "^1.1.5"
   },
@@ -74,7 +74,7 @@
     "@types/three": "^0.169.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.8",
-    "playwright": "^1.61.1",
+    "playwright": "^1.63.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5"
   },
