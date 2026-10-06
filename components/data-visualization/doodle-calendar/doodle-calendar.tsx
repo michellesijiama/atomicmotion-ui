@@ -258,7 +258,7 @@ const PARALLAX_HEAD = 10;
 const SWIPE_VELOCITY = 420;
 /** Even the instant demo shows the whole sketching moment. */
 const SKETCH_MIN_MS = 4200;
-const REVEAL_MS = 1100;
+const REVEAL_MS = 2600;
 const GENERATE_TIMEOUT_MS = 8000;
 const PRELOAD_TIMEOUT_MS = 3000;
 const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
@@ -368,8 +368,6 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
   const failSketch = (day: number, message: string) => {
     setEntryErrors((current) => ({ ...current, [day]: message }));
     setSketchPhase("idle");
-    const page = dialogRef.current?.querySelector<HTMLElement>(`[data-diary-day="${day}"]`);
-    if (page && !reduced) void animate(page, { x: [0, -7, 7, -4, 4, 0] }, { duration: 0.42, ease: "easeInOut" });
   };
 
   const illustrateEntry = async (day: number) => {
@@ -961,7 +959,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, onSelect, 
                             </Parallax>
                             <Parallax pageX={pageX} index={index} depth={reduced ? 0 : PARALLAX_ART} className="absolute" style={{ top: DAY_HEADER_H, width: ART_W, height: ART_H, opacity: isActive && flying ? 0 : 1 }}>
                               {Math.abs(day - openDay) <= 2 ? (() => {
-                                const art = image ? <DiaryArtwork image={image} blue={day === today} /> : (
+                                const art = image ? <SketchInkReveal image={image} blue={day === today} reduced={reduced} active={isActive && sketchPhase === "reveal"} /> : (
                                   <DiaryPlaceholder reduced={reduced} active={isActive && !flying} />
                                 );
                                 return (
@@ -1272,6 +1270,54 @@ function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) 
   );
 }
 
+/** Color briefly bleeds from the pencil strokes, then settles back to the day's ink. */
+function SketchInkReveal({ image, blue, reduced, active }: { image: DiaryImage; blue: boolean; reduced: boolean; active: boolean }) {
+  const src = artworkUrl(image.src);
+  const inkMask: React.CSSProperties = {
+    maskImage: `url("${src}")`,
+    WebkitMaskImage: `url("${src}")`,
+    maskSize: "contain",
+    maskPosition: "center",
+    maskRepeat: "no-repeat",
+    WebkitMaskSize: "contain",
+    WebkitMaskPosition: "center",
+    WebkitMaskRepeat: "no-repeat",
+    backgroundImage: GEMINI_CONIC,
+  };
+  const transition = { duration: REVEAL_MS / 1000, times: [0, 0.15, 0.42, 0.72, 1], ease: "easeInOut" as const };
+
+  return (
+    <div className="relative size-full">
+      <motion.div
+        className="size-full"
+        initial={false}
+        animate={{ opacity: active && !reduced ? [0.25, 0.3, 0.5, 0.85, 1] : 1 }}
+        transition={active && !reduced ? transition : { duration: 0.15 }}
+      >
+        <DiaryArtwork image={image} blue={blue} />
+      </motion.div>
+      {active && !reduced ? (
+        <span aria-hidden="true" className="dc-ink-bleed pointer-events-none absolute inset-0">
+          <motion.span
+            className="absolute inset-0 block"
+            style={inkMask}
+            initial={{ opacity: 0, filter: "blur(3px)" }}
+            animate={{ opacity: [0, 0.85, 0.75, 0.35, 0], filter: ["blur(3px)", "blur(2.5px)", "blur(1.5px)", "blur(0.5px)", "blur(0px)"] }}
+            transition={transition}
+          />
+          <motion.span
+            className="absolute inset-0 block"
+            style={inkMask}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0.95, 0.45, 0] }}
+            transition={transition}
+          />
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * One wrapper for the whole sketch flow so the artwork never remounts: hidden while
  * the glow gathers, wiped in from top-left like a pencil passing over the page, then rests.
@@ -1285,10 +1331,10 @@ function RevealWipe({ reduced, active, phase, dimmed, children }: { reduced: boo
     : wiping
       ? reduced
         ? { opacity: [0, 1], filter: "blur(0px)", scale: 1, maskPosition: "0% 0%" }
-        : { opacity: [1, 1], filter: ["blur(6px)", "blur(0px)"], scale: [1.03, 1], maskPosition: ["100% 0%", "0% 0%"] }
+        : { opacity: [1, 1], filter: ["blur(2px)", "blur(0px)"], scale: 1, maskPosition: ["100% 0%", "0% 0%"] }
       : resting;
   const transition = wiping
-    ? { duration: reduced ? 0.2 : REVEAL_MS / 1000, ease: [0.4, 0, 0.2, 1] as const, opacity: { duration: reduced ? 0.2 : 0 } }
+    ? { duration: reduced ? 0.2 : 0.85, ease: [0.4, 0, 0.2, 1] as const, opacity: { duration: reduced ? 0.2 : 0 } }
     : { duration: 0.45, ease: EASE_OUT };
   return (
     <motion.div

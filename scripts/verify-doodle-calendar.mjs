@@ -110,7 +110,7 @@ const checks = [
   ["generation lights the card outline (Gemini-style) for a minimum time before the drawing appears", c.includes("function SketchGlow") && c.includes("SKETCH_MIN_MS") && c.includes("Promise.all(") && c.includes("conic-gradient(")],
   ["the sketch glow runs along the inside edge of the active card", !c.includes("GLOW_BLOBS") && !c.includes("function ArtGlow") && c.includes("GEMINI_CONIC") && !c.includes("mixBlendMode") && c.includes("const GLOW_RING") && c.includes('isActive && sketchPhase !== "idle" ? <SketchGlow') && !c.includes("CARD_RECT.x - pad")],
   ["the new drawing is wiped in", c.includes("function RevealWipe") && c.includes("maskPosition")],
-  ["a failed sketch shakes the card", c.includes("x: [0, -7, 7, -4, 4, 0]")],
+  ["sketch feedback keeps the card still and reveals colored ink", !c.includes("x: [0, -7, 7, -4, 4, 0]") && !c.includes("scale: [1.03, 1]") && c.includes("function SketchInkReveal")],
 ];
 
 const activeChecks = checks;
