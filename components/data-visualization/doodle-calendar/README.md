@@ -1,6 +1,6 @@
 # Doodle Calendar
 
-A sketchbook-style diary for everyday life in Japan. Use + to write today’s note, swipe through dates, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and your entries stay saved on this device.
+A sketchbook-style diary for everyday life in Japan. Tap today’s +, write a note, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and refreshing the preview starts a fresh diary.
 
 ![Doodle Calendar preview](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/previews/doodle-calendar.png)
 
@@ -45,7 +45,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | --- | --- | --- | --- |
 | `today` | `number` | `13` | The day the calendar treats as today (August 2026), 1–31. Days before it are open; days after it are charcoal rings. |
 | `loop` | `boolean` | `false` | Demonstrate writing and submitting a rainy-day note until someone touches it. Demo notes are never saved. |
-| `persist` | `boolean` | `true` | Save this diary on the device. Set false for an isolated gallery demonstration. |
+| `persist` | `boolean` | `true` | Save this diary on the device. Set false for a fresh, unsaved website preview. |
 | `onSelect` | `(day: CalendarDay) => void` | — | A day's page was opened — by a click, the keyboard, or the loop. |
 | `className` | `string` | — | Additional classes for the root container. |
 | `onGenerateImage` | `(note: string, day: CalendarDay) => Promise<string>` | — | Optional real image service. Without this, Preview sketch uses prepared demo art. |

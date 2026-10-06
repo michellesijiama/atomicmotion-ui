@@ -33,7 +33,7 @@ export type DoodleCalendarProps = {
   today?: number;
   /** Demonstrate writing and submitting a rainy-day note until someone touches it. Demo notes are never saved. */
   loop?: boolean;
-  /** Save this diary on the device. Set false for an isolated gallery demonstration. */
+  /** Save this diary on the device. Set false for a fresh, unsaved website preview. */
   persist?: boolean;
   /** A day's page was opened — by a click, the keyboard, or the loop. */
   onSelect?: (day: CalendarDay) => void;
@@ -787,29 +787,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                 >
                   <Home size={18} strokeWidth={1.5} aria-hidden="true" />
                 </motion.button>
-                {openDay === null ? (
-                  <motion.button
-                    type="button"
-                    aria-label="Write today’s note"
-                    title="Write today’s note"
-                    onClick={() => {
-                      if (morphRef.current || sketchingRef.current) return;
-                      setFilterTopic("all");
-                      setFilterOpen(false);
-                      byPersonRef.current = true;
-                      caretToEndRef.current = true;
-                      open(today);
-                      setComposing(true);
-                    }}
-                    whileHover={{ backgroundColor: "#E8E8E8" }}
-                    whileTap={reduced ? undefined : { scale: 0.94 }}
-                    className="dc-sketch absolute flex size-11 items-center justify-center rounded-full border-0 bg-white p-0"
-                    style={{ left: (SCREEN_W - 44) / 2, color: TEXT, cursor: "pointer" }}
-                  >
-                    <Plus size={20} strokeWidth={1.5} aria-hidden="true" />
-                  </motion.button>
-                ) : null}
-                {filterTopic !== "all" ? <span className="absolute inset-x-20 text-center" style={{ top: openDay === null ? 52 : 10, fontSize: 18, lineHeight: "24px" }}>{FILTER_OPTIONS.find((option) => option.id === filterTopic)?.label}</span> : null}
+                {filterTopic !== "all" ? <span className="absolute inset-x-20 text-center" style={{ top: 10, fontSize: 18, lineHeight: "24px" }}>{FILTER_OPTIONS.find((option) => option.id === filterTopic)?.label}</span> : null}
                 <motion.button
                   ref={filterButtonRef}
                   type="button"
@@ -903,6 +881,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                                 info={CALENDAR_DAYS[day - 1]}
                                 isToday={state === "today"}
                                 image={demoEntry && day === today ? demoEntry.image : images[day]}
+                                hasNote={Boolean((demoEntry && day === today ? demoEntry.note : entries[day])?.trim())}
                                 dimmed={!matchesTopic(day)}
                                 tabbable={focusDay === day}
                                 onFocus={() => setFocusDay(day)}
@@ -1509,6 +1488,7 @@ type DayCellProps = {
   info: CalendarDay;
   isToday: boolean;
   image?: DiaryImage;
+  hasNote: boolean;
   dimmed: boolean;
   tabbable: boolean;
   onFocus: () => void;
@@ -1516,7 +1496,7 @@ type DayCellProps = {
   register: (el: HTMLButtonElement | null) => void;
 };
 
-const DayCell = React.memo(function DayCell({ day, info, isToday, image, dimmed, tabbable, onFocus, onOpen, register }: DayCellProps) {
+const DayCell = React.memo(function DayCell({ day, info, isToday, image, hasNote, dimmed, tabbable, onFocus, onOpen, register }: DayCellProps) {
   return (
     <motion.button
       type="button"
@@ -1537,7 +1517,7 @@ const DayCell = React.memo(function DayCell({ day, info, isToday, image, dimmed,
       <span className="pointer-events-none absolute inset-0 block" style={{ zIndex: 3, padding: isToday && image ? 3 : 0 }} aria-hidden="true">
         {image ? <DiaryArtwork image={image} compact blue={isToday} /> : (
           <span className="flex size-full items-center justify-center rounded-full" style={{ border: isToday ? undefined : "1.25px solid currentColor" }}>
-            <Plus size={14} strokeWidth={1.3} />
+            {hasNote ? <PenLine size={14} strokeWidth={1.3} /> : <Plus size={14} strokeWidth={1.3} />}
           </span>
         )}
       </span>

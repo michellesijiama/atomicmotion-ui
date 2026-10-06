@@ -91,7 +91,8 @@ function StampTrackerPreview({ loop }: { loop?: boolean }) {
 }
 
 function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
-  return <DoodleCalendar loop={loop ?? false} persist={loop !== true} />;
+  // Website previews start fresh; the reusable diary can still opt into persistence.
+  return <DoodleCalendar loop={loop ?? false} persist={false} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
