@@ -38,6 +38,7 @@
     "test:free-export": "node scripts/verify-free-library.mjs",
     "test:stamp-tracker-contrast": "node scripts/verify-stamp-tracker-contrast.mjs",
     "test:gradient-event-card": "node scripts/verify-gradient-event-card.mjs",
+    "pretypecheck": "npm run generate:purchase-sources",
     "typecheck": "tsc --noEmit",
     "test:repo-guards": "node --test tests/repository-guards.test.mjs",
     "test": "node scripts/run-tests.mjs",
