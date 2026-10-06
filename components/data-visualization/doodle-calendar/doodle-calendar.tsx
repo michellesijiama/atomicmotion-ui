@@ -254,6 +254,7 @@ function demoImageFor(note: string): DiaryImage | undefined {
 const HOLD_MS = 3800;
 const PAUSE_MS = 700;
 const DEMO_NOTE = "It rained today. I walked home under my umbrella.";
+const HOMEPAGE_DEMO_NOTE = "Packed a bento for lunch before a busy afternoon at work.";
 const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
 const PAGE_SPRING = { type: "spring", stiffness: 320, damping: 34, mass: 1 } as const;
 const PAGE_SCALE_EASE = cubicBezier(0.4, 0, 0.2, 1);
@@ -588,18 +589,28 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
     const show = async () => {
       if (!await pause(900)) return;
       demoActiveRef.current = true;
-      const image = demoImageFor(DEMO_NOTE);
+      const note = persist ? DEMO_NOTE : HOMEPAGE_DEMO_NOTE;
+      const image = demoImageFor(note);
       if (!image) return;
       void preloadImage(artworkUrl(image.src));
       void preloadImage(artworkUrl(image.thumbnailSrc!));
       while (!cancelled) {
         setDemoEntry({ note: "" });
+        const monday = today - (FIRST_COLUMN + today - 1) % 7;
+        if (!persist && monday >= 1 && monday < today) {
+          open(monday);
+          if (!await pause(2200)) return;
+          if (monday + 1 < today) {
+            open(monday + 1);
+            if (!await pause(1800)) return;
+          }
+        }
         open(today);
         if (!await pause(1300)) return;
         setComposing(true);
         if (!await pause(450)) return;
-        for (let length = 1; length <= DEMO_NOTE.length; length++) {
-          setDemoEntry({ note: DEMO_NOTE.slice(0, length) });
+        for (let length = 1; length <= note.length; length++) {
+          setDemoEntry({ note: note.slice(0, length) });
           if (!await pause(48)) return;
         }
         if (!await pause(650)) return;
@@ -610,7 +621,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
         sketchingRef.current = true;
         setSketchPhase("glow");
         if (!await pause(SKETCH_MIN_MS)) return;
-        setDemoEntry({ note: DEMO_NOTE, image });
+        setDemoEntry({ note, image });
         setSketchPhase("reveal");
         if (!await pause(REVEAL_MS)) return;
         setSketchPhase("idle");
@@ -624,7 +635,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
     };
     void show();
     return () => { cancelled = true; window.clearTimeout(timer); stopDemo(); };
-  }, [loop, diaryReady, hasTodayEntry, interacted, reduced, today, open, close, stopDemo]);
+  }, [loop, persist, diaryReady, hasTodayEntry, interacted, reduced, today, open, close, stopDemo]);
 
   const touched = () => {
     stopDemo();

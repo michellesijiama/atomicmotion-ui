@@ -75,7 +75,7 @@ const checks = [
   ["keyboard is clamped to the days that can be opened", c.includes("Math.min(today, Math.max(1,")],
   ["focus ring is an outline in ink", c.includes(":focus-visible") && c.includes("outline: 2px solid")],
   ["loop stops at first interaction", c.includes("interacted") && c.includes("onPointerDownCapture") && c.includes("onKeyDownCapture")],
-  ["loop demonstrates typing a rainy-day note, submitting and revealing its sketch", c.includes("DEMO_NOTE.slice(0, length)") && c.includes("setDemoPressed(true)") && c.includes("setDemoEntry({ note: DEMO_NOTE, image })") && c.includes("stopDemo();")],
+  ["loop demonstrates typing a note, submitting and revealing its sketch", c.includes("note.slice(0, length)") && c.includes("setDemoPressed(true)") && c.includes("setDemoEntry({ note, image })") && c.includes("stopDemo();")],
   ["exposes onSelect", c.includes("onSelect?:")],
   ["motion respects reduced motion", c.includes('reducedMotion="user"') && c.includes("useReducedMotion")],
   ["index re-exports component and props", files.index.includes("DoodleCalendar") && files.index.includes("DoodleCalendarProps")],
