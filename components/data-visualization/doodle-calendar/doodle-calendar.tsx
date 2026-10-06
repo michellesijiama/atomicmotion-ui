@@ -1232,9 +1232,9 @@ function DiaryPlaceholder({ reduced, active }: { reduced: boolean; active: boole
   );
 }
 
-const GLOW_RING = 16; // thickness of the lit band along the inner edge, before blur
-const GLOW_BLUR = 10;
-const GEMINI_CONIC = "conic-gradient(from 42deg at 50% 50%, rgba(66,133,244,0.84) 0deg, rgba(164,137,235,0.8) 60deg, rgba(233,155,192,0.78) 120deg, rgba(247,184,130,0.8) 180deg, rgba(174,211,157,0.76) 240deg, rgba(133,201,224,0.82) 300deg, rgba(66,133,244,0.84) 360deg)";
+const GLOW_RING = 32; // thickness of the lit band along the inner edge, before blur
+const GLOW_BLUR = 20;
+const GEMINI_CONIC = "conic-gradient(from 0deg at 50% 50%, rgba(159,125,175,0.94) 0deg, rgba(56,123,213,0.96) 50deg, rgba(195,155,168,0.94) 110deg, rgba(206,170,152,0.92) 150deg, rgba(224,215,165,0.96) 180deg, rgba(206,170,152,0.92) 210deg, rgba(195,155,168,0.94) 250deg, rgba(56,123,213,0.96) 310deg, rgba(159,125,175,0.94) 360deg)";
 
 /** Gemini-style light that runs along the inside of the card's edge while a drawing is being made. */
 function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) {
@@ -1264,7 +1264,7 @@ function SketchGlow({ reduced, fading }: { reduced: boolean; fading: boolean }) 
         <motion.span
           className="absolute left-1/2 top-1/2 block"
           style={{ width: side, height: side, marginLeft: -side / 2, marginTop: -side / 2, background: GEMINI_CONIC }}
-          animate={reduced ? { opacity: 0.7 } : { rotate: [0, 360], opacity: [0.76, 0.9, 0.76] }}
+          animate={reduced ? { opacity: 0.9 } : { rotate: [0, 360], opacity: [0.9, 1, 0.9] }}
           transition={reduced ? { duration: 0.2 } : { rotate: { duration: 9, ease: "linear", repeat: Infinity }, opacity: { duration: 5.8, ease: "easeInOut", repeat: Infinity } }}
         />
       </div>
