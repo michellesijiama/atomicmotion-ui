@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "git log -1 --format=%B | grep -q '\\[skip deploy\\]'"
+}

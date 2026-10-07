@@ -1,0 +1,44 @@
+{
+  "tool": "built-in imagegen",
+  "mode": "style-transfer edits",
+  "prompt": "Use case: style-transfer. Edit target: attached diary illustration. Keep the same recognizable everyday object, composition, object position and generous margins. Change the drawing to an exceptionally THIN GRAPHITE PENCIL OUTLINE SKETCH. Hairline contours, subtle grain only along the narrow pencil strokes, light pressure, a few small broken edges, quiet simple handmade marks. Not marker, not charcoal, not a thick cartoon outline. IMPORTANT: remove EVERY solid or washed interior area. Cup body, saucer, coffee surface, food, clothes, windows and all other object interiors must be completely TRANSPARENT, including white interiors. All non-stroke pixels are transparent. The only visible content is narrow BLACK pencil strokes, with variable alpha for pencil texture. NO white fill, NO gray fill, NO gray washes, NO shading, NO hatching, NO shadow, NO paper texture, NO background, NO colors, NO text, NO border, NO new objects. For dark or filled elements such as coffee or train windows, show only their thin boundary lines and leave their interior entirely transparent. Preserve actual transparent alpha.",
+  "assets": [
+    {
+      "key": "coffee",
+      "file": "public/illustrations/doodle-calendar-diary/coffee.webp",
+      "thumbnail": "public/illustrations/doodle-calendar-diary/coffee-thumb.webp"
+    },
+    {
+      "key": "bento",
+      "file": "public/illustrations/doodle-calendar-diary/bento.webp",
+      "thumbnail": "public/illustrations/doodle-calendar-diary/bento-thumb.webp"
+    },
+    {
+      "key": "exercise",
+      "file": "public/illustrations/doodle-calendar-diary/exercise.webp",
+      "thumbnail": "public/illustrations/doodle-calendar-diary/exercise-thumb.webp"
+    },
+    {
+      "key": "train",
+      "file": "public/illustrations/doodle-calendar-diary/train.webp",
+      "thumbnail": "public/illustrations/doodle-calendar-diary/train-thumb.webp"
+    },
+    {
+      "key": "rain",
+      "file": "public/illustrations/doodle-calendar-diary/rain.webp",
+      "thumbnail": "public/illustrations/doodle-calendar-diary/rain-thumb.webp"
+    },
+    {
+      "key": "home",
+      "file": "public/illustrations/doodle-calendar-diary/home.webp",
+      "thumbnail": "public/illustrations/doodle-calendar-diary/home-thumb.webp"
+    },
+    {
+      "key": "shrine",
+      "file": "public/illustrations/doodle-calendar-diary/shrine.webp",
+      "thumbnail": "public/illustrations/doodle-calendar-diary/shrine-thumb.webp"
+    }
+  ],
+  "export": "Pencil tone is encoded as black RGB with variable alpha. Non-stroke pixels and object interiors are transparent; no white or gray fills.",
+  "runtime": "Prepared demo images; the optional onGenerateImage callback is not configured in this gallery."
+}

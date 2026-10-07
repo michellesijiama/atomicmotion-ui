@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Guard, lint, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Verify public surface
+        run: node scripts/verify-public-surface.mjs
+      - name: Verify registry paths
+        run: node scripts/verify-registry-paths.mjs
+      - name: Verify complete open-source publication
+        run: npm run test:free-export
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Verify production server
+        run: npm run verify:server
+      - name: Install browser for responsive checks
+        run: npx playwright install --with-deps chromium
+      - name: Verify responsive layouts and expanded controls
+        run: npm run verify:responsive
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+  verify-scripts:
+    name: Verify scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Run all test:* scripts
+        run: npm test

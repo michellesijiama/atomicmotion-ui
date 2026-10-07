@@ -1,0 +1,80 @@
+{
+  "name": "atomicmotion-ui",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "A free, open-source design library of expressive interfaces and interactions.",
+  "homepage": "https://atomicmotion.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michellesijiama/atomicmotion-ui"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "capture:home-previews": "node scripts/capture-home-previews.mjs",
+    "capture:preview-loop": "node scripts/capture-preview-loop.mjs",
+    "generate:readmes": "node scripts/generate-component-readmes.mjs",
+    "generate:free-lock": "node scripts/generate-free-library-lock.mjs",
+    "export:free": "node scripts/export-free-library.mjs",
+    "lint": "eslint",
+    "verify": "node scripts/verify-public-surface.mjs && node scripts/verify-registry-paths.mjs",
+    "test:design": "node scripts/verify-jitter-design-system.mjs",
+    "test:soft-menu-reveal": "node scripts/verify-soft-menu-reveal-mad.mjs",
+    "test:codex-sidebar": "node scripts/verify-codex-sidebar-reveal.mjs",
+    "test:card-padding": "node scripts/verify-component-card-padding.mjs",
+    "test:gemini-live": "node scripts/verify-gemini-live.mjs",
+    "test:home-filter": "node scripts/verify-home-filter.mjs",
+    "test:gradient-gummy": "node scripts/verify-gradient-gummy-material.mjs",
+    "test:home-previews": "node scripts/verify-static-home-previews.mjs",
+    "test:doc-links": "node scripts/verify-doc-links.mjs",
+    "test:copy-paste": "node scripts/verify-copy-paste.mjs",
+    "test:component-source": "node --test tests/component-source.test.mjs",
+    "test:structure": "node scripts/verify-component-structure.mjs",
+    "test:readmes": "node scripts/verify-component-readmes.mjs",
+    "test:free-export": "node scripts/verify-free-library.mjs",
+    "test:free-dependencies": "node scripts/verify-free-library-dependencies.mjs",
+    "test:stamp-tracker-contrast": "node scripts/verify-stamp-tracker-contrast.mjs",
+    "test:gradient-event-card": "node scripts/verify-gradient-event-card.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:repo-guards": "node --test tests/repository-guards.test.mjs",
+    "test": "node scripts/run-tests.mjs",
+    "check": "npm run verify && npm run lint && npm run typecheck && npm test && npm run build && npm run verify:server && npm audit --omit=dev",
+    "verify:server": "node scripts/verify-server.mjs",
+    "verify:responsive": "node scripts/verify-responsive.mjs",
+    "test:doodle-calendar": "node scripts/verify-doodle-calendar.mjs"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^1.18.0",
+    "next": "16.3.8",
+    "perfect-freehand": "^1.2.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.6.0",
+    "three": "^0.169.0",
+    "three-subdivide": "^1.1.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.19.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.169.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.3.8",
+    "playwright": "^1.61.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "overrides": {
+    "@tailwindcss/postcss": {
+      "postcss": "^8.5.28"
+    }
+  }
+}

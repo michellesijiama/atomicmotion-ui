@@ -1,0 +1,131 @@
+import { mkdirSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { chromium } from "playwright";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = resolve(__dirname, "..");
+const baseUrl = process.env.PREVIEW_BASE_URL ?? "http://localhost:3000";
+const outputDir = resolve(projectRoot, "public/previews");
+const registry = readFileSync(resolve(projectRoot, "src/lib/component-registry.ts"), "utf8");
+const allIds = [...new Set(Array.from(registry.matchAll(/id: "([^"]+)"/g)).map((match) => match[1]))];
+
+// Optional CLI filter: `node capture-home-previews.mjs gradient-gummy-bear`
+// regenerates only those posters. With no args it captures every component.
+const requested = process.argv.slice(2);
+const ids = requested.length ? allIds.filter((id) => requested.includes(id)) : allIds;
+
+if (ids.length === 0) {
+  throw new Error("No component ids to capture.");
+}
+
+// Cards sit on the design-system gray (--jitter-card). Capture posters on that
+// gray so transparent (e.g. WebGL) previews blend into the card, not show a box.
+const captureBackground = "#f2f2f4";
+
+mkdirSync(outputDir, { recursive: true });
+
+function previewPath(id) {
+  return resolve(outputDir, `${id}.png`);
+}
+
+// The Next.js dev-tools indicator ("N · 1 Issue") renders into <nextjs-portal>
+// custom elements. Because captures run against the dev server, it would
+// otherwise be baked into every poster. Hide any dev overlay before shooting.
+function hideDevOverlay(page) {
+  return page.evaluate(() => {
+    for (const el of document.querySelectorAll("nextjs-portal")) {
+      el.style.display = "none";
+    }
+  });
+}
+
+async function prepareCapturePage(page) {
+  await page.evaluate((bg) => {
+    document.body.style.background = bg;
+    // The detail-page <main> carries the white --jitter-bg, which would cover
+    // the body color behind a transparent (e.g. WebGL) preview. Force it to the
+    // capture background so those posters match the gray gallery.
+    const main = document.querySelector("main");
+    if (main) main.style.background = bg;
+    const reveals = Array.from(document.querySelectorAll(".am-reveal"));
+    if (reveals[0]) reveals[0].style.display = "none";
+    if (reveals[1]) {
+      reveals[1].style.padding = "0";
+      reveals[1].style.animation = "none";
+      reveals[1].style.opacity = "1";
+      reveals[1].style.transform = "none";
+    }
+    const root = document.querySelector("body > div");
+    if (root) root.style.height = "100vh";
+  }, captureBackground);
+}
+
+// Setting document.body is not enough on its own: the detail page's
+// ComponentStage paints its own opaque surface on top of it. Use the stage's
+// own Shift+G affordance to put it on --jitter-card, so transparent (e.g.
+// WebGL) previews blend into the gray card instead of baking in a white box.
+// Must run after hydration — before that the stage has no keydown listener.
+function setStageGray(page) {
+  return page.keyboard.press("Shift+G");
+}
+
+const browser = await chromium.launch();
+const page = await browser.newPage({
+  viewport: { width: 960, height: 1200 },
+  deviceScaleFactor: 1,
+});
+
+try {
+  for (const id of ids) {
+    await page.goto(`${baseUrl}/components/${id}`, { waitUntil: "domcontentloaded" });
+    await prepareCapturePage(page);
+    if (id === "voice-bloom") {
+      await page.getByRole("button", { name: "Start voice input" }).click();
+      await page.waitForTimeout(3200);
+    } else if (id === "stamp-tracker") {
+      // The poster is the Week view at rest, once the cards have risen into place.
+      await page.waitForSelector('[role="tab"]');
+      await page.waitForTimeout(1200);
+      await page.getByRole("tab", { name: "Week" }).click();
+      await page.evaluate(() => document.activeElement?.blur());
+      await page.mouse.move(2, 2);
+      await page.waitForTimeout(900);
+    } else {
+      // halftone-bloom opens collapsed, so the poster has to open it — and it
+      // spends its first seconds part-lit, so shoot during the hold with the
+      // moon full. Wait for hydration first: clicking a server-rendered button
+      // before React has attached only moves focus, and the poster comes out
+      // collapsed with a focus ring on it.
+      if (id === "halftone-bloom") {
+        const isOpen = () =>
+          page.evaluate(
+            () => document.querySelector('[aria-controls$="-moon"]')?.getAttribute("aria-expanded") === "true",
+          );
+        // Retry rather than click once and hope: a single click can land in the
+        // window before React has attached its handler, which moves focus and
+        // nothing else. Clicking again after hydration is harmless.
+        for (let attempt = 0; attempt < 12 && !(await isOpen()); attempt += 1) {
+          await page.waitForTimeout(400);
+          await page.getByRole("button", { name: "Show the moon" }).click();
+        }
+        if (!(await isOpen())) throw new Error("halftone-bloom did not expand");
+        await page.evaluate(() => document.activeElement?.blur());
+      }
+      // Components whose poster wants a specific moment rather than "shortly
+      // after mount".
+      const settle = { "gradient-gummy-bear": 2400, "halftone-bloom": 4200 };
+      await page.waitForTimeout(settle[id] ?? 1400);
+    }
+    await setStageGray(page);
+    await page.waitForTimeout(400);
+    await hideDevOverlay(page);
+    await page.screenshot({
+      path: previewPath(id),
+      clip: { x: 0, y: 0, width: 960, height: 1200 },
+    });
+    console.log(`captured ${id}`);
+  }
+} finally {
+  await browser.close();
+}

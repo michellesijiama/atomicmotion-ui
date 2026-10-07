@@ -1,0 +1,11 @@
+{
+  "emoji-sketch": ["public/emoji/README.md", "public/emoji/*.svg", "licenses/OpenMoji-CC-BY-SA-4.0.txt"],
+  "gradient-gummy-bear": ["public/models/gummy-bear.glb", "public/gummy-bear-poster.png"],
+  "showreel-sphere": [
+    "public/paintings/carnevale-birth-of-the-virgin.jpg",
+    "public/paintings/bruegel-the-harvesters.jpg",
+    "public/paintings/patinir-penitence-of-saint-jerome.jpg",
+    "public/paintings/bosch-adoration-of-the-magi.jpg"
+  ],
+  "blossom-light": ["public/textures/wall-shadow.jpg"]
+}

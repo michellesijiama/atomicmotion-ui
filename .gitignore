@@ -1,0 +1,54 @@
+.superpowers/
+public/scroll-phase-cursor.gif
+public/coffee-gauge-rednote.gif
+
+# Social/render tooling and its output. scripts/render-* is denylisted by
+# verify-public-surface.mjs — this keeps it from being staged by accident.
+scripts/render-*
+.tmp/
+for social post/
+
+# Agent process files and internal planning docs — not part of the public product
+CLAUDE.md
+AGENTS.md
+.claudecode/
+.claude/
+.devin/
+docs/superpowers/
+.vercel
+
+# Design QA notes — scratch findings that reference local temp paths and
+# in-progress components, not part of the public product.
+design-qa.md
+*-qa.md
+
+# OS cruft. The app folder ignores this already; the repo root did not.
+.DS_Store
+
+# Reference/backdrop images used while building a component. Anything in
+# public/ that is genuinely shipped must be listed in ASSETS.md instead —
+# verify-public-surface.mjs enforces that.
+public/gummy-bear-backdrop.png
+
+# ---- from the app (build output, deps, local env) ----
+*.pem
+*.tsbuildinfo
+.env*
+.pnp.*
+.pnpm-debug.log*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+/.next/
+/.pnp
+/build
+/coverage
+/node_modules
+/out/
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.artifacts/

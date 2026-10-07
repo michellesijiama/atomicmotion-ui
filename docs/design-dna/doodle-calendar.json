@@ -1,0 +1,381 @@
+{
+  "meta": {
+    "name": "Everyday Japan Diary",
+    "description": "Everyday Japan diary illustrated with thin textured black pencil outlines. Thursday August 13 is the demo today.",
+    "created_at": "2026-10-03"
+  },
+  "design_system": {
+    "color": {
+      "palette_type": "black pencil art and neutral UI with a blue today marker",
+      "primary": {
+        "hex": "#242424",
+        "role": "architectural outlines and UI ink"
+      },
+      "secondary": {
+        "hex": "#F0F0F0",
+        "role": "quiet app background"
+      },
+      "accent": {
+        "hex": "#0041FF",
+        "role": "today illustration, circle and detail date only"
+      },
+      "neutral": {
+        "scale": [
+          "#FFFFFF",
+          "#F0F0F0",
+          "#242424"
+        ],
+        "usage": "white and soft gray with charcoal ink"
+      },
+      "semantic": {
+        "success": "#242424",
+        "warning": "#242424",
+        "error": "#242424",
+        "info": "#242424"
+      },
+      "surface": {
+        "background": "#F0F0F0",
+        "card": "#FFFFFF",
+        "elevated": "#FFFFFF"
+      },
+      "contrast_strategy": "charcoal ink on light neutral backgrounds"
+    },
+    "typography": {
+      "type_scale": {
+        "display": {
+          "size": "44px",
+          "weight": "400",
+          "line_height": "46px",
+          "tracking": "-0.02em"
+        },
+        "heading_1": {
+          "size": "40px",
+          "weight": "400",
+          "line_height": "42px",
+          "tracking": "0"
+        },
+        "heading_2": {
+          "size": "25px",
+          "weight": "500",
+          "line_height": "28px",
+          "tracking": "0"
+        },
+        "heading_3": {
+          "size": "18px",
+          "weight": "500",
+          "line_height": "22px",
+          "tracking": "-0.01em"
+        },
+        "body": {
+          "size": "19px",
+          "weight": "400",
+          "line_height": "23px",
+          "tracking": "0"
+        },
+        "body_small": {
+          "size": "12px",
+          "weight": "500",
+          "line_height": "16px",
+          "tracking": "0"
+        },
+        "caption": {
+          "size": "11px",
+          "weight": "500",
+          "line_height": "14px",
+          "tracking": "0.01em"
+        },
+        "overline": {
+          "size": "10px",
+          "weight": "600",
+          "line_height": "12px",
+          "tracking": "0.08em"
+        }
+      },
+      "font_families": {
+        "heading": "Caveat",
+        "body": "Caveat",
+        "mono": "ui-monospace"
+      },
+      "font_style_notes": "Caveat handwriting across the diary, with larger notes for readability."
+    },
+    "spacing": {
+      "base_unit": "4px",
+      "scale": [
+        "4px",
+        "8px",
+        "12px",
+        "16px",
+        "22px",
+        "32px",
+        "48px"
+      ],
+      "content_density": "comfortable",
+      "section_rhythm": "Top navigation has 32px side insets and a 28px top inset; a 16px gap separates its 44px buttons from the diary card. The illustration keeps its size, with captions and input aligned beneath it."
+    },
+    "layout": {
+      "grid_system": "single-column mobile canvas with a seven-column closed calendar",
+      "max_content_width": "300px",
+      "columns": 1,
+      "gutter": "22px",
+      "breakpoints": [
+        "420px host minimum",
+        "responsive scale-to-fit"
+      ],
+      "alignment_tendency": "strict left edge for content with centred date navigation"
+    },
+    "shape": {
+      "border_radius": {
+        "small": "14px",
+        "medium": "34px",
+        "large": "51px",
+        "pill": "999px"
+      },
+      "border_usage": "A thin #BEBEBE gray outline defines the outer app edge. No border or divider around the daily-note input.",
+      "divider_style": "1px translucent current-ink divider"
+    },
+    "elevation": {
+      "shadow_style": "none",
+      "levels": {
+        "low": "none",
+        "medium": "none",
+        "high": "none"
+      },
+      "depth_cues": "simple architectural perspective without shading"
+    },
+    "iconography": {
+      "style": "minimal rounded outline",
+      "stroke_weight": "1.8px",
+      "size_scale": [
+        "16px"
+      ],
+      "preferred_set": "Lucide"
+    },
+    "motion": {
+      "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+      "duration_scale": {
+        "micro": "120ms",
+        "normal": "240ms",
+        "macro": "600ms"
+      },
+      "entrance_pattern": "The connected date strip fades in, centered on the selected date.",
+      "exit_pattern": "The strip follows horizontal dragging and snaps by exactly one card; fading out returns to the calendar.",
+      "philosophy": "minimal functional and reduced-motion aware"
+    },
+    "components": {
+      "button_style": "Top Home and Filter icon circles with 44px hit targets. Weekday/date return control inside each card. Fixed bottom control with two circular arrow buttons joined by curved waists to a central pencil pill; each button has a 44px hit target.",
+      "input_style": "Borderless transparent daily-note area with no inline pencil, divider or bottom text action. The pencil lives in the fixed controls beneath the card.",
+      "card_style": "White rounded date cards on soft gray paper, joined to neighboring cards by narrow curved bridges; neighboring edges peek in from either side.",
+      "navigation_pattern": "Top Home clears topic filtering and returns to the full month. Filter opens a compact topic panel; choosing a topic keeps calendar dates in place and fades non-matching entries. Weekday/date travels inside each card. Swiping moves the connected card strip; fixed bottom arrows switch dates; the central pencil previews the note’s illustration. Date header, outside click and Escape return to the month view.",
+      "modal_style": "full mobile-paper detail state",
+      "list_style": "seven-column calendar with saved illustration thumbnails and a plus for the blank day",
+      "component_notes": "Thirteen sample entries through Thursday, August 13. Today has a blue illustration and blue circle, with no extra date badge. Only today’s artwork is blue; other dates stay black even when opened. Friday onward stays empty. Artwork uses thin pencil strokes with transparent interiors."
+    }
+  },
+  "design_style": {
+    "aesthetic": {
+      "mood": [
+        "quiet",
+        "simple",
+        "observant",
+        "handmade"
+      ],
+      "visual_metaphor": "a small illustrated diary of everyday life in Japan",
+      "era_influence": "minimal travel sketchbook",
+      "genre": "personal daily diary",
+      "personality_traits": [
+        "restrained",
+        "personal",
+        "calm"
+      ],
+      "adjectives": [
+        "monochrome",
+        "sparse",
+        "outlined"
+      ]
+    },
+    "visual_language": {
+      "complexity": "low",
+      "ornamentation": "decorative illustration",
+      "whitespace_usage": "large quiet fields around a concentrated drawing",
+      "visual_weight_distribution": "whitespace and charcoal outlines",
+      "focal_strategy": "single centred illustration",
+      "contrast_level": "high",
+      "texture_usage": "none"
+    },
+    "composition": {
+      "hierarchy_method": "colour weight and spatial isolation",
+      "balance_type": "asymmetric illustration inside a symmetric device",
+      "flow_direction": "top navigation to illustration to entry",
+      "grouping_strategy": "connected controls and aligned caption/input",
+      "negative_space_role": "protects the illustration and keeps vivid colour from becoming chaotic"
+    },
+    "imagery": {
+      "photo_treatment": "none",
+      "illustration_style": "generated thin black pencil outlines with subtle graphite grain along strokes only; all interiors transparent",
+      "graphic_elements": "coffee cup, bento, exercise, commuter train, umbrella, laundry and shrine",
+      "pattern_usage": "pencil grain within narrow strokes, no shading or hatching",
+      "image_shape": "transparent square illustrations contained without cropping"
+    },
+    "interaction_feel": {
+      "feedback_style": "notes change independently; only the sketch action updates the illustrated result",
+      "hover_behavior": "The connected bottom control keeps one continuous white surface. Hover feedback moves the arrow icons slightly and lifts, tilts and enlarges the pencil icon subtly, without separate fill patches. Reduced motion and disabled actions keep the icons still.",
+      "transition_personality": "smooth glide",
+      "loading_style": "complete static drawing with no draw-on animation",
+      "microinteraction_density": "low"
+    },
+    "brand_voice_in_ui": {
+      "tone": "observant and personal",
+      "formality": "casual",
+      "cta_style": "friendly invitation",
+      "empty_state_approach": "invite a small daily moment: coffee, lunch, exercise or a walk",
+      "error_tone": "quiet and corrective"
+    }
+  },
+  "visual_effects": {
+    "overview": {
+      "effect_intensity": "low",
+      "performance_tier": "lightweight",
+      "fallback_strategy": "static prepared demo art and reduced-motion transitions",
+      "primary_technology": "transparent WebP illustrations"
+    },
+    "background_effects": {
+      "type": "none",
+      "description": "Single soft gray background across all days.",
+      "technology": "CSS",
+      "params": {
+        "color_palette": [
+          "#F0F0F0"
+        ],
+        "speed": "0",
+        "density": "0",
+        "opacity": "1",
+        "blend_mode": "normal"
+      }
+    },
+    "particle_systems": {
+      "enabled": false,
+      "type": "none",
+      "description": "No particles.",
+      "technology": "none",
+      "params": {
+        "count": 0,
+        "shape": "none",
+        "size_range": "0",
+        "movement_pattern": "none",
+        "color_behavior": "none",
+        "interaction": "none",
+        "spawn_area": "none"
+      }
+    },
+    "3d_elements": {
+      "enabled": false,
+      "type": "none",
+      "description": "No 3D elements.",
+      "technology": "none",
+      "params": {
+        "renderer": "none",
+        "lighting": "none",
+        "camera": "none",
+        "materials": "none",
+        "geometry": "none",
+        "post_processing": [],
+        "interaction_model": "none"
+      }
+    },
+    "shader_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "No shaders.",
+      "technology": "none",
+      "params": {
+        "uniforms": {},
+        "vertex_manipulation": "none",
+        "fragment_output": "none",
+        "noise_type": "none",
+        "distortion": "none"
+      }
+    },
+    "scroll_effects": {
+      "parallax": {
+        "enabled": false,
+        "layers": "0",
+        "depth_range": "0",
+        "speed_curve": "none"
+      },
+      "scroll_triggered_animations": {
+        "enabled": false,
+        "trigger_points": [],
+        "animation_type": "none",
+        "scrub_behavior": "none"
+      },
+      "scroll_morphing": {
+        "enabled": false,
+        "description": "No scroll morphing."
+      }
+    },
+    "text_effects": {
+      "type": "none",
+      "description": "Typography remains static.",
+      "technology": "CSS",
+      "params": {
+        "split_strategy": "none",
+        "animation_per_unit": "none",
+        "stagger": "0",
+        "effect_style": "none"
+      }
+    },
+    "cursor_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "Native cursor.",
+      "params": {
+        "shape": "native",
+        "size": "native",
+        "blend_mode": "normal",
+        "trail": "none",
+        "interaction_zone": "none"
+      }
+    },
+    "image_effects": {
+      "type": "transparent-grayscale-diary",
+      "description": "Thin generated pencil strokes with variable alpha. Every non-stroke pixel and object interior is transparent.",
+      "technology": "WebP with alpha",
+      "params": {
+        "filter_pipeline": [],
+        "hover_transform": "none",
+        "reveal_animation": "none",
+        "distortion_type": "none"
+      }
+    },
+    "glassmorphism_neumorphism": {
+      "enabled": false,
+      "style": "none",
+      "params": {
+        "blur_radius": "0",
+        "transparency": "0",
+        "border_treatment": "none",
+        "shadow_type": "none",
+        "light_source_angle": "none"
+      }
+    },
+    "canvas_drawings": {
+      "enabled": false,
+      "type": "none",
+      "description": "Illustrations are generated raster assets.",
+      "technology": "none",
+      "params": {}
+    },
+    "svg_animations": {
+      "enabled": false,
+      "type": "none",
+      "description": "No SVG animation.",
+      "params": {
+        "animation_method": "none",
+        "path_morphing": "none",
+        "stroke_animation": "none",
+        "filter_effects": "none"
+      }
+    },
+    "composite_notes": "No filled illustration interiors or grayscale washes. Only today’s illustrations use blue pencil strokes; all other dates stay black in both calendar and detail views."
+  }
+}
