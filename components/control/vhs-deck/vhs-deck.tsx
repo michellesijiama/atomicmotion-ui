@@ -274,14 +274,17 @@ const NOISE_H = 92;
 /* The keys                                                                   */
 /* ------------------------------------------------------------------------- */
 
-const SINK = 3;
+/** How tall the skirt shows under the face at rest, and how far the face
+ *  travels down when pressed (leaving 2px of skirt). */
+const SKIRT = 8;
+const SINK = 6;
 
 type KeyId = "play" | "share" | "menu";
 
-const KEY_STYLES: Record<KeyId, { radius: string }> = {
-  play: { radius: "13px 13px 13px 56px" },
-  share: { radius: "13px" },
-  menu: { radius: "13px 13px 56px 13px" },
+const KEY_STYLES: Record<KeyId, { radius: string; faceRadius: string }> = {
+  play: { radius: "12px 12px 12px 60px", faceRadius: "11px 11px 11px 58px" },
+  share: { radius: "12px", faceRadius: "11px" },
+  menu: { radius: "12px 12px 60px 12px", faceRadius: "11px 11px 58px 11px" },
 };
 
 function Glyph({ id, playing }: { id: KeyId; playing: boolean }) {
@@ -789,82 +792,97 @@ export function VhsDeck({ className }: VhsDeckProps) {
           </div>
         </div>
 
-        {/* The keys. */}
-        <div className="absolute" style={{ left: 42, bottom: 41, width: 356, height: 114 }}>
-          <div
-            aria-hidden="true"
-            className="absolute"
-            style={{
-              inset: -2,
-              borderRadius: "16px 16px 62px 62px",
-              backgroundColor: "#040405",
-              boxShadow:
-                "0 1.5px 0 rgba(255,255,255,0.075), 0 -1px 1px rgba(0,0,0,0.6), inset 0 6px 10px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(0,0,0,0.85)",
-            }}
-          />
-          <div className="relative flex h-full gap-[9px]">
-            {keys.map((key) => {
-              const isDown = down === key.id;
-              const radius = KEY_STYLES[key.id].radius;
-              return (
-                <button
-                  key={key.id}
-                  type="button"
-                  aria-label={key.label}
-                  aria-pressed={key.pressed}
-                  onClick={() => actRef.current?.(key.id)}
-                  {...press(key.id)}
-                  className="relative block h-full flex-1 cursor-pointer appearance-none border-0 bg-transparent p-0 outline-none focus-visible:ring-1 focus-visible:ring-white/45 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                  style={{ borderRadius: radius, WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+        {/* The keys: three solid blocks packed into one recessed tray. */}
+        <div
+          aria-hidden="true"
+          className="absolute"
+          style={{
+            left: 38,
+            bottom: 40,
+            width: 364,
+            height: 118,
+            borderRadius: "14px 14px 66px 66px",
+            backgroundImage: "linear-gradient(180deg, #060607 0%, #0b0b0c 100%)",
+            boxShadow:
+              "0 1px 0 rgba(255,255,255,0.10), 0 -1px 0 rgba(0,0,0,0.55), inset 0 8px 10px -1px rgba(0,0,0,0.95), inset 0 0 0 1px rgba(0,0,0,0.9), inset 0 -2px 3px rgba(0,0,0,0.35)",
+          }}
+        />
+        <div className="absolute flex gap-[4.5px]" style={{ left: 42, bottom: 44, width: 356, height: 110 }}>
+          {keys.map((key) => {
+            const isDown = down === key.id;
+            const radius = KEY_STYLES[key.id].radius;
+            const faceRadius = KEY_STYLES[key.id].faceRadius;
+            const travel = isDown ? SINK : 0;
+            return (
+              <button
+                key={key.id}
+                type="button"
+                aria-label={key.label}
+                aria-pressed={key.pressed}
+                onClick={() => actRef.current?.(key.id)}
+                {...press(key.id)}
+                className="relative block h-full flex-1 cursor-pointer appearance-none border-0 bg-transparent p-0 outline-none focus-visible:ring-1 focus-visible:ring-white/45 focus-visible:ring-offset-1 focus-visible:ring-offset-black"
+                style={{ borderRadius: radius, WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+              >
+                {/* The skirt: the dark side wall of the block, with its contact
+                    shadow on the tray floor. */}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 block"
+                  style={{
+                    borderRadius: radius,
+                    backgroundImage: "linear-gradient(180deg, #1b1b1e 0%, #151517 50%, #0f0f11 100%)",
+                    boxShadow: [
+                      "inset 1px 0 0 rgba(255,255,255,0.075)",
+                      "inset -1px 0 0 rgba(255,255,255,0.04)",
+                      "inset 0 -1px 0 rgba(255,255,255,0.075)",
+                      "inset 0 -3px 3px -2px rgba(0,0,0,0.6)",
+                      isDown
+                        ? "0 1px 0 rgba(0,0,0,0.95), 0 1px 2px rgba(0,0,0,0.8)"
+                        : "0 1px 0 rgba(0,0,0,0.95), 0 3px 4px rgba(0,0,0,0.85), 0 6px 7px -2px rgba(0,0,0,0.6)",
+                    ].join(", "),
+                    transition: isDown ? "box-shadow 45ms ease-out" : "box-shadow 240ms ease-out",
+                  }}
+                />
+                {/* The face, inset a pixel from the skirt on three sides. */}
+                <span
+                  aria-hidden="true"
+                  className="absolute flex items-center justify-center overflow-hidden"
+                  style={{
+                    left: 1,
+                    right: 1,
+                    top: 0,
+                    height: `calc(100% - ${SKIRT}px)`,
+                    borderRadius: faceRadius,
+                    backgroundImage:
+                      "radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,0.06), rgba(255,255,255,0) 65%), linear-gradient(180deg, #2d2d30 0%, #29292c 30%, #242427 70%, #202023 100%)",
+                    boxShadow: [
+                      // A thin bright line where the face meets the skirt.
+                      "0 1px 0 rgba(255,255,255,0.11)",
+                      "0 2px 1px -1px rgba(0,0,0,0.7)",
+                      "inset 0 1px 0 rgba(255,255,255,0.30)",
+                      "inset 1px 1px 0 rgba(255,255,255,0.07)",
+                      "inset -1px 0 0 rgba(255,255,255,0.025)",
+                      "inset 0 -2px 3px rgba(0,0,0,0.38)",
+                      "inset 0 0 9px rgba(0,0,0,0.22)",
+                    ].join(", "),
+                    transform: `translateY(${travel}px)`,
+                    filter: isDown ? "brightness(0.88)" : "none",
+                    transition: isDown
+                      ? "transform 45ms ease-out, filter 45ms ease-out"
+                      : "transform 260ms cubic-bezier(0.34, 1.6, 0.5, 1), filter 200ms ease-out",
+                  }}
                 >
-                  {/* The key's wall: the little dark flank below the cap. */}
                   <span
                     aria-hidden="true"
-                    className="absolute inset-0 block"
-                    style={{
-                      borderRadius: radius,
-                      backgroundImage: "linear-gradient(180deg, #0c0c0d 0%, #000 100%)",
-                      boxShadow: isDown
-                        ? "0 1px 1px rgba(0,0,0,0.6)"
-                        : "0 3px 4px rgba(0,0,0,0.55), 0 9px 12px -3px rgba(0,0,0,0.5)",
-                      transition: isDown ? "box-shadow 45ms ease-out" : "box-shadow 220ms ease-out",
-                    }}
+                    className="pointer-events-none absolute inset-0"
+                    style={{ backgroundImage: KEY_GRAIN, backgroundSize: "160px 160px", mixBlendMode: "soft-light", opacity: 0.28 }}
                   />
-                  {/* The cap. */}
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-x-0 top-0 flex items-center justify-center overflow-hidden"
-                    style={{
-                      height: `calc(100% - ${SINK}px)`,
-                      borderRadius: radius,
-                      backgroundImage:
-                        "radial-gradient(130% 80% at 50% 0%, rgba(255,255,255,0.075), rgba(255,255,255,0) 62%), linear-gradient(180deg, #333336 0%, #29292c 14%, #212124 58%, #1c1c1f 100%)",
-                      boxShadow: [
-                        "0 0 0 1px rgba(0,0,0,0.9)",
-                        "inset 0 1px 0 rgba(255,255,255,0.30)",
-                        "inset 1px 0 0 rgba(255,255,255,0.06)",
-                        "inset -1px 0 0 rgba(255,255,255,0.025)",
-                        "inset 0 -2px 4px rgba(0,0,0,0.5)",
-                        "inset 0 0 10px rgba(0,0,0,0.25)",
-                      ].join(", "),
-                      transform: `translateY(${isDown ? SINK : 0}px)`,
-                      filter: isDown ? "brightness(0.86)" : "none",
-                      transition: isDown
-                        ? "transform 45ms ease-out, filter 45ms ease-out"
-                        : "transform 260ms cubic-bezier(0.34, 1.7, 0.5, 1), filter 200ms ease-out",
-                    }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0"
-                      style={{ backgroundImage: KEY_GRAIN, backgroundSize: "160px 160px", mixBlendMode: "soft-light", opacity: 0.4 }}
-                    />
-                    <Glyph id={key.id} playing={playing} />
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                  <Glyph id={key.id} playing={playing} />
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
