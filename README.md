@@ -83,7 +83,7 @@ integration instructions for every component.
 | <img src="public/previews/gradient-event-card.png" width="160" alt="Gradient Event Card preview"> | **Gradient Event Card** | Gradient | [Source](components/gradient/gradient-event-card/gradient-event-card.tsx) | [README](components/gradient/gradient-event-card/README.md) |
 | <img src="public/previews/stamp-tracker.png" width="160" alt="Stamp Tracker preview"> | **Stamp Tracker** | Data Visualization | [Source](components/data-visualization/stamp-tracker/stamp-tracker.tsx) | [README](components/data-visualization/stamp-tracker/README.md) |
 | <img src="public/previews/doodle-calendar.png" width="160" alt="Doodle Calendar preview"> | **Doodle Calendar** | Data Visualization | [Source](components/data-visualization/doodle-calendar/doodle-calendar.tsx) | [README](components/data-visualization/doodle-calendar/README.md) |
-| <img src="public/previews/vhs-deck.png" width="160" alt="VHS Deck preview"> | **VHS Deck** | Control | [Source](components/control/vhs-deck/vhs-deck.tsx) | [README](components/control/vhs-deck/README.md) |
+| <img src="public/previews/pocket-piggy.png" width="160" alt="Pocket Piggy preview"> | **Pocket Piggy** | Control | [Source](components/control/pocket-piggy/pocket-piggy.tsx) | [README](components/control/pocket-piggy/README.md) |
 <!-- component-catalogue:end -->
 
 Gemini Live and Voice Bloom are interface demos; they do not connect to an AI

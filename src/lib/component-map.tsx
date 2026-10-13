@@ -1,5 +1,5 @@
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
-import { VhsDeck } from "@components/control/vhs-deck";
+import { PocketPiggy } from "@components/control/pocket-piggy";
 
 import type { ComponentType } from "react";
 
@@ -96,9 +96,9 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
   return <DoodleCalendar loop={loop ?? false} persist={false} />;
 }
 
-function VhsDeckPreview({ loop }: { loop?: boolean }) {
-  // The deck scales itself to the tile and plays on its own.
-  return <VhsDeck loop={loop} />;
+function PocketPiggyPreview({ loop }: { loop?: boolean }) {
+  // The deck scales itself to the tile; the piggy wanders on its own.
+  return <PocketPiggy loop={loop} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
@@ -119,5 +119,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "gradient-event-card": GradientEventCardPreview,
   "stamp-tracker": StampTrackerPreview,
   "doodle-calendar": DoodleCalendarPreview,
-  "vhs-deck": VhsDeckPreview,
+  "pocket-piggy": PocketPiggyPreview,
 };
