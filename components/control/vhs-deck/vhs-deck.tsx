@@ -284,11 +284,11 @@ const SINK = 6;
 
 type KeyId = "play" | "share" | "menu";
 
-const KEY_STYLES: Record<KeyId, { radius: string; faceRadius: string }> = {
-  play: { radius: "9px 9px 9px 26px", faceRadius: "8px 8px 8px 25px" },
-  share: { radius: "9px", faceRadius: "8px" },
-  menu: { radius: "9px 9px 26px 9px", faceRadius: "8px 8px 25px 8px" },
-};
+/** One corner for the screen glass and every key, so they read as a set; the
+ *  bezel ring and the tray step out from it concentrically. */
+const KEY_RADIUS = 16;
+/** The face sits a pixel inside the skirt. */
+const FACE_RADIUS = KEY_RADIUS - 1;
 
 function Glyph({ id, playing }: { id: KeyId; playing: boolean }) {
   const stroke = {
@@ -728,7 +728,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
             className="absolute"
             style={{
               inset: -2,
-              borderRadius: "22px 22px 16px 16px",
+              borderRadius: KEY_RADIUS + 2,
               backgroundColor: "#050506",
               boxShadow:
                 "0 1.5px 0 rgba(255,255,255,0.09), 0 -1px 1px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.9), 0 0 14px 1px rgba(0,0,0,0.35)",
@@ -736,7 +736,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
           />
           <div
             className="absolute inset-0 isolate overflow-hidden bg-black"
-            style={{ borderRadius: "20px 20px 14px 14px" }}
+            style={{ borderRadius: KEY_RADIUS }}
           >
             <canvas
               ref={canvasRef}
@@ -787,7 +787,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0"
               style={{
-                borderRadius: "20px 20px 14px 14px",
+                borderRadius: KEY_RADIUS,
                 boxShadow:
                   "inset 0 8px 14px rgba(0,0,0,0.7), inset 6px 0 12px rgba(0,0,0,0.42), inset -3px 0 8px rgba(0,0,0,0.3), inset 0 -2px 6px rgba(0,0,0,0.35), inset 0 0 0 1.5px rgba(0,0,0,0.85)",
               }}
@@ -804,7 +804,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
             bottom: 40,
             width: 364,
             height: 118,
-            borderRadius: "10px 10px 30px 30px",
+            borderRadius: KEY_RADIUS + 4,
             backgroundImage: "linear-gradient(180deg, #060607 0%, #0b0b0c 100%)",
             boxShadow:
               "0 1px 0 rgba(255,255,255,0.10), 0 -1px 0 rgba(0,0,0,0.55), inset 0 8px 10px -1px rgba(0,0,0,0.95), inset 0 0 0 1px rgba(0,0,0,0.9), inset 0 -2px 3px rgba(0,0,0,0.35)",
@@ -813,8 +813,6 @@ export function VhsDeck({ className }: VhsDeckProps) {
         <div className="absolute flex gap-[4.5px]" style={{ left: 42, bottom: 44, width: 356, height: 110 }}>
           {keys.map((key) => {
             const isDown = down === key.id;
-            const radius = KEY_STYLES[key.id].radius;
-            const faceRadius = KEY_STYLES[key.id].faceRadius;
             const travel = isDown ? SINK : 0;
             return (
               <button
@@ -825,7 +823,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
                 onClick={() => actRef.current?.(key.id)}
                 {...press(key.id)}
                 className="relative block h-full flex-1 cursor-pointer appearance-none border-0 bg-transparent p-0 outline-none focus-visible:ring-1 focus-visible:ring-white/45 focus-visible:ring-offset-1 focus-visible:ring-offset-black"
-                style={{ borderRadius: radius, WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
+                style={{ borderRadius: KEY_RADIUS, WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
               >
                 {/* The skirt: the dark side wall of the block, with its contact
                     shadow on the tray floor. */}
@@ -833,7 +831,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
                   aria-hidden="true"
                   className="absolute inset-0 block"
                   style={{
-                    borderRadius: radius,
+                    borderRadius: KEY_RADIUS,
                     backgroundImage: "linear-gradient(180deg, #1b1b1e 0%, #151517 50%, #0f0f11 100%)",
                     boxShadow: [
                       "inset 1px 0 0 rgba(255,255,255,0.075)",
@@ -856,7 +854,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
                     right: 1,
                     top: 0,
                     height: `calc(100% - ${SKIRT}px)`,
-                    borderRadius: faceRadius,
+                    borderRadius: FACE_RADIUS,
                     backgroundImage:
                       "radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,0.06), rgba(255,255,255,0) 65%), linear-gradient(180deg, #2d2d30 0%, #29292c 30%, #242427 70%, #202023 100%)",
                     boxShadow: [
