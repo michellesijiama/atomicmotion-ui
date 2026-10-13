@@ -49,7 +49,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.18.0",
-    "next": "16.3.8",
+    "next": "16.4.0",
     "perfect-freehand": "^1.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -64,7 +64,7 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.169.0",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.0",
     "playwright": "^1.61.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^5"
