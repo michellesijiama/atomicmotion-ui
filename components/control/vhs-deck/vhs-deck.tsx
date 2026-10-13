@@ -285,9 +285,9 @@ const SINK = 6;
 type KeyId = "play" | "share" | "menu";
 
 const KEY_STYLES: Record<KeyId, { radius: string; faceRadius: string }> = {
-  play: { radius: "12px 12px 12px 40px", faceRadius: "11px 11px 11px 38px" },
-  share: { radius: "12px", faceRadius: "11px" },
-  menu: { radius: "12px 12px 40px 12px", faceRadius: "11px 11px 38px 11px" },
+  play: { radius: "9px 9px 9px 26px", faceRadius: "8px 8px 8px 25px" },
+  share: { radius: "9px", faceRadius: "8px" },
+  menu: { radius: "9px 9px 26px 9px", faceRadius: "8px 8px 25px 8px" },
 };
 
 function Glyph({ id, playing }: { id: KeyId; playing: boolean }) {
@@ -678,7 +678,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
         <div
           className="absolute inset-0 isolate overflow-hidden"
           style={{
-            borderRadius: 88,
+            borderRadius: 68,
             backgroundColor: "#1a1a1c",
             backgroundImage:
               "radial-gradient(120% 70% at 28% -4%, rgba(255,255,255,0.075), rgba(255,255,255,0) 62%), linear-gradient(180deg, #252528 0%, #1d1d1f 38%, #151517 100%)",
@@ -709,7 +709,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
             aria-hidden="true"
             className="pointer-events-none absolute inset-0"
             style={{
-              borderRadius: 88,
+              borderRadius: 68,
               padding: 1.5,
               background:
                 "linear-gradient(180deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 22%, rgba(255,255,255,0) 52%, rgba(255,255,255,0.05) 100%)",
@@ -728,7 +728,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
             className="absolute"
             style={{
               inset: -2,
-              borderRadius: "30px 30px 22px 22px",
+              borderRadius: "22px 22px 16px 16px",
               backgroundColor: "#050506",
               boxShadow:
                 "0 1.5px 0 rgba(255,255,255,0.09), 0 -1px 1px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.9), 0 0 14px 1px rgba(0,0,0,0.35)",
@@ -736,7 +736,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
           />
           <div
             className="absolute inset-0 isolate overflow-hidden bg-black"
-            style={{ borderRadius: "28px 28px 20px 20px" }}
+            style={{ borderRadius: "20px 20px 14px 14px" }}
           >
             <canvas
               ref={canvasRef}
@@ -787,7 +787,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
               aria-hidden="true"
               className="pointer-events-none absolute inset-0"
               style={{
-                borderRadius: "28px 28px 20px 20px",
+                borderRadius: "20px 20px 14px 14px",
                 boxShadow:
                   "inset 0 8px 14px rgba(0,0,0,0.7), inset 6px 0 12px rgba(0,0,0,0.42), inset -3px 0 8px rgba(0,0,0,0.3), inset 0 -2px 6px rgba(0,0,0,0.35), inset 0 0 0 1.5px rgba(0,0,0,0.85)",
               }}
@@ -804,7 +804,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
             bottom: 40,
             width: 364,
             height: 118,
-            borderRadius: "14px 14px 44px 44px",
+            borderRadius: "10px 10px 30px 30px",
             backgroundImage: "linear-gradient(180deg, #060607 0%, #0b0b0c 100%)",
             boxShadow:
               "0 1px 0 rgba(255,255,255,0.10), 0 -1px 0 rgba(0,0,0,0.55), inset 0 8px 10px -1px rgba(0,0,0,0.95), inset 0 0 0 1px rgba(0,0,0,0.9), inset 0 -2px 3px rgba(0,0,0,0.35)",
