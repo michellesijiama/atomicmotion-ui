@@ -388,6 +388,18 @@ export const componentRegistry = {
       { path: "public/illustrations/doodle-calendar-diary/shrine-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
     ],
   }),
+  vhsDeck: createComponentMeta({
+    id: "vhs-deck",
+    index: "019",
+    title: "VHS Deck",
+    description:
+      "A square slab of sandblasted matte-black plastic with a CRT sunk into its top — a pink and blue sunset seen through aperture-grille stripes and scanlines, two silhouettes sitting a long way apart, coloured dust hopping across the sky and a tracking line that now and then rolls up the tube — and three chunky keys beneath that sink when pressed: play holds the tape in a shuddering VHS pause, share fires a white shutter flash with a burst of static, and menu changes the channel from sunset to dusk to night through a quick wash of snow",
+    category: "Control",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-10-13",
+    codePath: "components/control/vhs-deck/vhs-deck.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
