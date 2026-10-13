@@ -20,6 +20,9 @@ export type VhsDeckProps = {
 /** The device's true size. It is scaled down to fit whatever it is put in. */
 const DECK = 440;
 
+/** The largest it is ever shown, however much room it has. */
+const MAX_SIZE = 320;
+
 /** The tape's own resolution. Drawn small and scaled up, the way a CRT would. */
 const W = 320;
 const H = 183;
@@ -359,7 +362,7 @@ export function VhsDeck({ className }: VhsDeckProps) {
     const fit = fitRef.current;
     if (!host || !fit) return;
     const apply = () => {
-      const scale = Math.min(1, (host.clientWidth - 24) / DECK, (host.clientHeight - 24) / DECK);
+      const scale = Math.min(MAX_SIZE / DECK, (host.clientWidth - 24) / DECK, (host.clientHeight - 24) / DECK);
       fit.style.transform = `scale(${Math.max(0.3, scale).toFixed(4)})`;
     };
     apply();
