@@ -62,8 +62,8 @@ export function ComponentCard({ component }: ComponentCardProps) {
             {component.title}
           </p>
           <div className="flex shrink-0 flex-nowrap items-end gap-1 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
-            <span className="shrink-0 whitespace-nowrap rounded-full bg-gray-500/40 px-2.5 py-1 text-caption lowercase first-letter:uppercase text-white backdrop-blur-sm">
-              {component.status}
+            <span className="shrink-0 whitespace-nowrap rounded-full bg-gray-500/40 px-2.5 py-1 text-caption text-white backdrop-blur-sm">
+              {component.category}
             </span>
           </div>
         </div>
