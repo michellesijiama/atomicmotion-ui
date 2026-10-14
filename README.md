@@ -66,7 +66,7 @@ integration instructions for every component.
 <!-- component-catalogue:start -->
 | Preview | Component | Category | Source | Setup |
 | --- | --- | --- | --- | --- |
-| <img src="public/previews/emoji-sketch.png" width="160" alt="Emoji Sketch preview"> | **Emoji Sketch** | Tool | [Source](components/tool/emoji-sketch/emoji-sketch.tsx) | [README](components/tool/emoji-sketch/README.md) |
+| <img src="public/previews/emoji-sketch.png" width="160" alt="Emoji Sketch preview"> | **Emoji Sketch** | Play | [Source](components/play/emoji-sketch/emoji-sketch.tsx) | [README](components/play/emoji-sketch/README.md) |
 | <img src="public/previews/soft-menu-reveal.png" width="160" alt="Soft Menu Reveal preview"> | **Soft Menu Reveal** | Navigation | [Source](components/navigation/soft-menu-reveal/soft-menu-reveal.tsx) | [README](components/navigation/soft-menu-reveal/README.md) |
 | <img src="public/previews/filter-dropdown-reveal.png" width="160" alt="Filter Dropdown Reveal preview"> | **Filter Dropdown Reveal** | Navigation | [Source](components/navigation/filter-dropdown-reveal/filter-dropdown-reveal.tsx) | [README](components/navigation/filter-dropdown-reveal/README.md) |
 | <img src="public/previews/scroll-scrubbed-typography.png" width="160" alt="Scroll-Scrubbed Typography preview"> | **Scroll-Scrubbed Typography** | Typography | [Source](components/typography/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx) | [README](components/typography/scroll-scrubbed-typography/README.md) |
@@ -83,7 +83,7 @@ integration instructions for every component.
 | <img src="public/previews/gradient-event-card.png" width="160" alt="Gradient Event Card preview"> | **Gradient Event Card** | Gradient | [Source](components/gradient/gradient-event-card/gradient-event-card.tsx) | [README](components/gradient/gradient-event-card/README.md) |
 | <img src="public/previews/stamp-tracker.png" width="160" alt="Stamp Tracker preview"> | **Stamp Tracker** | Data Visualization | [Source](components/data-visualization/stamp-tracker/stamp-tracker.tsx) | [README](components/data-visualization/stamp-tracker/README.md) |
 | <img src="public/previews/doodle-calendar.png" width="160" alt="Doodle Calendar preview"> | **Doodle Calendar** | Data Visualization | [Source](components/data-visualization/doodle-calendar/doodle-calendar.tsx) | [README](components/data-visualization/doodle-calendar/README.md) |
-| <img src="public/previews/pocket-piggy.png" width="160" alt="Pocket Piggy preview"> | **Pocket Piggy** | Control | [Source](components/control/pocket-piggy/pocket-piggy.tsx) | [README](components/control/pocket-piggy/README.md) |
+| <img src="public/previews/pocket-piggy.png" width="160" alt="Pocket Piggy preview"> | **Pocket Piggy** | Play | [Source](components/play/pocket-piggy/pocket-piggy.tsx) | [README](components/play/pocket-piggy/README.md) |
 <!-- component-catalogue:end -->
 
 Gemini Live and Voice Bloom are interface demos; they do not connect to an AI

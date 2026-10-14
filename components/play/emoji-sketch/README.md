@@ -4,7 +4,7 @@ Pick an emoji and watch it drawn on, stroke by stroke, as a hand-sketched line a
 
 ![Emoji Sketch preview](https://atomicmotion.dev/previews/emoji-sketch.png)
 
-- **Category:** Tool
+- **Category:** Play
 - **Demo:** https://atomicmotion.dev/components/emoji-sketch
 - **Dependencies:** clsx, perfect-freehand, tailwind-merge
 - **Inspired by:** [Getty × Gehry](https://gehry.getty.edu)

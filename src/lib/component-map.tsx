@@ -1,10 +1,10 @@
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
-import { PocketPiggy } from "@components/control/pocket-piggy";
+import { PocketPiggy } from "@components/play/pocket-piggy";
 
 import type { ComponentType } from "react";
 
 import { CodexSidebarReveal } from "@components/navigation/codex-sidebar-reveal";
-import { EmojiSketch } from "@components/tool/emoji-sketch";
+import { EmojiSketch } from "@components/play/emoji-sketch";
 import { SoftMenuReveal } from "@components/navigation/soft-menu-reveal";
 import { FilterDropdownReveal } from "@components/navigation/filter-dropdown-reveal";
 import { GeminiLive } from "@components/ai/gemini-live";

@@ -131,7 +131,7 @@ try {
     await reachable(all, `home ${width}: All`, { measurement: allMeasurement });
     if (width === 768) {
       assert.ok(await filterStrip.evaluate((element) => element.scrollWidth > element.clientWidth), "tablet category strip remains scrollable");
-      await reachable(categories.getByRole("button", { name: "Tool", exact: true }), "tablet: final category remains reachable", { click: true });
+      await reachable(categories.getByRole("button").last(), "tablet: final category remains reachable", { click: true });
       await all.click();
     }
     if ([390, 1280].includes(width)) await capture(page, `home-${width}`);

@@ -23,7 +23,7 @@ See [copy-paste integration](../docs/COPY-PASTE.md) for setup and troubleshootin
 | Data Visualization | [data-visualization](data-visualization/) |
 | Gradient | [gradient](gradient/) |
 | Navigation | [navigation](navigation/) |
-| Tool | [tool](tool/) |
+| Play | [play](play/) |
 | Typography | [typography](typography/) |
 
 The gallery shell lives separately in `src/components/website/`. Incomplete

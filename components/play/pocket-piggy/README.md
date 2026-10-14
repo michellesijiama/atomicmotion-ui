@@ -1,10 +1,10 @@
 # Pocket Piggy
 
-A tiny pink pixel piggy wanders a sunset meadow on a glowing CRT beside its little hut, and three chunky keys look after it, Sleep tucks it in under a night sky, Feed drops an apple to nibble and grows it rounder, Home sends it running back to its hut
+A hand-drawn piggy lives in a tiny top-down home on a glowing CRT, and four chunky keys look after it, Sleep tucks it into bed, Feed puts an apple on the table, Home sends it back to its cushion, and Play lets you pick what it does next
 
 ![Pocket Piggy preview](https://atomicmotion.dev/previews/pocket-piggy.png)
 
-- **Category:** Control
+- **Category:** Play
 - **Demo:** https://atomicmotion.dev/components/pocket-piggy
 - **Dependencies:** clsx, tailwind-merge
 
@@ -43,7 +43,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `loop` | `boolean` | — | Accepted for the gallery card. The piggy simply wanders on its own; there are no scripted presses. |
+| `loop` | `boolean` | — | Accepted for the gallery card. The piggy simply idles on its own; there are no scripted presses. |
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `PocketPiggy`. Public types: `PocketPiggyProps`.

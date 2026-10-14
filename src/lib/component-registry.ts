@@ -110,11 +110,11 @@ export const componentRegistry = {
     title: "Emoji Sketch",
     description:
       "Pick an emoji and watch it drawn on, stroke by stroke, as a hand-sketched line animation — real OpenMoji vector paths self-drawing with a subtle pencil wobble.",
-    category: "Tool",
+    category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-20",
-    codePath: "components/tool/emoji-sketch/emoji-sketch.tsx",
+    codePath: "components/play/emoji-sketch/emoji-sketch.tsx",
     requiredAssets: [
       {
         path: "public/emoji/ (40 .svg files)",
@@ -393,12 +393,12 @@ export const componentRegistry = {
     index: "019",
     title: "Pocket Piggy",
     description:
-      "A tiny pink pixel piggy wanders a sunset meadow on a glowing CRT beside its little hut, and three chunky keys look after it, Sleep tucks it in under a night sky, Feed drops an apple to nibble and grows it rounder, Home sends it running back to its hut",
-    category: "Control",
+      "A hand-drawn piggy lives in a tiny top-down home on a glowing CRT, and four chunky keys look after it, Sleep tucks it into bed, Feed puts an apple on the table, Home sends it back to its cushion, and Play lets you pick what it does next",
+    category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-10-13",
-    codePath: "components/control/pocket-piggy/pocket-piggy.tsx",
+    codePath: "components/play/pocket-piggy/pocket-piggy.tsx",
   }),
 } satisfies Record<string, ComponentMeta>;
 
