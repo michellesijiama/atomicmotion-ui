@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 
 // Jitter-style rotating word: the current word rolls up and out while the next
 // slides in from below (with a soft blur), and the slot animates its width to
-// fit each word so the surrounding text reflows smoothly.
+// fit each word so the surrounding text reflows smoothly and a centered
+// sentence stays centered whichever word is showing.
 export function RotatingWord({
   words,
   interval = 1900,
@@ -19,6 +20,9 @@ export function RotatingWord({
 }) {
   const [index, setIndex] = React.useState(0);
   const reduce = useReducedMotion();
+  const measureRefs = React.useRef<(HTMLSpanElement | null)[]>([]);
+  const [widths, setWidths] = React.useState<number[] | null>(null);
+  const wordsKey = words.join("\u0000");
 
   React.useEffect(() => {
     if (words.length < 2) return;
@@ -29,6 +33,18 @@ export function RotatingWord({
     return () => window.clearInterval(id);
   }, [words.length, interval]);
 
+  // Measure every word once laid out, and again when the web font arrives or
+  // the type size changes, so the slot can animate to an exact pixel width.
+  React.useLayoutEffect(() => {
+    const measure = () =>
+      setWidths(measureRefs.current.map((el) => el?.getBoundingClientRect().width ?? 0));
+    measure();
+    void document.fonts?.ready.then(measure);
+    const observer = new ResizeObserver(measure);
+    measureRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [wordsKey]);
+
   const word = words[index % words.length];
   // Springy but snappy → settles quickly while keeping a natural feel.
   const spring = { type: "spring", stiffness: 220, damping: 22, mass: 0.8 } as const;
@@ -36,32 +52,40 @@ export function RotatingWord({
   return (
     // Slot is exactly one line box tall with the same line-height as the
     // surrounding text + align-bottom, so the rotating word shares the outer
-    // baseline geometry (no centering offset). It is also locked to the width
-    // of the WIDEST word via a hidden sizer layer (all words stacked in one
-    // grid cell), so the line length never changes as words swap and the
-    // centered sentence stays anchored in place.
-    <span
+    // baseline geometry (no centering offset).
+    <motion.span
       className={cn(
-        // text-left so the (shorter) word hugs the preceding text instead of
-        // centering inside the fixed-width slot — the leftover width becomes
-        // invisible trailing space. Slot width stays fixed, so the sentence
-        // still never shifts.
         "relative inline-grid h-[1.3em] overflow-hidden text-left align-bottom leading-[1.3]",
         className,
       )}
+      initial={false}
+      animate={widths ? { width: widths[index % words.length] } : undefined}
+      transition={reduce ? { duration: 0 } : spring}
     >
-      {/* Sizer: invisible, sets the box to the widest word's width. */}
-      {words.map((w) => (
+      {/* Measurers: every word, out of flow, read for their widths. */}
+      {words.map((w, i) => (
         <span
           key={w}
+          ref={(el) => {
+            measureRefs.current[i] = el;
+          }}
           aria-hidden
-          className="invisible col-start-1 row-start-1 block whitespace-nowrap leading-[1.3]"
+          className="invisible absolute left-0 top-0 whitespace-nowrap leading-[1.3]"
         >
           {w}
         </span>
       ))}
 
-      {/* Animated layer, absolutely filling the fixed-width box. */}
+      {/* Sizer: the current word, so the slot fits it before the first
+          measurement (server render) without a jump once measured. */}
+      <span
+        aria-hidden
+        className="invisible col-start-1 row-start-1 block whitespace-nowrap leading-[1.3]"
+      >
+        {word}
+      </span>
+
+      {/* Animated layer, absolutely filling the slot. */}
       <span className="relative col-start-1 row-start-1 block">
         {reduce ? (
           <span className="absolute inset-0 block whitespace-nowrap leading-[1.3]">
@@ -82,6 +106,6 @@ export function RotatingWord({
           </AnimatePresence>
         )}
       </span>
-    </span>
+    </motion.span>
   );
 }
