@@ -44,6 +44,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `loop` | `boolean` | — | Accepted for the gallery card. The piggy simply idles on its own; there are no scripted presses. |
+| `maxSize` | `number` | `MAX_SIZE` | The largest the device is shown, in px. It still shrinks to fit. |
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `PocketPiggy`. Public types: `PocketPiggyProps`.

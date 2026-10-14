@@ -14,14 +14,16 @@ export type PocketPiggyProps = {
   /** Accepted for the gallery card. The piggy simply idles on its own;
    *  there are no scripted presses. */
   loop?: boolean;
+  /** The largest the device is shown, in px. It still shrinks to fit. */
+  maxSize?: number;
   className?: string;
 };
 
 /** The device's true size. It is scaled down to fit whatever it is put in. */
 const DECK = 440;
 
-/** The largest it is ever shown, however much room it has. */
-const MAX_SIZE = 320;
+/** The largest it is shown by default, however much room it has. */
+const MAX_SIZE = 420;
 
 /** The CRT effects layer's own resolution. Drawn small and scaled up. */
 const W = 320;
@@ -551,7 +553,7 @@ function Room({ uid }: { uid: string }) {
  * home sends it back to its cushion, and play opens a picker so you can choose
  * what it does next.
  */
-export function PocketPiggy({ className }: PocketPiggyProps) {
+export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps) {
   const hostRef = React.useRef<HTMLDivElement>(null);
   const fitRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -569,14 +571,14 @@ export function PocketPiggy({ className }: PocketPiggyProps) {
     const fit = fitRef.current;
     if (!host || !fit) return;
     const apply = () => {
-      const scale = Math.min(MAX_SIZE / DECK, (host.clientWidth - 24) / DECK, (host.clientHeight - 24) / DECK);
+      const scale = Math.min(maxSize / DECK, (host.clientWidth - 24) / DECK, (host.clientHeight - 24) / DECK);
       fit.style.transform = `scale(${Math.max(0.3, scale).toFixed(4)})`;
     };
     apply();
     const ro = new ResizeObserver(apply);
     ro.observe(host);
     return () => ro.disconnect();
-  }, []);
+  }, [maxSize]);
 
   // The screen: the doodle is driven from one rAF loop, only while it can be
   // seen; a 2D canvas on top carries the CRT's dust, tracking line and static.
