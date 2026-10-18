@@ -242,8 +242,10 @@ function useFit(hostRef: React.RefObject<HTMLDivElement | null>, layout: "auto" 
 /* The default screen: a skeleton feed                                        */
 /* ------------------------------------------------------------------------- */
 
-/** The words beside the phone. */
-const INK = "#111111";
+/** The stage and the words beside the phone: dark, with white titles and grey captions. */
+const STAGE = "#18181a";
+const INK = "#ffffff";
+const CAPTION = "#9a9a9f";
 /** Dark mode: a near-black screen, quiet dark grey cards with a hairline edge, and white kept for icons. */
 const SCREEN = "#0d0e10";
 const CARD = "#1a1b1e";
@@ -497,7 +499,7 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
     <div ref={hostRef} className={cn("relative flex h-full min-h-[320px] w-full items-center justify-center overflow-hidden", className)}>
       <div ref={fitRef} style={{ width: stage.w, height: stage.h, flex: "none", transformOrigin: "center" }}>
         <div
-          style={{ position: "relative", width: stage.w, height: stage.h, borderRadius: 32, overflow: "hidden", background: "#eaeaea", fontFamily: FONT }}
+          style={{ position: "relative", width: stage.w, height: stage.h, borderRadius: 32, overflow: "hidden", background: STAGE, fontFamily: FONT }}
         >
           <div style={{ position: "absolute", inset: 0, opacity: outro }}>
             {/* Copy */}
@@ -506,7 +508,7 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
                 <div key={ctx.step}>
                   <div style={{ fontSize: 34, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: INK, ...words(0) }}>{current.title}</div>
                   {current.caption ? (
-                    <div style={{ marginTop: 12, maxWidth: 280, fontSize: 16, lineHeight: 1.5, color: "#6b6b6b", ...words(0.1) }}>{current.caption}</div>
+                    <div style={{ marginTop: 12, maxWidth: 280, fontSize: 16, lineHeight: 1.5, color: CAPTION, ...words(0.1) }}>{current.caption}</div>
                   ) : null}
                 </div>
               ) : null}
@@ -542,6 +544,8 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
                     borderRadius: 44,
                     overflow: "hidden",
                     background: SCREEN,
+                    // A hairline edge keeps the black phone apart from the dark stage.
+                    boxShadow: HAIRLINE,
                   }}
                 >
                   {children ? children(ctx) : <SkeletonFeed ctx={ctx} fade={fade} />}
