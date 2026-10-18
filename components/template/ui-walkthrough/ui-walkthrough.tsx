@@ -235,7 +235,7 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, layou
                     <RisingWords text={current.title} time={ctx.time} start={0.2} end={duration} reduced={reduced} />
                   </div>
                   {current.caption ? (
-                    <div aria-label={current.caption} style={{ marginTop: 12, maxWidth: 280, fontSize: 16, lineHeight: 1.5, color: THEME.caption }}>
+                    <div aria-label={current.caption} style={{ marginTop: 12, maxWidth: 280, marginInline: stage === LAYOUTS.stacked ? "auto" : undefined, fontSize: 16, lineHeight: 1.5, color: THEME.caption }}>
                       <RisingWords text={current.caption} time={ctx.time} start={0.55} end={duration} reduced={reduced} />
                     </div>
                   ) : null}
