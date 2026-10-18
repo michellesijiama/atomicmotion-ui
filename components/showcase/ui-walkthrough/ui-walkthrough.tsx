@@ -46,20 +46,39 @@ export type UIWalkthroughProps = {
   children?: (ctx: WalkthroughContext) => React.ReactNode;
   /** Fade the screen's top and bottom edges as content scrolls under them, instead of a hard crop. */
   fade?: boolean;
+  /** Copy beside the phone ("split"), above it ("stacked"), or whichever suits the space it is given ("auto"). */
+  layout?: "auto" | "split" | "stacked";
   /** Accepted for the gallery card. The walkthrough always plays. */
   loop?: boolean;
   className?: string;
 };
 
-/** The stage's true size. It is scaled down to fit whatever it is put in. */
-const STAGE_W = 960;
-const STAGE_H = 680;
 /** The phone canvas your screen is drawn on. */
 const PHONE_W = 280;
 const PHONE_H = 600;
-/** Where the phone sits on the stage. */
-const PHONE_X = 660;
-const PHONE_Y = STAGE_H / 2;
+
+/** Each layout's true stage size, phone centre and copy box. The stage is scaled down to fit
+ *  whatever it is put in. */
+const LAYOUTS = {
+  split: {
+    w: 960,
+    h: 680,
+    phone: { x: 660, y: 340 },
+    viewTop: 0,
+    copy: { left: 88, top: "50%", width: 360, transform: "translateY(-50%)" },
+  },
+  stacked: {
+    w: 600,
+    h: 820,
+    phone: { x: 300, y: 484 },
+    // A push-in would slide the phone up under the words, so it is clipped below them.
+    viewTop: 168,
+    copy: { left: 48, right: 48, top: 60, textAlign: "center" },
+  },
+} satisfies Record<string, { w: number; h: number; phone: { x: number; y: number }; viewTop: number; copy: React.CSSProperties }>;
+
+/** The stacked viewport's soft top edge, where a pushed-in phone slides under the words. */
+const VIEW_MASK = "linear-gradient(to bottom, transparent 0, #000 36px)";
 
 const FONT = "var(--font-poppins, Poppins), Poppins, ui-sans-serif, system-ui, sans-serif";
 
@@ -192,24 +211,32 @@ function useLoopClock(total: number, rest: number) {
   return { t, hostRef };
 }
 
-/** Scale the stage to the space it has, so the whole thing is always in view. */
-function useFit(hostRef: React.RefObject<HTMLDivElement | null>) {
+/** Pick the layout for the space the host has (a narrow or portrait box stacks the copy on top),
+ *  then scale that stage down so the whole thing is always in view. */
+function useFit(hostRef: React.RefObject<HTMLDivElement | null>, layout: "auto" | "split" | "stacked") {
   const fitRef = React.useRef<HTMLDivElement>(null);
+  const [auto, setAuto] = React.useState<"split" | "stacked">("split");
   React.useEffect(() => {
     const host = hostRef.current;
     const fit = fitRef.current;
     if (!host || !fit) return;
     const apply = () => {
-      const byHeight = host.clientHeight > 0 ? host.clientHeight / STAGE_H : Infinity;
-      const scale = Math.min(1, host.clientWidth / STAGE_W, byHeight);
+      const width = host.clientWidth;
+      const height = host.clientHeight;
+      const pick = layout !== "auto" ? layout : width < 640 || (height > 0 && width / height < 1.1) ? "stacked" : "split";
+      setAuto(pick);
+      const stage = LAYOUTS[pick];
+      // A little breathing room, so the stage's rounded corners never touch the host's edge.
+      const byHeight = height > 0 ? (height - 32) / stage.h : Infinity;
+      const scale = Math.min(1, (width - 32) / stage.w, byHeight);
       fit.style.transform = `scale(${Math.max(0.2, scale).toFixed(4)})`;
     };
     apply();
     const ro = new ResizeObserver(apply);
     ro.observe(host);
     return () => ro.disconnect();
-  }, [hostRef]);
-  return fitRef;
+  }, [hostRef, layout]);
+  return { fitRef, stage: LAYOUTS[layout === "auto" ? auto : layout] };
 }
 
 /* ------------------------------------------------------------------------- */
@@ -418,11 +445,11 @@ export const defaultWalkthroughSteps: WalkthroughStep[] = [
 /* The stage                                                                  */
 /* ------------------------------------------------------------------------- */
 
-export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade = true, className }: UIWalkthroughProps) {
+export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade = true, layout = "auto", className }: UIWalkthroughProps) {
   const reduced = useReducedMotion() ?? false;
   const timeline = React.useMemo(() => buildTimeline(steps), [steps]);
   const { t, hostRef } = useLoopClock(timeline.total, timeline.starts[0] + 1.6);
-  const fitRef = useFit(hostRef);
+  const { fitRef, stage } = useFit(hostRef, layout);
   const phoneRef = React.useRef<HTMLDivElement>(null);
   const ctx = makeContext(steps, timeline, t, reduced);
   const current = steps[ctx.step];
@@ -460,13 +487,13 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
 
   return (
     <div ref={hostRef} className={cn("relative flex h-full min-h-[320px] w-full items-center justify-center overflow-hidden", className)}>
-      <div ref={fitRef} style={{ width: STAGE_W, height: STAGE_H, flex: "none", transformOrigin: "center" }}>
+      <div ref={fitRef} style={{ width: stage.w, height: stage.h, flex: "none", transformOrigin: "center" }}>
         <div
-          style={{ position: "relative", width: STAGE_W, height: STAGE_H, borderRadius: 32, overflow: "hidden", background: "#cacacc", fontFamily: FONT }}
+          style={{ position: "relative", width: stage.w, height: stage.h, borderRadius: 32, overflow: "hidden", background: "#cacacc", fontFamily: FONT }}
         >
           <div style={{ position: "absolute", inset: 0, opacity: outro }}>
             {/* Copy */}
-            <div style={{ position: "absolute", left: 88, top: "50%", width: 300, transform: "translateY(-50%)" }}>
+            <div style={{ position: "absolute", ...stage.copy }}>
               {current ? (
                 <div key={ctx.step}>
                   <div style={{ fontSize: 34, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: "#1d1d1f", ...words(0) }}>{current.title}</div>
@@ -476,49 +503,60 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
                 </div>
               ) : null}
             </div>
-            {/* Camera and phone */}
+            {/* Camera and phone, in a viewport that keeps them clear of the words */}
             <div
               style={{
                 position: "absolute",
-                left: PHONE_X,
-                top: PHONE_Y,
-                width: PHONE_W,
-                height: PHONE_H,
-                opacity: phoneOpacity,
-                transform: `translate(-50%, -50%) translateY(${(shift + (1 - land) * 40).toFixed(2)}px) scale(${zoom.toFixed(4)})`,
-                transformOrigin: "center",
+                inset: 0,
+                top: stage.viewTop,
+                overflow: stage.viewTop ? "hidden" : undefined,
+                maskImage: stage.viewTop ? VIEW_MASK : undefined,
+                WebkitMaskImage: stage.viewTop ? VIEW_MASK : undefined,
               }}
             >
               <div
-                ref={phoneRef}
                 style={{
                   position: "absolute",
-                  inset: 0,
-                  borderRadius: 44,
-                  overflow: "hidden",
-                  background: "#d9dadc",
-                  border: "1px solid rgba(255,255,255,.55)",
+                  left: stage.phone.x,
+                  top: stage.phone.y - stage.viewTop,
+                  width: PHONE_W,
+                  height: PHONE_H,
+                  opacity: phoneOpacity,
+                  transform: `translate(-50%, -50%) translateY(${(shift + (1 - land) * 40).toFixed(2)}px) scale(${zoom.toFixed(4)})`,
+                  transformOrigin: "center",
                 }}
               >
-                {children ? children(ctx) : <SkeletonFeed ctx={ctx} fade={fade} />}
-                {ripple !== null && rippleAt ? (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      left: rippleAt.x,
-                      top: rippleAt.y,
-                      width: 44,
-                      height: 44,
-                      borderRadius: "50%",
-                      background: "rgba(255,255,255,.45)",
-                      border: "1.5px solid rgba(255,255,255,.8)",
-                      transform: `translate(-50%, -50%) scale(${(0.4 + outEase(ripple) * 1.2).toFixed(3)})`,
-                      opacity: 0.9 * (1 - ripple),
-                      pointerEvents: "none",
-                    }}
-                  />
-                ) : null}
+                <div
+                  ref={phoneRef}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: 44,
+                    overflow: "hidden",
+                    background: "#d9dadc",
+                    border: "1px solid rgba(255,255,255,.55)",
+                  }}
+                >
+                  {children ? children(ctx) : <SkeletonFeed ctx={ctx} fade={fade} />}
+                  {ripple !== null && rippleAt ? (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        left: rippleAt.x,
+                        top: rippleAt.y,
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        background: "rgba(255,255,255,.45)",
+                        border: "1.5px solid rgba(255,255,255,.8)",
+                        transform: `translate(-50%, -50%) scale(${(0.4 + outEase(ripple) * 1.2).toFixed(3)})`,
+                        opacity: 0.9 * (1 - ripple),
+                        pointerEvents: "none",
+                      }}
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>

@@ -103,8 +103,8 @@ function PocketPiggyPreview({ loop }: { loop?: boolean }) {
 }
 
 function UIWalkthroughPreview({ loop }: { loop?: boolean }) {
-  // The stage scales itself to the tile and always plays.
-  return <UIWalkthrough loop={loop} />;
+  // The gallery tile is portrait, so the card stacks the words above the phone.
+  return <UIWalkthrough loop={loop} layout={loop ? "stacked" : "auto"} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {

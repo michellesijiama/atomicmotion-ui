@@ -47,6 +47,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | `steps` | `WalkthroughStep[]` | `defaultWalkthroughSteps` | The script: one entry per chapter, played in order and looped. |
 | `children` | `(ctx: WalkthroughContext) => React.ReactNode` | — | Your screen, drawn on a 280 x 600 phone canvas. Mark tapped controls with data-walk="<id>". Defaults to a skeleton feed. |
 | `fade` | `boolean` | `true` | Fade the screen's top and bottom edges as content scrolls under them, instead of a hard crop. |
+| `layout` | `"auto" \| "split" \| "stacked"` | `"auto"` | Copy beside the phone ("split"), above it ("stacked"), or whichever suits the space it is given ("auto"). |
 | `loop` | `boolean` | — | Accepted for the gallery card. The walkthrough always plays. |
 | `className` | `string` | — | Additional classes for the root container. |
 
