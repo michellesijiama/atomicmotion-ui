@@ -450,6 +450,57 @@ function TouchPoint({ at, t }: { at: { x: number; y: number }; t: number }) {
   );
 }
 
+/** The iPhone around the screen: a black titanium band, a thin black bezel and the side buttons.
+ *  The screen canvas stays 280 x 600, so the frame sits just outside it. */
+const SCREEN_RADIUS = 44;
+const BEZEL = 7;
+const BAND = 4;
+/** Black titanium: near-black with a faint sheen along the edge. */
+const TITANIUM = "linear-gradient(145deg, #4a4a4f 0%, #1b1b1e 26%, #3a3a3e 52%, #141416 76%, #2f2f33 100%)";
+
+function IPhoneFrame() {
+  const edge = BEZEL + BAND;
+  const button = (side: "left" | "right", top: number, height: number): React.CSSProperties => ({
+    position: "absolute",
+    [side]: -edge - 2.5,
+    top,
+    width: 3.5,
+    height,
+    borderRadius: 2,
+    background: TITANIUM,
+  });
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      <span style={button("left", 108, 22)} />
+      <span style={button("left", 148, 44)} />
+      <span style={button("left", 202, 44)} />
+      <span style={button("right", 168, 70)} />
+      <span
+        style={{
+          position: "absolute",
+          inset: -edge,
+          borderRadius: SCREEN_RADIUS + edge,
+          background: TITANIUM,
+          boxShadow: "0 30px 60px -20px rgba(0,0,0,.6)",
+        }}
+      />
+      <span style={{ position: "absolute", inset: -BEZEL, borderRadius: SCREEN_RADIUS + BEZEL, background: "#050506" }} />
+    </div>
+  );
+}
+
+/** The pill at the top of the screen, with its camera. */
+function DynamicIsland() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{ position: "absolute", left: "50%", top: 10, width: 84, height: 24, marginLeft: -42, borderRadius: 12, background: "#000000", pointerEvents: "none" }}
+    >
+      <span style={{ position: "absolute", right: 9, top: 8, width: 8, height: 8, borderRadius: "50%", background: "#111a24", boxShadow: "inset 0 0 0 1.5px #1c2733" }} />
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------------- */
 /* The stage                                                                  */
 /* ------------------------------------------------------------------------- */
@@ -536,19 +587,19 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
                   transformOrigin: "center",
                 }}
               >
+                <IPhoneFrame />
                 <div
                   ref={phoneRef}
                   style={{
                     position: "absolute",
                     inset: 0,
-                    borderRadius: 44,
+                    borderRadius: SCREEN_RADIUS,
                     overflow: "hidden",
                     background: SCREEN,
-                    // A hairline edge keeps the black phone apart from the dark stage.
-                    boxShadow: HAIRLINE,
                   }}
                 >
                   {children ? children(ctx) : <SkeletonFeed ctx={ctx} fade={fade} />}
+                  <DynamicIsland />
                   {touch !== null && rippleAt ? <TouchPoint at={rippleAt} t={touch} /> : null}
                 </div>
               </div>
