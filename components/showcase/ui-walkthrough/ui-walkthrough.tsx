@@ -244,10 +244,13 @@ function useFit(hostRef: React.RefObject<HTMLDivElement | null>, layout: "auto" 
 
 /** The words beside the phone. */
 const INK = "#111111";
-/** Dark mode, black and white only: a black screen, white for what matters, dark grey for placeholder lines. */
-const SCREEN = "#111111";
-const CONTENT = "#ffffff";
-const SKELETON = "#2c2c2e";
+/** Dark mode: a near-black screen, quiet dark grey cards with a hairline edge, and white kept for icons. */
+const SCREEN = "#0d0e10";
+const CARD = "#1a1b1e";
+const CARD_RAISED = "#232428";
+const HAIRLINE = "inset 0 0 0 1px rgba(255,255,255,.07)";
+const SKELETON = "#26272b";
+const ICON = "#ffffff";
 /** One post: a 328px card, its meta row and three lines, then a gap that hides the next card at rest. */
 const POST_H = 470;
 /** Phone-local y of the tabs and of the second post's action row, for the default script's camera. */
@@ -261,10 +264,11 @@ const ICONS = {
     "M12 20.5s-7.5-4.4-9.3-9.1C1.5 8.2 3.6 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.6 0 5.7 3.7 4.5 6.9-1.8 4.7-9.3 9.1-9.3 9.1z",
 };
 
-function Icon({ path, fill, style }: { path: string; fill: string; style?: React.CSSProperties }) {
+/** A white line icon, or a solid one when `filled`. */
+function Icon({ path, filled = false, style }: { path: string; filled?: boolean; style?: React.CSSProperties }) {
   return (
-    <svg width={18} height={18} viewBox="0 0 24 24" aria-hidden="true" style={{ display: "block", ...style }}>
-      <path d={path} fill={fill} />
+    <svg width={18} height={18} viewBox="0 0 24 24" aria-hidden="true" style={{ display: "block", overflow: "visible", ...style }}>
+      <path d={path} fill={filled ? ICON : "none"} stroke={ICON} strokeWidth={1.6} strokeLinejoin="round" />
     </svg>
   );
 }
@@ -278,8 +282,7 @@ function Card({ fill, style }: { fill: string; style?: React.CSSProperties }) {
         inset: 0,
         borderRadius: 16,
         background: fill,
-        // A black card on the black screen keeps a hairline edge.
-        boxShadow: fill === SCREEN ? `inset 0 0 0 1.5px ${CONTENT}` : undefined,
+        boxShadow: HAIRLINE,
         ...style,
       }}
     />
@@ -316,11 +319,11 @@ function Post({
       <div style={{ position: "absolute", inset: 0, ...ctx.enter(3) }}>
         <div style={{ position: "absolute", left: 5, top: 339, width: 32, height: 32, borderRadius: "50%", background: SKELETON }} />
         <div style={{ ...bar(45, 352, 50), height: 6 }} />
-        <Icon path={ICONS.star} fill={SKELETON} style={{ position: "absolute", left: 156, top: 346 }} />
-        <Icon path={ICONS.comment} fill={SKELETON} style={{ position: "absolute", left: 185, top: 346 }} />
+        <Icon path={ICONS.star} style={{ position: "absolute", left: 156, top: 346 }} />
+        <Icon path={ICONS.comment} style={{ position: "absolute", left: 185, top: 346 }} />
         <div data-walk={heart ? "like" : undefined} style={{ position: "absolute", left: 216, top: 346, width: 18, height: 18, transform: `scale(${heartScale.toFixed(3)})` }}>
-          <Icon path={ICONS.heart} fill={SKELETON} style={{ position: "absolute", inset: 0 }} />
-          <Icon path={ICONS.heart} fill={CONTENT} style={{ position: "absolute", inset: 0, opacity: liked }} />
+          <Icon path={ICONS.heart} style={{ position: "absolute", inset: 0 }} />
+          <Icon path={ICONS.heart} filled style={{ position: "absolute", inset: 0, opacity: liked }} />
         </div>
         <div style={bar(5, 385, 50)} />
         <div style={bar(60, 385, 50)} />
@@ -341,7 +344,7 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
       {/* Menu */}
       <div style={{ position: "absolute", left: 20, top: 52, display: "grid", gap: 4, ...ctx.enter(0) }}>
         {[0, 1, 2].map((i) => (
-          <span key={i} style={{ display: "block", width: 14, height: 1.5, borderRadius: 1, background: CONTENT }} />
+          <span key={i} style={{ display: "block", width: 14, height: 1.5, borderRadius: 1, background: ICON }} />
         ))}
       </div>
       {/* Following / For you */}
@@ -354,7 +357,8 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
             width: 124,
             height: 32,
             borderRadius: 16,
-            background: CONTENT,
+            background: CARD_RAISED,
+            boxShadow: HAIRLINE,
             transform: `translateX(${(forYou * 128).toFixed(2)}px)`,
           }}
         />
@@ -376,7 +380,7 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
                 transform: i === 1 ? `scale(${(1 - 0.05 * forYouPress).toFixed(3)})` : undefined,
               }}
             >
-              <span style={{ width, height: 6, borderRadius: 3, background: active > 0.5 ? SCREEN : "#4a4a4c" }} />
+              <span style={{ width, height: 6, borderRadius: 3, background: active > 0.5 ? "#8e8f94" : "#3a3b40" }} />
             </div>
           );
         })}
@@ -389,12 +393,12 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
             ctx={ctx}
             card={
               <>
-                <Card fill={CONTENT} />
-                <Card fill={SCREEN} style={{ opacity: forYou }} />
+                <Card fill={CARD} />
+                <Card fill={CARD_RAISED} style={{ opacity: forYou }} />
               </>
             }
           />
-          <Post top={15 + POST_H} ctx={ctx} card={<Card fill={CONTENT} />} heart={{ liked: ctx.tapped(3), press: ctx.press("like") }} />
+          <Post top={15 + POST_H} ctx={ctx} card={<Card fill={CARD} />} heart={{ liked: ctx.tapped(3), press: ctx.press("like") }} />
         </div>
       </div>
     </>
