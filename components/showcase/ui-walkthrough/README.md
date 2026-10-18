@@ -7,7 +7,7 @@ A product walkthrough for portfolio case studies, a soft skeleton phone beside a
 - **Category:** Showcase
 - **Demo:** https://atomicmotion.dev/components/ui-walkthrough
 - **Dependencies:** clsx, framer-motion, tailwind-merge
-- **Inspired by:** [Lumen app film](https://github.com/michellesijiama/Lumen)
+- **Inspired by:** [Atomic Motion](https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion)
 
 ## Setup
 

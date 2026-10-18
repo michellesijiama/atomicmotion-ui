@@ -411,7 +411,7 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-10-17",
     codePath: "components/showcase/ui-walkthrough/ui-walkthrough.tsx",
-    inspiredBy: { label: "Lumen app film", href: "https://github.com/michellesijiama/Lumen" },
+    inspiredBy: { label: "Atomic Motion", href: "https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion" },
   }),
 } satisfies Record<string, ComponentMeta>;
 

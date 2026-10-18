@@ -22,6 +22,10 @@ export type WalkthroughStep = {
   tap?: string;
   /** Seconds into the step when the press lands. Defaults to 1.6, just after the camera settles. */
   tapAt?: number;
+  /** A before and after: this screen sits under a divider that a finger drags across the live one. */
+  compare?: (ctx: WalkthroughContext) => React.ReactNode;
+  /** Ring a data-walk element and run a short line from it to a small label beside the phone. */
+  callout?: { target: string; label: string };
 };
 
 export type WalkthroughContext = {
@@ -57,6 +61,11 @@ export type UIWalkthroughProps = {
 const PHONE_W = 280;
 const PHONE_H = 600;
 
+/** The words' column in the wide layout, and the gap the phone keeps from it however far the camera
+ *  pushes in. */
+const COPY_W = 320;
+const COPY_GAP = 40;
+
 /** Each layout's true stage size, phone centre and copy box. The stage is scaled down to fit
  *  whatever it is put in. */
 const LAYOUTS = {
@@ -65,7 +74,7 @@ const LAYOUTS = {
     h: 680,
     phone: { x: 660, y: 340 },
     viewTop: 0,
-    copy: { left: 88, top: "50%", width: 360, transform: "translateY(-50%)" },
+    copy: { left: 88, top: "50%", width: COPY_W, transform: "translateY(-50%)" },
   },
   stacked: {
     w: 600,
@@ -319,7 +328,7 @@ function Post({
     <div style={{ position: "absolute", left: 0, right: 0, top, height: POST_H }}>
       <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 328, ...ctx.enter(2) }}>{card}</div>
       <div style={{ position: "absolute", inset: 0, ...ctx.enter(3) }}>
-        <div style={{ position: "absolute", left: 5, top: 339, width: 32, height: 32, borderRadius: "50%", background: SKELETON }} />
+        <div data-walk={heart ? "avatar" : undefined} style={{ position: "absolute", left: 5, top: 339, width: 32, height: 32, borderRadius: "50%", background: SKELETON }} />
         <div style={{ ...bar(45, 352, 50), height: 6 }} />
         <Icon path={ICONS.star} style={{ position: "absolute", left: 156, top: 346 }} />
         <Icon path={ICONS.comment} style={{ position: "absolute", left: 185, top: 346 }} />
@@ -407,12 +416,46 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
   );
 }
 
+/** The same moment in an older, boxier, busier version of the feed, for the before and after. */
+function SkeletonFeedBefore() {
+  const dim = "#3a3b40";
+  const line = (top: number, width: number): React.CSSProperties => ({ position: "absolute", left: 16, top, width, height: 6, borderRadius: 2, background: "#2a2b2f" });
+  return (
+    <div style={{ position: "absolute", inset: 0, background: "#141518" }}>
+      {/* A solid app bar with a title block */}
+      <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 86, background: "#1d1e21" }} />
+      <span style={{ position: "absolute", left: 20, top: 56, width: 70, height: 8, borderRadius: 2, background: dim }} />
+      <span style={{ position: "absolute", right: 20, top: 52, width: 16, height: 16, borderRadius: 3, background: dim }} />
+      {/* Underlined tabs */}
+      <span style={{ position: "absolute", left: 44, top: 102, width: 52, height: 6, borderRadius: 2, background: dim }} />
+      <span style={{ position: "absolute", left: 184, top: 102, width: 40, height: 6, borderRadius: 2, background: "#6e6f74" }} />
+      <span style={{ position: "absolute", left: 140, top: 118, width: 140, height: 2, background: "#6e6f74" }} />
+      <span style={{ position: "absolute", left: 0, top: 120, width: 280, height: 1, background: "#26272b" }} />
+      {/* A smaller, square card */}
+      <div style={{ position: "absolute", left: 11, right: 11, top: 137, height: 250, borderRadius: 4, background: "#2a2b2f" }} />
+      <span style={{ position: "absolute", left: 16, top: 400, width: 30, height: 30, borderRadius: 4, background: dim }} />
+      <span style={{ position: "absolute", left: 54, top: 412, width: 60, height: 6, borderRadius: 2, background: dim }} />
+      {[168, 192, 216].map((left) => (
+        <span key={left} style={{ position: "absolute", left, top: 408, width: 14, height: 14, borderRadius: 3, background: dim }} />
+      ))}
+      <div style={line(446, 240)} />
+      <div style={line(458, 220)} />
+      <div style={line(470, 236)} />
+      <div style={line(482, 180)} />
+      <div style={line(494, 210)} />
+      <div style={{ position: "absolute", left: 11, right: 11, top: 516, height: 120, borderRadius: 4, background: "#2a2b2f" }} />
+    </div>
+  );
+}
+
 /** The default script, written for the skeleton feed. Copy it as a starting point for your own. */
 export const defaultWalkthroughSteps: WalkthroughStep[] = [
   { title: "Introduce your app", caption: "One line on what it does and who it is for", duration: 3.4 },
-  { title: "Show a key interaction", caption: "Name the control and what tapping it changes", duration: 4.2, focus: { y: TABS_Y, zoom: 1.6 }, tap: "for-you" },
+  { title: "Show a key interaction", caption: "Name the control and what tapping it changes", duration: 4.2, focus: { y: TABS_Y, zoom: 1.4 }, tap: "for-you" },
   { title: "Walk through a flow", caption: "Say what happens as the screen moves on", duration: 3.6 },
-  { title: "Highlight a detail", caption: "Point out the small touch you are proud of", duration: 4.2, focus: { y: ACTIONS_Y, zoom: 1.6 }, tap: "like" },
+  { title: "Highlight a detail", caption: "Point out the small touch you are proud of", duration: 4.2, focus: { y: ACTIONS_Y, zoom: 1.4 }, tap: "like" },
+  { title: "Show the before and after", caption: "Slide from the old screen to the new one", duration: 4.4, compare: () => <SkeletonFeedBefore /> },
+  { title: "Explain one element", caption: "Point to a part and say why it is there", duration: 4, callout: { target: "avatar", label: "Name this part" } },
   { title: "Close with the outcome", caption: "Sum up what people get from it", duration: 3 },
 ];
 
@@ -501,6 +544,9 @@ function DynamicIsland() {
   );
 }
 
+type Box = { x: number; y: number; w: number; h: number };
+const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
+
 /* ------------------------------------------------------------------------- */
 /* The stage                                                                  */
 /* ------------------------------------------------------------------------- */
@@ -516,19 +562,32 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
 
   // Where the tapped control sits on the phone canvas, for the touch. Measured per step;
   // dividing by the rendered width undoes both the fit scale and the camera zoom.
+  // The callout's element is measured the same way, as a box.
   const [rippleAt, setRippleAt] = React.useState<{ x: number; y: number } | null>(null);
+  const [calloutBox, setCalloutBox] = React.useState<Box | null>(null);
   React.useLayoutEffect(() => {
     const phone = phoneRef.current;
-    const target = current?.tap ? phone?.querySelector<HTMLElement>(`[data-walk="${current.tap}"]`) : null;
-    if (!phone || !target) return setRippleAt(null);
+    if (!phone) return;
     const p = phone.getBoundingClientRect();
-    const r = target.getBoundingClientRect();
     const unit = p.width / PHONE_W;
-    setRippleAt({ x: (r.left + r.width / 2 - p.left) / unit, y: (r.top + r.height / 2 - p.top) / unit });
-  }, [ctx.step, current?.tap]);
+    const box = (id?: string): Box | null => {
+      const target = id ? phone.querySelector<HTMLElement>(`[data-walk="${id}"]`) : null;
+      if (!target) return null;
+      const r = target.getBoundingClientRect();
+      return { x: (r.left - p.left) / unit, y: (r.top - p.top) / unit, w: r.width / unit, h: r.height / unit };
+    };
+    const tapBox = box(current?.tap);
+    setRippleAt(tapBox ? { x: tapBox.x + tapBox.w / 2, y: tapBox.y + tapBox.h / 2 } : null);
+    setCalloutBox(box(current?.callout?.target));
+  }, [ctx.step, current?.tap, current?.callout?.target]);
 
-  const zoom = reduced ? 1 : sample(timeline.zoom, t, cameraEase);
-  const shift = reduced ? 0 : sample(timeline.shift, t, cameraEase);
+  // The camera never pushes in so far that the phone crowds the words: in the wide layout its
+  // frame stays COPY_GAP clear of the words' column. The shift is scaled down with the zoom so the
+  // focus point still lands on the centre line.
+  const wantZoom = reduced ? 1 : sample(timeline.zoom, t, cameraEase);
+  const maxZoom = stage === LAYOUTS.split ? (stage.phone.x - (88 + COPY_W + COPY_GAP)) / (PHONE_W / 2 + BEZEL + BAND) : Infinity;
+  const zoom = Math.min(wantZoom, maxZoom);
+  const shift = (reduced ? 0 : sample(timeline.shift, t, cameraEase)) * (zoom / wantZoom);
   const land = reduced ? 1 : outEase(clamp01(t / 1.3));
   const phoneOpacity = reduced ? 1 : fadeEase(clamp01(t / 0.7));
   const outro = 1 - fadeEase(clamp01((t - (timeline.total - OUTRO)) / (OUTRO - 0.15)));
@@ -541,6 +600,25 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
     const p = wordsIn(delay);
     return { opacity: Math.min(p, wordsOut), transform: reduced ? undefined : `translateY(${((1 - p) * 14).toFixed(2)}px)` };
   };
+
+  // Before and after: the old screen fades in beside the new one, a finger drags the divider once
+  // from left to right (never all the way to either edge), then the old screen fades away.
+  // `wipe` is the divider's x on the phone.
+  const comparing = current?.compare ? (reduced ? 1 : Math.min(fadeEase(clamp01(ctx.time / 0.4)), 1 - fadeEase(clamp01((ctx.time - (duration - 0.5)) / 0.4)))) : 0;
+  const wipe = current?.compare ? (reduced ? PHONE_W / 2 : sample([[0.9, PHONE_W * 0.2], [duration - 0.9, PHONE_W * 0.8]], ctx.time, cameraEase)) : 0;
+  const dragging = current?.compare && !reduced ? Math.min(clamp01((ctx.time - 0.5) / 0.3), 1 - clamp01((ctx.time - (duration - 0.9)) / 0.3)) : 0;
+
+  // Callout: the element is ringed and a line draws out from the words to it.
+  const callout = current?.callout && calloutBox ? Math.min(reduced ? 1 : outEase(clamp01((ctx.time - 0.6) / 1)), wordsOut) : 0;
+  const onStage = (x: number, y: number) => ({
+    x: stage.phone.x + (x - PHONE_W / 2) * zoom,
+    y: stage.phone.y + (y - PHONE_H / 2) * zoom + shift + (1 - land) * 40,
+  });
+  // The label sits just outside the phone on the side nearer the element, level with it.
+  const calloutLeft = calloutBox ? calloutBox.x + calloutBox.w / 2 < PHONE_W / 2 : true;
+  const lineStart = calloutBox ? onStage(calloutLeft ? calloutBox.x - 6 : calloutBox.x + calloutBox.w + 6, calloutBox.y + calloutBox.h / 2) : { x: 0, y: 0 };
+  const phoneEdge = (PHONE_W / 2 + BEZEL + BAND) * zoom;
+  const lineEnd = { x: calloutLeft ? stage.phone.x - phoneEdge - 28 : stage.phone.x + phoneEdge + 28, y: lineStart.y };
 
   // Seconds from the press, while the touch is on screen (it arrives just before and leaves just after).
   const touchT = current?.tap ? ctx.time - (current.tapAt ?? TAP_AT) : -Infinity;
@@ -557,7 +635,7 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
             <div style={{ position: "absolute", ...stage.copy }}>
               {current ? (
                 <div key={ctx.step}>
-                  <div style={{ fontSize: 34, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: INK, ...words(0) }}>{current.title}</div>
+                  <div style={{ fontSize: 30, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: INK, ...words(0) }}>{current.title}</div>
                   {current.caption ? (
                     <div style={{ marginTop: 12, maxWidth: 280, fontSize: 16, lineHeight: 1.5, color: CAPTION, ...words(0.1) }}>{current.caption}</div>
                   ) : null}
@@ -601,11 +679,97 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
                   }}
                 >
                   {children ? children(ctx) : <SkeletonFeed ctx={ctx} fade={fade} />}
+                  {current?.compare && comparing > 0 ? (
+                    <div style={{ position: "absolute", inset: 0, opacity: comparing }}>
+                      <div style={{ position: "absolute", inset: 0, clipPath: `inset(0 0 0 ${wipe.toFixed(2)}px)` }}>{current.compare(ctx)}</div>
+                      <span style={{ position: "absolute", left: wipe - 1, top: 0, bottom: 0, width: 2, background: "rgba(255,255,255,.9)" }} />
+                      <span
+                        style={{
+                          position: "absolute",
+                          left: wipe,
+                          top: PHONE_H / 2,
+                          width: 30,
+                          height: 30,
+                          marginLeft: -15,
+                          marginTop: -15,
+                          borderRadius: "50%",
+                          background: SCREEN,
+                          boxShadow: "inset 0 0 0 1.5px rgba(255,255,255,.9)",
+                          display: "grid",
+                          placeItems: "center",
+                        }}
+                      >
+                        <svg width={14} height={14} viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M9 7l-5 5 5 5M15 7l5 5-5 5" fill="none" stroke={ICON} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                      {dragging > 0 ? (
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position: "absolute",
+                            left: wipe,
+                            top: PHONE_H / 2,
+                            width: TOUCH_SIZE,
+                            height: TOUCH_SIZE,
+                            borderRadius: "50%",
+                            background: "rgba(150,150,156,.55)",
+                            boxShadow: "inset 0 0 0 1px rgba(255,255,255,.7), 0 3px 12px rgba(0,0,0,.35)",
+                            transform: "translate(-50%, -50%)",
+                            opacity: dragging,
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {callout > 0 && calloutBox ? (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        left: calloutBox.x - 6,
+                        top: calloutBox.y - 6,
+                        width: calloutBox.w + 12,
+                        height: calloutBox.h + 12,
+                        borderRadius: Math.min(calloutBox.w, calloutBox.h) / 2 + 6,
+                        boxShadow: "inset 0 0 0 1.5px rgba(255,255,255,.9)",
+                        opacity: callout,
+                        transform: `scale(${(1.25 - 0.25 * callout).toFixed(3)})`,
+                      }}
+                    />
+                  ) : null}
                   <DynamicIsland />
                   {touch !== null && rippleAt ? <TouchPoint at={rippleAt} t={touch} /> : null}
                 </div>
               </div>
             </div>
+            {callout > 0 && current?.callout ? (
+              <>
+                <svg aria-hidden="true" width={stage.w} height={stage.h} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
+                  <line x1={lineStart.x} y1={lineStart.y} x2={lerp(lineStart.x, lineEnd.x, callout)} y2={lineEnd.y} stroke="rgba(255,255,255,.85)" strokeWidth={1.5} />
+                  <circle cx={lineStart.x} cy={lineStart.y} r={3} fill={ICON} />
+                </svg>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: lineEnd.y,
+                    ...(calloutLeft ? { right: stage.w - lineEnd.x } : { left: lineEnd.x }),
+                    transform: `translateY(-50%) translateX(${((1 - clamp01((callout - 0.7) / 0.3)) * (calloutLeft ? 8 : -8)).toFixed(2)}px)`,
+                    opacity: clamp01((callout - 0.7) / 0.3),
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    background: "#26272b",
+                    boxShadow: HAIRLINE,
+                    color: INK,
+                    fontSize: 12,
+                    whiteSpace: "nowrap",
+                    pointerEvents: "none",
+                  }}
+                >
+                  {current.callout.label}
+                </div>
+              </>
+            ) : null}
           </div>
         </div>
       </div>
