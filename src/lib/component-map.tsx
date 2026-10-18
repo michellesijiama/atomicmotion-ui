@@ -1,6 +1,6 @@
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
 import { PocketPiggy } from "@components/play/pocket-piggy";
-import { UIWalkthrough } from "@components/showcase/ui-walkthrough";
+import { UIWalkthrough } from "@components/template/ui-walkthrough";
 
 import type { ComponentType } from "react";
 
@@ -13,7 +13,7 @@ import { GeometricLogoReveal } from "@components/typography/geometric-logo-revea
 import { GradientGummyBear } from "@components/3d/gradient-gummy-bear";
 import { ShowreelSphere } from "@components/3d/showreel-sphere";
 import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
-import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
+import { ScrollPhaseCursor } from "@components/template/scroll-phase-cursor";
 import { VoiceBloom } from "@components/ai/voice-bloom";
 import { CoffeeGauge } from "@components/data-visualization/coffee-gauge";
 import { HalftoneBloom } from "@components/data-visualization/halftone-bloom";

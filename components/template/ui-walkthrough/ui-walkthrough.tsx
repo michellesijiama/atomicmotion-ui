@@ -506,7 +506,10 @@ function CalloutLabel({
   const left = box.x + box.w / 2 < PHONE_W / 2;
   const start = onStage(left ? box.x - 6 : box.x + box.w + 6, box.y + box.h / 2);
   const edge = (PHONE_W / 2 + BEZEL + BAND) * zoom;
-  const end = left ? stage.phone.x - edge - 28 : stage.phone.x + edge + 28;
+  // Keep the label on the stage even where the phone leaves little room beside it (the stacked
+  // layout); its width is estimated from the text.
+  const labelW = label.length * 6.4 + 26;
+  const end = left ? Math.max(stage.phone.x - edge - 28, labelW + 12) : Math.min(stage.phone.x + edge + 28, stage.w - labelW - 12);
   const shown = clamp01((progress - 0.7) / 0.3);
   return (
     <>

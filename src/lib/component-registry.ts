@@ -244,11 +244,11 @@ export const componentRegistry = {
     title: "Scroll Phase Cursor",
     description:
       "A circular pointer whose ring fills with page progress while a sculpted 3D form rotates with the scroll",
-    category: "Cursor",
+    category: "Template",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-08-06",
-    codePath: "components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx",
+    codePath: "components/template/scroll-phase-cursor/scroll-phase-cursor.tsx",
     inspiredBy: { label: "Inversa", href: "https://inversa.com" },
   }),
   voiceBloom: createComponentMeta({
@@ -406,11 +406,11 @@ export const componentRegistry = {
     title: "UI Walkthrough",
     description:
       "A dark product walkthrough for portfolio case studies, an iPhone beside short captions that pushes in, taps, slides a before and after and labels a part, with one steps list to swap in your own screen",
-    category: "Showcase",
+    category: "Template",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-10-17",
-    codePath: "components/showcase/ui-walkthrough/ui-walkthrough.tsx",
+    codePath: "components/template/ui-walkthrough/ui-walkthrough.tsx",
     inspiredBy: { label: "Atomic Motion", href: "https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion" },
   }),
 } satisfies Record<string, ComponentMeta>;

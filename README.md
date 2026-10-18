@@ -74,7 +74,7 @@ integration instructions for every component.
 | <img src="public/previews/gemini-live.png" width="160" alt="Gemini Live preview"> | **Gemini Live** | AI | [Source](components/ai/gemini-live/gemini-live.tsx) | [README](components/ai/gemini-live/README.md) |
 | <img src="public/previews/geometric-logo-reveal.png" width="160" alt="Geometric Logo Reveal preview"> | **Geometric Logo Reveal** | Typography | [Source](components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx) | [README](components/typography/geometric-logo-reveal/README.md) |
 | <img src="public/previews/gradient-gummy-bear.png" width="160" alt="Gradient Gummy Bear preview"> | **Gradient Gummy Bear** | 3D | [Source](components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx) | [README](components/3d/gradient-gummy-bear/README.md) |
-| <img src="public/previews/scroll-phase-cursor.png" width="160" alt="Scroll Phase Cursor preview"> | **Scroll Phase Cursor** | Cursor | [Source](components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx) | [README](components/cursor/scroll-phase-cursor/README.md) |
+| <img src="public/previews/scroll-phase-cursor.png" width="160" alt="Scroll Phase Cursor preview"> | **Scroll Phase Cursor** | Template | [Source](components/template/scroll-phase-cursor/scroll-phase-cursor.tsx) | [README](components/template/scroll-phase-cursor/README.md) |
 | <img src="public/previews/voice-bloom.png" width="160" alt="Voice Bloom preview"> | **Voice Bloom** | AI | [Source](components/ai/voice-bloom/voice-bloom.tsx) | [README](components/ai/voice-bloom/README.md) |
 | <img src="public/previews/showreel-sphere.png" width="160" alt="Showreel Sphere preview"> | **Showreel Sphere** | 3D | [Source](components/3d/showreel-sphere/showreel-sphere.tsx) | [README](components/3d/showreel-sphere/README.md) |
 | <img src="public/previews/coffee-gauge.png" width="160" alt="Coffee Gauge preview"> | **Coffee Gauge** | Data Visualization | [Source](components/data-visualization/coffee-gauge/coffee-gauge.tsx) | [README](components/data-visualization/coffee-gauge/README.md) |
@@ -84,7 +84,7 @@ integration instructions for every component.
 | <img src="public/previews/stamp-tracker.png" width="160" alt="Stamp Tracker preview"> | **Stamp Tracker** | Data Visualization | [Source](components/data-visualization/stamp-tracker/stamp-tracker.tsx) | [README](components/data-visualization/stamp-tracker/README.md) |
 | <img src="public/previews/doodle-calendar.png" width="160" alt="Doodle Calendar preview"> | **Doodle Calendar** | Data Visualization | [Source](components/data-visualization/doodle-calendar/doodle-calendar.tsx) | [README](components/data-visualization/doodle-calendar/README.md) |
 | <img src="public/previews/pocket-piggy.png" width="160" alt="Pocket Piggy preview"> | **Pocket Piggy** | Play | [Source](components/play/pocket-piggy/pocket-piggy.tsx) | [README](components/play/pocket-piggy/README.md) |
-| <img src="public/previews/ui-walkthrough.png" width="160" alt="UI Walkthrough preview"> | **UI Walkthrough** | Showcase | [Source](components/showcase/ui-walkthrough/ui-walkthrough.tsx) | [README](components/showcase/ui-walkthrough/README.md) |
+| <img src="public/previews/ui-walkthrough.png" width="160" alt="UI Walkthrough preview"> | **UI Walkthrough** | Template | [Source](components/template/ui-walkthrough/ui-walkthrough.tsx) | [README](components/template/ui-walkthrough/README.md) |
 <!-- component-catalogue:end -->
 
 Gemini Live and Voice Bloom are interface demos; they do not connect to an AI
@@ -102,11 +102,11 @@ Run gallery and maintenance commands from the repository root.
 ├── components/                  # supported copyable components
 │   ├── 3d/                      # WebGL examples and their asset instructions
 │   ├── ai/
-│   ├── cursor/
 │   ├── data-visualization/
 │   ├── gradient/
 │   ├── navigation/
 │   ├── play/
+│   ├── template/
 │   └── typography/
 │       └── <id>/
 │           ├── <id>.tsx          # complete source
