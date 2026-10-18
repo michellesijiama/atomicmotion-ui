@@ -405,7 +405,7 @@ export const componentRegistry = {
     index: "020",
     title: "UI Walkthrough",
     description:
-      "A product walkthrough for portfolio case studies, a soft skeleton phone beside a short caption that pushes in on each control, taps it and pulls back, with one steps list to swap in your own screens",
+      "A dark product walkthrough for portfolio case studies, an iPhone beside short captions that pushes in, taps, slides a before and after and labels a part, with one steps list to swap in your own screen",
     category: "Showcase",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

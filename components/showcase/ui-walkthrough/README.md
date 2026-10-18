@@ -1,6 +1,6 @@
 # UI Walkthrough
 
-A product walkthrough for portfolio case studies, a soft skeleton phone beside a short caption that pushes in on each control, taps it and pulls back, with one steps list to swap in your own screens
+A dark product walkthrough for portfolio case studies, an iPhone beside short captions that pushes in, taps, slides a before and after and labels a part, with one steps list to swap in your own screen
 
 ![UI Walkthrough preview](https://atomicmotion.dev/previews/ui-walkthrough.png)
 
@@ -44,14 +44,13 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `steps` | `WalkthroughStep[]` | `defaultWalkthroughSteps` | The script: one entry per chapter, played in order and looped. |
-| `children` | `(ctx: WalkthroughContext) => React.ReactNode` | — | Your screen, drawn on a 280 x 600 phone canvas. Mark tapped controls with data-walk="<id>". Defaults to a skeleton feed. |
-| `fade` | `boolean` | `true` | Fade the screen's top and bottom edges as content scrolls under them, instead of a hard crop. |
-| `layout` | `"auto" \| "split" \| "stacked"` | `"auto"` | Copy beside the phone ("split"), above it ("stacked"), or whichever suits the space it is given ("auto"). |
+| `steps` | `WalkthroughStep[]` | `defaultWalkthroughSteps` | The script: one entry per chapter, played in order and looped. Defaults to the demo script. |
+| `children` | `(ctx: WalkthroughContext) => React.ReactNode` | — | Your screen, drawn on a 280 x 600 canvas. Mark what the script taps or points at with data-walk="<id>". Defaults to the demo feed. |
+| `layout` | `"auto" \| "split" \| "stacked"` | `"auto"` | Words beside the phone ("split"), above it ("stacked"), or whichever suits the space it is given ("auto"). |
 | `loop` | `boolean` | — | Accepted for the gallery card. The walkthrough always plays. |
 | `className` | `string` | — | Additional classes for the root container. |
 
-Named export: `UIWalkthrough`. Public types: `WalkthroughStep`, `WalkthroughContext`, `UIWalkthroughProps`.
+Named export: `UIWalkthrough`. Public types: `WalkthroughStep`, `WalkthroughStepRef`, `WalkthroughContext`, `UIWalkthroughProps`.
 - **Source access:** Free and open source.
 - **Code license:** MIT (existing source); asset licenses are listed separately.
 

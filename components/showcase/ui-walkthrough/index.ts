@@ -1,2 +1,2 @@
-export { defaultWalkthroughSteps, UIWalkthrough } from "./ui-walkthrough";
-export type { WalkthroughStep, WalkthroughContext, UIWalkthroughProps } from "./ui-walkthrough";
+export { UIWalkthrough, defaultWalkthroughSteps } from "./ui-walkthrough";
+export type { WalkthroughStep, WalkthroughStepRef, WalkthroughContext, UIWalkthroughProps } from "./ui-walkthrough";
