@@ -20,7 +20,7 @@ export type WalkthroughStep = {
   focus?: { y: number; zoom: number };
   /** The data-walk id of the control pressed in this step. */
   tap?: string;
-  /** Seconds into the step when the press lands. Defaults to 1.2, just after the camera settles. */
+  /** Seconds into the step when the press lands. Defaults to 1.6, just after the camera settles. */
   tapAt?: number;
 };
 
@@ -83,14 +83,14 @@ const VIEW_MASK = "linear-gradient(to bottom, transparent 0, #000 36px)";
 const FONT = "var(--font-poppins, Poppins), Poppins, ui-sans-serif, system-ui, sans-serif";
 
 /** Seconds: the phone landing, the fade before the loop, one camera move, the default tap time. */
-const INTRO = 1.1;
-const OUTRO = 0.9;
-const CAMERA = 0.9;
-const TAP_AT = 1.2;
-const TAP_LENGTH = 0.45;
+const INTRO = 1.4;
+const OUTRO = 1.1;
+const CAMERA = 1.3;
+const TAP_AT = 1.6;
+const TAP_LENGTH = 0.6;
 
-/** The Lumen film's camera curve: zero speed at both ends, an early peak, a long soft settle. */
-const cameraEase = cubicBezier(0.42, 0, 0.16, 1);
+/** The camera curve: a slow, even ease in and a long soft settle, so no move starts or stops abruptly. */
+const cameraEase = cubicBezier(0.65, 0, 0.25, 1);
 const outEase = cubicBezier(0.22, 1, 0.36, 1);
 const fadeEase = cubicBezier(0.37, 0, 0.63, 1);
 
@@ -167,7 +167,7 @@ function makeContext(steps: WalkthroughStep[], timeline: Timeline, t: number, re
     },
     enter: (layer) => {
       if (reduced) return {};
-      const p = outEase(clamp01((t - 0.3 - layer * 0.09) / 0.6));
+      const p = outEase(clamp01((t - 0.45 - layer * 0.12) / 0.8));
       return { opacity: p, transform: `translateY(${((1 - p) * 12).toFixed(2)}px)` };
     },
   };
@@ -339,7 +339,7 @@ function Post({
 function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean }) {
   const forYou = ctx.tapped(1);
   const forYouPress = ctx.press("for-you");
-  const scroll = ctx.progress(2, 0.5, 1.4) * POST_H;
+  const scroll = ctx.progress(2, 0.5, 1.9) * POST_H;
   const mask = fade ? "linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 56px), transparent 100%)" : undefined;
   return (
     <>
@@ -409,11 +409,11 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
 
 /** The default script, written for the skeleton feed. Copy it as a starting point for your own. */
 export const defaultWalkthroughSteps: WalkthroughStep[] = [
-  { title: "Introduce your app", caption: "One line on what it does and who it is for", duration: 3 },
-  { title: "Show a key interaction", caption: "Name the control and what tapping it changes", duration: 3.4, focus: { y: TABS_Y, zoom: 1.6 }, tap: "for-you" },
-  { title: "Walk through a flow", caption: "Say what happens as the screen moves on", duration: 3 },
-  { title: "Highlight a detail", caption: "Point out the small touch you are proud of", duration: 3.4, focus: { y: ACTIONS_Y, zoom: 1.6 }, tap: "like" },
-  { title: "Close with the outcome", caption: "Sum up what people get from it", duration: 2.2 },
+  { title: "Introduce your app", caption: "One line on what it does and who it is for", duration: 3.4 },
+  { title: "Show a key interaction", caption: "Name the control and what tapping it changes", duration: 4.2, focus: { y: TABS_Y, zoom: 1.6 }, tap: "for-you" },
+  { title: "Walk through a flow", caption: "Say what happens as the screen moves on", duration: 3.6 },
+  { title: "Highlight a detail", caption: "Point out the small touch you are proud of", duration: 4.2, focus: { y: ACTIONS_Y, zoom: 1.6 }, tap: "like" },
+  { title: "Close with the outcome", caption: "Sum up what people get from it", duration: 3 },
 ];
 
 /** Seconds a touch is on screen before and after its press. */
@@ -529,14 +529,14 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
 
   const zoom = reduced ? 1 : sample(timeline.zoom, t, cameraEase);
   const shift = reduced ? 0 : sample(timeline.shift, t, cameraEase);
-  const land = reduced ? 1 : outEase(clamp01(t / 0.9));
-  const phoneOpacity = reduced ? 1 : fadeEase(clamp01(t / 0.5));
+  const land = reduced ? 1 : outEase(clamp01(t / 1.3));
+  const phoneOpacity = reduced ? 1 : fadeEase(clamp01(t / 0.7));
   const outro = 1 - fadeEase(clamp01((t - (timeline.total - OUTRO)) / (OUTRO - 0.15)));
 
   // The step's words rise in after the camera starts, and leave just before the next step.
   const duration = current?.duration ?? 1;
-  const wordsIn = (delay: number) => outEase(clamp01((ctx.time - 0.15 - delay) / 0.5));
-  const wordsOut = 1 - fadeEase(clamp01((ctx.time - (duration - 0.45)) / 0.35));
+  const wordsIn = (delay: number) => outEase(clamp01((ctx.time - 0.2 - delay) / 0.8));
+  const wordsOut = 1 - fadeEase(clamp01((ctx.time - (duration - 0.6)) / 0.5));
   const words = (delay: number): React.CSSProperties => {
     const p = wordsIn(delay);
     return { opacity: Math.min(p, wordsOut), transform: reduced ? undefined : `translateY(${((1 - p) * 14).toFixed(2)}px)` };
@@ -585,6 +585,8 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
                   opacity: phoneOpacity,
                   transform: `translate(-50%, -50%) translateY(${(shift + (1 - land) * 40).toFixed(2)}px) scale(${zoom.toFixed(4)})`,
                   transformOrigin: "center",
+                  // Composited on the GPU, so the camera moves never wait on layout.
+                  willChange: "transform, opacity",
                 }}
               >
                 <IPhoneFrame />

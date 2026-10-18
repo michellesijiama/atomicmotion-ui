@@ -103,8 +103,9 @@ function PocketPiggyPreview({ loop }: { loop?: boolean }) {
 }
 
 function UIWalkthroughPreview({ loop }: { loop?: boolean }) {
-  // The gallery tile is portrait, so the card stacks the words above the phone.
-  return <UIWalkthrough loop={loop} layout={loop ? "stacked" : "auto"} />;
+  // The card keeps the wide layout, words left and phone right. The portrait tile only shows the
+  // middle ~710px of its 960px canvas, so the stage is fitted to that width.
+  return <UIWalkthrough loop={loop} layout="split" className={loop ? "mx-auto max-w-[700px]" : undefined} />;
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
