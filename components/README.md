@@ -18,7 +18,6 @@ See [copy-paste integration](../docs/COPY-PASTE.md) for setup and troubleshootin
 | --- | --- |
 | 3D | [3d](3d/) |
 | AI | [ai](ai/) |
-| Control | [control](control/) |
 | Cursor | [cursor](cursor/) |
 | Data Visualization | [data-visualization](data-visualization/) |
 | Gradient | [gradient](gradient/) |

@@ -1,5 +1,6 @@
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
 import { PocketPiggy } from "@components/play/pocket-piggy";
+import { UIWalkthrough } from "@components/showcase/ui-walkthrough";
 
 import type { ComponentType } from "react";
 
@@ -16,7 +17,7 @@ import { ScrollPhaseCursor } from "@components/cursor/scroll-phase-cursor";
 import { VoiceBloom } from "@components/ai/voice-bloom";
 import { CoffeeGauge } from "@components/data-visualization/coffee-gauge";
 import { HalftoneBloom } from "@components/data-visualization/halftone-bloom";
-import { BlossomLight } from "@components/control/blossom-light";
+import { BlossomLight } from "@components/data-visualization/blossom-light";
 import { GradientEventCard } from "@components/gradient/gradient-event-card";
 import { StampTracker } from "@components/data-visualization/stamp-tracker";
 
@@ -101,6 +102,11 @@ function PocketPiggyPreview({ loop }: { loop?: boolean }) {
   return <PocketPiggy loop={loop} />;
 }
 
+function UIWalkthroughPreview({ loop }: { loop?: boolean }) {
+  // The stage scales itself to the tile and always plays.
+  return <UIWalkthrough loop={loop} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
@@ -120,4 +126,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "stamp-tracker": StampTrackerPreview,
   "doodle-calendar": DoodleCalendarPreview,
   "pocket-piggy": PocketPiggyPreview,
+  "ui-walkthrough": UIWalkthroughPreview,
 };

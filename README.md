@@ -79,11 +79,12 @@ integration instructions for every component.
 | <img src="public/previews/showreel-sphere.png" width="160" alt="Showreel Sphere preview"> | **Showreel Sphere** | 3D | [Source](components/3d/showreel-sphere/showreel-sphere.tsx) | [README](components/3d/showreel-sphere/README.md) |
 | <img src="public/previews/coffee-gauge.png" width="160" alt="Coffee Gauge preview"> | **Coffee Gauge** | Data Visualization | [Source](components/data-visualization/coffee-gauge/coffee-gauge.tsx) | [README](components/data-visualization/coffee-gauge/README.md) |
 | <img src="public/previews/halftone-bloom.png" width="160" alt="Halftone Bloom preview"> | **Halftone Bloom** | Data Visualization | [Source](components/data-visualization/halftone-bloom/halftone-bloom.tsx) | [README](components/data-visualization/halftone-bloom/README.md) |
-| <img src="public/previews/blossom-light.png" width="160" alt="Blossom Light preview"> | **Blossom Light** | Control | [Source](components/control/blossom-light/blossom-light.tsx) | [README](components/control/blossom-light/README.md) |
+| <img src="public/previews/blossom-light.png" width="160" alt="Blossom Light preview"> | **Blossom Light** | Data Visualization | [Source](components/data-visualization/blossom-light/blossom-light.tsx) | [README](components/data-visualization/blossom-light/README.md) |
 | <img src="public/previews/gradient-event-card.png" width="160" alt="Gradient Event Card preview"> | **Gradient Event Card** | Gradient | [Source](components/gradient/gradient-event-card/gradient-event-card.tsx) | [README](components/gradient/gradient-event-card/README.md) |
 | <img src="public/previews/stamp-tracker.png" width="160" alt="Stamp Tracker preview"> | **Stamp Tracker** | Data Visualization | [Source](components/data-visualization/stamp-tracker/stamp-tracker.tsx) | [README](components/data-visualization/stamp-tracker/README.md) |
 | <img src="public/previews/doodle-calendar.png" width="160" alt="Doodle Calendar preview"> | **Doodle Calendar** | Data Visualization | [Source](components/data-visualization/doodle-calendar/doodle-calendar.tsx) | [README](components/data-visualization/doodle-calendar/README.md) |
 | <img src="public/previews/pocket-piggy.png" width="160" alt="Pocket Piggy preview"> | **Pocket Piggy** | Play | [Source](components/play/pocket-piggy/pocket-piggy.tsx) | [README](components/play/pocket-piggy/README.md) |
+| <img src="public/previews/ui-walkthrough.png" width="160" alt="UI Walkthrough preview"> | **UI Walkthrough** | Showcase | [Source](components/showcase/ui-walkthrough/ui-walkthrough.tsx) | [README](components/showcase/ui-walkthrough/README.md) |
 <!-- component-catalogue:end -->
 
 Gemini Live and Voice Bloom are interface demos; they do not connect to an AI
@@ -101,12 +102,11 @@ Run gallery and maintenance commands from the repository root.
 ├── components/                  # supported copyable components
 │   ├── 3d/                      # WebGL examples and their asset instructions
 │   ├── ai/
-│   ├── control/
 │   ├── cursor/
 │   ├── data-visualization/
 │   ├── gradient/
 │   ├── navigation/
-│   ├── tool/
+│   ├── play/
 │   └── typography/
 │       └── <id>/
 │           ├── <id>.tsx          # complete source

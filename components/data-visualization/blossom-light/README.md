@@ -4,7 +4,7 @@ A square of wall whose light is the controls in the middle of it: leaf shadow on
 
 ![Blossom Light preview](https://atomicmotion.dev/previews/blossom-light.png)
 
-- **Category:** Control
+- **Category:** Data Visualization
 - **Demo:** https://atomicmotion.dev/components/blossom-light
 - **Dependencies:** clsx, tailwind-merge
 

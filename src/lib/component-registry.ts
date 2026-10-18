@@ -323,11 +323,11 @@ export const componentRegistry = {
     title: "Blossom Light",
     description:
       "A square of wall whose light is the controls in the middle of it: leaf shadow on white plaster, dimmed and lifted by a brightness pill that fills line by line, turned from cool to amber by a tone slider, and sent to follow the weather outside by an Adaptive toggle, while the leaf shadow on the wall stirs in a wind — all flat frosted glass, scaling itself to fit wherever it is put",
-    category: "Control",
+    category: "Data Visualization",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-09",
-    codePath: "components/control/blossom-light/blossom-light.tsx",
+    codePath: "components/data-visualization/blossom-light/blossom-light.tsx",
     requiredAssets: [
       {
         path: "public/textures/wall-shadow.jpg",
@@ -399,6 +399,19 @@ export const componentRegistry = {
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-10-13",
     codePath: "components/play/pocket-piggy/pocket-piggy.tsx",
+  }),
+  uiWalkthrough: createComponentMeta({
+    id: "ui-walkthrough",
+    index: "020",
+    title: "UI Walkthrough",
+    description:
+      "A product walkthrough for portfolio case studies, a soft skeleton phone beside a short caption that pushes in on each control, taps it and pulls back, with one steps list to swap in your own screens",
+    category: "Showcase",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-10-17",
+    codePath: "components/showcase/ui-walkthrough/ui-walkthrough.tsx",
+    inspiredBy: { label: "Lumen app film", href: "https://github.com/michellesijiama/Lumen" },
   }),
 } satisfies Record<string, ComponentMeta>;
 
