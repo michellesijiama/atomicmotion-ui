@@ -88,7 +88,6 @@ const OUTRO = 0.9;
 const CAMERA = 0.9;
 const TAP_AT = 1.2;
 const TAP_LENGTH = 0.45;
-const RIPPLE_LENGTH = 0.55;
 
 /** The Lumen film's camera curve: zero speed at both ends, an early peak, a long soft settle. */
 const cameraEase = cubicBezier(0.42, 0, 0.16, 1);
@@ -243,20 +242,17 @@ function useFit(hostRef: React.RefObject<HTMLDivElement | null>, layout: "auto" 
 /* The default screen: a skeleton feed                                        */
 /* ------------------------------------------------------------------------- */
 
-const SKELETON = "#ececee";
-const LIKED = "#f65866";
+/** The words beside the phone. */
+const INK = "#111111";
+/** Dark mode, black and white only: a black screen, white for what matters, dark grey for placeholder lines. */
+const SCREEN = "#111111";
+const CONTENT = "#ffffff";
+const SKELETON = "#2c2c2e";
 /** One post: a 328px card, its meta row and three lines, then a gap that hides the next card at rest. */
 const POST_H = 470;
 /** Phone-local y of the tabs and of the second post's action row, for the default script's camera. */
 const TABS_Y = 106;
 const ACTIONS_Y = 492;
-
-type Palette = { top: string; mid: string; bottom: string; arc: string };
-const PALETTES: Record<"following" | "forYou" | "next", Palette> = {
-  following: { top: "#f65866", mid: "#f9a0a6", bottom: "#efbca6", arc: "#f7877a" },
-  forYou: { top: "#8f7cf0", mid: "#c3b5f7", bottom: "#f3c9b9", arc: "#a993f2" },
-  next: { top: "#ff9a52", mid: "#ffc58f", bottom: "#f8dcc0", arc: "#ffae6b" },
-};
 
 const ICONS = {
   star: "M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z",
@@ -273,45 +269,20 @@ function Icon({ path, fill, style }: { path: string; fill: string; style?: React
   );
 }
 
-function Card({ palette, style }: { palette: Palette; style?: React.CSSProperties }) {
+/** A post's picture, as a flat placeholder block. */
+function Card({ fill, style }: { fill: string; style?: React.CSSProperties }) {
   return (
     <div
       style={{
         position: "absolute",
         inset: 0,
         borderRadius: 16,
-        overflow: "hidden",
-        background: `linear-gradient(180deg, ${palette.top} 0%, ${palette.mid} 52%, ${palette.bottom} 100%)`,
+        background: fill,
+        // A black card on the black screen keeps a hairline edge.
+        boxShadow: fill === SCREEN ? `inset 0 0 0 1.5px ${CONTENT}` : undefined,
         ...style,
       }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: 62,
-          width: 420,
-          height: 420,
-          marginLeft: -210,
-          borderRadius: "50%",
-          background: "rgba(255,255,255,.22)",
-          border: "1px solid rgba(255,255,255,.35)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: 168,
-          width: 380,
-          height: 380,
-          marginLeft: -190,
-          borderRadius: "50%",
-          background: `linear-gradient(180deg, ${palette.arc} 0%, ${palette.bottom} 60%)`,
-          opacity: 0.85,
-        }}
-      />
-    </div>
+    />
   );
 }
 
@@ -349,7 +320,7 @@ function Post({
         <Icon path={ICONS.comment} fill={SKELETON} style={{ position: "absolute", left: 185, top: 346 }} />
         <div data-walk={heart ? "like" : undefined} style={{ position: "absolute", left: 216, top: 346, width: 18, height: 18, transform: `scale(${heartScale.toFixed(3)})` }}>
           <Icon path={ICONS.heart} fill={SKELETON} style={{ position: "absolute", inset: 0 }} />
-          <Icon path={ICONS.heart} fill={LIKED} style={{ position: "absolute", inset: 0, opacity: liked }} />
+          <Icon path={ICONS.heart} fill={CONTENT} style={{ position: "absolute", inset: 0, opacity: liked }} />
         </div>
         <div style={bar(5, 385, 50)} />
         <div style={bar(60, 385, 50)} />
@@ -370,7 +341,7 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
       {/* Menu */}
       <div style={{ position: "absolute", left: 20, top: 52, display: "grid", gap: 4, ...ctx.enter(0) }}>
         {[0, 1, 2].map((i) => (
-          <span key={i} style={{ display: "block", width: 14, height: 1.5, borderRadius: 1, background: "#f4f4f5" }} />
+          <span key={i} style={{ display: "block", width: 14, height: 1.5, borderRadius: 1, background: CONTENT }} />
         ))}
       </div>
       {/* Following / For you */}
@@ -383,16 +354,16 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
             width: 124,
             height: 32,
             borderRadius: 16,
-            background: "#ffffff",
-            boxShadow: "0 2px 6px rgba(0,0,0,.06)",
+            background: CONTENT,
             transform: `translateX(${(forYou * 128).toFixed(2)}px)`,
           }}
         />
-        {(["Following", "For you"] as const).map((label, i) => {
+        {/* Placeholder bars stand in for the two tab names. */}
+        {([52, 40] as const).map((width, i) => {
           const active = i === 0 ? 1 - forYou : forYou;
           return (
             <div
-              key={label}
+              key={i}
               data-walk={i === 1 ? "for-you" : undefined}
               style={{
                 position: "absolute",
@@ -402,12 +373,10 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
                 height: 32,
                 display: "grid",
                 placeItems: "center",
-                fontSize: 12.5,
-                color: active > 0.5 ? "#2c2c2e" : "#5a5a5e",
                 transform: i === 1 ? `scale(${(1 - 0.05 * forYouPress).toFixed(3)})` : undefined,
               }}
             >
-              {label}
+              <span style={{ width, height: 6, borderRadius: 3, background: active > 0.5 ? SCREEN : "#4a4a4c" }} />
             </div>
           );
         })}
@@ -420,12 +389,12 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
             ctx={ctx}
             card={
               <>
-                <Card palette={PALETTES.following} />
-                <Card palette={PALETTES.forYou} style={{ opacity: forYou }} />
+                <Card fill={CONTENT} />
+                <Card fill={SCREEN} style={{ opacity: forYou }} />
               </>
             }
           />
-          <Post top={15 + POST_H} ctx={ctx} card={<Card palette={PALETTES.next} />} heart={{ liked: ctx.tapped(3), press: ctx.press("like") }} />
+          <Post top={15 + POST_H} ctx={ctx} card={<Card fill={CONTENT} />} heart={{ liked: ctx.tapped(3), press: ctx.press("like") }} />
         </div>
       </div>
     </>
@@ -434,12 +403,46 @@ function SkeletonFeed({ ctx, fade }: { ctx: WalkthroughContext; fade: boolean })
 
 /** The default script, written for the skeleton feed. Copy it as a starting point for your own. */
 export const defaultWalkthroughSteps: WalkthroughStep[] = [
-  { title: "A calmer feed", caption: "Everything you follow in one quiet column", duration: 3 },
-  { title: "Switch feeds", caption: "Following and For you sit one tap apart", duration: 3.4, focus: { y: TABS_Y, zoom: 1.6 }, tap: "for-you" },
-  { title: "Scroll at your pace", caption: "Each post gets the whole screen", duration: 3 },
-  { title: "Save what you love", caption: "One tap keeps it for later", duration: 3.4, focus: { y: ACTIONS_Y, zoom: 1.6 }, tap: "like" },
-  { title: "Ready when you are", caption: "Your feed waits right where you left it", duration: 2.2 },
+  { title: "Introduce your app", caption: "One line on what it does and who it is for", duration: 3 },
+  { title: "Show a key interaction", caption: "Name the control and what tapping it changes", duration: 3.4, focus: { y: TABS_Y, zoom: 1.6 }, tap: "for-you" },
+  { title: "Walk through a flow", caption: "Say what happens as the screen moves on", duration: 3 },
+  { title: "Highlight a detail", caption: "Point out the small touch you are proud of", duration: 3.4, focus: { y: ACTIONS_Y, zoom: 1.6 }, tap: "like" },
+  { title: "Close with the outcome", caption: "Sum up what people get from it", duration: 2.2 },
 ];
+
+/** Seconds a touch is on screen before and after its press. */
+const TOUCH_LEAD = 0.6;
+const TOUCH_TAIL = 0.6;
+const TOUCH_SIZE = 34;
+
+/** A touch like the ones in Apple's product demos: a soft, finger-sized grey dot glides in and
+ *  settles, squeezes as it presses, then fades away. No ring, no burst. `t` is seconds from the
+ *  press (negative while it arrives). Grey reads on both the black screen and white controls. */
+function TouchPoint({ at, t }: { at: { x: number; y: number }; t: number }) {
+  const arrive = outEase(clamp01((t + 0.55) / 0.38));
+  const leave = fadeEase(clamp01((t - 0.24) / 0.3));
+  const press = sample([[-0.1, 0], [0, 1], [0.18, 0]], t, fadeEase);
+  const scale = (1.14 - 0.14 * arrive) * (1 - 0.16 * press);
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        width: TOUCH_SIZE,
+        height: TOUCH_SIZE,
+        borderRadius: "50%",
+        pointerEvents: "none",
+        // It glides in from just below and right, the way a thumb comes in.
+        left: at.x + (1 - arrive) * 14,
+        top: at.y + (1 - arrive) * 24,
+        background: "rgba(150,150,156,.55)",
+        boxShadow: "inset 0 0 0 1px rgba(255,255,255,.7), 0 3px 12px rgba(0,0,0,.35)",
+        transform: `translate(-50%, -50%) scale(${scale.toFixed(3)})`,
+        opacity: arrive * (1 - leave),
+      }}
+    />
+  );
+}
 
 /* ------------------------------------------------------------------------- */
 /* The stage                                                                  */
@@ -454,7 +457,7 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
   const ctx = makeContext(steps, timeline, t, reduced);
   const current = steps[ctx.step];
 
-  // Where the tapped control sits on the phone canvas, for the ripple. Measured per step;
+  // Where the tapped control sits on the phone canvas, for the touch. Measured per step;
   // dividing by the rendered width undoes both the fit scale and the camera zoom.
   const [rippleAt, setRippleAt] = React.useState<{ x: number; y: number } | null>(null);
   React.useLayoutEffect(() => {
@@ -482,23 +485,24 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
     return { opacity: Math.min(p, wordsOut), transform: reduced ? undefined : `translateY(${((1 - p) * 14).toFixed(2)}px)` };
   };
 
-  const rippleT = current?.tap ? ctx.time - (current.tapAt ?? TAP_AT) : -1;
-  const ripple = !reduced && rippleAt && rippleT >= 0 && rippleT <= RIPPLE_LENGTH ? rippleT / RIPPLE_LENGTH : null;
+  // Seconds from the press, while the touch is on screen (it arrives just before and leaves just after).
+  const touchT = current?.tap ? ctx.time - (current.tapAt ?? TAP_AT) : -Infinity;
+  const touch = !reduced && touchT >= -TOUCH_LEAD && touchT <= TOUCH_TAIL ? touchT : null;
 
   return (
     <div ref={hostRef} className={cn("relative flex h-full min-h-[320px] w-full items-center justify-center overflow-hidden", className)}>
       <div ref={fitRef} style={{ width: stage.w, height: stage.h, flex: "none", transformOrigin: "center" }}>
         <div
-          style={{ position: "relative", width: stage.w, height: stage.h, borderRadius: 32, overflow: "hidden", background: "#cacacc", fontFamily: FONT }}
+          style={{ position: "relative", width: stage.w, height: stage.h, borderRadius: 32, overflow: "hidden", background: "#eaeaea", fontFamily: FONT }}
         >
           <div style={{ position: "absolute", inset: 0, opacity: outro }}>
             {/* Copy */}
             <div style={{ position: "absolute", ...stage.copy }}>
               {current ? (
                 <div key={ctx.step}>
-                  <div style={{ fontSize: 34, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: "#1d1d1f", ...words(0) }}>{current.title}</div>
+                  <div style={{ fontSize: 34, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: INK, ...words(0) }}>{current.title}</div>
                   {current.caption ? (
-                    <div style={{ marginTop: 12, fontSize: 16, lineHeight: 1.5, color: "#5f5f64", ...words(0.1) }}>{current.caption}</div>
+                    <div style={{ marginTop: 12, maxWidth: 280, fontSize: 16, lineHeight: 1.5, color: "#6b6b6b", ...words(0.1) }}>{current.caption}</div>
                   ) : null}
                 </div>
               ) : null}
@@ -533,29 +537,11 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, fade 
                     inset: 0,
                     borderRadius: 44,
                     overflow: "hidden",
-                    background: "#d9dadc",
-                    border: "1px solid rgba(255,255,255,.55)",
+                    background: SCREEN,
                   }}
                 >
                   {children ? children(ctx) : <SkeletonFeed ctx={ctx} fade={fade} />}
-                  {ripple !== null && rippleAt ? (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        position: "absolute",
-                        left: rippleAt.x,
-                        top: rippleAt.y,
-                        width: 44,
-                        height: 44,
-                        borderRadius: "50%",
-                        background: "rgba(255,255,255,.45)",
-                        border: "1.5px solid rgba(255,255,255,.8)",
-                        transform: `translate(-50%, -50%) scale(${(0.4 + outEase(ripple) * 1.2).toFixed(3)})`,
-                        opacity: 0.9 * (1 - ripple),
-                        pointerEvents: "none",
-                      }}
-                    />
-                  ) : null}
+                  {touch !== null && rippleAt ? <TouchPoint at={rippleAt} t={touch} /> : null}
                 </div>
               </div>
             </div>
