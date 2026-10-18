@@ -53,7 +53,8 @@ export type WalkthroughStep = {
   tapAt?: number;
   /** A before and after: this older screen is laid over yours and a finger drags a divider across it. */
   compare?: (ctx: WalkthroughContext) => React.ReactNode;
-  /** Ring a data-walk element and run a short line from it to a small label beside the phone. */
+  /** Ring a data-walk element and run a short line from it to a small label beside the phone. Pair it
+   *  with `focus` to push in on the element first; the line waits for the camera to settle. */
   callout?: { target: string; label: string };
 };
 
@@ -151,6 +152,8 @@ const OUTRO = 1.1;
 const CAMERA = 1.3;
 const TAP_AT = 1.6;
 const TAP_LENGTH = 0.6;
+/** Where the clock starts: the first step, settled, so the first paint is never empty. */
+const REST = INTRO + 1.6;
 
 /** A slow, even ease in and a long soft settle, so no move starts or stops abruptly. */
 const cameraEase = cubicBezier(0.65, 0, 0.25, 1);
@@ -184,9 +187,9 @@ type Box = { x: number; y: number; w: number; h: number };
 
 export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, layout = "auto", className }: UIWalkthroughProps) {
   const reduced = useReducedMotion() ?? false;
-  const timeline = React.useMemo(() => buildTimeline(steps), [steps]);
-  const { t, hostRef } = useLoopClock(timeline.total, timeline.starts[0] + 1.6);
-  const { fitRef, stage } = useFit(hostRef, layout);
+  const { t: clock, hostRef, fitRef, stage } = useStage(layout);
+  const timeline = React.useMemo(() => buildTimeline(steps, stage), [steps, stage]);
+  const t = clock % timeline.total;
   const screenRef = React.useRef<HTMLDivElement>(null);
   const ctx = makeContext(steps, timeline, t, reduced);
   const current = steps[ctx.step];
@@ -203,27 +206,21 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, layou
     setCalloutBox(measure(screen, current?.callout?.target));
   }, [ctx.step, current?.tap, current?.callout?.target]);
 
-  // Camera. In the wide layout it never pushes in so far that the phone crowds the words; the shift
-  // shrinks with the zoom so the focus point still lands on the centre line.
-  const wantZoom = reduced ? 1 : sample(timeline.zoom, t, cameraEase);
-  const maxZoom = stage === LAYOUTS.split ? (stage.phone.x - (COPY_LEFT + COPY_W + COPY_GAP)) / (PHONE_W / 2 + BEZEL + BAND) : Infinity;
-  const zoom = Math.min(wantZoom, maxZoom);
+  // Camera: its framing rules are applied once, in buildTimeline.
+  const zoom = reduced ? 1 : sample(timeline.zoom, t, cameraEase);
   const land = reduced ? 1 : outEase(clamp01(t / 1.3));
-  const lift = (reduced ? 0 : sample(timeline.shift, t, cameraEase)) * (zoom / wantZoom) + (1 - land) * 40;
+  const lift = (reduced ? 0 : sample(timeline.shift, t, cameraEase)) + (1 - land) * 40;
   const phoneOpacity = reduced ? 1 : fadeEase(clamp01(t / 0.7));
   const outro = 1 - fadeEase(clamp01((t - (timeline.total - OUTRO)) / (OUTRO - 0.15)));
   /** A point on the screen canvas, in stage coordinates, as the camera has it right now. */
   const onStage = (x: number, y: number) => ({ x: stage.phone.x + (x - PHONE_W / 2) * zoom, y: stage.phone.y + (y - PHONE_H / 2) * zoom + lift });
 
-  // The step's words rise in after the camera starts, and leave just before the next step.
+  // How far the step's words have left, for the pieces that leave with them.
   const wordsOut = 1 - fadeEase(clamp01((ctx.time - (duration - 0.6)) / 0.5));
-  const words = (delay: number): React.CSSProperties => {
-    const p = outEase(clamp01((ctx.time - 0.2 - delay) / 0.8));
-    return { opacity: Math.min(p, wordsOut), transform: reduced ? undefined : `translateY(${((1 - p) * 14).toFixed(2)}px)` };
-  };
 
   const tapT = current?.tap ? ctx.time - (current.tapAt ?? TAP_AT) : -Infinity;
-  const callout = current?.callout && calloutBox ? Math.min(reduced ? 1 : outEase(clamp01((ctx.time - 0.6) / 1)), wordsOut) : 0;
+  const calloutAt = current?.focus ? CAMERA : 0.6;
+  const callout = current?.callout && calloutBox ? Math.min(reduced ? 1 : outEase(clamp01((ctx.time - calloutAt) / 1)), wordsOut) : 0;
 
   return (
     <div ref={hostRef} className={cn("relative flex h-full min-h-[320px] w-full items-center justify-center overflow-hidden", className)}>
@@ -234,9 +231,13 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, layou
             <div style={{ position: "absolute", ...stage.copy }}>
               {current ? (
                 <div key={ctx.step}>
-                  <div style={{ fontSize: 30, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: THEME.title, ...words(0) }}>{current.title}</div>
+                  <div aria-label={current.title} style={{ fontSize: 30, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: THEME.title }}>
+                    <RisingWords text={current.title} time={ctx.time} start={0.2} end={duration} reduced={reduced} />
+                  </div>
                   {current.caption ? (
-                    <div style={{ marginTop: 12, maxWidth: 280, fontSize: 16, lineHeight: 1.5, color: THEME.caption, ...words(0.1) }}>{current.caption}</div>
+                    <div aria-label={current.caption} style={{ marginTop: 12, maxWidth: 280, fontSize: 16, lineHeight: 1.5, color: THEME.caption }}>
+                      <RisingWords text={current.caption} time={ctx.time} start={0.55} end={duration} reduced={reduced} />
+                    </div>
                   ) : null}
                 </div>
               ) : null}
@@ -296,6 +297,45 @@ function measure(screen: HTMLElement, id?: string): Box | null {
   const r = target.getBoundingClientRect();
   const unit = s.width / PHONE_W;
   return { x: (r.left - s.left) / unit, y: (r.top - s.top) / unit, w: r.width / unit, h: r.height / unit };
+}
+
+/* ------------------------------------------------------------------------- */
+/* Words                                                                      */
+/* ------------------------------------------------------------------------- */
+
+const riseEase = cubicBezier(0.215, 0.61, 0.355, 1);
+const exitEase = cubicBezier(0.45, 0, 0.55, 1);
+
+/** The Lumen film's word-by-word type. Each word rises from behind its own mask, sharpening out of a
+ *  slight blur, 0.07s after the one before; at `end` every word lifts out of its mask again, with a
+ *  stagger capped so a long caption leaves as quickly as a short title. Times are seconds into the step. */
+function RisingWords({ text, time, start, end, reduced }: { text: string; time: number; start: number; end: number; reduced: boolean }) {
+  const words = text.split(/\s+/);
+  return words.map((word, index) => {
+    const elapsed = time - start - index * 0.07;
+    const rise = riseEase(clamp01(elapsed / 0.75));
+    const leave = exitEase(clamp01((time - end + 0.5 - Math.min(0.08, index * 0.02)) / 0.42));
+    const y = reduced ? 0 : (1 - rise) * 0.65 - 1.05 * leave;
+    return (
+      <React.Fragment key={index}>
+        {/* The mask: room below for descenders, so only the rise is clipped. */}
+        <span aria-hidden="true" style={{ display: "inline-block", overflow: "hidden", verticalAlign: "bottom", paddingBottom: "0.16em", marginBottom: "-0.16em" }}>
+          <span
+            style={{
+              display: "inline-block",
+              opacity: riseEase(clamp01(elapsed / 0.28)) * (1 - leave),
+              transform: `translate3d(0, ${y.toFixed(3)}em, 0)`,
+              filter: reduced || rise >= 1 ? undefined : `blur(${((1 - rise) * 2).toFixed(2)}px)`,
+              willChange: "transform, opacity",
+            }}
+          >
+            {word}
+          </span>
+        </span>
+        {index < words.length - 1 ? " " : null}
+      </React.Fragment>
+    );
+  });
 }
 
 /* ------------------------------------------------------------------------- */
@@ -503,9 +543,32 @@ function CalloutLabel({
 
 type Timeline = { starts: number[]; total: number; zoom: Keys; shift: Keys };
 
-/** Turn the script into step start times and the camera's zoom and vertical-shift tracks.
+/** How close a pushed-in phone's top or bottom may come to the stage edge, and how far past it still
+ *  counts as an awkward near-miss crop. An edge in between is moved back to EDGE_ROOM inside. */
+const EDGE_ROOM = 56;
+const EDGE_NEAR_MISS = 120;
+
+/** The camera for one focus, after the framing rules:
+ *  - in the wide layout, it never pushes in so far that the phone crowds the words;
+ *  - the phone's top and bottom either sit well inside the stage or well past its edge, never just
+ *    touching it, and a bottom near the edge is lifted to leave room below.
  *  The camera never moves sideways, so a push-in can't slide the phone over the words. */
-function buildTimeline(steps: WalkthroughStep[]): Timeline {
+function frame(focus: WalkthroughStep["focus"], stage: Layout) {
+  if (!focus) return { zoom: 1, shift: 0 };
+  const maxZoom = stage === LAYOUTS.split ? (stage.phone.x - (COPY_LEFT + COPY_W + COPY_GAP)) / (PHONE_W / 2 + BEZEL + BAND) : Infinity;
+  const zoom = Math.min(focus.zoom, maxZoom);
+  // Scaling about the phone's centre, this shift puts focus.y on the stage's centre line.
+  let shift = (PHONE_H / 2 - focus.y) * zoom;
+  const half = (PHONE_H / 2 + BEZEL + BAND) * zoom;
+  const bottom = stage.phone.y + half + shift;
+  const top = stage.phone.y - half + shift;
+  if (bottom > stage.h - EDGE_ROOM && bottom < stage.h + EDGE_NEAR_MISS) shift -= bottom - (stage.h - EDGE_ROOM);
+  else if (top < stage.viewTop + EDGE_ROOM && top > stage.viewTop - EDGE_NEAR_MISS) shift += stage.viewTop + EDGE_ROOM - top;
+  return { zoom, shift };
+}
+
+/** Turn the script into step start times and the camera's zoom and vertical-shift tracks. */
+function buildTimeline(steps: WalkthroughStep[], stage: Layout): Timeline {
   const starts: number[] = [];
   let at = INTRO;
   for (const step of steps) {
@@ -517,9 +580,7 @@ function buildTimeline(steps: WalkthroughStep[]): Timeline {
   let z = 1;
   let y = 0;
   steps.forEach((step, i) => {
-    const nextZ = step.focus?.zoom ?? 1;
-    // Scaling about the phone's centre, this shift puts focus.y on the stage's centre line.
-    const nextY = step.focus ? (PHONE_H / 2 - step.focus.y) * nextZ : 0;
+    const { zoom: nextZ, shift: nextY } = frame(step.focus, stage);
     if (nextZ === z && nextY === y) return;
     zoom.push([starts[i], z], [starts[i] + CAMERA, nextZ]);
     shift.push([starts[i], y], [starts[i] + CAMERA, nextY]);
@@ -561,48 +622,16 @@ function makeContext(steps: WalkthroughStep[], timeline: Timeline, t: number, re
   };
 }
 
-/** Seconds since mount, looped over `total`, paused while the stage is off screen.
- *  Starts on a settled frame so the first paint (and the server render) is never empty. */
-function useLoopClock(total: number, rest: number) {
+/** The stage: picks the layout for the space the host has (a narrow or portrait box stacks the words
+ *  on top), scales it down so the whole thing is always in view, and runs the clock, in seconds
+ *  since mount, paused while the stage is off screen. The clock starts on a settled frame so the
+ *  first paint (and the server render) is never empty. */
+function useStage(layout: "auto" | "split" | "stacked") {
   const hostRef = React.useRef<HTMLDivElement>(null);
-  const [t, setT] = React.useState(rest);
-  React.useEffect(() => {
-    const host = hostRef.current;
-    if (!host) return;
-    let raf = 0;
-    let last = 0;
-    let clock = rest;
-    const tick = (now: number) => {
-      // Cap the step so a background tab doesn't jump the film forward.
-      clock = (clock + Math.min(0.1, (now - last) / 1000)) % total;
-      last = now;
-      setT(clock);
-      raf = requestAnimationFrame(tick);
-    };
-    const start = () => {
-      if (raf) return;
-      last = performance.now();
-      raf = requestAnimationFrame(tick);
-    };
-    const stop = () => {
-      cancelAnimationFrame(raf);
-      raf = 0;
-    };
-    const io = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()));
-    io.observe(host);
-    return () => {
-      io.disconnect();
-      stop();
-    };
-  }, [total, rest]);
-  return { t, hostRef };
-}
-
-/** Pick the layout for the space the host has (a narrow or portrait box stacks the words on top),
- *  then scale that stage down so the whole thing is always in view. */
-function useFit(hostRef: React.RefObject<HTMLDivElement | null>, layout: "auto" | "split" | "stacked") {
   const fitRef = React.useRef<HTMLDivElement>(null);
   const [auto, setAuto] = React.useState<"split" | "stacked">("split");
+  const [t, setT] = React.useState(REST);
+
   React.useEffect(() => {
     const host = hostRef.current;
     const fit = fitRef.current;
@@ -622,8 +651,38 @@ function useFit(hostRef: React.RefObject<HTMLDivElement | null>, layout: "auto" 
     const ro = new ResizeObserver(apply);
     ro.observe(host);
     return () => ro.disconnect();
-  }, [hostRef, layout]);
-  return { fitRef, stage: LAYOUTS[layout === "auto" ? auto : layout] };
+  }, [layout]);
+
+  React.useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    let raf = 0;
+    let last = 0;
+    const tick = (now: number) => {
+      // Cap the step so a background tab doesn't jump the film forward.
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      setT((value) => value + dt);
+      raf = requestAnimationFrame(tick);
+    };
+    const start = () => {
+      if (raf) return;
+      last = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+    const stop = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    };
+    const io = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()));
+    io.observe(host);
+    return () => {
+      io.disconnect();
+      stop();
+    };
+  }, []);
+
+  return { t, hostRef, fitRef, stage: LAYOUTS[layout === "auto" ? auto : layout] };
 }
 
 /* ------------------------------------------------------------------------- */
@@ -639,9 +698,11 @@ const DEMO = {
 };
 /** One post: a 328px card, its meta row and three lines, then a gap that hides the next card at rest. */
 const POST_H = 470;
-/** Where the demo script points the camera: the tabs, and the second post's action row. */
+/** Where the demo script points the camera: the tabs, the second post's action row, and a framing
+ *  for the avatar callout that leaves the avatar, and so its label, below the words. */
 const TABS_Y = 106;
 const ACTIONS_Y = 492;
+const AVATAR_FRAME_Y = ACTIONS_Y - 120;
 
 const ICONS = {
   star: "M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9z",
@@ -817,6 +878,6 @@ export const defaultWalkthroughSteps: WalkthroughStep[] = [
   { id: "scroll", title: "Walk through a flow", caption: "Say what happens as the screen moves on", duration: 3.6 },
   { id: "like", title: "Highlight a detail", caption: "Point out the small touch you are proud of", duration: 4.2, focus: { y: ACTIONS_Y, zoom: 1.4 }, tap: "like" },
   { id: "compare", title: "Show the before and after", caption: "Slide from the old screen to the new one", duration: 4.6, compare: () => <DemoFeedBefore /> },
-  { id: "explain", title: "Explain one element", caption: "Point to a part and say why it is there", duration: 4, callout: { target: "avatar", label: "Name this part" } },
+  { id: "explain", title: "Explain one element", caption: "Point to a part and say why it is there", duration: 4.6, focus: { y: AVATAR_FRAME_Y, zoom: 1.4 }, callout: { target: "avatar", label: "Name this part" } },
   { id: "outro", title: "Close with the outcome", caption: "Sum up what people get from it", duration: 3 },
 ];
