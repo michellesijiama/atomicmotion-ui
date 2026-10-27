@@ -95,10 +95,11 @@ const STYLES = `
 .jardin-opening .jardin-screen[data-ready="true"] .jardin-brush { animation: jardin-paint 4.6s cubic-bezier(.32,.05,.27,1) 3s both; animation-play-state: var(--jardin-play, running); }
 .jardin-opening .jardin-screen[data-ready="true"] .jardin-frost { animation: jardin-thaw 5s ease 2.5s both; animation-play-state: var(--jardin-play, running); }
 .jardin-opening .jardin-screen[data-ready="true"] .jardin-invitation { animation: jardin-invite 1.4s ease var(--jardin-invite-delay, 7.6s) both; animation-play-state: var(--jardin-play, running); }
+.jardin-opening .jardin-screen[data-intro-complete="true"] .jardin-invitation { animation: none; opacity: 1; visibility: visible; }
 .jardin-opening .jardin-entry { min-height: 44px; gap: 16px; padding: 0 10px; font-size: max(9px, 1.1cqw); font-weight: 500; letter-spacing: .015em; }
 .jardin-opening button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
 .jardin-opening button:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
-.jardin-opening .jardin-primary { border-radius: 99px; padding: 0 23px; color: #253d37; background: #fff4db55; border: 1px solid #253d3765; transition: background .2s; font-size: max(10px, 1.5cqw); }
+.jardin-opening .jardin-primary { border-radius: 99px; padding: 0 23px; color: #253d37; background: #fff4db66; border: 0; -webkit-backdrop-filter: blur(22px) saturate(115%); backdrop-filter: blur(22px) saturate(115%); transition: background .2s; font-size: max(10px, 1.5cqw); }
 .jardin-opening .jardin-primary:hover { background: #fff4db99; }
 .jardin-opening .jardin-home { position: absolute; bottom: 9px; left: 43%; width: 14%; height: 4px; border-radius: 99px; background: #253d3766; pointer-events: none; }
 .jardin-opening .jardin-visitors { position: absolute; inset: 0; z-index: 1; pointer-events: none; transform: translateX(-2%) scale(.75); transform-origin: 50% 85%; }
