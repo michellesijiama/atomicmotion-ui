@@ -1,0 +1,17 @@
+Tool mode: built-in image_gen
+Intent: edit existing generated garden far background, preserve lower garden and walking path, add NYC skyline only
+Transparent background: false
+Actual size: 1448x1086, 4:3
+Edit target: /Users/sijiama/Desktop/atomicmotion-ui-clone/public/components/jardin-living/background.png
+Style reference: /var/folders/vz/k424knmj6n19_pyjq9srv8bm0000gn/T/codex-clipboard-367ae288-e052-4cc5-a45b-ad19a5d4893d.png
+Visual inspection: Empire State Building, Chrysler Building and One World Trade Center are recognizable in gray-blue skyline between trees, around y=400-650. Upper sky remains airy. Full-width pink walking path retained at bottom, recommended walker baseline 96 percent of height.
+
+Use case: precise-object-edit
+Asset type: edited opaque BACKGROUND scenery layer for a layered hand-illustrated garden opening-screen UI, landscape 4:3.
+Input image 1 role: EDIT TARGET, the existing garden background. Preserve its composition, foreground garden, trees, pink walking path, color quality, and drawing language.
+Input image 2 role: drawing-style reference only for the fine irregular dark ink outlines, delicate colored-pencil hatching and soft clear fills. Do not copy gate, text, people, birds, or flowers.
+Primary request: edit ONLY THE FAR DISTANT HORIZON of image 1 to reveal a recognizable NEW YORK CITY / MANHATTAN SKYLINE beyond the garden. This is a garden in New York, looking towards Manhattan in the distance.
+Placement: place the skyline behind the garden trees and tiny fountain, around 45 to 70 percent of canvas height, mostly low in the central distance where the existing far tree silhouettes are. Preserve the central upper sky as generous empty title space. The buildings remain distant in scale, receding naturally, and do not form a giant near wall.
+NYC identity: make the Empire State Building's stepped spire and silhouette clearly recognizable among layered Manhattan towers, include the Chrysler Building's art-deco tapered crown, and a farther One World Trade Center's slender taper and spire. Compose these in a believable distant Manhattan panorama, visible enough to read as NYC rather than generic cottages.
+Style: exactly the garden's fine hand-drawn slightly irregular dark ink contours, subtle colored-pencil hatching, gentle filled color areas, sophisticated storybook editorial illustration. Buildings are atmospheric gray-blue and teal, lightly desaturated by distance, softly layered yet crisp enough for their silhouettes to be identified. No photograph, no 3D.
+Strict invariants: preserve the entire lower foreground and cream-pink path exactly, including its uninterrupted full-width horizontal strip at the bottom and curve into the garden. Preserve all existing side trees, lawn, small white statues and fountain, surrounding shrubs and colors. Preserve the upper-center sky's empty space. Keep image landscape 4:3, 1448x1086 if possible. No gate, no fence, no people, no birds, no animals, no large added flowers, no text, no signs, no watermark, no device, no UI. Change only the distant skyline. No oil-painting distress or antique cracks.

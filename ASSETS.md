@@ -25,6 +25,9 @@ carry a different license than the code that ships them. Checked by
 | `public/illustrations/doodle-calendar-diary/shrine.webp`, `public/illustrations/doodle-calendar-diary/shrine-thumb.webp` | Generated pencil illustration for this diary, exported with transparent interiors | AtomicMotion UI | MIT (repo default) | Doodle Calendar README and registry `requiredAssets` |
 | `public/illustrations/doodle-calendar-diary/generation-prompts.json` | Generation and edit prompt record for the diary illustrations | AtomicMotion UI | MIT (repo default) | Doodle Calendar README |
 
+| `public/components/jardin-living/{background-nyc,midground,foreground,flower,bird-sprite,garden-visitors,city-in-bloom-logo}.png` | Original hand-illustrated New York garden scenery, botanical layers, bird animation, garden visitors and English City in Bloom wordmark generated with built-in ImageGen | AtomicMotion UI | MIT (repo default) | Jardin Opening README and registry `requiredAssets` |
+| `public/components/jardin-living/*-prompt.txt` | Exact generation prompts and metadata for the published garden illustration and English wordmark | AtomicMotion UI | MIT (repo default) | Living garden asset provenance |
+
 ## Already removed
 
 `public/gummy-bear-xiaohongshu.mp4` (2.1 MB) had no recorded source and was

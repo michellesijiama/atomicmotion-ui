@@ -1,0 +1,10 @@
+Generated using the built-in ImageGen tool, with flower-city-logo.png as a style reference. Background: transparent.
+
+Use case: text-localization / logo-brand.
+Edit the supplied transparent title logo into an ENGLISH version for the same illustrated New York garden opening.
+Change the lettering to exactly "City in Bloom". That is the ONLY text: capital C, lowercase ity, a space, lowercase in, a space, capital B, lowercase loom. No Chinese characters, no subtitles, no extra words.
+Preserve the supplied mark's deep forest green #253d37 ink, sage leaves, two dusty pale pink flower buds, hand-drawn literary elegance, and a tiny Manhattan silhouette.
+Design beautiful readable connected italic calligraphic English lettering in ONE horizontal line. A refined hand-lettered italic serif/script hybrid: natural pen movements, flowing but clear letterforms, fine hairlines and confident thick downstrokes, restrained graceful flourishes. The stroke direction should be easy to follow for a future handwriting animation. Keep characters distinct and the spelling exact, with balanced spacing between the three words. Avoid giant swashes running through other words.
+Keep only very sparse small botanical accents near the outer ends. Place the tiny hand-inked skyline discreetly above the right word, including one tall Art Deco spire. Lettering dominates. Keep the skyline separate from letter interiors.
+Use a wide landscape canvas, approximately 3:1. The full title should occupy the width comfortably with clear transparent margins, all strokes and ornaments fully inside the canvas. One final logo only.
+Genuinely transparent alpha background: NO paper, NO colored rectangle, NO checkerboard, NO scene, NO device mockup. Flat opaque ink. No glow, blur, shadow, border, signature or watermark.

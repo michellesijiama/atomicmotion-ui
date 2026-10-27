@@ -1,0 +1,9 @@
+Mode: built-in image_gen
+transparent_background: true
+
+Use case: illustration-story
+Asset type: one isolated hand-drawn flower sprite with real transparent alpha background, square1024x1024, used for gently swaying animation around stem base.
+Reference image: style reference ONLY, particularly the beautiful large pale pink trumpet flower with fine dark ink lines and colored-pencil hatching. Match its detailed contemporary botanical editorial illustration, not its complete composition.
+Subject: precisely ONE slender slightly curved green stem bearing ONE large open pale-pink trumpet flower (morning glory / datura-like trumpet), with exactly TWO detailed green leaves on the stem. A graceful sideways curving long trumpet, viewed side-on at a slight three-quarter angle with the flower face in the top third, pink flared petals opening slightly toward upper left, orange warm throat and pale pink petal edges. Fine irregular dark ink outlines and visible subtle colored-pencil hatching, clear softly filled pastel pink, sage/leaf green and teal. No glossy realism.
+Layout: show the entire isolated single plant with stem base near bottom center, stem curving slightly to the left and blossom occupying upper part, ample transparent margin around the entire silhouette. Keep stem base visible and uncut so code can use bottom-center as rotation pivot. Flower has a naturally asymmetrical living botanical shape. Long slim stems, elegant rather than chunky.
+Genuine transparent alpha everywhere outside the flower, leaves and stem, including spaces between them. No sky, scenery, soil, vase, roots, shadows on surface or paper rectangle. No bouquet, additional flowers, buds, multi-panel, sprite sheet, text, labels, frame, UI, device, watermark. No hard geometric vector shapes, no commercial cartoon, no 3D, no antique paper or cracks.

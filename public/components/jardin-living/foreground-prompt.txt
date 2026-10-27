@@ -1,0 +1,9 @@
+Mode: built-in image_gen
+transparent_background: true
+
+Use case: illustration-story
+Asset type: a sparse botanical foreground layer with real transparent alpha, landscape 4:3 target1536x1152, for an animated garden entrance screen.
+Reference image is STYLE REFERENCE ONLY. Match fine irregular dark ink outlines, colored-pencil hatching on leaves, clear softly filled leaf green and teal, contemporary hand drawn botanical garden editorial illustration.
+Draw ONLY green leaf stems and delicate climbing vines clustered in the bottom-left and bottom-right corners and a little at the outermost side edges. Natural long undulating leaves, small ivy-like leaves, visible fine irregular contour and hatching, lovely casual botanical gestures. A very few tiny pale pink closed buds are allowed. No large open flowers because they will animate on separate layers.
+Composition is extremely sparse: Each bottom corner plant grows out from its own far corner, no connecting ground across the middle. Left occupies outer leftmost 16%, right outer rightmost 16%, with some little stems curling along bottom corners in lowest15%. The entire central 65% remains COMPLETELY transparent including the bottom center so the walking path behind it is not blocked. Most of the top area is completely transparent too. Keep at least75% canvas transparent. No decorative border running around all four edges.
+Real transparent background behind and between every leaf and vine, no paper rectangle, sky, horizon, ground rectangle, wall, frame, grass field or vignette. Plant artwork only. No garden gate, humans, birds, cats, text, UI, device, grid or panels. No hard vector plants, no geometric shapes, no photorealistic or3D rendering, no antique wallpaper or cracks. Modern detailed sketchbook botanical art with soft green fills and hatching.

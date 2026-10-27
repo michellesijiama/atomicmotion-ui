@@ -104,6 +104,27 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
+  jardinOpening: createComponentMeta({
+    id: "jardin-opening",
+    index: "020",
+    title: "Jardin Opening",
+    description:
+      "A living hand-illustrated New York garden inside an accurately proportioned 13-inch iPad Pro. A wordless garden slowly draws closer, then the English City in Bloom logo is written one ink stroke at a time. Botanical details and a Manhattan silhouette finish the mark before the entry button appears. Birds fly and flowers sway around distant visitors. Layered scenery adds gentle pointer parallax; reduced motion is respected.",
+    category: "Immersive",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-10-26",
+    codePath: "components/immersive/jardin-opening/jardin-opening.tsx",
+    requiredAssets: [
+      { path: "public/components/jardin-living/background-nyc.png", license: "MIT", credit: "AI-generated hand-illustrated New York garden background for AtomicMotion UI." },
+      { path: "public/components/jardin-living/midground.png", license: "MIT", credit: "AI-generated transparent garden gate for AtomicMotion UI." },
+      { path: "public/components/jardin-living/foreground.png", license: "MIT", credit: "AI-generated transparent botanical foreground for AtomicMotion UI." },
+      { path: "public/components/jardin-living/flower.png", license: "MIT", credit: "AI-generated transparent flower animated at its stem for AtomicMotion UI." },
+      { path: "public/components/jardin-living/bird-sprite.png", license: "MIT", credit: "AI-generated four-frame bird flight cycle for AtomicMotion UI." },
+      { path: "public/components/jardin-living/city-in-bloom-logo.png", license: "MIT", credit: "AI-generated hand-lettered City in Bloom title logo with botanical flourishes and a Manhattan skyline for AtomicMotion UI." },
+      { path: "public/components/jardin-living/garden-visitors.png", license: "MIT", credit: "AI-generated transparent groups of garden visitors for AtomicMotion UI." },
+    ],
+  }),
   emojiSketch: createComponentMeta({
     id: "emoji-sketch",
     index: "001",

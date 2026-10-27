@@ -1,5 +1,6 @@
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
 import { PocketPiggy } from "@components/play/pocket-piggy";
+import { JardinOpening } from "@components/immersive/jardin-opening";
 
 import type { ComponentType } from "react";
 
@@ -102,6 +103,7 @@ function PocketPiggyPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
+  "jardin-opening": JardinOpening,
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
   "filter-dropdown-reveal": FilterDropdownRevealPreview,

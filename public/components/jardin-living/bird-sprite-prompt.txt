@@ -1,0 +1,11 @@
+Tool mode: built-in image_gen__imagegen
+transparent_background: true
+Reference: /var/folders/vz/k424knmj6n19_pyjq9srv8bm0000gn/T/codex-clipboard-367ae288-e052-4cc5-a45b-ad19a5d4893d.png
+Output: 1448 x 1086 RGBA. Exact visual 2 columns x 2 rows. Alpha 0..255; 78.30% fully transparent. Four visibly distinct wing poses. Body registration not pixel-perfect; CSS registration adjustment recommended.
+
+Use case: illustration-story
+Asset type: animation sprite sheet PNG with genuine transparent alpha, landscape 4:3 canvas 1448x1086.
+Input Image 1: STRICT reference for drawing style, thin irregular dark ink outlines, pale watercolor color fills, fine colored-pencil hatch details, sophisticated contemporary hand-drawn storybook garden illustration. Do not include its gate, lettering, plants, people or scene.
+Primary request: draw EXACTLY 4 sequential wing-flap animation frames of ONE identical small songbird facing RIGHT, on an invisible exact 2-column by 2-row grid of FOUR equal rectangular cells. Row-major order: top-left wings high up; top-right wings horizontal; bottom-left wings down; bottom-right wings horizontal. Show the same bird design, size, body position, side profile and registration in every frame, changing wings only. Pale ivory and blush wings, gray-sage green back, orange-yellow small beak, dark ink eyes. Bird body center exactly at each cell center, plenty of empty padding, full spread wing extent fits entirely inside each cell. Bird occupies roughly half cell width. Four visible birds TOTAL, one per cell. Each bird's body and head align identically relative to its own cell. Distinct visible up, horizontal and down wing poses must truly differ for animation.
+Grid math: overall 1448x1086, 2 columns x 2 rows; cells 724x543. Centers at x=362/1086 and y=271.5/814.5. Use equal spacing and generous padding. Transparent throughout all empty space including between frames.
+Constraints: NO visible grid, no cell outlines, dividers, numbering, text, paper rectangle, background, extra objects, scenery, ground or shadows. Fine expressive ink lines and lightly colored pencil details, not geometric vector, not 3D, not photo. Genuine alpha transparency, do not draw a checkerboard.

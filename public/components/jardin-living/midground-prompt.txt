@@ -1,0 +1,9 @@
+Mode: built-in image_gen
+transparent_background: true
+
+Use case: illustration-story
+Asset type: real transparent alpha PNG garden gate midground for a layered garden opening UI. Landscape 4:3, target 1536x1152.
+Reference image: use its finely hand drawn botanical illustration language, irregular dark ink outlines, delicate colored pencil hatching, clear softly filled leaf green, teal, pastel pink, gold, pale blue. Recreate an airy modern botanical illustration, not a copy of the reference composition.
+Subject: one complete ornamental black-green wrought iron garden entrance framing an empty opening. Very slender elegant vertical gateposts stay at the extreme outermost LEFT 8% and RIGHT 8% of this wide canvas, stretching from near top to bottom. The two open gate wings sit close against these outer edges. A delicate graceful overhead wrought-iron arch spans ONLY the top 10-18% of canvas and has a few small gold finials and sparse curls. No signboard, no words, no crest with letters. Teal-green climbing vines wrap sparsely around the side posts, with a few detailed broad green leaves at the far side edges.
+Composition absolutely critical: opening in middle 60% of canvas is entirely genuine transparent alpha from below the top arch to bottom; nothing across it. Bottom center also completely transparent, no crossbar or floor. The scene behind this gate will be supplied as a different layer. This artwork is a sparse decorative EDGE FRAME, not a densely illustrated garden. Thin hand drawn detail, lots of alpha space.
+Real transparent background, including spaces between iron scrolls and leaves. No sky, landscape, building, paper rectangle, grass backdrop, horizon or solid color rectangle. No humans, birds, cats, large flowers (these animate separately). No text, logo, UI, device, frame mockup, multiple panels. No antique faded wallpaper/cracks, hard geometric vector shapes, 3D or photographic rendering.

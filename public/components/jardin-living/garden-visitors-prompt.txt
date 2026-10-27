@@ -1,0 +1,25 @@
+Tool mode: built-in image_gen, generate then focused edit
+Transparent background: true (RGBA confirmed)
+Actual size: 1448x1086, 4:3
+Original references: background-nyc.png for layout, codex-clipboard-367ae288-e052-4cc5-a45b-ad19a5d4893d.png for drawing style
+Inspection: 13 people plus one dog, grouped below skyline. Final alpha>20 bounding box x352-1240 y729-922. 1521700 pixels are fully transparent; 50425 semitransparent and 403 opaque. Largest figures are approximately 10-11 percent canvas height, so a 0.75 layer scale around lower center is recommended if smaller visitors are needed. No scenery included.
+
+ORIGINAL GENERATION PROMPT
+Use case: illustration-story
+Asset type: genuinely transparent PNG overlay of SMALL BACKGROUND GARDEN VISITORS ONLY. Landscape 4:3 canvas, target 1448x1086.
+Input image 1 role: LAYOUT REFERENCE of the garden scene this transparent overlay will be placed over at exactly the same canvas size. Do NOT redraw its scenery. Observe the low lawns and distant fountain and pink paths to place the little visitors plausibly.
+Input image 2 role: DRAWING STYLE REFERENCE, for its fine irregular dark ink contours, soft clear hand-colored green/cream/blue/rust-pink clothing fills, subtle pencil hatching and charming small illustrated people.
+Primary request: 12 to 16 diverse tiny complete people, in approximately five relaxed groups across the LOWER DISTANT garden. Diverse adults, older people and children, multiple skin tones, everyday relaxed New York city casual clothes. These are background park visitors, clearly smaller than any future foreground protagonist.
+Scale and region are critical: each standing person's full body height only 3.5 to 7.5 percent of TOTAL CANVAS HEIGHT, depending on depth. All people only inside x=23 to 80 percent and y=66 to 88 percent of the full canvas. Keep the upper two thirds entirely transparent. Keep the bottom 12 percent entirely transparent for the foreground walking path. Do not enlarge or auto-center the people to fill the canvas.
+Group plan, with coordinates relative to full canvas:
+- Two walking friends near x=45%, feet around y=79%, heads around y=73%.
+- On the left around x=25 to 36%, y=78 to 85%, a seated reader and a small picnic group of three friends, subtly different poses.
+- On the right around x=65 to 76%, y=76 to 85%, a chatting couple and a small family with a child, with believable tiny faces and limbs.
+- Near distant fountain around x=52%, feet y=73%, one very tiny solo visitor.
+- One person walking a tiny dog near x=73%, feet y=83%; leash fine and visible.
+Add at most one or two tiny quiet visitors to reach 12-16. Leave breathing room between groups; do not create one packed crowd strip.
+Style: match the referenced garden's fine hand-drawn editorial illustration with slightly irregular charcoal-dark ink contour, soft but clear colored pencil/gouache fills, simple legible small heads, complete articulated bodies, distinct clothing shapes. Softer muted greens, cream, powder blue, warm rust pink. People should remain identifiable little characters, not warped dots.
+Transparency constraints: TRANSPARENT BACKGROUND, true alpha. Draw ONLY the little people, dog, leash, a tiny book/picnic objects if needed. No scene, no garden, no ground, no shadows or opaque paper patch, no lawn, no trees, no buildings, no flowers, no white or colored rectangular background, no checkerboard drawing. Do not redraw any part of image 1. No text, signs, watermark, UI, device, grid. No giant protagonist, no cut-off bodies, no photo, no 3D.
+
+FINAL TARGETED EDIT PROMPT
+Edit the attached transparent people-overlay image, preserving true transparent background. This is a precise scale-and-placement correction for a compositing asset, not a new scene. Keep all 13 people and one dog, all hand-drawn fine ink / colored-pencil style, clothing and poses, but make EVERY figure HALF its current physical height and width, so each is only 3.5 to 7.5 percent of the full canvas height. Preserve the full 1448x1086 landscape 4:3 canvas; do not crop or zoom. The people must look truly TINY and distant, not prominent foreground figures. Reposition them as five loose groups only between x=25%-78% and y=71%-85%, with standing feet around y=78%-84%, sitting groups feet y=83%. Put two walking friends near x45%, seated reader and picnic group near x28%-36%, chatting pair and family x65%-74%, tiny solitary visitor x52% feet y73%, dog walker near x76% feet y84%. All pixels outside these tiny illustrated people are truly transparent. In particular the whole upper70% and the whole bottom12% must be 100% transparent; no scene, lawn, trees, buildings, paper, shadows, or opaque colored edge artifacts. Keep colors soft clear cream/blue/green/rust pink, avoid red/neon color artifacts around figures. Complete little heads and limbs, 13 people and one dog. No text, no watermark.
