@@ -70,7 +70,9 @@ const LOGO_STROKES = [
   {"group": "botanical", "d": "M2028 479 Q2074 463 2106 494", "width": 54, "duration": 0.112, "delay": 11.48},
   {"group": "botanical", "d": "M1918 535 Q1948 548 1953 584", "width": 56, "duration": 0.112, "delay": 11.604},
 ] as const;
-const LOGO_DRAW_END = Math.max(...LOGO_STROKES.map((stroke) => stroke.delay + stroke.duration));
+const LOGO_WRITE_SPEED = 1.3;
+const LOGO_WRITE_START = LOGO_STROKES[0].delay;
+const LOGO_DRAW_END = LOGO_WRITE_START + (Math.max(...LOGO_STROKES.map((stroke) => stroke.delay + stroke.duration)) - LOGO_WRITE_START) / LOGO_WRITE_SPEED;
 
 const STYLES = `
 .jardin-opening { --jardin-ink: #253d37; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
@@ -85,7 +87,8 @@ const STYLES = `
 .jardin-opening .jardin-world { position: absolute; inset: 0; transform-origin: 50% 62%; }
 .jardin-opening .jardin-screen[data-ready="true"] .jardin-world { animation: jardin-arrive 11s cubic-bezier(.18,.5,.25,1) both; animation-play-state: var(--jardin-play, running); }
 .jardin-opening .jardin-title { font-family: var(--font-instrument-serif, "Instrument Serif"), Georgia, serif; font-weight: 400; font-size: 14.5cqw; letter-spacing: -.035em; line-height: 1; }
-.jardin-opening .jardin-title { width: 65cqw; height: 19.5cqw; }
+.jardin-opening .jardin-title { width: 65cqw; height: 19.5cqw; color: #fff; }
+.jardin-opening .jardin-logo-mark { filter: brightness(0) invert(1) drop-shadow(0 1px 3px #123d3538); }
 .jardin-opening .jardin-title svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .jardin-opening .jardin-brush { stroke-dasharray: 1; stroke-dashoffset: 1; }
 .jardin-opening .jardin-ink-stroke { stroke-dasharray: 1; stroke-dashoffset: 1; visibility: hidden; }
@@ -142,12 +145,12 @@ function PaintedTitle({ title, logoSrc, failed }: { title: string; logoSrc?: str
           </filter>
           <mask id={`${id}-ink`} maskUnits="userSpaceOnUse" x="0" y="0" width={logoSrc ? 2172 : 800} height={logoSrc ? 724 : 240} style={{ maskType: "luminance" }}>
             {logoSrc ? LOGO_STROKES.map((stroke, index) => (
-              <path key={index} className="jardin-ink-stroke" data-stroke={index} data-stroke-group={stroke.group} onAnimationStart={() => setWritingGroup(stroke.group)} d={stroke.d} pathLength={1} fill="none" stroke="white" strokeWidth={stroke.width} strokeLinecap="round" strokeLinejoin="round" style={{ "--stroke-duration": `${stroke.duration}s`, "--stroke-delay": `${stroke.delay}s` } as React.CSSProperties} />
+              <path key={index} className="jardin-ink-stroke" data-stroke={index} data-stroke-group={stroke.group} onAnimationStart={() => setWritingGroup(stroke.group)} d={stroke.d} pathLength={1} fill="none" stroke="white" strokeWidth={stroke.width} strokeLinecap="round" strokeLinejoin="round" style={{ "--stroke-duration": `${(stroke.duration / LOGO_WRITE_SPEED).toFixed(3)}s`, "--stroke-delay": `${(LOGO_WRITE_START + (stroke.delay - LOGO_WRITE_START) / LOGO_WRITE_SPEED).toFixed(3)}s` } as React.CSSProperties} />
             )) : <path className="jardin-brush" d={brush} pathLength={1} fill="none" stroke="white" strokeWidth={46} strokeLinecap="round" strokeLinejoin="round" filter={`url(#${id}-grain)`} />}
           </mask>
         </defs>
         {logoSrc ? (
-          <image href={logoSrc} x="0" y="0" width="2172" height="724" mask={`url(#${id}-ink)`} onError={failed} />
+          <image className="jardin-logo-mark" href={logoSrc} x="0" y="0" width="2172" height="724" mask={`url(#${id}-ink)`} onError={failed} />
         ) : (
           <g textAnchor="middle" fontSize={Math.min(178, 1100 / Math.max(1, title.length))} letterSpacing="-.035em">
             <text className="jardin-frost" x="400" y="178" fill="#e8f5ef" stroke="#d0e6df" strokeWidth=".7">{title}</text>
@@ -342,7 +345,7 @@ export function JardinOpening({
               {logoSrc ? (
                 <h2 className="m-0" aria-label={title}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={logoSrc} width={2172} height={724} alt="" className="mx-auto h-auto w-[24cqw]" onError={assetFailed} />
+                  <img src={logoSrc} width={2172} height={724} alt="" className="jardin-logo-mark mx-auto h-auto w-[24cqw]" onError={assetFailed} />
                 </h2>
               ) : <p className="m-0" style={{ fontFamily: 'var(--font-instrument-serif, "Instrument Serif"), Georgia, serif', fontSize: "5cqw", letterSpacing: "-.035em" }}>{title}</p>}
               <button ref={returnRef} type="button" onClick={reset} className="jardin-entry mt-2 inline-flex items-center"><ArrowLeft size={13} aria-hidden="true" /> Back to the beginning</button>
