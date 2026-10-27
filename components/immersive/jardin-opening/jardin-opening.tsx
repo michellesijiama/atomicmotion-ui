@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 export type JardinOpeningProps = {
   /** The opening title; the default uses the illustrated City in Bloom logo. */
@@ -102,8 +102,8 @@ const STYLES = `
 .jardin-opening .jardin-entry { min-height: 44px; gap: 16px; padding: 0 10px; font-size: max(9px, 1.1cqw); font-weight: 500; letter-spacing: .015em; }
 .jardin-opening button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
 .jardin-opening button:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
-.jardin-opening .jardin-primary { border-radius: 99px; padding: 0 23px; color: #fff; background: linear-gradient(145deg, #ffffff29, #ffffff08) #15342b24; border: 1px solid #ffffffd9; -webkit-backdrop-filter: blur(6px) saturate(140%); backdrop-filter: blur(6px) saturate(140%); box-shadow: inset 0 1px 0 #ffffff59, inset 0 -1px 0 #ffffff1f, 0 3px 14px #0d2d2820; text-shadow: 0 1px 4px #0c2c2866; transition: background .2s, box-shadow .2s; font-size: max(10px, 1.5cqw); }
-.jardin-opening .jardin-primary:hover { background: linear-gradient(145deg, #ffffff3d, #ffffff14) #15342b24; box-shadow: inset 0 1px 0 #ffffff80, inset 0 -1px 0 #ffffff29, 0 4px 18px #0d2d2826; }
+.jardin-opening .jardin-primary { border-radius: 99px; padding: 0 23px; color: #fff; background: linear-gradient(145deg, #ffffff29, #ffffff08) #15342b24; border: 0; -webkit-backdrop-filter: blur(6px) saturate(140%); backdrop-filter: blur(6px) saturate(140%); box-shadow: 0 3px 14px #0d2d2820; text-shadow: 0 1px 4px #0c2c2866; transition: background .2s, box-shadow .2s; font-size: max(10px, 1.5cqw); }
+.jardin-opening .jardin-primary:hover { background: linear-gradient(145deg, #ffffff3d, #ffffff14) #15342b24; box-shadow: 0 4px 18px #0d2d2826; }
 .jardin-opening .jardin-home { position: absolute; bottom: 9px; left: 43%; width: 14%; height: 4px; border-radius: 99px; background: #253d3766; pointer-events: none; }
 .jardin-opening .jardin-visitors { position: absolute; inset: 0; z-index: 1; pointer-events: none; transform: translateX(-2%) scale(.75); transform-origin: 50% 85%; }
 .jardin-opening .jardin-life { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
@@ -334,8 +334,8 @@ export function JardinOpening({
           <motion.div className="absolute inset-x-0 top-[18%] z-10 flex flex-col items-center" animate={{ opacity: entered ? 0 : 1, y: entered ? -12 : 0 }} transition={{ duration: reduced ? 0 : .85 }} style={{ pointerEvents: entered ? "none" : "auto" }} inert={entered}>
             <PaintedTitle title={title} logoSrc={logoSrc} failed={assetFailed} />
             <div className="jardin-invitation mt-[1.8%]" onAnimationEnd={(event) => { if (event.animationName === "jardin-invite") setIntroStage("ready"); }}>
-            <button ref={enterRef} type="button" className="jardin-entry jardin-primary group inline-flex items-center" tabIndex={canEnter ? 0 : -1} disabled={!canEnter} onClick={() => { resetPointer(); setEntered(true); onEnter?.(); }}>
-              Step inside <ArrowRight size={15} strokeWidth={1.3} className="transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
+            <button ref={enterRef} type="button" className="jardin-entry jardin-primary inline-flex items-center justify-center" tabIndex={canEnter ? 0 : -1} disabled={!canEnter} onClick={() => { resetPointer(); setEntered(true); onEnter?.(); }}>
+              Step inside
             </button>
             </div>
           </motion.div>
