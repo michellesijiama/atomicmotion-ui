@@ -21,6 +21,11 @@ import { BlossomLight } from "@components/control/blossom-light";
 import { GradientEventCard } from "@components/gradient/gradient-event-card";
 import { StampTracker } from "@components/data-visualization/stamp-tracker";
 
+function JardinOpeningPreview({ loop }: { loop?: boolean }) {
+  // Counter the gallery stage's zoom so the landscape iPad fits inside the card.
+  return <JardinOpening loop={loop} className={loop ? "scale-[0.72]" : undefined} />;
+}
+
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
   return <EmojiSketch loop={loop} />;
 }
@@ -103,7 +108,7 @@ function PocketPiggyPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
-  "jardin-opening": JardinOpening,
+  "jardin-opening": JardinOpeningPreview,
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
   "filter-dropdown-reveal": FilterDropdownRevealPreview,
