@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
 
 export type JardinOpeningProps = {
   /** The opening title; the default uses the illustrated City in Bloom logo. */
@@ -238,14 +237,10 @@ export function JardinOpening({
   className,
 }: JardinOpeningProps) {
   const hostRef = React.useRef<HTMLDivElement>(null);
-  const enterRef = React.useRef<HTMLButtonElement>(null);
-  const returnRef = React.useRef<HTMLButtonElement>(null);
-  const wasEntered = React.useRef(false);
   const reduced = useReducedMotion();
   const [artReady, setArtReady] = React.useState(false);
   const [introStage, setIntroStage] = React.useState<"scenery" | "painting" | "ready">("scenery");
   const [entered, setEntered] = React.useState(false);
-  const [replay, setReplay] = React.useState(0);
   const [visible, setVisible] = React.useState(true);
   const [assetError, setAssetError] = React.useState(false);
   const assetFailed = React.useCallback(() => setAssetError(true), []);
@@ -271,9 +266,7 @@ export function JardinOpening({
   }, [assetBase, assetFailed]);
 
   React.useEffect(() => {
-    if (entered) returnRef.current?.focus({ preventScroll: true });
-    else if (wasEntered.current) hostRef.current?.focus({ preventScroll: true });
-    wasEntered.current = entered;
+    if (entered) hostRef.current?.focus({ preventScroll: true });
   }, [entered]);
 
   React.useEffect(() => {
@@ -301,7 +294,6 @@ export function JardinOpening({
   }, []);
 
   function resetPointer() { targetX.set(0); targetY.set(0); }
-  function reset() { setIntroStage("scenery"); setEntered(false); setReplay((value) => value + 1); resetPointer(); }
 
   return (
     <div ref={hostRef} tabIndex={-1} className={`jardin-opening flex h-full min-h-0 w-full flex-col items-center justify-center py-7 ${className ?? ""}`} style={{ color: "#253d37", "--jardin-play": still ? "paused" : "running", "--jardin-invite-delay": logoSrc ? `${LOGO_DRAW_END + .25}s` : "7.6s" } as React.CSSProperties}>
@@ -309,7 +301,6 @@ export function JardinOpening({
       <div className="jardin-device relative shrink-0" data-testid="jardin-device">
         <span className="jardin-camera" aria-hidden="true" />
         <div
-          key={`opening-${replay}`}
           className="jardin-screen overflow-hidden"
           data-ready={artReady}
           data-intro-complete={canEnter}
@@ -328,31 +319,20 @@ export function JardinOpening({
           aria-label="A living New York garden with flying birds, swaying flowers, background visitors"
         >
           <div className="jardin-world">
-          {SCENERY.map((layer) => <SceneryLayer key={`${layer.name}-${replay}`} layer={layer} pointerX={pointerX} pointerY={pointerY} assetBase={assetBase} entered={entered} reduced={!!reduced} failed={() => setAssetError(true)} />)}
+          {SCENERY.map((layer) => <SceneryLayer key={layer.name} layer={layer} pointerX={pointerX} pointerY={pointerY} assetBase={assetBase} entered={entered} reduced={!!reduced} failed={() => setAssetError(true)} />)}
           <div className="jardin-sky-shade" aria-hidden="true" />
-          <GardenLife key={`life-${replay}`} assetBase={assetBase} failed={assetFailed} />
+          <GardenLife assetBase={assetBase} failed={assetFailed} />
           </div>
 
           <motion.div className="absolute inset-x-0 top-[18%] z-10 flex flex-col items-center" animate={{ opacity: entered ? 0 : 1, y: entered ? -12 : 0 }} transition={{ duration: reduced ? 0 : .85 }} style={{ pointerEvents: entered ? "none" : "auto" }} inert={entered}>
             <PaintedTitle title={title} logoSrc={logoSrc} failed={assetFailed} />
             <div className="jardin-invitation mt-[1.8%]" onAnimationEnd={(event) => { if (event.animationName === "jardin-invite") setIntroStage("ready"); }}>
-            <button ref={enterRef} type="button" className="jardin-entry jardin-primary inline-flex items-center justify-center" tabIndex={canEnter ? 0 : -1} disabled={!canEnter} onClick={() => { resetPointer(); setEntered(true); onEnter?.(); }}>
+            <button type="button" className="jardin-entry jardin-primary inline-flex items-center justify-center" tabIndex={canEnter ? 0 : -1} disabled={!canEnter} onClick={() => { resetPointer(); setEntered(true); onEnter?.(); }}>
               Step inside
             </button>
             </div>
           </motion.div>
 
-          {entered ? (
-            <motion.div className="absolute inset-x-0 top-[6%] z-20 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: reduced ? 0 : .8, duration: reduced ? 0 : 1 }}>
-              {logoSrc ? (
-                <h2 className="m-0" aria-label={title}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={logoSrc} width={2172} height={724} alt="" className="jardin-logo-mark mx-auto h-auto w-[24cqw]" onError={assetFailed} />
-                </h2>
-              ) : <p className="m-0" style={{ fontFamily: 'var(--font-instrument-serif, "Instrument Serif"), Georgia, serif', fontSize: "5cqw", letterSpacing: "-.035em" }}>{title}</p>}
-              <button ref={returnRef} type="button" onClick={reset} className="jardin-entry mt-2 inline-flex items-center"><ArrowLeft size={13} aria-hidden="true" /> Back to the beginning</button>
-            </motion.div>
-          ) : null}
           {assetError ? <p role="alert" className="absolute inset-x-[10%] bottom-[8%] z-30 rounded-lg bg-[#f3f1e8] p-3 text-center text-xs">The garden artwork could not load. Please reload to try again.</p> : null}
           <span className="jardin-home" aria-hidden="true" />
         </div>

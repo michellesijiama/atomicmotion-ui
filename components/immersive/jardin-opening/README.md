@@ -6,7 +6,7 @@ A living hand-illustrated New York garden inside an accurately proportioned 13-i
 
 - **Category:** Immersive
 - **Demo:** https://atomicmotion.dev/components/jardin-opening
-- **Dependencies:** framer-motion, lucide-react
+- **Dependencies:** framer-motion
 
 ## Setup
 
@@ -16,7 +16,7 @@ Enable Tailwind in your app stylesheet (`@import "tailwindcss";`) and make sure 
 Install the compatible dependency ranges tested by this repository:
 
 ```bash
-npm install framer-motion@^12.40.0 lucide-react@^1.18.0
+npm install framer-motion@^12.40.0
 ```
 
 ## Usage
