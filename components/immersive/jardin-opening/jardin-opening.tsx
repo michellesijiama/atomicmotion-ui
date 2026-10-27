@@ -82,6 +82,7 @@ const STYLES = `
 .jardin-opening .jardin-layer { position: absolute; inset: -5%; pointer-events: none; }
 .jardin-opening .jardin-layer[data-layer="midground"] { z-index: 2; }
 .jardin-opening .jardin-layer[data-layer="foreground"] { z-index: 4; }
+.jardin-opening .jardin-sky-shade { position: absolute; inset: -5%; z-index: 1; pointer-events: none; background: linear-gradient(180deg, #142e42a6 0%, #1c354899 36%, #28414f59 53%, #28414f00 72%); mix-blend-mode: multiply; }
 .jardin-opening .jardin-drift { width:100%; height:100%; animation: jardin-breathe var(--jardin-duration) ease-in-out infinite alternate; animation-delay: var(--jardin-delay); animation-play-state: var(--jardin-play, running); transform-origin: 50% 75%; }
 .jardin-opening .jardin-art { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; }
 .jardin-opening .jardin-world { position: absolute; inset: 0; transform-origin: 50% 62%; }
@@ -328,6 +329,7 @@ export function JardinOpening({
         >
           <div className="jardin-world">
           {SCENERY.map((layer) => <SceneryLayer key={`${layer.name}-${replay}`} layer={layer} pointerX={pointerX} pointerY={pointerY} assetBase={assetBase} entered={entered} reduced={!!reduced} failed={() => setAssetError(true)} />)}
+          <div className="jardin-sky-shade" aria-hidden="true" />
           <GardenLife key={`life-${replay}`} assetBase={assetBase} failed={assetFailed} />
           </div>
 
