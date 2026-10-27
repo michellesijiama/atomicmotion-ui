@@ -1,0 +1,13 @@
+Tool mode: built-in ImageGen
+Intent: edit the original background image pixels; preserve composition, repaint the sky and sunlit illumination
+Edit target: background-nyc.png
+Output: background-nyc-sunny.png, opaque 1448 x 1086
+The website loads this edited image directly. No CSS sky tint or gradient overlay is used.
+
+Use case: lighting-weather / precise-object-edit.
+Edit target: the supplied original garden-and-Manhattan BACKGROUND illustration. Deliver a genuinely edited replacement IMAGE, not a UI mockup.
+Primary request: make this a beautiful clear SUNNY New York garden day with a naturally richer blue sky, instead of the pale washed-out cyan sky. Repaint the sky pixels themselves. Keep the sophisticated hand-inked, colored-pencil/editorial illustration style.
+Sky: clear luminous azure / cornflower blue, approximately #3c87bd in the open upper-center sky, bright and fresh yet sufficiently saturated for a WHITE title to read clearly when placed over it later. The blue should be coherent natural pigment, with very slight paper texture and a subtle natural lightening only toward the distant horizon. No obvious gradient bands, circular halos, cloudy patches, gray overlay, flat semi-transparent tint, fog, mist, smoke, twilight or night. Do not add a sun disk or clouds.
+Lighting: distinctly sunny daylight. Bring clean warm sunlight to the existing foliage and pink path; preserve their original green and pink color families. Keep the Manhattan skyline crisp and legible, including the Empire State Building, Chrysler Building and One World Trade Center. Clear air, clean ink contours and attractive sunlit facade colors, with natural depth but NO gray or blue haze veil.
+STRICT COMPOSITION INVARIANTS: preserve the exact camera/view, the position and scale of every existing building, tree, fountain, statue, shrub, lawn and pink path. Preserve the generous open upper sky and the full-width pink path at the bottom. The original separate foreground gate, visitors and flowers will be composited over this, so do not add a gate, people, birds, animals, large flowers, lettering, logos or UI. No new objects. Do not crop or reframe.
+Canvas: preserve the original landscape 4:3 aspect ratio and original 1448 x 1086 composition. Opaque full-bleed image, no transparency, no border, no device mockup, no watermark. Only change the actual sky color, atmosphere and sunny illumination while preserving the original illustration's identity.

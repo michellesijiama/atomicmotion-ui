@@ -81,7 +81,6 @@ const STYLES = `
 .jardin-opening .jardin-layer { position: absolute; inset: -5%; pointer-events: none; }
 .jardin-opening .jardin-layer[data-layer="midground"] { z-index: 2; }
 .jardin-opening .jardin-layer[data-layer="foreground"] { z-index: 4; }
-.jardin-opening .jardin-sky-shade { position: absolute; inset: -5%; z-index: 1; pointer-events: none; background: linear-gradient(180deg, #087bcbb8 0%, #087bcba6 35%, #087bcb30 46%, #087bcb00 52%); mix-blend-mode: multiply; }
 .jardin-opening .jardin-drift { width:100%; height:100%; animation: jardin-breathe var(--jardin-duration) ease-in-out infinite alternate; animation-delay: var(--jardin-delay); animation-play-state: var(--jardin-play, running); transform-origin: 50% 75%; }
 .jardin-opening .jardin-art { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; }
 .jardin-opening .jardin-world { position: absolute; inset: 0; transform-origin: 50% 62%; }
@@ -220,7 +219,7 @@ function SceneryLayer({
       <div className="jardin-drift" style={{ "--jardin-duration": layer.duration, "--jardin-delay": layer.delay } as React.CSSProperties}>
         {/* Transparent scenery must retain its alpha, so use the original PNG. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="jardin-art" src={`${assetBase}/${layer.name === "background" ? "background-nyc" : layer.name}.png`} alt="" draggable={false} width={1448} height={1086} decoding="async" onError={failed} />
+        <img className="jardin-art" src={`${assetBase}/${layer.name === "background" ? "background-nyc-sunny" : layer.name}.png`} alt="" draggable={false} width={1448} height={1086} decoding="async" onError={failed} />
       </div>
     </motion.div>
   );
@@ -254,7 +253,7 @@ export function JardinOpening({
 
   React.useEffect(() => {
     let active = true;
-    const files = ["background-nyc", "midground", "foreground", "garden-visitors", "flower", "bird-sprite", "city-in-bloom-logo"];
+    const files = ["background-nyc-sunny", "midground", "foreground", "garden-visitors", "flower", "bird-sprite", "city-in-bloom-logo"];
     const artwork = files.map((file) => new Promise<void>((resolve) => {
       const image = new Image();
       image.onload = () => resolve();
@@ -320,7 +319,6 @@ export function JardinOpening({
         >
           <div className="jardin-world">
           {SCENERY.map((layer) => <SceneryLayer key={layer.name} layer={layer} pointerX={pointerX} pointerY={pointerY} assetBase={assetBase} entered={entered} reduced={!!reduced} failed={() => setAssetError(true)} />)}
-          <div className="jardin-sky-shade" aria-hidden="true" />
           <GardenLife assetBase={assetBase} failed={assetFailed} />
           </div>
 

@@ -57,7 +57,7 @@ Named export: `JardinOpening`. Public types: `JardinOpeningProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/components/jardin-living/background-nyc.png](../../../public/components/jardin-living/background-nyc.png) — MIT. AI-generated hand-illustrated New York garden background for AtomicMotion UI.
+- [public/components/jardin-living/background-nyc-sunny.png](../../../public/components/jardin-living/background-nyc-sunny.png) — MIT. AI-edited sunny New York garden illustration with a repainted blue sky and warm daylight for AtomicMotion UI.
 - [public/components/jardin-living/midground.png](../../../public/components/jardin-living/midground.png) — MIT. AI-generated transparent garden gate for AtomicMotion UI.
 - [public/components/jardin-living/foreground.png](../../../public/components/jardin-living/foreground.png) — MIT. AI-generated transparent botanical foreground for AtomicMotion UI.
 - [public/components/jardin-living/flower.png](../../../public/components/jardin-living/flower.png) — MIT. AI-generated transparent flower animated at its stem for AtomicMotion UI.

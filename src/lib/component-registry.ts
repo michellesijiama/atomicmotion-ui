@@ -116,7 +116,7 @@ export const componentRegistry = {
     createdAt: "2026-10-26",
     codePath: "components/immersive/jardin-opening/jardin-opening.tsx",
     requiredAssets: [
-      { path: "public/components/jardin-living/background-nyc.png", license: "MIT", credit: "AI-generated hand-illustrated New York garden background for AtomicMotion UI." },
+      { path: "public/components/jardin-living/background-nyc-sunny.png", license: "MIT", credit: "AI-edited sunny New York garden illustration with a repainted blue sky and warm daylight for AtomicMotion UI." },
       { path: "public/components/jardin-living/midground.png", license: "MIT", credit: "AI-generated transparent garden gate for AtomicMotion UI." },
       { path: "public/components/jardin-living/foreground.png", license: "MIT", credit: "AI-generated transparent botanical foreground for AtomicMotion UI." },
       { path: "public/components/jardin-living/flower.png", license: "MIT", credit: "AI-generated transparent flower animated at its stem for AtomicMotion UI." },
