@@ -66,6 +66,7 @@ integration instructions for every component.
 <!-- component-catalogue:start -->
 | Preview | Component | Category | Source | Setup |
 | --- | --- | --- | --- | --- |
+| <img src="public/previews/ui-walkthrough.png" width="160" alt="UI Walkthrough preview"> | **UI Walkthrough** | Template | [Source](components/template/ui-walkthrough/ui-walkthrough.tsx) | [README](components/template/ui-walkthrough/README.md) |
 | <img src="public/previews/jardin-opening.png" width="160" alt="Jardin Opening preview"> | **Jardin Opening** | Immersive | [Source](components/immersive/jardin-opening/jardin-opening.tsx) | [README](components/immersive/jardin-opening/README.md) |
 | <img src="public/previews/emoji-sketch.png" width="160" alt="Emoji Sketch preview"> | **Emoji Sketch** | Play | [Source](components/play/emoji-sketch/emoji-sketch.tsx) | [README](components/play/emoji-sketch/README.md) |
 | <img src="public/previews/soft-menu-reveal.png" width="160" alt="Soft Menu Reveal preview"> | **Soft Menu Reveal** | Navigation | [Source](components/navigation/soft-menu-reveal/soft-menu-reveal.tsx) | [README](components/navigation/soft-menu-reveal/README.md) |

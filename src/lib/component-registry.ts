@@ -104,6 +104,19 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
+  uiWalkthrough: createComponentMeta({
+    id: "ui-walkthrough",
+    index: "021",
+    title: "UI Walkthrough",
+    description:
+      "A dark product walkthrough for portfolio case studies, an iPhone beside short captions that pushes in, taps, slides a before and after and labels a part, with one steps list to swap in your own screen",
+    category: "Template",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-10-17",
+    codePath: "components/template/ui-walkthrough/ui-walkthrough.tsx",
+    inspiredBy: { label: "Atomic Motion", href: "https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion" },
+  }),
   jardinOpening: createComponentMeta({
     id: "jardin-opening",
     index: "020",

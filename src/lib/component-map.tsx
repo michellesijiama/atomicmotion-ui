@@ -1,6 +1,7 @@
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
 import { PocketPiggy } from "@components/play/pocket-piggy";
 import { JardinOpening } from "@components/immersive/jardin-opening";
+import { UIWalkthrough } from "@components/template/ui-walkthrough";
 
 import type { ComponentType } from "react";
 
@@ -24,6 +25,10 @@ import { StampTracker } from "@components/data-visualization/stamp-tracker";
 function JardinOpeningPreview({ loop }: { loop?: boolean }) {
   // Counter the gallery stage's zoom so the landscape iPad fits inside the card.
   return <JardinOpening loop={loop} className={loop ? "scale-[0.72]" : undefined} />;
+}
+
+function UIWalkthroughPreview({ loop }: { loop?: boolean }) {
+  return <UIWalkthrough loop={loop} layout={loop ? "split" : "auto"} className={loop ? "mx-auto max-w-[700px]" : undefined} />;
 }
 
 function EmojiSketchPreview({ loop }: { loop?: boolean }) {
@@ -108,6 +113,7 @@ function PocketPiggyPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
+  "ui-walkthrough": UIWalkthroughPreview,
   "jardin-opening": JardinOpeningPreview,
   "emoji-sketch": EmojiSketchPreview,
   "soft-menu-reveal": SoftMenuRevealPreview,
