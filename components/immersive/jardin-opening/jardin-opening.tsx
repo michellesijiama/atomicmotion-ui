@@ -101,8 +101,8 @@ const STYLES = `
 .jardin-opening .jardin-entry { min-height: 44px; gap: 16px; padding: 0 10px; font-size: max(9px, 1.1cqw); font-weight: 500; letter-spacing: .015em; }
 .jardin-opening button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
 .jardin-opening button:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
-.jardin-opening .jardin-primary { border-radius: 99px; padding: 0 23px; color: #fff; background: linear-gradient(145deg, #ffffff29, #ffffff08) #15342b24; border: 0; -webkit-backdrop-filter: blur(6px) saturate(140%); backdrop-filter: blur(6px) saturate(140%); box-shadow: 0 3px 14px #0d2d2820; text-shadow: 0 1px 4px #0c2c2866; transition: background .2s, box-shadow .2s; font-size: max(10px, 1.5cqw); }
-.jardin-opening .jardin-primary:hover { background: linear-gradient(145deg, #ffffff3d, #ffffff14) #15342b24; box-shadow: 0 4px 18px #0d2d2826; }
+.jardin-opening .jardin-primary { padding: 0 23px; color: #fff; background: transparent; border: 0; font-weight: 600; text-shadow: 0 1px 4px #173a3299, 0 0 12px #173a3240; transition: opacity .2s; font-size: max(12px, 1.5cqw); }
+.jardin-opening .jardin-primary:hover { opacity: .8; }
 .jardin-opening .jardin-home { position: absolute; bottom: 9px; left: 43%; width: 14%; height: 4px; border-radius: 99px; background: #253d3766; pointer-events: none; }
 .jardin-opening .jardin-visitors { position: absolute; inset: 0; z-index: 1; pointer-events: none; transform: translateX(-2%) scale(.75); transform-origin: 50% 85%; }
 .jardin-opening .jardin-life { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
@@ -324,9 +324,12 @@ export function JardinOpening({
 
           <motion.div className="absolute inset-x-0 top-[18%] z-10 flex flex-col items-center" animate={{ opacity: entered ? 0 : 1, y: entered ? -12 : 0 }} transition={{ duration: reduced ? 0 : .85 }} style={{ pointerEvents: entered ? "none" : "auto" }} inert={entered}>
             <PaintedTitle title={title} logoSrc={logoSrc} failed={assetFailed} />
-            <div className="jardin-invitation mt-[1.8%]" onAnimationEnd={(event) => { if (event.animationName === "jardin-invite") setIntroStage("ready"); }}>
+          </motion.div>
+
+          <motion.div className="absolute inset-x-0 bottom-[6%] z-10 flex justify-center" animate={{ opacity: entered ? 0 : 1 }} transition={{ duration: reduced ? 0 : .85 }} style={{ pointerEvents: entered ? "none" : "auto" }} inert={entered}>
+            <div className="jardin-invitation" onAnimationEnd={(event) => { if (event.animationName === "jardin-invite") setIntroStage("ready"); }}>
             <button type="button" className="jardin-entry jardin-primary inline-flex items-center justify-center" tabIndex={canEnter ? 0 : -1} disabled={!canEnter} onClick={() => { resetPointer(); setEntered(true); onEnter?.(); }}>
-              Step inside
+              Click to continue
             </button>
             </div>
           </motion.div>
