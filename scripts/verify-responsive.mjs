@@ -215,6 +215,15 @@ try {
       assert.equal(await tab.getAttribute("aria-selected"), "true");
       await reachable(page.getByRole("button", { name: /Water,.*not stamped/ }).first(), `stamp: ${name} stamp`, { click: true });
     }
+
+    await visit(page, "/components/sticker-journal");
+    await reachable(page.getByRole("button", { name: "Clear page", exact: true }), "journal: clear page");
+    await reachable(page.getByRole("button", { name: "Add Cherries sticker", exact: true }), "journal: first pack sticker", { click: true });
+    await page.waitForTimeout(1300);
+    assert.equal(await page.locator("[data-sid]").count(), 5, "journal: a tapped sticker lands on the page");
+    await reachable(page.getByRole("button", { name: "Next pack", exact: true }), "journal: next pack", { click: true });
+    await page.waitForTimeout(700);
+    await reachable(page.getByRole("button", { name: "Add Daisy sticker", exact: true }), "journal: second pack sticker");
     console.log(`Expanded controls at ${viewport.width}×${viewport.height}: OK`);
   }
 

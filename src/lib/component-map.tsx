@@ -1,5 +1,6 @@
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
 import { PocketPiggy } from "@components/play/pocket-piggy";
+import { StickerJournal } from "@components/play/sticker-journal";
 import { JardinOpening } from "@components/immersive/jardin-opening";
 import { UIWalkthrough } from "@components/template/ui-walkthrough";
 
@@ -112,6 +113,11 @@ function PocketPiggyPreview({ loop }: { loop?: boolean }) {
   return <PocketPiggy loop={loop} />;
 }
 
+function StickerJournalPreview({ loop }: { loop?: boolean }) {
+  // The phone scales itself to the tile; the gallery card places stickers on its own.
+  return <StickerJournal loop={loop} />;
+}
+
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "ui-walkthrough": UIWalkthroughPreview,
   "jardin-opening": JardinOpeningPreview,
@@ -133,4 +139,5 @@ export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "stamp-tracker": StampTrackerPreview,
   "doodle-calendar": DoodleCalendarPreview,
   "pocket-piggy": PocketPiggyPreview,
+  "sticker-journal": StickerJournalPreview,
 };

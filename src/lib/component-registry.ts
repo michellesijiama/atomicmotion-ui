@@ -434,6 +434,18 @@ export const componentRegistry = {
     createdAt: "2026-10-13",
     codePath: "components/play/pocket-piggy/pocket-piggy.tsx",
   }),
+  stickerJournal: createComponentMeta({
+    id: "sticker-journal",
+    index: "022",
+    title: "Sticker Journal",
+    description:
+      "A hobonichi-style sticker journal on a portrait phone, a page of warm cream paper with a faint dot grid and a hand-lettered date above a sheet of die-cut stickers. Swipe the sheet through four packs, café treats, garden friends, little words and washi tape, then tap a sticker to watch it peel off, fly across and land on the page with a squash, or drag one there yourself. Drag a stuck sticker to move it, pull its corner to turn and resize it, and nudge it from the keyboard. Every sticker is drawn in code as inline SVG, flat pastel colour and plum ink inside a thick white cut line",
+    category: "Play",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-10-29",
+    codePath: "components/play/sticker-journal/sticker-journal.tsx",
+  }),
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);

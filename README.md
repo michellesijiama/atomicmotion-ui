@@ -86,6 +86,7 @@ integration instructions for every component.
 | <img src="public/previews/stamp-tracker.png" width="160" alt="Stamp Tracker preview"> | **Stamp Tracker** | Data Visualization | [Source](components/data-visualization/stamp-tracker/stamp-tracker.tsx) | [README](components/data-visualization/stamp-tracker/README.md) |
 | <img src="public/previews/doodle-calendar.png" width="160" alt="Doodle Calendar preview"> | **Doodle Calendar** | Data Visualization | [Source](components/data-visualization/doodle-calendar/doodle-calendar.tsx) | [README](components/data-visualization/doodle-calendar/README.md) |
 | <img src="public/previews/pocket-piggy.png" width="160" alt="Pocket Piggy preview"> | **Pocket Piggy** | Play | [Source](components/play/pocket-piggy/pocket-piggy.tsx) | [README](components/play/pocket-piggy/README.md) |
+| <img src="public/previews/sticker-journal.png" width="160" alt="Sticker Journal preview"> | **Sticker Journal** | Play | [Source](components/play/sticker-journal/sticker-journal.tsx) | [README](components/play/sticker-journal/README.md) |
 <!-- component-catalogue:end -->
 
 Gemini Live and Voice Bloom are interface demos; they do not connect to an AI
