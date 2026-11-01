@@ -18,10 +18,11 @@ def paint_face(nodes,links,base,z0):
     xyz=node('ShaderNodeSeparateXYZ','surface x / y / z');links.new(coord.outputs['Object'],xyz.inputs[0])
     x,y,z=xyz.outputs['X'],xyz.outputs['Y'],xyz.outputs['Z']
     front=op('LESS_THAN',y,-.30)
-    def ellipse(cx,cz,rx,rz):
+    def radius(cx,cz,rx,rz):
         dx=op('DIVIDE',op('SUBTRACT',x,cx),rx)
         dz=op('DIVIDE',op('SUBTRACT',z,cz),rz)
-        return fade(op('ADD',op('MULTIPLY',dx,dx),op('MULTIPLY',dz,dz)),.78,1.22)
+        return op('ADD',op('MULTIPLY',dx,dx),op('MULTIPLY',dz,dz))
+    def ellipse(cx,cz,rx,rz):return fade(radius(cx,cz,rx,rz),.78,1.22)
     result=base;ink_masks=[]
     def wash(mask,tint,label,strength=1):
         nonlocal result
@@ -31,6 +32,8 @@ def paint_face(nodes,links,base,z0):
         result=mix.outputs[0]
     for side in (-1,1):wash(ellipse(side*.47,z0+.025,.18,.13),(1,.15,.24),'soft cheek wash',.22)
     wash(ellipse(.015,z0,.215,.132),(.94,.16,.25),'rose pigment over the sculpted snout',.80)
+    nose_ring=fade(op('ABSOLUTE',op('SUBTRACT',radius(.015,z0,.215,.132),1)),.015,.13)
+    wash(nose_ring,(.43,.15,.18),'pencil outline of the soft snout',.8);ink_masks.append(nose_ring)
     for side in (-1,1):
         q=op('DIVIDE',op('SUBTRACT',x,side*.29),.105 if side<0 else .098)
         curve=op('ADD',z0+.19+(.01 if side>0 else 0),op('MULTIPLY',op('MULTIPLY',q,q),.07))

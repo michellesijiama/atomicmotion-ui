@@ -65,10 +65,11 @@ integration instructions for every component.
 
 The `/3d-studio` gallery presents editable Blender scenes alongside the interface
 library, using the same card grid and navigation. [Little Nap](scenes/little-nap/README.md)
-features two round watercolor-pencil pig puddings stacked in a continuous blue lace bowl,
+features two soft colored-pencil pig scoops stacked in a continuous blue lace bowl,
 with a six-second loop of soft hops, slow swaying, floating ink and paper sparkles,
 a downloadable GIF and a 1080 × 1440
-still. Its models, procedural pigment shaders, paper grain, camera and light
+still. Textured outlines surround sparse, paper-light color. Its models,
+procedural pigment shaders, paper grain, camera and light
 rig remain editable. Little Nap's scene assets use the MIT license;
 the packed Courier Prime typeface uses SIL OFL 1.1.
 These scene downloads live in this repository and on the gallery; the

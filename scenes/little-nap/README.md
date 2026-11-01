@@ -2,9 +2,10 @@
 
 Two soft, asymmetrical sleeping pig scoops stack in a cornflower-blue lace bowl,
 seen from the front. The lower pig sits inside the cavity; the upper pig rests
-on its companion. Warm peach highlights and deep rose shadows give the watercolor
-wash a luminous, translucent feel. Fuzzy pigment edges and pencil grains sit on
-fibrous white paper, with little ink-like English phrases around and below them.
+along its companion's curved crown. Grainy rose-brown contours surround a very
+light pink pencil fill. Blue pencil lines describe the bowl and its lace. Much
+of the interior stays paper-light, with the irregular fibers still visible.
+Little ink-like English phrases and quiet sparkles surround the drawing.
 
 - [Editable Blender scene](../../public/studio/little-nap/little-nap.blend)
 - [1080 × 1440 still](../../public/studio/little-nap/little-nap.png)
@@ -12,22 +13,21 @@ fibrous white paper, with little ink-like English phrases around and below them.
 
 Created in **Blender 5.2.2 LTS**, with a Cycles still and an Eevee motion preview. The bowl is one closed, connected
 mesh, from the underside and low foot through the exterior, rounded lip,
-inner wall and cavity floor. The ivory lace is a procedural UV print of
+inner wall and cavity floor. The lace is a procedural UV pencil drawing of
 floral rosettes, fine mesh and scalloped borders. It stays attached as the
 bowl rotates. There are no separate polka-dot decorations.
 
 Each pig has a rose snout sculpted into its connected skin, slightly asymmetric
 closed eyelids and nostrils painted directly onto the surface, small folded ears,
-full cheeks and a soft drooping body. There are no separate floating facial pieces. Broad watercolor gradients, dark
-pigment flecks and paper tooth soften the surface. The pigment is actually
-semi-transparent: its dilution varies from the saturated rose shadows to the
-light peach areas, while the reverse faces stay clear. No paws, blossoms or
-exposed tails crowd the silhouette. Thin, irregular
-paper fibers break the silhouette instead of a hard outline. The connected body
-is voxel-welded, smoothed and subdivided at level 2. The upper underside follows the actual curved lower crown through an editable
-Geometry Nodes raycast, with a tiny clearance to prevent interpenetration. All models, shaders, paper,
-lighting, camera and text remain editable. Three area lights provide a clear
-upper-left key, a gentle fill and a rear glow; the background stays softly white.
+full cheeks and a soft drooping body. There are no separate floating facial pieces.
+The colored-pencil material uses uneven line pressure and broken pigment grains
+for the contour, with a sparse, pale interior that leaves the paper visible.
+The bowl's floral lace is drawn in blue pencil over a light blue wash.
+The connected bodies are voxel-welded, smoothed and subdivided at level 2.
+The upper underside follows the actual curved lower crown through an editable
+Geometry Nodes raycast, with a tiny clearance to prevent interpenetration.
+All models, shaders, paper, lighting, camera and text remain editable. Three area
+lights provide an upper-left key, a gentle fill and a rear light.
 
 ## Render and animate
 
@@ -50,15 +50,15 @@ Use `-- --draft` for a 720 × 960 preview in `.tmp/little-nap/`. Use
 
 ```sh
 ffmpeg -framerate 12 -pattern_type glob -i '.tmp/little-nap/rotation/frame-*.png' \
-  -filter_complex '[0:v]scale=432:576:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle' \
+  -filter_complex '[0:v]scale=432:576:flags=lanczos,split[a][b];[a]palettegen=max_colors=64:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle' \
   -loop 0 public/studio/little-nap/little-nap-soft-hops.gif
 ```
 
 `bowl.py` and `pig.py` define the geometry; `contact.py` fits the scoop underside
 and `face_paint.py` draws the facial pigment on the skin. `animation.py` adds soft hops,
 ear wobble, floating ink and twinkling stars. `watercolor_materials.py` and
-`paper_fibers.py` define the watercolor washes, grain, fibrous paper and fuzzy
-boundaries; `lettering.py` adds the native, editable text. `../shared/` contains the pencil
+`paper_fibers.py` define the pale colored fill and fibrous paper;
+`pencil_finish.py` adds the grainy contour and sparse interior; `lettering.py` adds the native, editable text. `../shared/` contains the pencil
 shaders and turntable helper, also used by the earlier Apple Club source.
 No external textures, fonts or add-ons are required by the saved `.blend`.
 Courier Prime is packed into the file under SIL OFL 1.1; its notice is in the

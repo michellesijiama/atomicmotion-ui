@@ -24,9 +24,8 @@ for ob in [bowl,*pigs]:
     assert any(m.type=='SUBSURF' and m.render_levels>=2 for m in ob.modifiers)
 for pig in pigs:
     assert pig.parent.parent==root
-    assert any(n.type=='BSDF_TRANSLUCENT' and n.outputs[0].is_linked for n in pig.data.materials[0].node_tree.nodes)
-    assert any(n.label=='Actual semi-transparent watercolor wash' and n.inputs[0].is_linked for n in pig.data.materials[0].node_tree.nodes)
-    assert any(n.label=='Fuzzy watercolor edge / no outline' for n in pig.data.materials[0].node_tree.nodes)
+    assert any(n.label=='PENCIL · soft-edged graphite contour' for n in pig.data.materials[0].node_tree.nodes)
+    assert any(n.label=='PENCIL · sparse translucent colored-pencil fill' for n in pig.data.materials[0].node_tree.nodes)
 deps=bpy.context.evaluated_depsgraph_get()
 bounds=[]
 for pig in pigs:
@@ -69,7 +68,7 @@ distance=min(trees[0][0].find_nearest(p)[3] for p in trees[1][1])
 assert .0001<distance<.02,distance
 print('VERIFIED_PIG_CONTACT: zero intersecting faces; nearest separation',distance)
 
-print('VERIFIED: two watertight subdivided pigs, stacked contact, lower pig inside one connected bowl, active translucent pigment and fuzzy shader, packed font, 3 lights, frontal portrait, soft hops, slow sway and preserved pose hierarchy')
+print('VERIFIED: two watertight subdivided pigs, stacked contact, lower pig inside one connected bowl, grainy pencil contours and sparse paper-light fill, packed font, 3 lights, frontal portrait, soft hops, slow sway and preserved pose hierarchy')
 print('PIG_VERTICAL_BOUNDS',bounds)
 
 # Exact contact equations stay safe throughout interpolated spring motion.

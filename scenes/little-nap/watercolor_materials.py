@@ -1,6 +1,7 @@
 """Watercolor gradients with paper tooth and fine pigment particles."""
 import bpy
-from paper_fibers import fibers, soften_boundary
+from paper_fibers import fibers
+from pencil_finish import pencil_surface
 from face_paint import paint_face
 
 
@@ -63,31 +64,5 @@ def watercolor(name,color,contact=None,face_z=None):
     links.new(particles,pigment.inputs[0]);links.new(paper_mix.outputs[0],pigment.inputs[1])
     pigment.inputs[2].default_value=(.48,.035,.10,1)
     surface,ink=paint_face(nodes,links,pigment.outputs[0],face_z) if face_z is not None else (pigment.outputs[0],None)
-    emission=node('ShaderNodeEmission','Watercolor illustration surface',900,400)
-    links.new(surface,emission.inputs['Color'])
-    diffuse=node('ShaderNodeBsdfDiffuse','Matte drawn light and shade',900,200)
-    diffuse.inputs['Roughness'].default_value=1
-    links.new(surface,diffuse.inputs['Color'])
-    drawn=node('ShaderNodeMixShader','Paper first / softly shaded form',1120,400)
-    drawn.inputs[0].default_value=.52;links.new(diffuse.outputs[0],drawn.inputs[1]);links.new(emission.outputs[0],drawn.inputs[2])
-    final=node('ShaderNodeMixShader','Illustrated jelly softness / no hard glare',1340,400)
-    translucent=node('ShaderNodeBsdfTranslucent','Light passing softly through the painted pigment',1120,100)
-    links.new(surface,translucent.inputs['Color'])
-    final.inputs[0].default_value=.16;links.new(drawn.outputs[0],final.inputs[1]);links.new(translucent.outputs[0],final.inputs[2])
-    links.new(final.outputs[0],nodes.get('Material Output').inputs['Surface'])
-    nodes.get('Material Output').location=(1560,400)
-    # One translucent pigment layer, with clear rear faces: light and background
-    # really pass through the wash instead of being painted pale onto an opaque sphere.
-    clear=node('ShaderNodeBsdfTransparent','Clear paper between watercolor pigment',1340,100)
-    opacity=node('ShaderNodeMixShader','Actual semi-transparent watercolor wash',1540,400)
-    dilution=math('ADD',.08,math('MULTIPLY',gradient,.55,1340,-100),1540,-100)
-    if ink is not None:dilution=math('MULTIPLY',dilution,math('SUBTRACT',1,math('MULTIPLY',ink,.96,1300,-500),1500,-500),1700,-500)
-    links.new(dilution,opacity.inputs[0])
-    links.new(final.outputs[0],opacity.inputs[1]);links.new(clear.outputs[0],opacity.inputs[2])
-    backface=node('ShaderNodeMixShader','Single pigment layer / clear reverse side',1740,400)
-    links.new(geometry.outputs['Backfacing'],backface.inputs[0])
-    links.new(opacity.outputs[0],backface.inputs[1]);links.new(clear.outputs[0],backface.inputs[2])
-    links.new(backface.outputs[0],nodes.get('Material Output').inputs['Surface'])
-    nodes.get('Material Output').location=(1960,400)
-    soften_boundary(material,.58,contact)
+    pencil_surface(material,surface,(.19,.055,.075),fill=.55,ink_mask=ink)
     return material

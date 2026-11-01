@@ -18,7 +18,8 @@ from bowl import create_bowl
 from pig import create_pig
 from lettering import create_lettering
 from animation import animate_pigs, animate_ink, create_stars
-from paper_fibers import xuan_paper, soften_boundary
+from paper_fibers import xuan_paper
+from pencil_finish import finish_bowl
 
 DRAFT='--draft' in sys.argv
 ANIMATION='--animation' in sys.argv
@@ -41,7 +42,7 @@ tone=next(n for n in blue.node_tree.nodes if n.label=='Layered colored pigment')
 tone.inputs[1].default_value=(.025,.08,.30,1)
 tone.inputs[2].default_value=(.35,.60,.95,1)
 vessel=create_bowl(bowl,blue)
-soften_boundary(blue,.13)
+finish_bowl(blue)
 turntable=setup_turntable(pig,bowl,title='Little Nap',sway=True)
 animate_pigs(pig)
 create_lettering(lettering,HERE.parent/'apple-club/fonts/CourierPrime-Regular.ttf')
@@ -85,9 +86,9 @@ scene.render.resolution_percentage=100
 scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGB'
 scene.render.image_settings.color_depth='8'
 scene.render.filepath='//little-nap.png'
-readme=bpy.data.texts.new('READ ME · Little Nap')
+readme=bpy.data.texts.new('READ ME · Little Nap');readme.use_fake_user=True
 readme.write('LITTLE NAP / ATOMIC MOTION\n\nBlender 5.2.2 / Cycles / 1080 x 1440.\n'
-    'Two round watercolor-pencil pig puddings stack in a blue lace bowl.\n'
+    'Two soft colored-pencil pig scoops stack in a blue lace bowl.\n'
     'They are soft pig-shaped desserts, with folded ears, rose noses,\n'
     'and closed ink eyelids. Their soft scoop silhouettes stay clear.\n'
     'The lower pig sits in the cavity; the upper pig rests on its companion.\n'
@@ -95,10 +96,10 @@ readme.write('LITTLE NAP / ATOMIC MOTION\n\nBlender 5.2.2 / Cycles / 1080 x 1440
     'The nose is sculpted into the skin; eyes and nostrils are flush pigment.\n'
     'The bowl is one continuous watertight mesh including its foot and inner\n'
     'wall. Its lace is a UV shader print, not separate floating decorations.\n'
-    'All geometry, watercolor washes, pigment grains, paper fibers, lettering,\n'
-    'light rig and camera remain editable. No hard outline is added.\n'
+    'All geometry, pencil contours, pale fill, pigment grains, paper fibers, lettering,\n'
+    'light rig and camera remain editable. The outlines use grainy pencil pressure.\n'
     'The small typewriter phrases are editable text using packed Courier Prime.\n'
-    'Pig and bowl use watercolor gradients, pencil grains and paper tooth.\n'
+    'Pig and bowl use pencil contours, sparse pale fill and paper tooth.\n'
     'The pig shader uses actual transparency, variable pigment dilution,\n'
     'clear reverse faces and fibrous edge breakup, not glossy glass.\n'
     'The round bodies are voxel-welded, then polished and subdivided\n'
@@ -112,7 +113,7 @@ readme.write('LITTLE NAP / ATOMIC MOTION\n\nBlender 5.2.2 / Cycles / 1080 x 1440
     +(ROOT/'LICENSE').read_text()+'\n\nFONT LICENSE\n'
     +(HERE.parent/'apple-club/fonts/OFL.txt').read_text())
 scene['Title']='Little Nap';scene['License']='MIT — Atomic Motion'
-scene['Medium']='Watercolor-pencil pig pudding / soft gradients and paper grain'
+scene['Medium']='Colored-pencil pig scoops / textured contours and sparse transparent fill'
 for screen in bpy.data.screens:
     for a in screen.areas:
         if a.type=='VIEW_3D':a.spaces.active.region_3d.view_perspective='CAMERA'
