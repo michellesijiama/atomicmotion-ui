@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Expand } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import type { StudioModel } from "@/lib/model-registry";
@@ -11,7 +11,6 @@ import { ComponentActions } from "@/components/website/component-actions";
 import { ModelActions } from "@/components/website/model-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
 import {
-  navIconButtonClass,
   navIconClass,
   navLinkClass,
   sectionNavLinkClass,
@@ -31,6 +30,7 @@ export function SiteHeader({
   section?: "interfaces" | "3d-studio";
 }) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  const panelId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const panelOpen = activePanel !== null;
 
@@ -58,13 +58,14 @@ export function SiteHeader({
   return (
     <div ref={containerRef} className="relative z-50">
       <ExpandingAboutPanel
+        id={panelId}
         open={panelOpen}
         onClose={() => setActivePanel(null)}
         footer={
           activePanel === "component" && component ? (
             <ComponentActions key={component.id} component={component} />
           ) : activePanel === "model" && model ? (
-            <ModelActions model={model} />
+            <ModelActions key={model.id} model={model} />
           ) : undefined
         }
       >
@@ -117,7 +118,7 @@ export function SiteHeader({
           ) : null}
         </div>
 
-        <nav className="flex items-center gap-2" aria-label="Primary">
+        <nav className="flex max-w-full flex-wrap items-center gap-2" aria-label="Primary">
           <Link href="/" aria-current={section === "interfaces" ? "true" : undefined} className={sectionNavLinkClass}>
             Interfaces
           </Link>
@@ -136,10 +137,12 @@ export function SiteHeader({
                   })
                 }
                 aria-expanded={activePanel === "component" || activePanel === "model"}
+                aria-controls={panelId}
                 aria-haspopup="true"
-                className={navIconButtonClass}
+                className={`${navLinkClass} max-w-48`}
               >
-                <Expand className={navIconClass} aria-hidden="true" />
+                <span className="truncate">{component?.title ?? model?.title}</span>
+                <ChevronDown className={`${navIconClass} shrink-0 transition-transform ${activePanel === "component" || activePanel === "model" ? "rotate-180" : ""}`} aria-hidden="true" />
               </button>
             </div>
           ) : null}
@@ -150,6 +153,7 @@ export function SiteHeader({
               setActivePanel((value) => (value === "about" ? null : "about"))
             }
             aria-expanded={activePanel === "about"}
+            aria-controls={panelId}
             aria-haspopup="true"
             className={navLinkClass}
           >

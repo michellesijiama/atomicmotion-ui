@@ -19,7 +19,7 @@ export const studioModels: StudioModel[] = [
     id: "little-nap",
     title: "Little Nap",
     description:
-      "Two soft, sleepy piglet scoops stack in a blue lace bowl. Grainy colored-pencil outlines, sparse pink and blue fill, fibrous paper, floating ink-like notes and twinkling stars. Soft little hops and a slow frontal sway keep the illustration gently moving. Download the editable Blender scene or looping GIF.",
+      "Two sleepy piglet scoops bounce in a blue lace bowl. Grainy pencil outlines, pale color, floating notes and twinkling stars turn the still life into a playful paper illustration.",
     image: "/studio/little-nap/little-nap.webp",
     gif: "/studio/little-nap/little-nap-soft-hops.gif",
     imageAlt:
