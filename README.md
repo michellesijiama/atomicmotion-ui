@@ -61,6 +61,17 @@ export function Demo() {
 **Copy link** copies the public source URL and **Copy for AI** provides
 integration instructions for every component.
 
+## 3D Studio
+
+The `/3d-studio` gallery presents editable Blender scenes alongside the interface
+library, using the same card grid and navigation. [Apple Club](scenes/apple-club/README.md)
+is a colored-pencil apple scene with a seamless six-second 360° animation,
+a downloadable GIF and a 1080 × 1440 still. Its models, procedural pigment
+shaders, paper grain, camera and light rig remain editable. Scene assets use the MIT license;
+the packed Courier Prime typeface uses SIL OFL 1.1.
+These scene downloads live in this repository and on the gallery; the
+`atomicmotion-free` export remains the React component library.
+
 ## Components
 
 <!-- component-catalogue:start -->

@@ -25,6 +25,11 @@ design-qa.md
 # OS cruft. The app folder ignores this already; the repo root did not.
 .DS_Store
 
+# Blender scene tooling caches and automatic backup files.
+__pycache__/
+*.py[cod]
+*.blend[0-9]
+
 # Reference/backdrop images used while building a component. Anything in
 # public/ that is genuinely shipped must be listed in ASSETS.md instead —
 # verify-public-surface.mjs enforces that.

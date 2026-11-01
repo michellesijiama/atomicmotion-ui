@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/still-life",
+        destination: "/3d-studio",
+        permanent: true,
+      },
+      {
         source: "/components/expanded-navigation",
         destination: "/components/soft-menu-reveal",
         permanent: true,

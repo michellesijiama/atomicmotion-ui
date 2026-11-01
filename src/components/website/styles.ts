@@ -7,6 +7,8 @@ export const navIconClass = "size-4"; // 16px — nav icons
 // without touching individual navigation components.
 export const navLinkClass = `inline-flex h-11 sm:h-8 items-center gap-1.5 rounded-full bg-[var(--am-nav-bg)] px-3 ${navTextClass} text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[var(--am-nav-hover-bg)] hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--am-nav-focus-ring)]`;
 
+export const sectionNavLinkClass = `${navLinkClass} aria-[current]:bg-[var(--jitter-ink)] aria-[current]:text-white aria-[current]:hover:bg-[var(--jitter-gray-800)] aria-[current]:hover:text-white`;
+
 export const navIconButtonClass = `inline-flex size-11 sm:size-8 items-center justify-center rounded-full bg-[var(--am-nav-bg)] text-[var(--jitter-gray-800)] backdrop-blur-[72px] backdrop-saturate-150 transition hover:bg-[var(--am-nav-hover-bg)] hover:text-[var(--jitter-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--am-nav-focus-ring)]`;
 
 // Shared action-button tokens — no zoom/scale; hover communicates state

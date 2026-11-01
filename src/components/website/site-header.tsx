@@ -1,26 +1,34 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ArrowUpRight, Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
+import type { StudioModel } from "@/lib/model-registry";
 import { AnimatedLogoLink } from "@/components/website/animated-logo-link";
 import { ComponentActions } from "@/components/website/component-actions";
+import { ModelActions } from "@/components/website/model-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
 import {
   navIconButtonClass,
   navIconClass,
   navLinkClass,
+  sectionNavLinkClass,
 } from "@/components/website/styles";
 
-type ActivePanel = "about" | "component" | null;
+type ActivePanel = "about" | "component" | "model" | null;
 
 export function SiteHeader({
   component,
+  model,
   tagline,
+  section = "interfaces",
 }: {
   component?: ComponentMeta;
+  model?: StudioModel;
   tagline?: string;
+  section?: "interfaces" | "3d-studio";
 }) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,6 +63,8 @@ export function SiteHeader({
         footer={
           activePanel === "component" && component ? (
             <ComponentActions key={component.id} component={component} />
+          ) : activePanel === "model" && model ? (
+            <ModelActions model={model} />
           ) : undefined
         }
       >
@@ -82,11 +92,17 @@ export function SiteHeader({
               </p>
             ) : null}
           </div>
+        ) : activePanel === "model" && model ? (
+          <div className="grid gap-3">
+            <span className="font-mono text-body text-[var(--jitter-gray-600)]">{model.title}</span>
+            <p>{model.description}</p>
+            <a href={model.license} className="w-fit text-body text-[var(--jitter-gray-600)] underline underline-offset-4">License</a>
+          </div>
         ) : (
           <>
             AtomicMotion is a design library of expressive interfaces and
-            interactions. Explore live demos and copy component source code
-            for your own projects.
+            interactions, and 3D scenes. Explore live demos, copy
+            component source code, and download editable Blender scenes.
           </>
         )}
       </ExpandingAboutPanel>
@@ -102,15 +118,24 @@ export function SiteHeader({
         </div>
 
         <nav className="flex items-center gap-2" aria-label="Primary">
-          {component ? (
+          <Link href="/" aria-current={section === "interfaces" ? "true" : undefined} className={sectionNavLinkClass}>
+            Interfaces
+          </Link>
+          <Link href="/3d-studio" aria-current={section === "3d-studio" ? "true" : undefined} className={sectionNavLinkClass}>
+            3D Studio
+          </Link>
+          {component || model ? (
             <div className="group/info relative">
               <button
                 type="button"
-                aria-label={`Details about ${component.title}`}
+                aria-label={`Details about ${component?.title ?? model?.title}`}
                 onClick={() =>
-                  setActivePanel((value) => (value === "component" ? null : "component"))
+                  setActivePanel((value) => {
+                    const panel = component ? "component" : "model";
+                    return value === panel ? null : panel;
+                  })
                 }
-                aria-expanded={activePanel === "component"}
+                aria-expanded={activePanel === "component" || activePanel === "model"}
                 aria-haspopup="true"
                 className={navIconButtonClass}
               >

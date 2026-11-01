@@ -28,6 +28,8 @@ carry a different license than the code that ships them. Checked by
 | `public/components/jardin-living/{background-nyc,background-nyc-sunny,midground,foreground,flower,bird-sprite,garden-visitors,city-in-bloom-logo}.png` | Original hand-illustrated New York garden scenery including a directly repainted sunny background, botanical layers, bird animation, garden visitors and English City in Bloom wordmark generated with built-in ImageGen | AtomicMotion UI | MIT (repo default) | Jardin Opening README and registry `requiredAssets` |
 | `public/components/jardin-living/*-prompt.txt` | Exact generation prompts and metadata for the published garden illustration and English wordmark | AtomicMotion UI | MIT (repo default) | Living garden asset provenance |
 
+| `public/still-life/apple-club/{apple-club.blend,apple-club.png,apple-club.webp,apple-club-rotation.gif,LICENSE.txt}` | Original procedural Blender models, colored-pencil shaders, Cycles still and six-second 360° animation, created with `scenes/apple-club/create_scene.py`. The reference is not embedded or redistributed. Packed [Courier Prime](https://github.com/google/fonts/tree/main/ofl/courierprime) is by The Courier Prime Project Authors. | AtomicMotion / Sijia Ma; The Courier Prime Project Authors (font) | MIT (scene and renders); SIL OFL 1.1 (font) | `scenes/apple-club/README.md`, embedded Blender readme and font license, downloadable `LICENSE.txt` |
+
 ## Already removed
 
 `public/gummy-bear-xiaohongshu.mp4` (2.1 MB) had no recorded source and was
