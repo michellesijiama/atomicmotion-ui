@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/3d-studio/apple-club",
+        destination: "/3d-studio/little-nap",
+        permanent: true,
+      },
+      {
         source: "/still-life",
         destination: "/3d-studio",
         permanent: true,

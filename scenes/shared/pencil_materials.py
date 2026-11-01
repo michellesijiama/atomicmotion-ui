@@ -2,7 +2,7 @@
 import bpy
 
 
-def pencil(name, pigment, coverage=.72, transparent=False):
+def pencil(name, pigment, coverage=.72, transparent=False, soft_edges=True):
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     m.diffuse_color = (*pigment, 1)
@@ -52,7 +52,7 @@ def pencil(name, pigment, coverage=.72, transparent=False):
     ramp.color_ramp.elements[1].color=(1,1,1,1)
     l.new(pigment_amount,ramp.inputs[0])
     amount=math('MULTIPLY',ramp.outputs['Color'],coverage,240,320)
-    if not transparent:
+    if not transparent and soft_edges:
         edge_normal=node('ShaderNodeSeparateXYZ','Soft pencil silhouette',-410,-700)
         l.new(geo.outputs['Normal'],edge_normal.inputs[0])
         facing=math('ABSOLUTE',edge_normal.outputs['Y'],0,-200,-700)

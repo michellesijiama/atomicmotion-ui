@@ -11,7 +11,7 @@ from pathlib import Path
 from mathutils import Vector
 
 HERE=Path(__file__).resolve().parent
-sys.path.insert(0,str(HERE))
+sys.path.insert(0,str(HERE.parent/'shared'))
 from pencil_materials import pencil, paper
 from motion import setup_turntable
 

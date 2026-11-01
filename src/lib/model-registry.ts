@@ -16,17 +16,17 @@ export type StudioModel = {
 
 export const studioModels: StudioModel[] = [
   {
-    id: "apple-club",
-    title: "Apple Club",
+    id: "little-nap",
+    title: "Little Nap",
     description:
-      "A colored-pencil apple still life that turns through 360°. Download the editable Blender scene with its animation, procedural materials, and lighting, or take the looping GIF.",
-    image: "/still-life/apple-club/apple-club.webp",
-    gif: "/still-life/apple-club/apple-club-rotation.gif",
+      "Two soft, sleepy piglet scoops stack in an ivory-lace blue bowl. Luminous peach highlights, rose-pink shadows, fuzzy watercolor grains, fibrous paper, floating ink-like notes and twinkling stars. Soft little hops and a slow frontal sway keep the illustration gently moving. Download the editable Blender scene or looping GIF.",
+    image: "/studio/little-nap/little-nap.webp",
+    gif: "/studio/little-nap/little-nap-soft-hops.gif",
     imageAlt:
-      "A red apple in a translucent blue polka-dot bowl, with an ivory apple cross-section and brown seeds floating above. Colored-pencil grain and small typewriter captions on white textured paper.",
-    blend: "/still-life/apple-club/apple-club.blend",
-    still: "/still-life/apple-club/apple-club.png",
-    license: "/still-life/apple-club/LICENSE.txt",
+      "Two soft, asymmetrical sleeping pigs stack in a blue lace bowl, viewed from the front. Watercolor gradients, pencil grains and fuzzy edges on fibrous white paper, with floating English ink lettering and small four-point stars around the bowl.",
+    blend: "/studio/little-nap/little-nap.blend",
+    still: "/studio/little-nap/little-nap.png",
+    license: "/studio/little-nap/LICENSE.txt",
     width: 1080,
     height: 1440,
     blenderVersion: "5.2.2",

@@ -64,10 +64,12 @@ integration instructions for every component.
 ## 3D Studio
 
 The `/3d-studio` gallery presents editable Blender scenes alongside the interface
-library, using the same card grid and navigation. [Apple Club](scenes/apple-club/README.md)
-is a colored-pencil apple scene with a seamless six-second 360° animation,
-a downloadable GIF and a 1080 × 1440 still. Its models, procedural pigment
-shaders, paper grain, camera and light rig remain editable. Scene assets use the MIT license;
+library, using the same card grid and navigation. [Little Nap](scenes/little-nap/README.md)
+features two round watercolor-pencil pig puddings stacked in a continuous blue lace bowl,
+with a six-second loop of soft hops, slow swaying, floating ink and paper sparkles,
+a downloadable GIF and a 1080 × 1440
+still. Its models, procedural pigment shaders, paper grain, camera and light
+rig remain editable. Little Nap's scene assets use the MIT license;
 the packed Courier Prime typeface uses SIL OFL 1.1.
 These scene downloads live in this repository and on the gallery; the
 `atomicmotion-free` export remains the React component library.
