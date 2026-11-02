@@ -1,6 +1,6 @@
 # Bead Club
 
-A minimal collection of six original bead patterns with fused 3D bead relief, tiny pin dimples and pearly grain inside an official silver iPhone 16 Pro bezel on a transparent stage. Open a tiny cake, strawberry or little friend and replay its creation bead by bead.
+A minimal collection of six original bead patterns with dense, ironed mini-bead surfaces, tiny tube openings and pearly grain inside an official silver iPhone 16 Pro bezel on a transparent stage. Open a tiny cake, strawberry or little friend and replay its creation bead by bead.
 
 ![Bead Club preview](https://atomicmotion.dev/previews/bead-club.png)
 
@@ -60,6 +60,7 @@ Named export: `BeadClub`. Public types: `BeadClubProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
+- [public/components/bead-club/fused-pearl-grain.png](../../../public/components/bead-club/fused-pearl-grain.png) — MIT. Original pearlescent fused-plastic microtexture generated with built-in ImageGen for AtomicMotion UI.
 - [public/components/bead-club/iphone-16-pro-white.png](../../../public/components/bead-club/iphone-16-pro-white.png) — Apple Design Resources terms. Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/
 - [public/components/bead-club/iphone-screen-mask.svg](../../../public/components/bead-club/iphone-screen-mask.svg) — Apple Design Resources terms. Screen-opening mask derived from the product bezel alpha, for accurate UI placement.
 - [public/components/bead-club/TERMS.txt](../../../public/components/bead-club/TERMS.txt) — Apple Design Resources terms. Retain the source and product-bezel usage terms; this asset is not MIT-licensed.

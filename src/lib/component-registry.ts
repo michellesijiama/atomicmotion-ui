@@ -109,7 +109,7 @@ export const componentRegistry = {
     index: "022",
     title: "Bead Club",
     description:
-      "A minimal collection of six original bead patterns with fused 3D bead relief, tiny pin dimples and pearly grain inside an official silver iPhone 16 Pro bezel on a transparent stage. Open a tiny cake, strawberry or little friend and replay its creation bead by bead.",
+      "A minimal collection of six original bead patterns with dense, ironed mini-bead surfaces, tiny tube openings and pearly grain inside an official silver iPhone 16 Pro bezel on a transparent stage. Open a tiny cake, strawberry or little friend and replay its creation bead by bead.",
     category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
@@ -117,6 +117,7 @@ export const componentRegistry = {
     codePath: "components/play/bead-club/bead-club.tsx",
     previewStatic: true,
     requiredAssets: [
+      { path: "public/components/bead-club/fused-pearl-grain.png", license: "MIT", credit: "Original pearlescent fused-plastic microtexture generated with built-in ImageGen for AtomicMotion UI." },
       { path: "public/components/bead-club/iphone-16-pro-white.png", license: "Apple Design Resources terms", credit: "Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/" },
       { path: "public/components/bead-club/iphone-screen-mask.svg", license: "Apple Design Resources terms", credit: "Screen-opening mask derived from the product bezel alpha, for accurate UI placement." },
       { path: "public/components/bead-club/TERMS.txt", license: "Apple Design Resources terms", credit: "Retain the source and product-bezel usage terms; this asset is not MIT-licensed." },
