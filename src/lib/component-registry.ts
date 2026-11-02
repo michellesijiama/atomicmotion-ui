@@ -109,7 +109,7 @@ export const componentRegistry = {
     index: "022",
     title: "Bead Club",
     description:
-      "A restaurant menu made of fused bead art inside a silver iPhone that fits the screen height. Browse bento boxes, steak and fries, burgers, pasta, ramen and sides in swipeable rows, each with a sample price and description. Open any meal to replay its creation one color at a time.",
+      "A restaurant menu made of fused bead art inside a silver iPhone that fits the screen height. Browse four packed, portrait-format Japanese bento boxes alongside steak, burgers, pasta, ramen and sides, each with a sample price and description. Open any meal to replay its creation one color at a time.",
     category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

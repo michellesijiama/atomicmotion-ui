@@ -67,27 +67,58 @@ function makePattern(id: string): Bead[] {
   const plate = () => { oval(20,25,18,13,P.rim); oval(20,24,17,12,P.white); oval(20,24,14,9,P.cream); };
 
   if (id.startsWith("bento-")) {
-    roundedRect(2,6,36,31,4,P.dark); roundedRect(3,6,34,29,3,"#ce936b");
-    roundedRect(5,8,30,25,2,"#f0c997"); roundedRect(6,9,13,23,2,P.white);
-    for (let y=10;y<31;y+=3) for (let x=7;x<18;x+=3) if((x+y)%2) line(x,y,x+1,y,P.rice);
-    rect(19,8,2,26,"#805442"); rect(20,23,15,2,"#805442");
-    roundedRect(21,9,13,14,1,"#ead8b7"); roundedRect(21,25,13,7,1,P.cream);
-    oval(12,20,2,2,"#c64d56"); dot(11,19,"#ef9690");
-    for(const [x,y]of [[9,13],[15,16],[8,25],[15,28]])dot(x,y,P.dark);
-    broccoli(25,28); tomato(31,28);
-    if (id === "bento-salmon") {
-      roundedRect(22,11,11,10,2,"#db7047"); roundedRect(22,10,10,10,2,"#ff9a68");
-      for(let y=11;y<=17;y+=3)line(23,y,30,y+2,"#ffd8b5");
-      line(23,19,30,19,"#ad6545"); dot(28,12,P.leaf); dot(30,15,P.leaf);
-    } else if (id === "bento-chicken") {
-      for (const [x,y] of [[25,12],[30,13],[24,17],[29,18]]) { oval(x,y,3,2.5,P.brown); oval(x,y-1,2,1,"#dca05d"); }
-      line(23,14,30,17,"#754832"); dot(25,12,P.white); dot(30,17,P.white); dot(27,18,P.green);
-      roundedRect(28,26,5,5,1,P.yellow); line(29,27,31,27,"#fff0ac");
-    } else {
-      roundedRect(22,10,11,12,3,"#b57739"); roundedRect(22,10,10,11,2,"#f5bf63");
-      for(let y=12;y<=18;y+=3)line(23,y,31,y,P.brown);
-      for(const [x,y]of [[24,11],[29,14],[25,17],[30,19]])dot(x,y,"#ffe4a1");
-      line(22,26,26,28,"#b5d99b"); line(22,29,27,30,"#b5d99b");
+    // A tall, thin-rimmed lunch box, packed above a lower bed of rice.
+    roundedRect(6,1,28,39,4,"#96755d"); roundedRect(7,2,26,37,3,"#efd8b5");
+    roundedRect(8,3,24,35,2,"#fff9e9");
+    const rice = id === "bento-salmon" ? "#c8a9b3" : "#fff9e9";
+    roundedRect(8,22,24,16,2,rice); line(8,21,31,21,"#cfb79a");
+    for(let y=23;y<37;y+=3)for(let x=9;x<31;x+=3){
+      const shift=(y%2), color=id==="bento-salmon"?"#ad8593":"#dfcfb1";
+      dot(x+shift,y,color); dot(x+1+shift,y+1,color);
+      if((x+y)%4===0)dot(x,y+1,id==="bento-salmon"?"#e1c2c8":P.white);
+    }
+    const noodles = (x: number,y: number,w: number,h: number,base: string,edge: string) => {
+      roundedRect(x,y,w,h,1,base);
+      for(let row=0;row<h-1;row+=2)for(let i=0;i<w;i++){
+        const py=Math.max(y,Math.min(y+h-1,y+row+Math.round(Math.sin(i*.9+row))));dot(x+i,py,edge);
+      }
+    };
+    if(id === "bento-salmon") {
+      noodles(17,5,8,14,"#d8a252","#a6783d");
+      roundedRect(26,4,6,15,2,"#b57a43"); roundedRect(26,4,5,14,1,"#f0b16a");
+      for(let y=6;y<17;y+=3)line(26,y,30,y+2,"#ffe0a0");
+      for(const [x,y]of [[11,6],[16,6]]){oval(x,y,4,3,"#6e9853");oval(x,y,3,2,"#bed07f");dot(x,y,"#e2dfa4");dot(x+1,y+1,"#a4b369");}
+      for(const y of [10,14,18]){
+        roundedRect(8,y,8,4,1,"#c3a04e");roundedRect(8,y,7,3,1,"#f5d46e");line(9,y+1,13,y+1,"#fff0a9");dot(11,y+2,"#93a267");
+      }
+      for(const [x,y]of [[20,19],[24,20],[29,18]]){oval(x,y,2.5,2.5,"#987043");dot(x-1,y-1,"#b9945a");}
+      line(26,18,30,17,"#e4d7aa");
+    } else if(id === "bento-ebi") {
+      broccoli(11,6); broccoli(17,6);
+      tomato(11,12,2.5); tomato(17,12,2.5);
+      noodles(8,15,12,6,"#efbb5b","#b98437");
+      oval(28,9,4,5,"#e9dfbf"); oval(28,8,3,4,P.white);oval(28,9,2,3,"#f6ce4b");
+      oval(28,17,4,4,"#987044");oval(29,16,2,2,"#b48b54");
+      roundedRect(21,4,5,16,2,"#b88d3f");roundedRect(21,4,4,15,1,"#dbb25e");
+      for(const [x,y]of [[22,6],[23,9],[22,12],[24,15],[22,17]])dot(x,y,"#f5d58a");
+      polygon([[21,18],[20,22],[23,21],[25,23],[25,19]],"#d98142");
+    } else if(id === "bento-chicken") {
+      for(const [x,y]of [[11,5],[16,5],[10,9]]){oval(x,y,4,3,"#6f9e54");oval(x-1,y-1,3,2,"#a8c66c");}
+      for(const [x,y]of [[13,8],[18,8],[16,12]]){oval(x,y,3,3,"#956a3b");oval(x,y-1,2,2,"#bd9556");dot(x+1,y-1,"#d5b47a");}
+      noodles(22,4,10,11,"#f4ecd2","#c8c2a0");
+      for(const [x,y]of [[10,16],[17,17]]){
+        oval(x,y,2,4,"#c87242");oval(x,y-1,2,3,"#eb9a61");dot(x-1,y-1,P.dark);dot(x+1,y-1,P.dark);
+        for(let dx=-2;dx<=2;dx+=2)line(x+dx,y+2,x+dx+(dx?Math.sign(dx):0),y+5,"#e98b54");
+      }
+      roundedRect(22,17,10,5,1,"#c59a42");roundedRect(22,17,9,4,1,"#f1c95e");
+      for(let x=23;x<31;x+=2)line(x,17,x,20,"#ffe29a");line(22,19,30,19,"#d2aa4d");
+    } else if(id === "bento-nori") {
+      for(let y=4;y<20;y+=4)for(let x=9;x<31;x+=4){dot(x,y,"#dfcfb1");dot(x+1,y+1,"#dfcfb1");}
+      oval(20,11,10,8,"#4b4b3c");oval(20,10,9,7,"#535242");
+      oval(20,11,2.5,2.5,"#fff0b3");line(19,9,21,9,P.white);
+      roundedRect(10,25,20,12,1,"#514e3d");rect(12,26,16,9,P.white);rect(15,35,11,2,"#514e3d");
+      oval(20,29,3.5,3.5,"#b34d55");oval(20,28,2.5,2.5,"#d96971");dot(19,27,"#ee9190");
+      for(const [x,y]of [[15,32],[18,33],[22,33],[25,32],[14,30]])dot(x,y,"#746149");
     }
   } else if (id === "steak") {
     plate();
@@ -160,9 +191,10 @@ function makePattern(id: string): Bead[] {
   return [...colorGroups.values()].flatMap(group => group.sort((a,b)=>placementOrder(a)-placementOrder(b)||a.y-b.y||a.x-b.x));
 }
 const artworks: Artwork[] = [
-  { id:"bento-salmon", name:"Salmon bento", price:"$18.50", description:"Grilled salmon, sesame rice, broccoli and pickled plum.", category:"Bento", background:"#eee5d9" },
-  { id:"bento-chicken", name:"Chicken bento", price:"$16.50", description:"Teriyaki chicken, steamed rice, tamagoyaki and greens.", category:"Bento", background:"#eee5d9" },
-  { id:"bento-katsu", name:"Katsu bento", price:"$17.00", description:"Crispy pork cutlet, rice, shredded cabbage and tonkatsu sauce.", category:"Bento", background:"#eee5d9" },
+  { id:"bento-salmon", name:"Salmon bento", price:"$18.50", description:"Grilled salmon, tamagoyaki, cucumber and meatballs over shiso rice.", category:"Bento", background:"#eee5d9" },
+  { id:"bento-ebi", name:"Ebi fry bento", price:"$17.50", description:"Crispy prawn, egg, spaghetti, tomatoes and broccoli with rice.", category:"Bento", background:"#eee5d9" },
+  { id:"bento-chicken", name:"Karaage bento", price:"$16.50", description:"Karaage chicken, octopus sausages, corn, sprouts and steamed rice.", category:"Bento", background:"#eee5d9" },
+  { id:"bento-nori", name:"Nori bento", price:"$15.00", description:"Nori rice, a soft egg centre and a little umeboshi rice parcel.", category:"Bento", background:"#eee5d9" },
   { id:"steak", name:"Steak & fries", price:"$26.00", description:"Grilled steak with herb butter, golden fries and broccoli.", category:"Mains", background:"#e5edf0" },
   { id:"burger", name:"House burger", price:"$16.00", description:"Beef patty, cheddar, lettuce and tomato on a sesame bun.", category:"Mains", background:"#f4ead8" },
   { id:"pasta", name:"Pesto pasta", price:"$17.50", description:"Pasta tossed in basil pesto with cherry tomatoes and Parmesan.", category:"Mains", background:"#e8efdd" },
