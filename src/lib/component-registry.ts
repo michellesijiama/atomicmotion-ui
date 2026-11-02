@@ -109,7 +109,7 @@ export const componentRegistry = {
     index: "022",
     title: "Bead Club",
     description:
-      "Five original cake designs, including translucent peach and violet jellies, join five tiny bead motifs inside an official silver iPhone 16 Pro bezel. Soft terry textures, vivid colors and fine glitter sit on a light gray screen. Open any piece and replay its creation one color at a time.",
+      "A menu of tiny bead creations inside an official silver iPhone 16 Pro bezel. Browse Cakes, Treats and Friends in swipeable rows with larger artwork, soft terry textures and fine glitter. Open a piece to replay it one color at a time, including two translucent jelly cakes.",
     category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

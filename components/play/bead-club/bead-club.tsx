@@ -4,7 +4,7 @@ import * as React from "react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight, Flower2, Pause, Play } from "lucide-react";
+import { ArrowLeft, Flower2, Pause, Play } from "lucide-react";
 
 export type BeadClubProps = {
   /** Plays a quiet demonstration on gallery cards. */
@@ -647,9 +647,55 @@ function Replay({ art, onBack, reduced }: { art: Artwork; onBack: () => void; re
 }
 
 
+const menuSections = [
+  { id: "cakes", title: "Cakes", items: artworks.filter(art => art.id.startsWith("cake-")) },
+  { id: "treats", title: "Treats", items: artworks.filter(art => !art.id.startsWith("cake-") && art.category === "Sweet things") },
+  { id: "friends", title: "Friends", items: artworks.filter(art => art.category === "Little friends") },
+];
+
+function MenuShelf({ items, onOpen }: { items: Artwork[]; onOpen: (art: Artwork, button: HTMLButtonElement) => void }) {
+  const start = React.useRef<{ x: number; left: number } | null>(null);
+  const suppressClick = React.useRef(false);
+  const [dragging, setDragging] = React.useState(false);
+  return <div className={`bc-shelf${dragging ? " bc-shelf-dragging" : ""}`} role="group" aria-label="Swipe to browse patterns"
+    onPointerDown={event => {
+      if (event.pointerType !== "mouse" || event.button !== 0) return;
+      start.current = { x: event.clientX, left: event.currentTarget.scrollLeft }; suppressClick.current = false;
+    }}
+    onPointerMove={event => {
+      const point = start.current; if (!point) return;
+      const delta = event.clientX - point.x;
+      if (!suppressClick.current && Math.abs(delta) < 8) return;
+      suppressClick.current = true; setDragging(true);
+      if (!event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
+      event.currentTarget.scrollLeft = point.left - delta;
+      event.preventDefault();
+    }}
+    onPointerUp={event => {
+      start.current = null; setDragging(false);
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      if (!suppressClick.current) return;
+      const track = event.currentTarget;
+      const step = (track.firstElementChild?.getBoundingClientRect().width ?? 0) + 16;
+      if (step) track.scrollTo({ left: Math.round(track.scrollLeft / step) * step, behavior: "smooth" });
+    }}
+    onPointerCancel={() => { start.current = null; setDragging(false); suppressClick.current = false; }}
+    onPointerLeave={() => { if (!suppressClick.current) start.current = null; }}
+    onClickCapture={event => { if (suppressClick.current) { event.preventDefault(); event.stopPropagation(); suppressClick.current = false; } }}>
+    {items.map(art => <article className="bc-menu-card" key={art.id}>
+      <button className="bc-menu-open" aria-label={`Open ${art.name}`} onClick={event => onOpen(art, event.currentTarget)}><BeadArt art={art} /></button>
+      <div className="bc-menu-caption"><h3>{art.name}</h3><button className="bc-play-button" aria-label={`Play ${art.name}`} onClick={event => onOpen(art, event.currentTarget)}><Play className="bc-play-symbol" size={23} fill="currentColor" aria-hidden="true" /></button></div>
+    </article>)}
+  </div>;
+}
+
 export function BeadClub({ loop = false, className }: BeadClubProps) {
   const host = React.useRef<HTMLDivElement>(null);
   const lastCard = React.useRef<HTMLButtonElement | null>(null);
+  const menu = React.useRef<HTMLDivElement>(null);
+  const sectionRefs = React.useRef<(HTMLElement | null)[]>([]);
+  const [activeSection, setActiveSection] = React.useState(0);
+  const menuId = React.useId();
   const reduced = !!useReducedMotion();
   const [scale, setScale] = React.useState(.8);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
@@ -673,6 +719,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
     const pending: ReturnType<typeof setTimeout>[] = [];
     return () => { clearTimeout(open); clearTimeout(close); clearInterval(cycle); pending.forEach(clearTimeout); };
   }, [loop, reduced]);
+  const open = (art: Artwork, button: HTMLButtonElement) => { lastCard.current = button; setSelectedId(art.id); };
   const close = () => { setSelectedId(null); requestAnimationFrame(() => lastCard.current?.focus({ preventScroll: true })); };
   return <div ref={host} className={`bc-stage ${className ?? ""}`} data-preview={loop ? "loop" : "interactive"}>
     <style>{styles}</style>
@@ -682,11 +729,12 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
         <div className="bc-status" aria-hidden="true"><b>9:41</b><div className="bc-indicators"><svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 8v3M5 6v5M9 3v8M13 0v11" stroke="currentColor" strokeWidth="2" /></svg><svg width="15" height="12" viewBox="0 0 15 12"><path d="M1 4Q7.5-1 14 4M3 7q4.5-4 9 0M6 10q1.5-2 3 0" fill="none" stroke="currentColor" strokeWidth="1.7" /></svg><span className="bc-battery" /></div></div>
         <div className="bc-collection" inert={!!selected}>
           <header className="bc-header"><span>little bead club</span><Flower2 className="bc-flower" size={24} strokeWidth={1.8} aria-hidden="true" /></header>
-          <div className="bc-list" aria-label="Bead collection">
-            {artworks.map(art => <button className="bc-card" key={art.id} onClick={event => { lastCard.current = event.currentTarget; setSelectedId(art.id); }} aria-label={`Open ${art.name}`}>
-              <div className="bc-card-copy"><h2>{art.name}</h2><span className="bc-card-link">Play <ArrowUpRight size={16} /></span></div>
-              <div className="bc-art-panel"><BeadArt art={art} /></div>
-            </button>)}
+          <nav className="bc-menu-tabs" aria-label="Pattern categories">{menuSections.map((section, index) => <button key={section.id} aria-current={activeSection === index ? "location" : undefined} onClick={() => { const target = sectionRefs.current[index]; if (target && menu.current) menu.current.scrollTo({ top: target.offsetTop - 12, behavior: reduced ? "instant" : "smooth" }); }}>{section.title}</button>)}</nav>
+          <div ref={menu} className="bc-list" aria-label="Bead menu" onScroll={event => { const top = event.currentTarget.scrollTop; let index = 0; sectionRefs.current.forEach((section, i) => { if (section && section.offsetTop <= top + 40) index = i; }); if (top + event.currentTarget.clientHeight >= event.currentTarget.scrollHeight - 1) index = menuSections.length - 1; setActiveSection(index); }}>
+            {menuSections.map((section, index) => <section className="bc-menu-section" key={section.id} ref={element => { sectionRefs.current[index] = element; }} aria-labelledby={`${menuId}-${section.id}`}>
+              <h2 id={`${menuId}-${section.id}`}>{section.title}</h2>
+              <MenuShelf items={section.items} onOpen={open} />
+            </section>)}
           </div>
         </div>
         <AnimatePresence>{selected && <Replay key={selected.id} art={selected} reduced={reduced} onBack={close} />}</AnimatePresence>
@@ -709,10 +757,12 @@ const styles = `
 
 .bc-status{height:55px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:4px clamp(15px,6cqw,24px) 0 clamp(16px,6.7cqw,26px);z-index:12;font-size:14px;font-weight:600;color:#242a26;background:transparent}.bc-indicators{display:flex;align-items:center;gap:5px}.bc-battery{width:21px;height:10px;border-radius:3px;border:1px solid currentColor;position:relative}.bc-battery:before{content:'';position:absolute;inset:1px;background:currentColor;border-radius:1px}.bc-battery:after{content:'';position:absolute;width:2px;height:4px;right:-4px;top:2px;background:currentColor;border-radius:1px}
 .bc-header::before,.bc-detail-nav::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
-.bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;left:0;right:0;top:0;z-index:8;min-height:78px;color:#242a26;padding:14px 18px 26px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:1.25rem;font-weight:500;letter-spacing:-.35px}.bc-flower{flex-shrink:0;color:#fff;filter:drop-shadow(0 1px 1px #28362a99)}.bc-list{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:94px 16px 72px;scrollbar-width:none;scroll-padding:16px 0 72px}.bc-list::-webkit-scrollbar{display:none}
-.bc-card{width:100%;border:0;background:transparent;padding:0;margin:0 0 28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px;text-align:left;align-items:center;scroll-margin:16px 0 72px}.bc-card-copy{padding:12px 0;display:flex;flex-direction:column;align-items:flex-start;min-width:0;overflow-wrap:anywhere}.bc-card h2{font-size:1.375rem;line-height:1.25;font-weight:500;margin:10px 0 10px;letter-spacing:-.4px}.bc-card-link{display:flex;align-items:center;gap:5px;font-size:1rem;line-height:1.5;min-height:44px;margin-top:12px}.bc-art-panel{height:252px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:transparent}.bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(.5px 3px 1.5px #493d3033)}.bc-art-3d{position:relative;filter:none}.bc-art-3d>canvas{position:absolute;inset:0}.bc-art-panel>.bc-art{width:100%;height:100%;transition:transform .5s}.bc-card:hover .bc-art{transform:translateY(-2px)}
+.bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:relative;z-index:8;flex-shrink:0;min-height:68px;color:#242a26;padding:10px 20px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:1.375rem;font-weight:500;letter-spacing:-.35px}.bc-flower{flex-shrink:0;color:#fff;filter:drop-shadow(0 1px 1px #28362a99)}
+.bc-menu-tabs{display:flex;gap:20px;flex-shrink:0;padding:0 20px;min-height:48px;border-bottom:1px solid #242a2614;z-index:8}.bc-menu-tabs button{position:relative;min-height:48px;border:0;background:transparent;padding:0;font-size:16px;font-weight:500;white-space:nowrap;color:#58635b}.bc-menu-tabs button[aria-current]{color:#242a26}.bc-menu-tabs button[aria-current]::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:currentColor;border-radius:3px}
+.bc-list{position:relative;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px 0 52px;scrollbar-width:none}.bc-list::-webkit-scrollbar,.bc-shelf::-webkit-scrollbar{display:none}.bc-menu-section{padding:0 0 28px;scroll-margin-top:12px}.bc-menu-section>h2{font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.4px;margin:10px 20px 8px}.bc-shelf{display:flex;gap:16px;overflow-x:auto;overflow-y:hidden;padding:0 14px 14px;scroll-snap-type:x mandatory;scroll-padding:14px;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab}.bc-shelf-dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}.bc-menu-card{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always}.bc-menu-open{display:block;width:100%;height:300px;border:0;background:transparent;padding:0;cursor:inherit!important}.bc-menu-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:80px;padding:6px}.bc-menu-caption h3{font-size:22px;line-height:1.25;font-weight:500;letter-spacing:-.4px;margin:0;min-width:0;overflow-wrap:anywhere}.bc-menu-caption .bc-play-button{border:1.5px solid #78827b}
+.bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(.5px 3px 1.5px #493d3033)}.bc-art-3d{position:relative;filter:none}.bc-art-3d>canvas{position:absolute;inset:0;pointer-events:none}
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
-.bc-glass-edge{position:absolute;bottom:0;left:51%;right:0;height:90px;pointer-events:none;z-index:6;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000);-webkit-mask-image:linear-gradient(transparent,#000)}.bc-glass-edge i:nth-child(2){top:25px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.bc-glass-edge i:nth-child(3){top:54px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.bc-screen[data-detail="true"] .bc-glass-edge{height:32px}
+.bc-glass-edge{position:absolute;bottom:0;left:0;right:0;height:28px;pointer-events:none;z-index:6;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000);-webkit-mask-image:linear-gradient(transparent,#000)}.bc-glass-edge i:nth-child(2){top:10px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.bc-glass-edge i:nth-child(3){top:18px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.bc-screen[data-detail="true"] .bc-glass-edge{height:32px}
 .bc-glass-reflection{position:absolute;inset:0;border-radius:inherit;z-index:7;pointer-events:none;box-shadow:inset 0 0 2px #fff4}
 .bc-detail{position:absolute;inset:55px 0 0;background:${APP_BACKGROUND};z-index:4;overflow-y:auto;scrollbar-width:none;padding-bottom:58px}.bc-detail-nav{position:sticky;top:0;z-index:8;min-height:56px;display:flex;align-items:center;padding:0 12px;color:#fff}.bc-icon{width:44px;height:44px;min-width:44px;min-height:44px;border:1px solid #fff9;background:#4e5b53cc;backdrop-filter:blur(10px) saturate(1.25);-webkit-backdrop-filter:blur(10px) saturate(1.25);box-shadow:inset 1px 1px 1px #fffc,0 3px 9px #17231a0b;display:grid;place-items:center;border-radius:50%}.bc-icon svg{filter:drop-shadow(0 1px 1px #28362acc)}.bc-board{height:330px;margin:0 10px;position:relative;padding:8px 0;display:flex;justify-content:center;align-items:center}.bc-board .bc-art{width:100%;height:100%}.bc-detail-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px 0}.bc-detail-caption h2{flex:1;min-width:0;font-size:1.375rem;line-height:1.35;font-weight:500;letter-spacing:-.4px;margin:0;overflow-wrap:anywhere}.bc-playback{flex:0 0 auto;position:relative}.bc-play-button{position:relative;display:grid;place-items:center;width:60px;height:60px;aspect-ratio:1;border:0;border-radius:50%;background:linear-gradient(145deg,#ffffff80,#ffffff20 48%,#ffffff45);backdrop-filter:blur(12px) saturate(1.3);-webkit-backdrop-filter:blur(12px) saturate(1.3);box-shadow:inset 1px 1px 1px #fffe,inset -1px -1px 2px #ffffff80,0 5px 16px #24372b12;color:#304236;padding:0;flex-shrink:0}.bc-play-button::before{content:'';position:absolute;inset:2px;border-radius:50%;background:radial-gradient(ellipse at 28% 14%,#ffffff90,transparent 65%);pointer-events:none}.bc-play-button[aria-pressed="true"]{box-shadow:inset 1px 1px 1px #fff,inset -1px -1px 3px #ffffff80,0 3px 12px #24372b16}.bc-play-outline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.bc-play-symbol{position:relative;margin-left:0}.bc-play-symbol.lucide-play{margin-left:2px}.bc-play-progress{transition:stroke-dashoffset .08s linear}
 
