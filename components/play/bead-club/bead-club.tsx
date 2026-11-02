@@ -387,7 +387,7 @@ function getBeadStudio() {
   const mesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhysicalMaterial()); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh);
   const surface = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhysicalMaterial()); surface.castShadow = true; scene.add(surface);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), new THREE.ShadowMaterial({ opacity: .12 })); floor.position.z = -.12; floor.receiveShadow = true; scene.add(floor);
-  const camera = new THREE.OrthographicCamera(-23, 23, 23, -23, .1, 180); camera.position.set(8, -42, 85); camera.lookAt(0, 0, 0);
+  const camera = new THREE.OrthographicCamera(-23, 23, 23, -23, .1, 180); camera.position.set(0, 0, 95); camera.up.set(0, 1, 0); camera.lookAt(0, 0, 0);
   beadStudio = { renderer, scene, camera, mesh, surface, materials: new Map(), completed: new Map(), surfaces: new Map() };
   return beadStudio;
 }
