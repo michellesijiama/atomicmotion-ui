@@ -251,7 +251,7 @@ function loadBeadGrain() {
   return beadGrainLoading;
 }
 
-type GrainSurface = { normal: THREE.CanvasTexture; roughness: THREE.CanvasTexture; pigment: Float32Array };
+type GrainSurface = { normal: THREE.CanvasTexture; roughness: THREE.CanvasTexture; pigment: Float32Array; sparkle?: THREE.CanvasTexture };
 let grainSurface: GrainSurface | undefined;
 function fusedGrainSurface() {
   if (grainSurface) return grainSurface;
@@ -347,7 +347,17 @@ function terryGrainSurface() {
   const normalMap = new THREE.CanvasTexture(pile); normalMap.generateMipmaps = false; normalMap.minFilter = THREE.LinearFilter;
   smoothCtx.putImageData(roughness, 0, 0);
   const roughnessMap = new THREE.CanvasTexture(smooth); roughnessMap.generateMipmaps = false; roughnessMap.minFilter = THREE.LinearFilter;
-  terrySurface = { normal: normalMap, roughness: roughnessMap, pigment };
+  const sparkleCanvas = document.createElement("canvas"); sparkleCanvas.width = width; sparkleCanvas.height = height;
+  const sparkleCtx = sparkleCanvas.getContext("2d")!;
+  sparkleCtx.fillStyle = "#000"; sparkleCtx.fillRect(0, 0, width, height); sparkleCtx.fillStyle = "#fff";
+  for (let y = 6; y < height; y += 12) for (let x = 6; x < width; x += 12) {
+    const seed = (Math.imul(x, 1597334677) ^ Math.imul(y, 3812015801)) >>> 0;
+    if (seed % 11 !== 0) continue;
+    const px = x + (seed % 7 - 3), py = y + ((seed >>> 8) % 7 - 3);
+    sparkleCtx.beginPath(); sparkleCtx.ellipse(px, py, 2.4 + (seed % 5) * .25, 1.3, seed % 628 / 100, 0, Math.PI * 2); sparkleCtx.fill();
+  }
+  const sparkleMap = new THREE.CanvasTexture(sparkleCanvas); sparkleMap.generateMipmaps = false; sparkleMap.minFilter = THREE.LinearFilter;
+  terrySurface = { normal: normalMap, roughness: roughnessMap, pigment, sparkle: sparkleMap };
   return terrySurface;
 }
 
@@ -372,7 +382,9 @@ function physicalMaterials(art: Artwork) {
   const map = new THREE.CanvasTexture(color); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4;
   const face = terry ? new THREE.MeshPhysicalMaterial({
     map, normalMap: surface.normal, normalScale: new THREE.Vector2(1, 1),
-    roughness: 1, metalness: 0, clearcoat: 0, specularIntensity: .12,
+    roughness: 1, metalness: 0, specularIntensity: .12,
+    clearcoat: .9, clearcoatMap: surface.sparkle, clearcoatRoughness: .075,
+    clearcoatNormalMap: fusedGrainSurface().normal, clearcoatNormalScale: new THREE.Vector2(1, 1),
     sheen: .12, sheenRoughness: 1, sheenColor: new THREE.Color("#fff6f4"),
   }) : new THREE.MeshPhysicalMaterial({
     map, normalMap: surface.normal, normalScale: new THREE.Vector2(.3, .3),
