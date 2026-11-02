@@ -15,17 +15,17 @@ export type BeadClubProps = {
 
 type Bead = { x: number; y: number; color: string };
 type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry" | "jelly";
-type Artwork = { material: BeadMaterial; id: string; name: string; price: string; description: string; category: "Sweet things" | "Little friends"; background: string; beads: Bead[]; colors: string[]; translucentColors?: readonly string[] };
+type Artwork = { material: BeadMaterial; id: string; name: string; price: string; description: string; category: "Bento" | "Mains" | "Sides"; background: string; beads: Bead[]; colors: string[]; translucentColors?: readonly string[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
-const P = { pink: "#ff90bd", rose: "#e75793", cream: "#fff2c7", white: "#fffdf4", blue: "#65cff1", red: "#ed3551", dark: "#5b2940", green: "#6cd690", leaf: "#279d69", yellow: "#ffdf53", brown: "#bf8050" };
+const P = { white: "#fffdf2", cream: "#f8eccf", rim: "#a9cbd6", blue: "#75a8bc", rice: "#e8dfc9", green: "#82bc68", leaf: "#397f57", red: "#e85d50", orange: "#f39a54", yellow: "#f4ce69", brown: "#985737", dark: "#593e35" };
 
 const APP_BACKGROUND = "#f2f2f2";
 const JELLY_COLORS: Record<string, readonly string[]> = {
-  "cake-peach": ["#ffad83", "#f18489", "#ffd1a3"],
-  "cake-violet": ["#c5a6f4", "#967bcf", "#e1cefa"],
+  sushi: ["#ff9a68", "#ef7654"],
+  ramen: ["#bc7d41", "#e0a45c"],
 };
 
-// Original patterns; every occupied cell is replayed in color order.
+// Original meal patterns; every occupied cell is replayed in color order.
 function makePattern(id: string): Bead[] {
   const cells = new Map<string, Bead>();
   const dot = (x: number, y: number, color: string) => cells.set(`${x},${y}`, { x, y, color });
@@ -41,10 +41,11 @@ function makePattern(id: string): Bead[] {
     const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
     for (let i = 0; i <= steps; i++) dot(Math.round(x1 + (x2 - x1) * i / steps), Math.round(y1 + (y2 - y1) * i / steps), color);
   };
-  const heart = (cx: number, cy: number, rx: number, ry: number, color: string) => {
-    for (let y = Math.floor(cy - ry * 1.3); y <= cy + ry; y++) for (let x = Math.floor(cx - rx * 1.2); x <= cx + rx * 1.2; x++) {
-      const nx = (x - cx) / rx, ny = (cy - y) / ry;
-      if ((nx * nx + ny * ny - 1) ** 3 - nx * nx * ny ** 3 <= 0) dot(x, y, color);
+  const roundedRect = (x: number, y: number, w: number, h: number, r: number, color: string) => {
+    for (let py = y; py < y + h; py++) for (let px = x; px < x + w; px++) {
+      const dx = Math.max(x + r - px, 0, px - (x + w - 1 - r));
+      const dy = Math.max(y + r - py, 0, py - (y + h - 1 - r));
+      if (dx * dx + dy * dy <= r * r) dot(px, py, color);
     }
   };
   const polygon = (points: number[][], color: string) => {
@@ -57,106 +58,98 @@ function makePattern(id: string): Bead[] {
       if (inside) dot(x, y, color);
     }
   };
-  const flower = (x: number, y: number, size: number, petals: string, center: string) => {
-    for (let i = 0; i < 5; i++) oval(x + Math.cos(i * Math.PI * 2 / 5) * size, y + Math.sin(i * Math.PI * 2 / 5) * size, size * .72, size * .6, petals);
-    oval(x, y, Math.max(1, size * .45), Math.max(1, size * .45), center);
+  const broccoli = (x: number, y: number) => {
+    rect(x - 1, y, 3, 4, P.green);
+    for (const [dx,dy] of [[-2,0],[2,0],[0,-2]]) oval(x+dx,y+dy,2.5,2,P.leaf);
+    dot(x - 1, y - 2, P.green); dot(x + 2, y, P.green);
   };
-  const fruit = (x: number, y: number, color: string, leaf: string, cream: string) => {
-    line(x, y - 5, x + 1, y - 2, leaf);
-    oval(x, y, 2.6, 2.8, color); dot(x, y + 3, color);
-    line(x - 2, y - 2, x + 2, y - 2, leaf);
-    dot(x - 1, y - 1, cream); dot(x + 1, y + 1, cream);
-  };
-  if (id === "cake-heart") {
-    const pink = "#ff89ae", shade = "#de5688", cream = "#fff4d9", red = "#ef3d67", green = "#459f80";
-    oval(20, 35, 16, 2, "#f4e3eb");
-    for (let dy = 12; dy >= 1; dy--) heart(20, 15 + dy, 12, 6, dy > 8 ? shade : dy > 5 ? cream : pink);
-    heart(20, 15, 12, 6, "#f45c99"); heart(20, 14, 10.8, 5.2, cream);
-    for (const [x,y] of [[8,23],[12,26],[17,29],[23,29],[28,26],[32,23]]) oval(x,y,1.5,1,cream);
-    fruit(13, 11, red, green, cream); fruit(26, 11, red, green, cream); fruit(20, 18, "#ff6385", green, cream);
-    oval(18, 31, 3, 1.8, "#d1b1ed"); oval(23, 31, 3, 1.8, "#d1b1ed");
-    dot(20, 31, "#a57bcc"); line(20, 32, 17, 35, "#d1b1ed"); line(21, 32, 24, 35, "#d1b1ed");
-  } else if (id === "cake-cloud") {
-    const blue = "#81cfee", shade = "#579fcf", white = "#fff8e9", berry = "#5361a8";
-    oval(20, 36, 16, 2, "#e7e2f5"); oval(20, 33, 15, 4, shade);
-    rect(5, 24, 31, 10, blue); oval(20, 24, 15, 4, white);
-    for (let x = 6; x <= 34; x += 4) { oval(x,26,2,2,white); if(x%8===6)rect(x,26,1,4,white); }
-    oval(20, 22, 10, 3, "#b4a9e9"); rect(10, 13, 21, 10, "#d2e8f5");
-    oval(20, 13, 10, 4, blue);
-    for (let x = 11; x <= 29; x += 3) oval(x,15,2,2,white);
-    for (const [x,y] of [[13,11],[17,9],[21,10],[25,9],[28,12]]) oval(x,y,3,2,white);
-    for (const [x,y] of [[14,8],[22,7],[27,10]]) { oval(x,y,2,2,berry); dot(x-1,y-1,"#a2b7ef"); }
-    line(22,4,22,6,"#5ba392"); oval(24,4,2,1,"#7fc7b0");
-    for (const [x,y] of [[12,31],[27,30]]) { line(x-1,y,x+1,y,"#fff0b7");line(x,y-1,x,y+1,"#fff0b7"); }
-    oval(20, 32, 4, 2, white);
-  } else if (id === "cake-peach") {
-    const [gel, shade, glow] = JELLY_COLORS["cake-peach"];
-    oval(20,35,16,3,"#e7d9e2"); oval(20,34,15,2,"#fff8e7");
-    oval(20,29,12,5,shade); rect(8,19,25,11,gel); oval(20,19,12,9,gel);
-    oval(20,17,10,6,glow);
-    for (const x of [10,15,25,30]) line(x,21,x,29, x<20?glow:shade);
-    oval(20,30,11,3,gel); line(11,31,28,31,glow);
-    oval(20,12,8,4,"#f28088"); oval(20,11,6,3,"#ffdfac");
-    line(18,9,23,12,"#ffc58c"); dot(23,12,"#f59d7e");
-    oval(13,9,3,1.6,"#69ad8e"); oval(16,7,1.5,3,"#96c9a4");
-    flower(29,30,2,"#fff7e4","#ffd27f");
-    for (const [x,y] of [[8,34],[13,36],[24,36],[31,34]]) dot(x,y,"#fff7e9");
-  } else if (id === "cake-matcha") {
-    const green = "#8fc480", dark = "#528b67", light = "#c5dfa4", cream = "#fff1d1";
-    rect(6,16,29,17,dark); oval(20,33,14,2,dark);
-    rect(6,20,29,5,green); rect(6,26,29,3,cream); rect(6,30,29,3,light);
-    oval(20,16,14,5,dark); oval(20,15,14,5,light); rect(9,11,23,8,light);
-    for(let x=7;x<=33;x+=4)oval(x,20,2,1.5,cream);
-    for(const [x,y]of [[11,12],[24,13],[29,16]])flower(x,y,2,cream,"#e5bc65");
-    flower(18,17,2.4,"#f8a9bc","#fff0b1");
-    oval(14,14,3,1,dark); oval(27,11,2.5,1,dark); oval(23,17,2,1,green);
-    for(const [x,y]of [[10,24],[20,24],[30,24]])dot(x,y,"#d7ebbb");
-    oval(20,36,16,2,"#ecdfcb"); oval(20,35,15,1,cream);
-  } else if (id === "cake-violet") {
-    const [gel, shade, glow] = JELLY_COLORS["cake-violet"];
-    oval(20,36,16,3,"#d6dbef"); oval(20,35,15,2,"#fff8e8");
-    polygon([[6,17],[15,23],[15,34],[6,27]],shade);
-    polygon([[15,23],[30,21],[30,32],[15,35]],gel);
-    polygon([[30,21],[33,16],[33,27],[30,32]],shade);
-    polygon([[20,9],[33,16],[30,22],[15,24],[6,17]],glow);
-    line(16,25,16,32,glow); line(29,23,29,30,glow);
-    for(const [x,y]of [[20,28],[25,31],[11,24]])dot(x,y,glow);
-    oval(20,14,5,2,"#fff5e6"); oval(20,12,3,2,"#fff9ed");
-    for(const [x,y]of [[12,15],[26,16]]){oval(x,y,2,2,"#7252ac");dot(x-1,y-1,"#b4a3df");}
-    flower(27,12,1.8,"#fff4dc","#f1cf79");
-    oval(16,11,2.5,1,"#7ebda3");
-  } else if (id === "berry") {
-    for (let y = 11; y < 35; y++) {
-      const width = y < 17 ? 9 + (y - 11) * .6 : 13 - (y - 17) * .7;
-      for (let x = 20 - width; x <= 20 + width; x++) dot(Math.round(x), y, x < 16 ? P.pink : P.red);
+  const tomato = (x: number, y: number, size = 2) => { oval(x,y,size,size,P.red); dot(x-1,y-1,"#ffba8d"); dot(x,y-size,P.leaf); };
+  const plate = () => { oval(20,25,18,13,P.rim); oval(20,24,17,12,P.white); oval(20,24,14,9,P.cream); };
+
+  if (id.startsWith("bento-")) {
+    roundedRect(2,6,36,31,4,P.dark); roundedRect(3,6,34,29,3,"#ce936b");
+    roundedRect(5,8,30,25,2,"#f0c997"); roundedRect(6,9,13,23,2,P.white);
+    for (let y=10;y<31;y+=3) for (let x=7;x<18;x+=3) if((x+y)%2) line(x,y,x+1,y,P.rice);
+    rect(19,8,2,26,"#805442"); rect(20,23,15,2,"#805442");
+    roundedRect(21,9,13,14,1,"#ead8b7"); roundedRect(21,25,13,7,1,P.cream);
+    oval(12,20,2,2,"#c64d56"); dot(11,19,"#ef9690");
+    for(const [x,y]of [[9,13],[15,16],[8,25],[15,28]])dot(x,y,P.dark);
+    broccoli(25,28); tomato(31,28);
+    if (id === "bento-salmon") {
+      roundedRect(22,11,11,10,2,"#db7047"); roundedRect(22,10,10,10,2,"#ff9a68");
+      for(let y=11;y<=17;y+=3)line(23,y,30,y+2,"#ffd8b5");
+      line(23,19,30,19,"#ad6545"); dot(28,12,P.leaf); dot(30,15,P.leaf);
+    } else if (id === "bento-chicken") {
+      for (const [x,y] of [[25,12],[30,13],[24,17],[29,18]]) { oval(x,y,3,2.5,P.brown); oval(x,y-1,2,1,"#dca05d"); }
+      line(23,14,30,17,"#754832"); dot(25,12,P.white); dot(30,17,P.white); dot(27,18,P.green);
+      roundedRect(28,26,5,5,1,P.yellow); line(29,27,31,27,"#fff0ac");
+    } else {
+      roundedRect(22,10,11,12,3,"#b57739"); roundedRect(22,10,10,11,2,"#f5bf63");
+      for(let y=12;y<=18;y+=3)line(23,y,31,y,P.brown);
+      for(const [x,y]of [[24,11],[29,14],[25,17],[30,19]])dot(x,y,"#ffe4a1");
+      line(22,26,26,28,"#b5d99b"); line(22,29,27,30,"#b5d99b");
     }
-    oval(15, 11, 7, 2, P.green); oval(25, 11, 7, 2, P.green); oval(20, 9, 2, 6, P.leaf);
-    for (const [x, y] of [[12, 17], [21, 17], [28, 19], [16, 23], [24, 25], [20, 30], [11, 22]]) rect(x, y, 1, 2, P.cream);
-  } else if (id === "bunny") {
-    oval(13, 10, 4, 9, P.white); oval(26, 10, 4, 9, P.white);
-    oval(13, 9, 1.5, 6, P.pink); oval(26, 9, 1.5, 6, P.pink);
-    oval(20, 24, 13, 12, P.white); oval(13, 28, 3, 2, P.pink); oval(27, 28, 3, 2, P.pink);
-    rect(14, 23, 2, 3, P.dark); rect(25, 23, 2, 3, P.dark); dot(20, 27, P.rose); dot(19, 29, P.dark); dot(21, 29, P.dark);
-    rect(16, 35, 9, 2, P.blue); oval(15, 36, 4, 2, P.blue); oval(25, 36, 4, 2, P.blue);
-  } else if (id === "flower") {
-    line(20, 17, 20, 37, P.leaf); line(21, 17, 21, 37, P.green);
-    oval(14, 29, 6, 2.5, P.green); oval(26, 33, 6, 2.5, P.leaf);
-    for (let i = 0; i < 6; i++) oval(20 + Math.cos(i * Math.PI / 3) * 8, 15 + Math.sin(i * Math.PI / 3) * 8, 5, 5, i % 2 ? P.pink : P.rose);
-    oval(20, 15, 5, 5, P.yellow); dot(18, 14, P.brown); dot(22, 14, P.brown); line(19, 17, 21, 17, P.brown);
-  } else if (id === "pudding") {
-    oval(20, 34, 17, 4, P.blue); oval(20, 33, 14, 3, P.white);
-    for (let y = 15; y < 32; y++) { const w = 8 + (y - 15) * .35; rect(Math.round(20 - w), y, Math.round(w * 2), 1, P.yellow); }
-    oval(20, 15, 8, 3, P.brown); rect(14, 17, 2, 5, P.brown); rect(23, 17, 2, 3, P.brown);
-    oval(20, 11, 4, 2, P.white); oval(20, 8, 2, 2, P.red); line(21, 6, 23, 3, P.leaf);
-    rect(15, 25, 1, 2, P.dark); rect(24, 25, 1, 2, P.dark); dot(20, 28, P.rose);
-  } else {
-    oval(11, 11, 5, 5, P.brown); oval(29, 11, 5, 5, P.brown); oval(11, 11, 2, 2, P.pink); oval(29, 11, 2, 2, P.pink);
-    oval(20, 23, 14, 14, P.brown); oval(20, 28, 7, 5, P.cream);
-    rect(13, 21, 2, 3, P.dark); rect(26, 21, 2, 3, P.dark); oval(20, 26, 2, 1, P.dark); line(20, 27, 20, 29, P.dark);
-    oval(10, 27, 2, 1, P.pink); oval(30, 27, 2, 1, P.pink);
+  } else if (id === "steak") {
+    plate();
+    for(const [x,y]of [[25,11],[28,10],[31,12],[33,13]]) { line(x,y,x-2,y+8,"#cf994c"); line(x-1,y,x-3,y+7,P.yellow); }
+    broccoli(10,14); broccoli(15,13);
+    const outline=[[7,22],[10,18],[18,17],[24,20],[27,26],[24,31],[17,33],[10,31],[6,27]];
+    polygon(outline,"#784332"); polygon([[9,22],[12,19],[18,19],[23,22],[25,26],[22,30],[16,31],[10,29],[8,26]],"#be7351");
+    polygon([[11,23],[15,21],[20,22],[23,26],[20,29],[15,29],[11,27]],"#d99476");
+    for(const [x,y]of [[10,22],[14,20],[18,21],[21,24]])line(x,y,x+4,y+6,"#8b4b36");
+    rect(15,23,3,2,"#ffdf8f"); dot(16,23,P.white); dot(19,29,P.leaf); dot(12,28,P.leaf);
+  } else if (id === "burger") {
+    oval(20,36,18,2,P.rim); oval(20,35,17,2,P.white);
+    oval(20,31,14,4,"#c98640"); roundedRect(6,28,29,5,2,"#efb965");
+    roundedRect(5,25,30,5,2,"#754533"); line(8,26,31,26,"#a16542");
+    polygon([[6,24],[34,24],[30,28],[24,26],[19,29],[14,26],[8,27]],"#ffcf53");
+    for(let x=6;x<=34;x+=4)oval(x,23,3,2,P.leaf);
+    roundedRect(6,20,29,3,1,P.red); line(9,21,30,21,"#ff9c71");
+    roundedRect(5,16,31,5,2,"#ce8e40"); oval(20,15,15,7,"#f2bb63");
+    oval(20,13,13,5,"#ffd581");
+    for(const [x,y]of [[11,13],[17,11],[24,12],[29,15],[20,15],[14,16]])line(x,y,x+1,y,P.white);
+  } else if (id === "pasta") {
+    plate(); oval(20,24,12,8,"#77a46b");
+    for (let row=0;row<5;row++) for(let step=0;step<15;step++) {
+      const x=10+step, y=18+row*3+Math.round(Math.sin(step*.8+row)*1.5);
+      dot(x,y,P.yellow); if(step%3!==0)dot(x+1,y,"#f9e0a1");
+    }
+    for(const [x,y]of [[11,20],[29,23],[18,29]])tomato(x,y,2.5);
+    for(const [x,y]of [[16,17],[25,28],[28,18]]){oval(x,y,3,1,P.leaf);dot(x,y-1,P.green);}
+    for(const [x,y]of [[14,25],[22,20],[25,25],[18,23],[21,30]])line(x,y,x+1,y,P.white);
+  } else if (id === "ramen") {
+    roundedRect(28,7,6,13,1,"#36594c"); line(29,8,29,17,"#6c8d64");
+    for(let y=18;y<=33;y++){const w=Math.round(16-(y-18)*.36);rect(20-w,y,w*2+1,1,P.rim);}
+    oval(20,33,11,3,P.rim); oval(20,16,17,7,"#688fa3"); oval(20,16,16,6,P.cream); oval(20,16,14,5,"#bc7d41");
+    oval(20,16,12,3,"#e0a45c");
+    for(let i=0;i<18;i++)dot(9+i,16+Math.round(Math.sin(i*1.1)*2),P.yellow);
+    oval(12,16,5,2.5,"#ce9474"); oval(12,16,3,1.5,"#f4c3a6"); dot(12,16,"#c87f64");
+    oval(27,17,4,3,P.white); oval(27,17,2,2,"#eeac46"); dot(27,16,P.yellow);
+    for(const [x,y]of [[17,13],[21,14],[23,18],[18,20]]){dot(x,y,P.leaf);dot(x+1,y,P.green);}
+    line(8,25,32,25,P.blue); line(10,30,30,30,P.blue); rect(17,35,7,2,P.blue);
+  } else if (id === "sushi") {
+    plate();
+    for(const [x,y]of [[11,22],[23,29]]) { oval(x,y,7,5,"#3f5c4c");oval(x,y-1,6,4,P.white);oval(x,y-1,3,2,"#ff9a68");rect(x,y-2,2,2,P.green);dot(x-2,y,P.rice); }
+    oval(25,15,9,4,P.rice); oval(25,14,9,4,P.white); oval(25,12,9,3,"#ef7654");
+    for(const x of [20,24,28])line(x,10,x+2,14,"#ff9a68");
+    oval(8,12,3,2,"#f2c1b4"); oval(10,10,2,1,"#ffdaca"); oval(32,31,3,2,P.green); dot(31,30,"#c4dea0");
+  } else if (id === "salad") {
+    plate();
+    for(const [x,y]of [[10,21],[15,16],[22,16],[29,20],[28,27],[20,31],[12,28],[20,23]]) { oval(x,y,4,3,P.leaf);oval(x-1,y-1,3,2,P.green); }
+    for(const [x,y]of [[13,19],[27,25],[18,29]])tomato(x,y,2.5);
+    for(const [x,y]of [[21,19],[12,26]]){oval(x,y,3,2,"#629c68");oval(x,y,2,1,"#d3e3b0");dot(x,y,"#8fb075");}
+    line(23,27,27,29,"#d7a5be"); line(16,22,19,24,"#d7a5be");
+    for(const [x,y]of [[17,18],[23,24],[18,27]])rect(x,y,2,2,"#ffedb9");
+  } else if (id === "tempura") {
+    oval(20,29,18,9,P.rim); oval(20,28,17,8,P.white);
+    for(const [sx,sy]of [[10,16],[19,13],[27,16]]) {
+      for(let i=9;i>=0;i--){const x=sx+Math.round(Math.sin(i*.32)*3);oval(x,sy+i,2.5,2,"#d59743");oval(x-1,sy+i,2,1,"#f5cc74");if(i%3===0)dot(x,sy+i,P.cream);}
+      polygon([[sx-2,sy],[sx-3,sy-5],[sx,sy-3],[sx+3,sy-5],[sx+2,sy]],"#e58255");
+    }
+    oval(28,32,4,3,P.yellow); oval(28,32,2,2,"#fff1b3"); line(25,30,30,34,P.white);
+    oval(10,31,4,2,P.leaf); line(8,32,13,29,P.green);
   }
-  // Finish one color before picking up the next. Within each color, scatter
-  // placements across the pattern instead of sweeping through horizontal rows.
+  // Finish each color before moving on; scatter placements within that color.
   const colorGroups = new Map<string, Bead[]>();
   for (const bead of cells.values()) {
     const group = colorGroups.get(bead.color);
@@ -164,22 +157,20 @@ function makePattern(id: string): Bead[] {
     else colorGroups.set(bead.color, [bead]);
   }
   const placementOrder = (bead: Bead) => ((bead.x * 73856093) ^ (bead.y * 19349663)) >>> 0;
-  return [...colorGroups.values()].flatMap(group =>
-    group.sort((a, b) => placementOrder(a) - placementOrder(b) || a.y - b.y || a.x - b.x)
-  );
+  return [...colorGroups.values()].flatMap(group => group.sort((a,b)=>placementOrder(a)-placementOrder(b)||a.y-b.y||a.x-b.x));
 }
 const artworks: Artwork[] = [
-  { id: "cake-heart", name: "Berry heart", price: "$8.50", description: "Strawberry cream, vanilla sponge and a little sugar bow.", category: "Sweet things", background: "#efe5e3" },
-  { id: "cake-cloud", name: "Blueberry cloud", price: "$9.00", description: "Blueberry sponge with whipped vanilla cream and berry clouds.", category: "Sweet things", background: "#e3eff5" },
-  { id: "cake-peach", name: "Peach jelly", price: "$7.50", description: "Peach jelly, citrus cream and a fresh mint finish.", category: "Sweet things", background: "#f8e8dd" },
-  { id: "cake-matcha", name: "Matcha garden", price: "$8.00", description: "Matcha sponge, vanilla cream and tiny sugar daisies.", category: "Sweet things", background: "#e8efdd" },
-  { id: "cake-violet", name: "Violet crystal", price: "$8.50", description: "Blackcurrant jelly with vanilla cream and sugared blueberries.", category: "Sweet things", background: "#eee7f7" },
-  { id: "berry", name: "Berry sweet", price: "$5.50", description: "Strawberry mousse wrapped in a bright berry glaze.", category: "Sweet things", background: "#e7ebdf" },
-  { id: "bunny", name: "Somebunny", price: "$6.00", description: "Vanilla bunny cake with strawberry cream and a blue sugar bow.", category: "Little friends", background: "#e5eaf0" },
-  { id: "flower", name: "Hello, petal", price: "$5.00", description: "A raspberry flower tart with a sunny lemon curd centre.", category: "Little friends", background: "#eee5d9" },
-  { id: "pudding", name: "Sweet little wobble", price: "$7.00", description: "Silky vanilla custard, golden caramel and a cherry on top.", category: "Sweet things", background: "#e6e9ef" },
-  { id: "bear", name: "Honey bear", price: "$6.50", description: "Honey sponge with milk chocolate and vanilla cream.", category: "Little friends", background: "#eadfd7" },
-].map(item => { const beads = makePattern(item.id); return { ...item, material: (JELLY_COLORS[item.id] ? "jelly" : item.id.startsWith("cake-") ? "terry" : "frosted") as BeadMaterial, translucentColors: JELLY_COLORS[item.id], category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
+  { id:"bento-salmon", name:"Salmon bento", price:"$18.50", description:"Grilled salmon, sesame rice, broccoli and pickled plum.", category:"Bento", background:"#eee5d9" },
+  { id:"bento-chicken", name:"Chicken bento", price:"$16.50", description:"Teriyaki chicken, steamed rice, tamagoyaki and greens.", category:"Bento", background:"#eee5d9" },
+  { id:"bento-katsu", name:"Katsu bento", price:"$17.00", description:"Crispy pork cutlet, rice, shredded cabbage and tonkatsu sauce.", category:"Bento", background:"#eee5d9" },
+  { id:"steak", name:"Steak & fries", price:"$26.00", description:"Grilled steak with herb butter, golden fries and broccoli.", category:"Mains", background:"#e5edf0" },
+  { id:"burger", name:"House burger", price:"$16.00", description:"Beef patty, cheddar, lettuce and tomato on a sesame bun.", category:"Mains", background:"#f4ead8" },
+  { id:"pasta", name:"Pesto pasta", price:"$17.50", description:"Pasta tossed in basil pesto with cherry tomatoes and Parmesan.", category:"Mains", background:"#e8efdd" },
+  { id:"ramen", name:"Tonkotsu ramen", price:"$18.00", description:"Rich pork broth, noodles, chashu, egg and spring onions.", category:"Mains", background:"#e3edf0" },
+  { id:"sushi", name:"Salmon rolls", price:"$12.00", description:"Salmon nigiri and maki with cucumber, ginger and wasabi.", category:"Sides", background:"#e3edf0" },
+  { id:"salad", name:"Garden salad", price:"$9.00", description:"Leafy greens, cucumber, cherry tomatoes and lemon dressing.", category:"Sides", background:"#e8efdd" },
+  { id:"tempura", name:"Crispy tempura", price:"$11.00", description:"Golden prawn tempura with shiso and a wedge of lemon.", category:"Sides", background:"#f4ead8" },
+].map(item=>{const beads=makePattern(item.id);return {...item, material:(JELLY_COLORS[item.id]?"jelly":item.id.startsWith("bento-")?"terry":"frosted") as BeadMaterial, translucentColors:JELLY_COLORS[item.id], category:item.category as Artwork["category"], beads, colors:[...new Set(beads.map(bead=>bead.color))]};});
 
 function FlatBeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
   const id = React.useId().replace(/:/g, "");
@@ -493,9 +484,7 @@ function physicalMaterials(art: Artwork): BeadMaterials {
     const gelPixels = tctx.getImageData(0, 0, lens.width, lens.height).data;
     for (let y = 0; y < lens.height; y++) for (let x = 0; x < lens.width; x++) {
       const i = (y * lens.width + x) * 4, body = gelPixels[i] > 128;
-      const frontFacet = art.id === "cake-violet" && y / resolution >= 23;
-      const left = frontFacet ? 15 : minX, right = frontFacet ? 30 : maxX;
-      const top = frontFacet ? 22 : minY, bottom = frontFacet ? 35 : maxY;
+      const left = minX, right = maxX, top = minY, bottom = maxY;
       const nx = body ? ((x / resolution - left) / (right - left) - .5) * 1.3 : 0;
       const ny = body ? -((y / resolution - top) / (bottom - top) - .5) * 1.4 : 0;
       const length = Math.hypot(nx, ny, 1);
@@ -647,11 +636,9 @@ function Replay({ art, onBack, reduced }: { art: Artwork; onBack: () => void; re
 }
 
 
-const menuSections = [
-  { id: "cakes", title: "Cakes", items: artworks.filter(art => art.id.startsWith("cake-")) },
-  { id: "treats", title: "Treats", items: artworks.filter(art => !art.id.startsWith("cake-") && art.category === "Sweet things") },
-  { id: "friends", title: "Friends", items: artworks.filter(art => art.category === "Little friends") },
-];
+const menuSections = (["Bento", "Mains", "Sides"] as const).map(category => ({
+  id: category.toLowerCase(), title: category, items: artworks.filter(art => art.category === category),
+}));
 
 function MenuShelf({ items, onOpen }: { items: Artwork[]; onOpen: (art: Artwork, button: HTMLButtonElement) => void }) {
   const start = React.useRef<{ x: number; left: number } | null>(null);

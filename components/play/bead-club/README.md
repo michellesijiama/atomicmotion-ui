@@ -1,6 +1,6 @@
 # Bead Club
 
-A café-style menu of bead creations inside a silver iPhone that fits the available screen height. Browse Cakes, Treats and Friends in swipeable rows with large textured artwork, sample prices and descriptions. Open a piece to replay its creation one color at a time.
+A restaurant menu made of fused bead art inside a silver iPhone that fits the screen height. Browse bento boxes, steak and fries, burgers, pasta, ramen and sides in swipeable rows, each with a sample price and description. Open any meal to replay its creation one color at a time.
 
 ![Bead Club preview](https://atomicmotion.dev/previews/bead-club.png)
 
