@@ -14,7 +14,7 @@ export type BeadClubProps = {
 };
 
 type Bead = { x: number; y: number; color: string };
-type BeadMaterial = "pressed" | "frosted" | "glitter";
+type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry";
 type Artwork = { material: BeadMaterial; id: string; name: string; category: "Sweet things" | "Little friends"; background: string; beads: Bead[]; colors: string[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
 const P = { pink: "#ff90bd", rose: "#e75793", cream: "#fff2c7", white: "#fffdf4", blue: "#65cff1", red: "#ed3551", dark: "#5b2940", green: "#6cd690", leaf: "#279d69", yellow: "#ffdf53", brown: "#bf8050" };
@@ -98,7 +98,7 @@ const artworks: Artwork[] = [
   { id: "flower", name: "Hello, petal", category: "Little friends", background: "#eee5d9" },
   { id: "pudding", name: "Sweet little wobble", category: "Sweet things", background: "#e6e9ef" },
   { id: "bear", name: "Honey bear", category: "Little friends", background: "#eadfd7" },
-].map(item => { const beads = makePattern(item.id); return { ...item, material: "frosted" as BeadMaterial, category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
+].map(item => { const beads = makePattern(item.id); return { ...item, material: (item.id === "cake" ? "terry" : "frosted") as BeadMaterial, category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
 
 function FlatBeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
   const id = React.useId().replace(/:/g, "");
@@ -300,8 +300,60 @@ function fusedGrainSurface() {
   return grainSurface;
 }
 
+let terrySurface: GrainSurface | undefined;
+function terryGrainSurface() {
+  if (terrySurface) return terrySurface;
+  const width = 1280, height = 1344, pitch = 14;
+  const pile = document.createElement("canvas"); pile.width = width; pile.height = height;
+  const ctx = pile.getContext("2d")!;
+  ctx.fillStyle = "#666"; ctx.fillRect(0, 0, width, height); ctx.lineCap = "round";
+  for (let y = -pitch; y < height + pitch; y += pitch) for (let x = -pitch; x < width + pitch; x += pitch) {
+    let seed = Math.imul(x + pitch, 1597334677) ^ Math.imul(y + pitch, 3812015801);
+    seed = (Math.imul(seed ^ seed >>> 16, 2246822507) ^ seed >>> 13) >>> 0;
+    const size = 9 + (seed & 255) / 255 * 7, curl = ((seed >>> 8) & 255) / 255;
+    ctx.save();
+    ctx.translate(x + (curl - .5) * pitch, y + (((seed >>> 16) & 255) / 255 - .5) * pitch);
+    ctx.rotate((seed & 65535) / 65535 * Math.PI * 2);
+    const loop = new Path2D();
+    loop.moveTo(-size * .45, size * .12);
+    loop.bezierCurveTo(-size * .55, -size * .55, size * .5, -size * .55, size * .4, size * .03);
+    loop.bezierCurveTo(size * .3, size * .35, -size * .1, size * .3, -size * .1, size * .04);
+    const thickness = 4 + curl * 2;
+    for (const [color, scale] of [["#8c8c8c", 1.4], ["#aaa", 1], ["#c5c5c5", .6], ["#d6d6d6", .24]] as const) {
+      ctx.strokeStyle = color; ctx.lineWidth = thickness * scale; ctx.stroke(loop);
+    }
+    ctx.restore();
+  }
+  const smooth = document.createElement("canvas"); smooth.width = width; smooth.height = height;
+  const smoothCtx = smooth.getContext("2d")!; smoothCtx.filter = "blur(.65px)"; smoothCtx.drawImage(pile, 0, 0);
+  const heights = smoothCtx.getImageData(0, 0, width, height).data;
+  const normal = ctx.createImageData(width, height), roughness = ctx.createImageData(width, height);
+  const pigment = new Float32Array(width * height);
+  let mean = 0; for (let i = 0; i < heights.length; i += 4) mean += heights[i] / 255;
+  mean /= width * height;
+  const sample = (x: number, y: number) => heights[(Math.max(0, Math.min(height - 1, y)) * width + Math.max(0, Math.min(width - 1, x))) * 4] / 255;
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const i = (y * width + x) * 4, h = heights[i] / 255;
+    const nx = -(sample(x + 1, y) - sample(x - 1, y)) * 3;
+    const ny = (sample(x, y + 1) - sample(x, y - 1)) * 3;
+    const length = Math.hypot(nx, ny, 1);
+    normal.data[i] = (nx / length * .5 + .5) * 255;
+    normal.data[i + 1] = (ny / length * .5 + .5) * 255;
+    normal.data[i + 2] = (1 / length * .5 + .5) * 255; normal.data[i + 3] = 255;
+    roughness.data[i] = roughness.data[i + 1] = roughness.data[i + 2] = 255; roughness.data[i + 3] = 255;
+    pigment[y * width + x] = 1 + (h - mean) * .38;
+  }
+  ctx.putImageData(normal, 0, 0);
+  const normalMap = new THREE.CanvasTexture(pile); normalMap.generateMipmaps = false; normalMap.minFilter = THREE.LinearFilter;
+  smoothCtx.putImageData(roughness, 0, 0);
+  const roughnessMap = new THREE.CanvasTexture(smooth); roughnessMap.generateMipmaps = false; roughnessMap.minFilter = THREE.LinearFilter;
+  terrySurface = { normal: normalMap, roughness: roughnessMap, pigment };
+  return terrySurface;
+}
+
 function physicalMaterials(art: Artwork) {
-  const resolution = 32, surface = fusedGrainSurface();
+  const terry = art.material === "terry";
+  const resolution = 32, surface = terry ? terryGrainSurface() : fusedGrainSurface();
   const color = document.createElement("canvas"); color.width = 40 * resolution; color.height = 42 * resolution;
   const ctx = color.getContext("2d")!;
   ctx.fillStyle = art.beads[0]?.color ?? "#f0eade"; ctx.fillRect(0, 0, color.width, color.height);
@@ -312,18 +364,23 @@ function physicalMaterials(art: Artwork) {
   const image = fusedCtx.getImageData(0, 0, color.width, color.height);
   for (let pixel = 0; pixel < surface.pigment.length; pixel++) {
     const i = pixel * 4;
-    const pearl = beadGrain ? beadGrain[i] / 255 : .86;
+    const pearl = !terry && beadGrain ? beadGrain[i] / 255 : .86;
     const tint = surface.pigment[pixel] * (1 + (pearl - .86) * .15);
     for (let c = 0; c < 3; c++) image.data[i + c] *= tint;
   }
   ctx.putImageData(image, 0, 0);
   const map = new THREE.CanvasTexture(color); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4;
-  return [new THREE.MeshPhysicalMaterial({
+  const face = terry ? new THREE.MeshPhysicalMaterial({
+    map, normalMap: surface.normal, normalScale: new THREE.Vector2(1, 1),
+    roughness: 1, metalness: 0, clearcoat: 0, specularIntensity: .12,
+    sheen: .12, sheenRoughness: 1, sheenColor: new THREE.Color("#fff6f4"),
+  }) : new THREE.MeshPhysicalMaterial({
     map, normalMap: surface.normal, normalScale: new THREE.Vector2(.3, .3),
     roughnessMap: surface.roughness, roughness: .85, metalness: 0, ior: 1.5,
     clearcoat: .05, clearcoatRoughness: .32,
     clearcoatNormalMap: surface.normal, clearcoatNormalScale: new THREE.Vector2(.4, .4),
-  }), new THREE.MeshPhysicalMaterial({ map, roughness: .48, metalness: 0, clearcoat: .25, clearcoatRoughness: .4 })];
+  });
+  return [face, new THREE.MeshPhysicalMaterial({ map, roughness: terry ? .95 : .48, metalness: 0, clearcoat: terry ? 0 : .25, clearcoatRoughness: .4, specularIntensity: terry ? .15 : 1 })];
 }
 
 type BeadStudio = { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.OrthographicCamera; mesh: THREE.Mesh; materials: Map<string, THREE.MeshPhysicalMaterial[]>; completed: Map<string, THREE.BufferGeometry> };
