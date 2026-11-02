@@ -98,7 +98,7 @@ const artworks: Artwork[] = [
   { id: "flower", name: "Hello, petal", category: "Little friends", background: "#eee5d9" },
   { id: "pudding", name: "Sweet little wobble", category: "Sweet things", background: "#e6e9ef" },
   { id: "bear", name: "Honey bear", category: "Little friends", background: "#eadfd7" },
-].map(item => { const beads = makePattern(item.id); return { ...item, material: (item.id === "bunny" ? "pressed" : item.id === "pudding" || item.id === "bear" ? "glitter" : "frosted") as BeadMaterial, category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
+].map(item => { const beads = makePattern(item.id); return { ...item, material: "frosted" as BeadMaterial, category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
 
 function FlatBeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
   const id = React.useId().replace(/:/g, "");
@@ -234,69 +234,6 @@ function fusedShapes(beads: Bead[]) {
   });
 }
 
-// Mini beads have an almost flat, fused face and a narrow, open tube.
-// Four mini beads share each pattern pixel; the color-placement order is retained.
-const BEAD_SEGMENTS = 16;
-const BEAD_INDICES = 4 * BEAD_SEGMENTS * 6 + 9;
-function miniBead(x: number, y: number, finish: BeadMaterial) {
-  const seed = ((x * 73856093) ^ (y * 19349663)) >>> 0;
-  const fusion = finish === "pressed" ? 1 : .45;
-  return { x: (x + .5) / 2 + (seed % 7 - 3) * .002, y: (y + .5) / 2 + ((seed >>> 4) % 7 - 3) * .002, hole: (.014 + (seed % 13) * .002) * fusion, seed };
-}
-function beadSurface(art: Artwork) {
-  const positions: number[] = [], colors: number[] = [], uvs: number[] = [], indices: number[] = [];
-  for (const bead of art.beads) for (let sy = 0; sy < 2; sy++) for (let sx = 0; sx < 2; sx++) {
-    const mini = miniBead(bead.x * 2 + sx, bead.y * 2 + sy, art.material);
-    const vertex = (px: number, py: number, z: number, tint = 1) => {
-      positions.push(px - 20, 21 - py, z); colors.push(tint, tint, tint);
-      uvs.push(px / 40, 1 - py / 42);
-    };
-    const start = positions.length / 3;
-    for (let ring = 0; ring < 4; ring++) for (let j = 0; j <= BEAD_SEGMENTS; j++) {
-      const angle = j / BEAD_SEGMENTS * Math.PI * 2, c = Math.cos(angle), s = Math.sin(angle);
-      const outer = .25 / (Math.abs(c) ** 8 + Math.abs(s) ** 8) ** (1 / 8);
-      const irregularity = 1 + .12 * Math.cos(angle * 3 + mini.seed % 11) + .07 * Math.sin(angle * 5);
-      const radius = [mini.hole * irregularity, mini.hole + .026, .17, outer][ring];
-      const z = [.328, .343 + (mini.seed % 5) * .0008, .339, .334][ring];
-      vertex(mini.x + c * radius * (ring ? 1 : 1.1), mini.y + s * radius * (ring ? 1 : .85), z);
-      if (ring < 3 && j < BEAD_SEGMENTS) {
-        const a = start + ring * (BEAD_SEGMENTS + 1) + j, b = a + BEAD_SEGMENTS + 1;
-        indices.push(a, a + 1, b, a + 1, b + 1, b);
-      }
-    }
-    const wall = positions.length / 3;
-    for (let level = 0; level < 2; level++) for (let j = 0; j <= BEAD_SEGMENTS; j++) {
-      const angle = j / BEAD_SEGMENTS * Math.PI * 2;
-      const radius = mini.hole * (1 + .12 * Math.cos(angle * 3 + mini.seed % 11) + .07 * Math.sin(angle * 5));
-      vertex(mini.x + Math.cos(angle) * radius * 1.1, mini.y + Math.sin(angle) * radius * .85, level ? .328 : .015, level ? .9 : .64);
-      if (!level && j < BEAD_SEGMENTS) {
-        const a = wall + j, b = a + BEAD_SEGMENTS + 1;
-        indices.push(a, a + 1, b, a + 1, b + 1, b);
-      }
-    }
-    // Sparse embedded facets catch the studio light; the plastic face stays smooth.
-    for (let k = 0; k < 3; k++) {
-      const seed = ((mini.seed ^ ((k + 1) * 83492791)) * 16807) >>> 0;
-      const visible = seed % (art.material === "pressed" ? 17 : art.material === "frosted" ? 3 : 2) === 0;
-      const angle = (seed % 628) / 100, distance = .1 + (seed >>> 8) % 9 / 100;
-      const cx = mini.x + Math.cos(angle) * distance, cy = mini.y + Math.sin(angle) * distance;
-      const size = visible ? .018 + (seed % 5) * .004 : 0;
-      const a = positions.length / 3;
-      for (let j = 0; j < 3; j++) {
-        const t = angle + j / 3 * Math.PI * 2;
-        vertex(cx + Math.cos(t) * size, cy + Math.sin(t) * size, .345 + (j === 1 ? .011 : 0), 1.3 + (seed % 9) * .08);
-      }
-      indices.push(a, a + 2, a + 1);
-    }
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-  geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-  geometry.setIndex(indices); geometry.computeVertexNormals();
-  return geometry;
-}
-
 let beadGrain: Uint8ClampedArray | undefined;
 let beadGrainLoading: Promise<void> | undefined;
 function loadBeadGrain() {
@@ -314,57 +251,82 @@ function loadBeadGrain() {
   return beadGrainLoading;
 }
 
+type GrainSurface = { normal: THREE.CanvasTexture; roughness: THREE.CanvasTexture; pigment: Float32Array };
+let grainSurface: GrainSurface | undefined;
+function fusedGrainSurface() {
+  if (grainSurface) return grainSurface;
+  const width = 1280, height = 1344, pitch = 8;
+  const canvas = document.createElement("canvas"); canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+  const normal = ctx.createImageData(width, height), roughness = ctx.createImageData(width, height);
+  const pigment = new Float32Array(width * height);
+  const hash = (x: number, y: number) => {
+    let n = Math.imul(x, 1597334677) ^ Math.imul(y, 3812015801);
+    n = Math.imul(n ^ n >>> 16, 2246822507);
+    return (n ^ n >>> 13) >>> 0;
+  };
+  const columns = Math.ceil(width / pitch) + 2, rows = Math.ceil(height / pitch) + 2;
+  const grains = Array.from({ length: columns * rows }, (_, i) => {
+    const x = i % columns - 1, y = Math.floor(i / columns) - 1, seed = hash(x, y);
+    const angle = (seed & 65535) / 65535 * Math.PI * 2, tilt = .24 + ((seed >>> 16) & 255) / 255 * .5;
+    return { x: (x + .15 + (seed & 255) / 255 * .7) * pitch, y: (y + .15 + ((seed >>> 8) & 255) / 255 * .7) * pitch, nx: Math.cos(angle) * tilt, ny: Math.sin(angle) * tilt, seed };
+  });
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const gx = Math.floor(x / pitch), gy = Math.floor(y / pitch);
+    let nearest = grains[(gy + 1) * columns + gx + 1], distance = Infinity;
+    for (let cy = gy; cy <= gy + 2; cy++) for (let cx = gx; cx <= gx + 2; cx++) {
+      const grain = grains[cy * columns + cx], dx = x - grain.x, dy = y - grain.y;
+      const d = dx * dx + dy * dy;
+      if (d < distance) { distance = d; nearest = grain; }
+    }
+    const i = (y * width + x) * 4;
+    const nx = nearest.nx + (x - nearest.x) / pitch * .18;
+    const ny = nearest.ny - (y - nearest.y) / pitch * .18;
+    const length = Math.hypot(nx, ny, 1);
+    normal.data[i] = (nx / length * .5 + .5) * 255;
+    normal.data[i + 1] = (ny / length * .5 + .5) * 255;
+    normal.data[i + 2] = (1 / length * .5 + .5) * 255; normal.data[i + 3] = 255;
+    const pearl = beadGrain ? beadGrain[i] / 255 : .86;
+    const r = 75 + (nearest.seed >>> 8 & 255) / 255 * 120 + (pearl - .86) * 80;
+    roughness.data[i] = roughness.data[i + 1] = roughness.data[i + 2] = r; roughness.data[i + 3] = 255;
+    pigment[y * width + x] = .97 + (nearest.seed & 255) / 255 * .06;
+  }
+  ctx.putImageData(normal, 0, 0);
+  const normalMap = new THREE.CanvasTexture(canvas); normalMap.generateMipmaps = false; normalMap.minFilter = THREE.LinearFilter;
+  const roughCanvas = document.createElement("canvas"); roughCanvas.width = width; roughCanvas.height = height;
+  roughCanvas.getContext("2d")!.putImageData(roughness, 0, 0);
+  const roughnessMap = new THREE.CanvasTexture(roughCanvas); roughnessMap.generateMipmaps = false; roughnessMap.minFilter = THREE.LinearFilter;
+  grainSurface = { normal: normalMap, roughness: roughnessMap, pigment };
+  return grainSurface;
+}
+
 function physicalMaterials(art: Artwork) {
-  const resolution = 32;
+  const resolution = 32, surface = fusedGrainSurface();
   const color = document.createElement("canvas"); color.width = 40 * resolution; color.height = 42 * resolution;
   const ctx = color.getContext("2d")!;
   ctx.fillStyle = art.beads[0]?.color ?? "#f0eade"; ctx.fillRect(0, 0, color.width, color.height);
   for (const bead of art.beads) { ctx.fillStyle = bead.color; ctx.fillRect((bead.x - .2) * resolution, (bead.y - .2) * resolution, resolution * 1.4, resolution * 1.4); }
   for (const bead of art.beads) { ctx.fillStyle = bead.color; ctx.fillRect(bead.x * resolution, bead.y * resolution, resolution, resolution); }
-  const bump = document.createElement("canvas"); bump.width = color.width; bump.height = color.height;
-  const bumpCtx = bump.getContext("2d")!; const image = bumpCtx.createImageData(bump.width, bump.height);
-  const colorImage = ctx.getImageData(0, 0, color.width, color.height);
-  const roughness = document.createElement("canvas"); roughness.width = color.width; roughness.height = color.height;
-  const roughCtx = roughness.getContext("2d")!; const roughImage = roughCtx.createImageData(color.width, color.height);
-  const holes = document.createElement("canvas"); holes.width = color.width; holes.height = color.height;
-  const holeCtx = holes.getContext("2d")!; const holeImage = holeCtx.createImageData(color.width, color.height);
-  const glitter = art.material === "glitter";
-  for (let y = 0; y < bump.height; y++) for (let x = 0; x < bump.width; x++) {
-    const seed = ((x * 73856093) ^ (y * 19349663)) >>> 0;
-    const mini = miniBead(Math.floor(x / resolution * 2), Math.floor(y / resolution * 2), art.material);
-    const grainSeed = ((Math.floor(x / 3) * 83492791) ^ (Math.floor(y / 3) * 2971215073)) >>> 0;
-    const grain = (grainSeed % 101) / 100;
-    const fine = (seed % 101) / 100;
-    const fleck = (grainSeed >>> 8) % (glitter ? 19 : 113) === 0;
-    const i = (y * bump.width + x) * 4;
-    const pearl = beadGrain ? (beadGrain[i] * .2126 + beadGrain[i + 1] * .7152 + beadGrain[i + 2] * .0722) / 255 : .88 + (grain - .5) * .1;
-    const strength = art.material === "pressed" ? .2 : glitter ? 1.65 : 1.2;
-    const glint = Math.max(0, (pearl - .93) / .07) * strength;
-    const v = 128 + (pearl - .88) * 230 + (fine - .5) * 4;
-    image.data[i] = image.data[i + 1] = image.data[i + 2] = v; image.data[i + 3] = 255;
-    // Minute pigment variation and embedded flakes; never an opaque artwork background.
-    // Center the grain around neutral reflectance so it doesn't gray the pigment.
-    const tint = (.985 + (mini.seed % 17) / 600) * (1 + (pearl - .86) * strength);
-    for (let c = 0; c < 3; c++) {
-      const base = colorImage.data[i + c] * tint;
-      colorImage.data[i + c] = base + (255 - base) * Math.min(.8, glint * .6 + (fleck ? .08 : 0));
-    }
-    const r = glint > .2 ? 65 : 175 + (1 - pearl) * 150;
-    roughImage.data[i] = roughImage.data[i + 1] = roughImage.data[i + 2] = r; roughImage.data[i + 3] = 255;
-    const aperture = Math.hypot((x + .5) / resolution - mini.x, (y + .5) / resolution - mini.y) < mini.hole + .014 ? 0 : 255;
-    holeImage.data[i] = holeImage.data[i + 1] = holeImage.data[i + 2] = aperture; holeImage.data[i + 3] = 255;
+  const fused = document.createElement("canvas"); fused.width = color.width; fused.height = color.height;
+  const fusedCtx = fused.getContext("2d")!; fusedCtx.filter = "blur(1.4px)"; fusedCtx.drawImage(color, 0, 0);
+  const image = fusedCtx.getImageData(0, 0, color.width, color.height);
+  for (let pixel = 0; pixel < surface.pigment.length; pixel++) {
+    const i = pixel * 4;
+    const pearl = beadGrain ? beadGrain[i] / 255 : .86;
+    const tint = surface.pigment[pixel] * (1 + (pearl - .86) * .15);
+    for (let c = 0; c < 3; c++) image.data[i + c] *= tint;
   }
-  bumpCtx.putImageData(image, 0, 0); ctx.putImageData(colorImage, 0, 0); roughCtx.putImageData(roughImage, 0, 0); holeCtx.putImageData(holeImage, 0, 0);
+  ctx.putImageData(image, 0, 0);
   const map = new THREE.CanvasTexture(color); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4;
-  const bumpMap = new THREE.CanvasTexture(bump); bumpMap.generateMipmaps = false; bumpMap.minFilter = THREE.LinearFilter;
-  const roughnessMap = new THREE.CanvasTexture(roughness);
-  const alphaMap = new THREE.CanvasTexture(holes); alphaMap.generateMipmaps = false; alphaMap.minFilter = THREE.LinearFilter;
-  const finish = art.material === "pressed" ? { bumpScale: .012, roughness: .49, clearcoat: .3 } : art.material === "frosted" ? { bumpScale: .026, roughness: .7, clearcoat: .15 } : { bumpScale: .023, roughness: .44, clearcoat: .36 };
-  const common = { map, bumpMap, roughnessMap, ...finish, metalness: 0, clearcoatRoughness: .38, ior: 1.46 };
-  return [new THREE.MeshPhysicalMaterial({ ...common, alphaMap, alphaTest: .5 }), new THREE.MeshPhysicalMaterial({ ...common, bumpScale: .01, roughness: .48 }), new THREE.MeshPhysicalMaterial({ ...common, vertexColors: true })];
+  return [new THREE.MeshPhysicalMaterial({
+    map, normalMap: surface.normal, normalScale: new THREE.Vector2(.3, .3),
+    roughnessMap: surface.roughness, roughness: .85, metalness: 0, ior: 1.5,
+    clearcoat: .05, clearcoatRoughness: .32,
+    clearcoatNormalMap: surface.normal, clearcoatNormalScale: new THREE.Vector2(.4, .4),
+  }), new THREE.MeshPhysicalMaterial({ map, roughness: .48, metalness: 0, clearcoat: .25, clearcoatRoughness: .4 })];
 }
 
-type BeadStudio = { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.OrthographicCamera; mesh: THREE.Mesh; surface: THREE.Mesh; materials: Map<string, THREE.MeshPhysicalMaterial[]>; completed: Map<string, THREE.BufferGeometry>; surfaces: Map<string, THREE.BufferGeometry> };
+type BeadStudio = { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.OrthographicCamera; mesh: THREE.Mesh; materials: Map<string, THREE.MeshPhysicalMaterial[]>; completed: Map<string, THREE.BufferGeometry> };
 let beadStudio: BeadStudio | undefined;
 let beadWebGLUnavailable = false;
 function getBeadStudio() {
@@ -385,10 +347,9 @@ function getBeadStudio() {
   light.shadow.mapSize.set(512, 512); light.shadow.bias = -.0002; light.shadow.normalBias = .03; light.shadow.radius = 3.5;
   scene.add(light);
   const mesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhysicalMaterial()); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh);
-  const surface = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhysicalMaterial()); surface.castShadow = true; scene.add(surface);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), new THREE.ShadowMaterial({ opacity: .12 })); floor.position.z = -.12; floor.receiveShadow = true; scene.add(floor);
   const camera = new THREE.OrthographicCamera(-23, 23, 23, -23, .1, 180); camera.position.set(0, 0, 95); camera.up.set(0, 1, 0); camera.lookAt(0, 0, 0);
-  beadStudio = { renderer, scene, camera, mesh, surface, materials: new Map(), completed: new Map(), surfaces: new Map() };
+  beadStudio = { renderer, scene, camera, mesh, materials: new Map(), completed: new Map() };
   return beadStudio;
 }
 
@@ -412,9 +373,6 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
   }
   const materials = studio.materials.get(art.id) ?? physicalMaterials(art); studio.materials.set(art.id, materials);
   studio.mesh.geometry = geometry; studio.mesh.material = materials;
-  const surface = studio.surfaces.get(art.id) ?? beadSurface(art); studio.surfaces.set(art.id, surface);
-  surface.setDrawRange(0, count * 4 * BEAD_INDICES);
-  studio.surface.geometry = surface; studio.surface.material = materials[2];
   const aspect = width / height, viewHeight = Math.max(45, 43 / aspect);
   Object.assign(studio.camera, { left: -viewHeight * aspect / 2, right: viewHeight * aspect / 2, top: viewHeight / 2, bottom: -viewHeight / 2 }); studio.camera.updateProjectionMatrix();
   studio.renderer.setSize(width, height, false); studio.renderer.render(studio.scene, studio.camera);
