@@ -40,7 +40,7 @@ water=create_water(soup_group,pigs)
 camera_data=bpy.data.cameras.new('Camera · fixed frontal view')
 camera=bpy.data.objects.new('Camera · Little Nap',camera_data);rig.objects.link(camera);camera_data.type='ORTHO';camera_data.ortho_scale=5.15
 scene=bpy.context.scene;scene.camera=camera
-animate_scene(camera,pigs,soup_group)
+animate_scene(camera,pigs,soup_group,bowl_group)
 create_lettering(lettering,HERE.parent/'apple-club/fonts/CourierPrime-Regular.ttf',camera)
 create_stars(stars,camera)
 # Paper faces the fixed frontal camera.
@@ -67,7 +67,7 @@ scene.render.resolution_x=720 if DRAFT else 1080;scene.render.resolution_y=960 i
 scene.view_settings.view_transform='Standard';scene.render.image_settings.file_format='PNG';scene.render.image_settings.color_mode='RGB';scene.render.filepath='//little-nap.png'
 scene.frame_set(POSTER)
 readme=bpy.data.texts.new('READ ME · Little Nap');readme.use_fake_user=True
-readme.write('LITTLE NAP / FIVE LITTLE TANGYUAN\n\nFive round pig rice dumplings float in clear water, inside one connected blue lace bowl.\nAll five dumplings are whole, with faces painted into their skin. There is no spoon or exposed filling.\nThe camera stays fixed at the 19-degree frontal view. Five whole dumplings have tiny individual buoyant sways, soft nuzzles and almost imperceptible elastic shape changes.\nFrames 1–192 at 24 fps form a seamless eight-second loop. The file opens at the resting front view, frame 1.\nThe paper, lettering and softly glowing stars follow the camera. All geometry, shaders, lighting and motion remain editable.\nNo textures, add-ons or external fonts are needed. Courier Prime is packed under SIL OFL 1.1.\n\n'+(ROOT/'LICENSE').read_text()+'\n\nFONT LICENSE\n'+(HERE.parent/'apple-club/fonts/OFL.txt').read_text())
+readme.write('LITTLE NAP / FIVE LITTLE TANGYUAN\n\nFive round pig rice dumplings float in clear water, inside one connected blue lace bowl.\nAll five dumplings are whole, with faces painted into their skin. There is no spoon or exposed filling.\nThe camera stays fixed at the 19-degree frontal view. The paper starts empty; the bowl slides in, the piglets briefly open their eyes and shiver, then settle into individual buoyant sways and soft nuzzles.\nFrames 1–288 at 24 fps form a seamless twelve-second loop. The file opens at the resting front view, frame 169.\nThe paper, lettering and softly glowing stars follow the camera. All geometry, shaders, lighting and motion remain editable.\nNo textures, add-ons or external fonts are needed. Courier Prime is packed under SIL OFL 1.1.\n\n'+(ROOT/'LICENSE').read_text()+'\n\nFONT LICENSE\n'+(HERE.parent/'apple-club/fonts/OFL.txt').read_text())
 scene['Title']='Little Nap';scene['License']='MIT — AtomicMotion';scene['Medium']='Colored-pencil tangyuan / clear soup / fibrous paper';scene['Camera view']='Fixed frontal camera, 19-degree elevation and -8-degree azimuth'
 for screen in bpy.data.screens:
     for a in screen.areas:

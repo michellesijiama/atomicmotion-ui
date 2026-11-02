@@ -3,8 +3,22 @@ import bpy
 import math
 from mathutils import Vector
 
-DURATION=192
-POSTER=1
+DURATION=288
+POSTER=169
+
+
+def smooth(value):
+    value=max(0,min(1,value));return value*value*(3-2*value)
+
+
+def slide_keys(obj,axis):
+    for frame,x in ((1,-5),(17,-5),(61,.045),(70,0),(241,0),(265,5),(277,5),(278,-5),(289,-5)):
+        obj.location=axis*x;obj.keyframe_insert('location',frame=frame)
+    cyclic(obj)
+    bag=obj.animation_data.action.layers[0].strips[0].channelbag(obj.animation_data.action_slot)
+    for curve in bag.fcurves:
+        for key in curve.keyframe_points:
+            if key.co.x==277:key.interpolation='CONSTANT'
 
 
 def cyclic(obj):
@@ -17,28 +31,37 @@ def cyclic(obj):
         curve.modifiers.new('CYCLES')
 
 
-def animate_scene(camera,pigs,soup_group):
+def animate_scene(camera,pigs,soup_group,bowl_group):
     scene=bpy.context.scene;scene.frame_start=1;scene.frame_end=DURATION;scene.render.fps=24
     target=Vector((.13,0,1.0));elevation=math.radians(19);azimuth=math.radians(-8)
     camera.location=target+Vector((10*math.cos(elevation)*math.sin(azimuth),-10*math.cos(elevation)*math.cos(azimuth),10*math.sin(elevation)))
     camera.rotation_euler=(target-camera.location).to_track_quat('-Z','Y').to_euler()
+    stage=bpy.data.objects.new('STAGE · bowl slides into the paper',None);scene.collection.objects.link(stage)
+    for obj in [*pigs,*bowl_group.objects,*soup_group.objects]:
+        if obj.parent is None:obj.parent=stage
+    slide_keys(stage,camera.rotation_euler.to_matrix()@Vector((1,0,0)))
     for i,pig in enumerate(pigs):
         original=pig.location.copy();rotation=pig.rotation_euler.copy();radius=pig['Base radius']
-        pig['Motion']='A tiny individual buoyant sway, with its own phase, direction and soft elastic nuzzle.'
+        pig['Motion']='A brief startled shiver after arrival, followed by an individual soft floating nuzzle.'
         pig['Float height']=original.z
         phase_offset=(.3,1.75,3.15,4.4,5.5)[i]
-        amplitude=(.012,.019,.010,.016,.014)[i]
-        softness=(.009,.013,.008,.011,.010)[i]
+        amplitude=(.028,.039,.024,.034,.030)[i]
+        softness=(.012,.016,.010,.014,.013)[i]
         inward=Vector((original.x,original.y,0)).normalized()*.018
         for frame in range(1,DURATION+2):
-            t=math.tau*(frame-1)/DURATION;phase=t+phase_offset
-            bob=amplitude*(.65*math.sin(phase)+.35*math.sin(2*t+phase_offset*1.7))
-            squish=1+softness*(.72*math.sin(phase+.7)+.28*math.sin(2*t+phase_offset*.3))
-            dx=.009*math.sin(phase)+.003*math.sin(2*t+phase_offset*.6)
-            dy=.007*math.cos(t+phase_offset*.6)
+            active=smooth((frame-88)/24)*(1-smooth((frame-235)/25))
+            t=math.tau*(frame-89)/152;phase=t+phase_offset
+            elapsed=(frame-62-i*1.2)/24
+            recoil=math.exp(-4.5*elapsed)*math.sin(15*elapsed) if elapsed>0 else 0
+            startle=smooth((frame-60-i*1.2)/4)*(1-smooth((frame-73-i*1.2)/14))
+            bob=active*amplitude*(.65*math.sin(phase)+.35*math.sin(2*t+phase_offset*1.7))+.035*recoil
+            squish=1+active*softness*(.72*math.sin(phase+.7)+.28*math.sin(2*t+phase_offset*.3))-.055*recoil
+            dx=active*(.014*math.sin(phase)+.004*math.sin(2*t+phase_offset*.6))-.012*recoil
+            dy=active*.010*math.cos(t+phase_offset*.6)
             pig.location=original-inward+Vector((dx,dy,bob+radius*(squish-1)))
             pig.scale=(radius/math.sqrt(squish),radius/math.sqrt(squish),radius*squish)
-            pig.rotation_euler=(rotation.x+.012*math.sin(phase)+.005*math.sin(2*t+phase_offset*.5),.009*math.sin(t+phase_offset*.4),rotation.z+.012*math.sin(t+phase_offset*1.2)+.006*math.sin(2*t+phase_offset))
+            pig.rotation_euler=(rotation.x+active*(.017*math.sin(phase)+.006*math.sin(2*t+phase_offset*.5))+.04*recoil,active*.013*math.sin(t+phase_offset*.4),rotation.z+active*(.017*math.sin(t+phase_offset*1.2)+.008*math.sin(2*t+phase_offset))+.025*recoil)
+            pig.color=(1,1,1,startle);pig.keyframe_insert('color',index=3,frame=frame)
             pig.keyframe_insert('location',frame=frame);pig.keyframe_insert('scale',frame=frame);pig.keyframe_insert('rotation_euler',frame=frame)
         cyclic(pig)
     # Object-color uniforms animate the wash without recompiling its shader each frame.
@@ -71,7 +94,7 @@ def animate_scene(camera,pigs,soup_group):
             pulse=1+.015*math.sin(phase+i*.5);obj.scale=(pulse,pulse,1);obj.rotation_euler.z=.018*math.sin(phase+i*.7)
             obj.keyframe_insert('color',frame=frame);obj.keyframe_insert('scale',frame=frame);obj.keyframe_insert('rotation_euler',index=2,frame=frame)
         cyclic(obj)
-    for label,frame in [('Quiet water',1),('Little individual sways',49),('Soft nuzzles',97),('A gentle drift',145)]:scene.timeline_markers.new(label,frame=frame)
+    for label,frame in [('Blank paper',1),('Bowl slides in',17),('A tiny fright',65),('Back to floating',97),('Little nuzzles',169),('Slide away for the loop',241)]:scene.timeline_markers.new(label,frame=frame)
 
 
 def create_stars(group,camera):

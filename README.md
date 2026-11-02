@@ -74,9 +74,10 @@ The scene packs its font and procedural materials; no external add-ons or textur
 The `/3d-studio` gallery presents editable Blender scenes alongside the interface
 library, using the same card grid and navigation. [Little Nap](scenes/little-nap/README.md)
 features five whole, round pig tangyuan floating in clear water in a blue lace bowl.
-An eight-second loop keeps a fixed frontal camera while the dumplings gently
-float with tiny individual wobbles. Soft, volume-preserving shape changes, little nuzzles,
-following ripples and moving reflections bring the water to life.
+A twelve-second loop keeps a fixed frontal camera as the bowl slides in.
+The piglets briefly open their painted eyes and shiver, then return to sleepy
+faces and float in individual rhythms. Soft, volume-preserving shape changes,
+little nuzzles, following ripples and moving reflections bring the water to life.
 A downloadable GIF and a 1080 × 1440 still accompany the editable scene.
 Textured pencil outlines, pale pink and blue washes, fibrous paper, ink following the bowl rim
 and warm glowing stars retain the illustration style. The models, shaders,

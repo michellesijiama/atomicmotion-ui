@@ -19,11 +19,11 @@ export const studioModels: StudioModel[] = [
     id: "little-nap",
     title: "Little Nap",
     description:
-      "Five sleepy piglet dumplings float in a blue lace bowl, each with a tiny wobble of its own. Gentle ripples, soft pencil grain and twinkling stars bring this little daydream to life, with ink notes following the rim.",
+      "A blue lace bowl slides into view, giving five little piglet dumplings a tiny fright. They blink, wobble and settle into their own gentle floating rhythms, surrounded by pencil grain, ripples, twinkling stars and ink notes along the rim.",
     image: "/studio/little-nap/little-nap.webp",
     gif: "/studio/little-nap/little-nap-soft-hops.gif",
     imageAlt:
-      "Five whole, round piglet rice dumplings float in clear water in a blue lace bowl, each gently swaying in its own rhythm. A fixed front view, grainy pencil washes, soft ripples, golden stars and rim-following ink notes sit on fibrous white paper.",
+      "Five whole, round piglet rice dumplings float in clear water in a blue lace bowl, sliding into view before briefly opening their eyes in surprise, then gently swaying in their own rhythms. A fixed front view, grainy pencil washes, soft ripples, golden stars and rim-following ink notes sit on fibrous white paper.",
     blend: "/studio/little-nap/little-nap.blend",
     still: "/studio/little-nap/little-nap.png",
     license: "/studio/little-nap/LICENSE.txt",

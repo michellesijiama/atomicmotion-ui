@@ -3,10 +3,12 @@ import bpy
 import math
 from bisect import bisect_left
 from mathutils import Vector
-from animation import cyclic,DURATION
+from animation import cyclic,DURATION,slide_keys
 
 
 def create_lettering(group,font_path,camera):
+    ink_stage=bpy.data.objects.new('Ink · follows the sliding bowl',None);group.objects.link(ink_stage);ink_stage.parent=camera
+    slide_keys(ink_stage,Vector((1,0,0)))
     font=bpy.data.fonts.load(str(font_path))
     ink=bpy.data.materials.new('LETTERING · warm dry ink');ink.use_nodes=True
     n,l=ink.node_tree.nodes,ink.node_tree.links;n.clear()
@@ -15,7 +17,7 @@ def create_lettering(group,font_path,camera):
     em=n.new('ShaderNodeEmission');l.new(color.outputs[0],em.inputs[0]);out=n.new('ShaderNodeOutputMaterial');l.new(em.outputs[0],out.inputs[0])
     def text(name,body,x,y,size,angle=0):
         data=bpy.data.curves.new(name,'FONT');data.font=font;data.body=body;data.size=size;data.align_x='CENTER';data.align_y='CENTER';data.materials.append(ink)
-        obj=bpy.data.objects.new(name,data);group.objects.link(obj);obj.parent=camera;obj.location=(x,y,-13.5);obj.rotation_euler.z=angle
+        obj=bpy.data.objects.new(name,data);group.objects.link(obj);obj.parent=ink_stage;obj.location=(x,y,-13.5);obj.rotation_euler.z=angle
         for frame in range(1,DURATION+2,6):
             t=math.tau*(frame-1)/DURATION
             obj.location.y=y+.002*math.sin(t+x);obj.rotation_euler.z=angle+.002*math.sin(t+x)

@@ -18,6 +18,7 @@ def paint_face(nodes,links,base,z0):
     xyz=node('ShaderNodeSeparateXYZ','surface x / y / z');links.new(coord.outputs['Object'],xyz.inputs[0])
     x,y,z=xyz.outputs['X'],xyz.outputs['Y'],xyz.outputs['Z']
     front=op('LESS_THAN',y,-.30)
+    expression=node('ShaderNodeObjectInfo','per-pig startled expression');startle=expression.outputs['Alpha']
     def radius(cx,cz,rx,rz):
         dx=op('DIVIDE',op('SUBTRACT',x,cx),rx)
         dz=op('DIVIDE',op('SUBTRACT',z,cz),rz)
@@ -39,8 +40,9 @@ def paint_face(nodes,links,base,z0):
         curve=op('ADD',z0+.19+(.01 if side>0 else 0),op('MULTIPLY',op('MULTIPLY',q,q),.07))
         stroke=fade(op('ABSOLUTE',op('SUBTRACT',z,curve)),.004,.014)
         stroke=op('MULTIPLY',stroke,fade(op('ABSOLUTE',q),.90,1.10))
-        wash(stroke,(.105,.025,.020),'closed sleeping eyelid painted into the skin')
-        ink_masks.append(stroke)
+        eye=op('ADD',op('MULTIPLY',stroke,op('SUBTRACT',1,startle)),op('MULTIPLY',ellipse(side*.29,z0+.22,.034,.050),startle))
+        wash(eye,(.105,.025,.020),'sleepy eyelid briefly opens in surprise, painted into the skin')
+        ink_masks.append(eye)
         nostril=ellipse(side*.075+.015,z0+.004,.021,.035)
         wash(nostril,(.16,.035,.025),'tiny ink nostril');ink_masks.append(nostril)
     ears=[]

@@ -7,7 +7,7 @@ glowing golden stars surround the drawing.
 
 - [Editable Blender scene](../../public/studio/little-nap/little-nap.blend)
 - [1080 × 1440 still](../../public/studio/little-nap/little-nap.png)
-- [Eight-second animated GIF](../../public/studio/little-nap/little-nap-soft-hops.gif)
+- [Twelve-second animated GIF](../../public/studio/little-nap/little-nap-soft-hops.gif)
 
 The existing GIF filename is retained so previously shared download URLs keep working.
 
@@ -18,17 +18,20 @@ closed mesh from its foot and exterior through the rounded lip to the cavity.
 Its floral lace is a procedural UV pencil print. Clear water fits inside the
 cavity; the moving dumplings remain partly submerged.
 
-## Fixed camera, tiny individual sways and water
+## Sliding entrance, a little fright and floating water
 
-Frames **1–192 at 24 fps** form a seamless eight-second loop. The camera remains
+Frames **1–288 at 24 fps** form a seamless twelve-second loop. The camera remains
 at the frontal angle: 19-degree elevation and -8-degree azimuth. The saved file
-opens at the resting view, frame 1.
+opens at the resting view, frame 169.
 
-Each tangyuan has a different phase, small amplitude and rocking direction.
-Their vertical drift stays below 0.026 scene units, with tiny forward nuzzles
-and almost imperceptible elastic shape changes. They remain in the water.
-These quiet motions repeat over eight seconds, preserving their volume and
-round shape without moving in identical rhythm.
+The loop starts with empty paper. The bowl, water, piglets and rim lettering
+slide in together. As the bowl stops, the piglets briefly open their painted
+eyes and give a small, damped shiver. They return to sleepy faces and settle
+into slightly larger, individual floating sways, with different phases,
+amplitudes and rocking directions. Their vertical drift stays below 0.050
+scene units during the settled motion. Small nuzzles and volume-preserving
+shape changes keep the dumplings soft and round. They remain partly submerged.
+The bowl slides away at the end and resets outside the frame for a clean loop.
 
 Ripple carriers follow each dumpling. Small expanding waves, editable surface
 wave shapes and changing reflections move with the water. Their opacity and
@@ -53,7 +56,7 @@ blender -b --factory-startup --python scenes/little-nap/create_scene.py
 
 Use `-- --draft` for a 720 × 960 still in `.tmp/little-nap/`.
 Use `-- --save-only` to save without rendering. Use `-- --animation` to render
-96 preview frames at 480 × 640 and 12 fps into `.tmp/little-nap/hopping-gif-frames/`.
+144 preview frames at 480 × 640 and 12 fps into `.tmp/little-nap/hopping-gif-frames/`.
 Encode the downloadable GIF with:
 
 ```sh
@@ -65,7 +68,8 @@ ffmpeg -framerate 12 -pattern_type glob -i '.tmp/little-nap/hopping-gif-frames/f
 `pig.py` builds the round dumplings; `face_paint.py` paints their features directly
 onto the skin. `bowl.py` builds the continuous vessel and its lace. `soup.py`
 creates contained water, wave shapes and light strokes. `animation.py` adds the
-fixed camera, tiny individual sways, following ripples and golden stars.
+fixed camera, sliding entrance, startled expressions, individual sways, following
+ripples and golden stars.
 `watercolor_materials.py`, `pencil_finish.py` and `paper_fibers.py` define the
 pencil washes and paper tooth; `lettering.py` adds native editable text.
 The shared pencil helpers in `../shared/` also support the earlier Apple Club scene.
@@ -78,7 +82,8 @@ blender -b public/studio/little-nap/little-nap.blend --python scenes/little-nap/
 
 The audit checks five whole, connected dumplings, a watertight bowl and water
 volume, safe spacing throughout the individual motion, continuous immersion, packed fonts, editable
-water waves, a fixed camera, three lights and the seamless loop.
+water waves, a fixed camera, three lights, the sliding entrance, changing painted
+expressions and the seamless loop.
 
 Original geometry, code and renders use the repository's [MIT license](../../LICENSE).
 The packed Courier Prime typeface uses SIL OFL 1.1; the notice is embedded in the
