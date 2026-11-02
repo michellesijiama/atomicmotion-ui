@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Flower2 } from "lucide-react";
 
 export type BeadClubProps = {
   /** Plays a quiet demonstration on gallery cards. */
@@ -195,14 +195,6 @@ function SilverIPhoneFrame() {
   </div>;
 }
 
-function LittleFlower() {
-  const petals = [[3, 0], [2, 1], [3, 1], [4, 1], [1, 2], [2, 2], [4, 2], [5, 2], [2, 3], [3, 3], [4, 3], [3, 4]];
-  return <svg className="bc-flower" width="32" height="36" viewBox="0 0 7 8" aria-hidden="true">
-    <path d="M3 4h1v4H3zM1 5h2v1H1zM4 6h2v1H4z" fill="currentColor" />
-    {petals.map(([x, y]) => <rect key={`${x}-${y}`} x={x + .04} y={y + .04} width=".92" height=".92" rx=".16" fill="currentColor" />)}
-    <rect x="3.04" y="2.04" width=".92" height=".92" rx=".16" fill="currentColor" />
-  </svg>;
-}
 
 export function BeadClub({ loop = false, className }: BeadClubProps) {
   const host = React.useRef<HTMLDivElement>(null);
@@ -238,7 +230,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
         <div className="bc-island" aria-hidden="true"><span /></div>
         <div className="bc-status" aria-hidden="true"><b>9:41</b><div className="bc-indicators"><svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 8v3M5 6v5M9 3v8M13 0v11" stroke="currentColor" strokeWidth="2" /></svg><svg width="15" height="12" viewBox="0 0 15 12"><path d="M1 4Q7.5-1 14 4M3 7q4.5-4 9 0M6 10q1.5-2 3 0" fill="none" stroke="currentColor" strokeWidth="1.7" /></svg><span className="bc-battery" /></div></div>
         <div className="bc-collection" inert={!!selected}>
-          <header className="bc-header"><span>little bead club</span><LittleFlower /></header>
+          <header className="bc-header"><span>little bead club</span><Flower2 className="bc-flower" size={24} strokeWidth={1.8} aria-hidden="true" /></header>
           <div className="bc-list" aria-label="Bead collection">
             {artworks.map((art, index) => <button className="bc-card" key={art.id} onClick={event => { lastCard.current = event.currentTarget; setSelected(art); }} aria-label={`Open ${art.name}`}>
               <div className="bc-card-copy"><span className="bc-number">{String(index + 1).padStart(2, "0")}</span><h2>{art.name}</h2><span className="bc-card-link">Play <ArrowUpRight size={16} /></span></div>
@@ -265,7 +257,7 @@ const styles = `
 
 .bc-status{height:55px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:4px clamp(15px,6cqw,24px) 0 clamp(16px,6.7cqw,26px);z-index:12;font-size:14px;font-weight:600;color:#242a26;background:transparent}.bc-indicators{display:flex;align-items:center;gap:5px}.bc-battery{width:21px;height:10px;border-radius:3px;border:1px solid currentColor;position:relative}.bc-battery:before{content:'';position:absolute;inset:1px;background:currentColor;border-radius:1px}.bc-battery:after{content:'';position:absolute;width:2px;height:4px;right:-4px;top:2px;background:currentColor;border-radius:1px}
 .bc-header::before,.bc-detail-nav::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
-.bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;left:0;right:0;top:0;z-index:8;min-height:78px;color:#242a26;padding:14px 18px 26px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:1.0625rem;font-weight:500;letter-spacing:-.35px}.bc-flower{flex-shrink:0;color:#fff;stroke:#69736c;stroke-width:.09;paint-order:stroke fill;stroke-linejoin:round}.bc-list{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:94px 16px 72px;scrollbar-width:none;scroll-padding:16px 0 72px}.bc-list::-webkit-scrollbar{display:none}
+.bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;left:0;right:0;top:0;z-index:8;min-height:78px;color:#242a26;padding:14px 18px 26px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:1.0625rem;font-weight:500;letter-spacing:-.35px}.bc-flower{flex-shrink:0;color:#fff;filter:drop-shadow(0 1px 1px #28362a99)}.bc-list{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:94px 16px 72px;scrollbar-width:none;scroll-padding:16px 0 72px}.bc-list::-webkit-scrollbar{display:none}
 .bc-card{width:100%;border:0;background:transparent;padding:0;margin:0 0 28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px;text-align:left;align-items:center;scroll-margin:16px 0 72px}.bc-card-copy{padding:12px 0;display:flex;flex-direction:column;align-items:flex-start;min-width:0;overflow-wrap:anywhere}.bc-number{font-size:.875rem;color:#535e56;letter-spacing:.2px}.bc-card h2{font-size:1.25rem;line-height:1.25;font-weight:500;margin:10px 0 10px;letter-spacing:-.4px}.bc-card-link{display:flex;align-items:center;gap:5px;font-size:1rem;line-height:1.5;min-height:44px;margin-top:12px}.bc-art-panel{height:252px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:transparent}.bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(1px 2px 1.5px #30393616)}.bc-art-panel>.bc-art{width:100%;height:100%;transition:transform .5s}.bc-card:hover .bc-art{transform:translateY(-2px)}
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
 .bc-glass-edge{position:absolute;bottom:0;left:51%;right:0;height:90px;pointer-events:none;z-index:6;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000);-webkit-mask-image:linear-gradient(transparent,#000)}.bc-glass-edge i:nth-child(2){top:25px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.bc-glass-edge i:nth-child(3){top:54px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.bc-screen[data-detail="true"] .bc-glass-edge{height:32px}
