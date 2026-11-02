@@ -14,83 +14,18 @@ export type BeadClubProps = {
 };
 
 type Bead = { x: number; y: number; color: string };
-type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry";
-type Artwork = { material: BeadMaterial; id: string; name: string; category: "Sweet things" | "Little friends"; background: string; beads: Bead[]; colors: string[] };
+type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry" | "jelly";
+type Artwork = { material: BeadMaterial; id: string; name: string; category: "Sweet things" | "Little friends"; background: string; beads: Bead[]; colors: string[]; translucentColors?: readonly string[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
 const P = { pink: "#ff90bd", rose: "#e75793", cream: "#fff2c7", white: "#fffdf4", blue: "#65cff1", red: "#ed3551", dark: "#5b2940", green: "#6cd690", leaf: "#279d69", yellow: "#ffdf53", brown: "#bf8050" };
 
-// Cake transcribed from the supplied 50×50 Mard-144 chart. Exterior H2 cells
-// are transparent; enclosed white centers remain beads. The cropped grid is 40×42.
-const CAKE_CODES = ["A11","B10","B18","B7","C13","E1","E6","F1","F12","F14","F2","F6","F9","G1","G12","G15","G16","H12","H14","H2","H8"] as const;
-const CAKE_PALETTE: Record<(typeof CAKE_CODES)[number], string> = {
-  "A11": "#f5d19a",
-  "B10": "#5ebba4",
-  "B18": "#8dcdbd",
-  "B7": "#248e7c",
-  "C13": "#b9cef0",
-  "E1": "#ffd1ce",
-  "E6": "#f42f7e",
-  "F1": "#ff9c85",
-  "F12": "#ff557b",
-  "F14": "#ffa3b8",
-  "F2": "#ff3552",
-  "F6": "#c81948",
-  "F9": "#e44c7f",
-  "G1": "#ffe2c5",
-  "G12": "#ffd096",
-  "G15": "#fff8de",
-  "G16": "#ffe8dc",
-  "H12": "#f5f6ed",
-  "H14": "#cbd1ca",
-  "H2": "#fffdf5",
-  "H8": "#92898a"
+const APP_BACKGROUND = "#f2f2f2";
+const JELLY_COLORS: Record<string, readonly string[]> = {
+  "cake-peach": ["#ffad83", "#f18489", "#ffd1a3"],
+  "cake-violet": ["#c5a6f4", "#967bcf", "#e1cefa"],
 };
-const CAKE_GRID = [
-  ".............................B..........",
-  ".................B..........B...........",
-  ".................B....EEE...B...........",
-  "............BB...B....ETEE..D...........",
-  ".............B..GBJ...ETTEMGDU..........",
-  ".............B.GGGGG..EEEGGGLGG.BB......",
-  ".............DLGTGGGPPPTEGTGGGG.BEEEE...",
-  ".....EEE.....DGGGGGLPBPTGGGGGGLDEETTTE..",
-  "....ETTEE..IIDIIGGGGPCPPPGGGGGGDETTTTE..",
-  "...EETTTE.IPIIIIGGGUPBPPPGGGGIIUITEEE...",
-  "...EETTTEGIJIIIIIPPPPCDPPPLGIIIJIJE.....",
-  "...EEETTEGIIIIIKIPPPIDIGPPPGIRIIIIJJ....",
-  "....EEEJEPIIIIKIIPPIIDDIIPPIIIIIIIJJJ...",
-  "....JJEEEPIIIIIGPPGIJIIIKPPPIIIILPJPJJ..",
-  "..EEEJJEEPPIIIIPPJIIFIIILPPPPIIIIPPPMJJ.",
-  "..EJJJEEJEPPPPPPPJIIIIIIIPPPEPPPPPPPPJJ.",
-  ".EJJJJEEJEEEPPPPPJJIIIIIPPPPEEEPPPPPPJJJ",
-  ".EMJJEJEJMEEPMPPMEEEPMMPPPEEEEEEEPPPJJJJ",
-  "EMMJEEJEEEEPMPPMEEEEEEPPTEEEPPPEEPMMJJJJ",
-  "EMMMEJJJJEEJJPPEEPPPEEPEEPPPJEEEJJJJJJJM",
-  "E.MJEJJJJJJJJJPEEPPEEEEEEEEEEEJJJJJJJJMM",
-  "E.MEMJJJJJJJJJPPEEEEPPPEJMJJEEJJJJJMMMMM",
-  "E..EMMMJJJJJJJJJPPPPJMEEJJJJJEEJJMMMMMMU",
-  "...ENAHMMJJJJJJJJJJJJEJJJJJJJJEEMMMONOON",
-  "..EENNQOMMJJPPJFPJJJJEJJJJJPPJJJEMONNNNN",
-  "..EENNNQOMMJJJJJJJJMEMMMMJJJJJIMESNNNNNN",
-  "..EEJNNNQMMMMJJJJMMMEMMMMMMMMMMMEENNNJJN",
-  "..EEJJJNNOMMMMMMMMMEENNNOHMMMMMONNNJJJJN",
-  "..EENJJJNNOHMMMMHNNENNNNNNOOHHQNNEJJJNNN",
-  "..EENNNJJNNAOOANNNNENNNNNNNNNNNNJEJNNNNN",
-  "..EEPPNNJJNNNNNNNNEENNNNNNNNNJJJJENNQAPP",
-  "..EENPPANNJJJJJJNNEENNNNNJJJJJJJNENQPPNN",
-  "...EQQPPPNNNNNJJJJEEJJJJJJJJJNNNPEPPPP..",
-  "...E.NNNPPPPNNNNNNEEJJJNNNNNNNNOEEPN....",
-  ".......NNPPNANNNNNEENNNNNNNNNAPPEEN.....",
-  "........NNNPPPQQQNEENNNQQNQQPPPEEN......",
-  "..........NPPPPPPPEEPPPPPPPPPPNEE.......",
-  "..........NNNNNNPPEEPPPPPPPNNNPE........",
-  "...............NNNNPEPPPNNN....E........",
-  "..................NNENNNN...............",
-  "....................EE..................",
-  ".....................EE.................",
-];
 
-// Other patterns are procedural. Every occupied cell can be replayed in color order.
+// Original patterns; every occupied cell is replayed in color order.
 function makePattern(id: string): Bead[] {
   const cells = new Map<string, Bead>();
   const dot = (x: number, y: number, color: string) => cells.set(`${x},${y}`, { x, y, color });
@@ -106,11 +41,90 @@ function makePattern(id: string): Bead[] {
     const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
     for (let i = 0; i <= steps; i++) dot(Math.round(x1 + (x2 - x1) * i / steps), Math.round(y1 + (y2 - y1) * i / steps), color);
   };
-  if (id === "cake") {
-    CAKE_GRID.forEach((row, y) => [...row].forEach((cell, x) => {
-      const code = CAKE_CODES[cell.charCodeAt(0) - 65];
-      if (code) dot(x, y, CAKE_PALETTE[code]);
-    }));
+  const heart = (cx: number, cy: number, rx: number, ry: number, color: string) => {
+    for (let y = Math.floor(cy - ry * 1.3); y <= cy + ry; y++) for (let x = Math.floor(cx - rx * 1.2); x <= cx + rx * 1.2; x++) {
+      const nx = (x - cx) / rx, ny = (cy - y) / ry;
+      if ((nx * nx + ny * ny - 1) ** 3 - nx * nx * ny ** 3 <= 0) dot(x, y, color);
+    }
+  };
+  const polygon = (points: number[][], color: string) => {
+    for (let y = Math.min(...points.map(p => p[1])); y <= Math.max(...points.map(p => p[1])); y++) for (let x = Math.min(...points.map(p => p[0])); x <= Math.max(...points.map(p => p[0])); x++) {
+      let inside = false;
+      for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+        const a = points[i], b = points[j];
+        if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+      }
+      if (inside) dot(x, y, color);
+    }
+  };
+  const flower = (x: number, y: number, size: number, petals: string, center: string) => {
+    for (let i = 0; i < 5; i++) oval(x + Math.cos(i * Math.PI * 2 / 5) * size, y + Math.sin(i * Math.PI * 2 / 5) * size, size * .72, size * .6, petals);
+    oval(x, y, Math.max(1, size * .45), Math.max(1, size * .45), center);
+  };
+  const fruit = (x: number, y: number, color: string, leaf: string, cream: string) => {
+    line(x, y - 5, x + 1, y - 2, leaf);
+    oval(x, y, 2.6, 2.8, color); dot(x, y + 3, color);
+    line(x - 2, y - 2, x + 2, y - 2, leaf);
+    dot(x - 1, y - 1, cream); dot(x + 1, y + 1, cream);
+  };
+  if (id === "cake-heart") {
+    const pink = "#ff89ae", shade = "#de5688", cream = "#fff4d9", red = "#ef3d67", green = "#459f80";
+    oval(20, 35, 16, 2, "#f4e3eb");
+    for (let dy = 12; dy >= 1; dy--) heart(20, 15 + dy, 12, 6, dy > 8 ? shade : dy > 5 ? cream : pink);
+    heart(20, 15, 12, 6, "#f45c99"); heart(20, 14, 10.8, 5.2, cream);
+    for (const [x,y] of [[8,23],[12,26],[17,29],[23,29],[28,26],[32,23]]) oval(x,y,1.5,1,cream);
+    fruit(13, 11, red, green, cream); fruit(26, 11, red, green, cream); fruit(20, 18, "#ff6385", green, cream);
+    oval(18, 31, 3, 1.8, "#d1b1ed"); oval(23, 31, 3, 1.8, "#d1b1ed");
+    dot(20, 31, "#a57bcc"); line(20, 32, 17, 35, "#d1b1ed"); line(21, 32, 24, 35, "#d1b1ed");
+  } else if (id === "cake-cloud") {
+    const blue = "#81cfee", shade = "#579fcf", white = "#fff8e9", berry = "#5361a8";
+    oval(20, 36, 16, 2, "#e7e2f5"); oval(20, 33, 15, 4, shade);
+    rect(5, 24, 31, 10, blue); oval(20, 24, 15, 4, white);
+    for (let x = 6; x <= 34; x += 4) { oval(x,26,2,2,white); if(x%8===6)rect(x,26,1,4,white); }
+    oval(20, 22, 10, 3, "#b4a9e9"); rect(10, 13, 21, 10, "#d2e8f5");
+    oval(20, 13, 10, 4, blue);
+    for (let x = 11; x <= 29; x += 3) oval(x,15,2,2,white);
+    for (const [x,y] of [[13,11],[17,9],[21,10],[25,9],[28,12]]) oval(x,y,3,2,white);
+    for (const [x,y] of [[14,8],[22,7],[27,10]]) { oval(x,y,2,2,berry); dot(x-1,y-1,"#a2b7ef"); }
+    line(22,4,22,6,"#5ba392"); oval(24,4,2,1,"#7fc7b0");
+    for (const [x,y] of [[12,31],[27,30]]) { line(x-1,y,x+1,y,"#fff0b7");line(x,y-1,x,y+1,"#fff0b7"); }
+    oval(20, 32, 4, 2, white);
+  } else if (id === "cake-peach") {
+    const [gel, shade, glow] = JELLY_COLORS["cake-peach"];
+    oval(20,35,16,3,"#e7d9e2"); oval(20,34,15,2,"#fff8e7");
+    oval(20,29,12,5,shade); rect(8,19,25,11,gel); oval(20,19,12,9,gel);
+    oval(20,17,10,6,glow);
+    for (const x of [10,15,25,30]) line(x,21,x,29, x<20?glow:shade);
+    oval(20,30,11,3,gel); line(11,31,28,31,glow);
+    oval(20,12,8,4,"#f28088"); oval(20,11,6,3,"#ffdfac");
+    line(18,9,23,12,"#ffc58c"); dot(23,12,"#f59d7e");
+    oval(13,9,3,1.6,"#69ad8e"); oval(16,7,1.5,3,"#96c9a4");
+    flower(29,30,2,"#fff7e4","#ffd27f");
+    for (const [x,y] of [[8,34],[13,36],[24,36],[31,34]]) dot(x,y,"#fff7e9");
+  } else if (id === "cake-matcha") {
+    const green = "#8fc480", dark = "#528b67", light = "#c5dfa4", cream = "#fff1d1";
+    rect(6,16,29,17,dark); oval(20,33,14,2,dark);
+    rect(6,20,29,5,green); rect(6,26,29,3,cream); rect(6,30,29,3,light);
+    oval(20,16,14,5,dark); oval(20,15,14,5,light); rect(9,11,23,8,light);
+    for(let x=7;x<=33;x+=4)oval(x,20,2,1.5,cream);
+    for(const [x,y]of [[11,12],[24,13],[29,16]])flower(x,y,2,cream,"#e5bc65");
+    flower(18,17,2.4,"#f8a9bc","#fff0b1");
+    oval(14,14,3,1,dark); oval(27,11,2.5,1,dark); oval(23,17,2,1,green);
+    for(const [x,y]of [[10,24],[20,24],[30,24]])dot(x,y,"#d7ebbb");
+    oval(20,36,16,2,"#ecdfcb"); oval(20,35,15,1,cream);
+  } else if (id === "cake-violet") {
+    const [gel, shade, glow] = JELLY_COLORS["cake-violet"];
+    oval(20,36,16,3,"#d6dbef"); oval(20,35,15,2,"#fff8e8");
+    polygon([[6,17],[15,23],[15,34],[6,27]],shade);
+    polygon([[15,23],[30,21],[30,32],[15,35]],gel);
+    polygon([[30,21],[33,16],[33,27],[30,32]],shade);
+    polygon([[20,9],[33,16],[30,22],[15,24],[6,17]],glow);
+    line(16,25,16,32,glow); line(29,23,29,30,glow);
+    for(const [x,y]of [[20,28],[25,31],[11,24]])dot(x,y,glow);
+    oval(20,14,5,2,"#fff5e6"); oval(20,12,3,2,"#fff9ed");
+    for(const [x,y]of [[12,15],[26,16]]){oval(x,y,2,2,"#7252ac");dot(x-1,y-1,"#b4a3df");}
+    flower(27,12,1.8,"#fff4dc","#f1cf79");
+    oval(16,11,2.5,1,"#7ebda3");
   } else if (id === "berry") {
     for (let y = 11; y < 35; y++) {
       const width = y < 17 ? 9 + (y - 11) * .6 : 13 - (y - 17) * .7;
@@ -155,13 +169,17 @@ function makePattern(id: string): Bead[] {
   );
 }
 const artworks: Artwork[] = [
-  { id: "cake", name: "Cherry on top", category: "Sweet things", background: "#efe5e3" },
+  { id: "cake-heart", name: "Berry heart", category: "Sweet things", background: "#efe5e3" },
+  { id: "cake-cloud", name: "Blueberry cloud", category: "Sweet things", background: "#e3eff5" },
+  { id: "cake-peach", name: "Peach jelly", category: "Sweet things", background: "#f8e8dd" },
+  { id: "cake-matcha", name: "Matcha garden", category: "Sweet things", background: "#e8efdd" },
+  { id: "cake-violet", name: "Violet crystal", category: "Sweet things", background: "#eee7f7" },
   { id: "berry", name: "Berry sweet", category: "Sweet things", background: "#e7ebdf" },
   { id: "bunny", name: "Somebunny", category: "Little friends", background: "#e5eaf0" },
   { id: "flower", name: "Hello, petal", category: "Little friends", background: "#eee5d9" },
   { id: "pudding", name: "Sweet little wobble", category: "Sweet things", background: "#e6e9ef" },
   { id: "bear", name: "Honey bear", category: "Little friends", background: "#eadfd7" },
-].map(item => { const beads = makePattern(item.id); return { ...item, material: (item.id === "cake" ? "terry" : "frosted") as BeadMaterial, category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
+].map(item => { const beads = makePattern(item.id); return { ...item, material: (JELLY_COLORS[item.id] ? "jelly" : item.id.startsWith("cake-") ? "terry" : "frosted") as BeadMaterial, translucentColors: JELLY_COLORS[item.id], category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
 
 function FlatBeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
   const id = React.useId().replace(/:/g, "");
@@ -186,7 +204,7 @@ function FlatBeadArt({ art, count = art.beads.length, animated = false }: { art:
     if (!occupied.has(`${bead.x + 1},${bead.y}`)) sides.push({ path: wall(bead.x + 1.06, bead.y - .06, bead.x + 1.06, bead.y + 1.06), color: shade(bead.color, .84) });
     if (!occupied.has(`${bead.x},${bead.y + 1}`)) sides.push({ path: wall(bead.x - .06, bead.y + 1.06, bead.x + 1.06, bead.y + 1.06), color: shade(bead.color, .9) });
   }
-  return <svg viewBox="0 0 40 42" role="img" aria-label={`${art.name} ${art.material} fused bead pattern`} className="bc-art" data-material={art.material}>
+  return <svg viewBox="0 0 40 42" role="img" aria-label={`${art.name} ${art.material} fused bead pattern`} className="bc-art" data-material={art.material} style={art.material === "jelly" ? { opacity: .8 } : undefined}>
     <defs>
       <filter id={`${id}-edge`} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
         <feGaussianBlur stdDeviation=".14" />
@@ -314,7 +332,7 @@ function loadBeadGrain() {
   return beadGrainLoading;
 }
 
-type GrainSurface = { normal: THREE.CanvasTexture; roughness: THREE.CanvasTexture; pigment: Float32Array; sparkle?: THREE.CanvasTexture };
+type GrainSurface = { normal: THREE.CanvasTexture; roughness: THREE.CanvasTexture; pigment: Float32Array; sparkle?: THREE.CanvasTexture; sparkleNormal?: THREE.CanvasTexture };
 let grainSurface: GrainSurface | undefined;
 function fusedGrainSurface() {
   if (grainSurface) return grainSurface;
@@ -413,52 +431,105 @@ function terryGrainSurface() {
   const sparkleCanvas = document.createElement("canvas"); sparkleCanvas.width = width; sparkleCanvas.height = height;
   const sparkleCtx = sparkleCanvas.getContext("2d")!;
   sparkleCtx.fillStyle = "#000"; sparkleCtx.fillRect(0, 0, width, height); sparkleCtx.fillStyle = "#fff";
-  for (let y = 6; y < height; y += 12) for (let x = 6; x < width; x += 12) {
+  const facetCanvas = document.createElement("canvas"); facetCanvas.width = width; facetCanvas.height = height;
+  const facetCtx = facetCanvas.getContext("2d")!; facetCtx.fillStyle = "rgb(128,128,255)"; facetCtx.fillRect(0, 0, width, height);
+  for (let y = 5; y < height; y += 10) for (let x = 5; x < width; x += 10) {
     const seed = (Math.imul(x, 1597334677) ^ Math.imul(y, 3812015801)) >>> 0;
-    if (seed % 11 !== 0) continue;
+    if (seed % 4 !== 0) continue;
     const px = x + (seed % 7 - 3), py = y + ((seed >>> 8) % 7 - 3);
-    sparkleCtx.beginPath(); sparkleCtx.ellipse(px, py, 2.4 + (seed % 5) * .25, 1.3, seed % 628 / 100, 0, Math.PI * 2); sparkleCtx.fill();
+    const nx = -.31 + ((seed >>> 8 & 255) / 255 - .5) * .32, ny = .43 + ((seed >>> 16 & 255) / 255 - .5) * .32;
+    const length = Math.hypot(nx, ny, 1);
+    facetCtx.fillStyle = `rgb(${Math.round((nx / length * .5 + .5) * 255)},${Math.round((ny / length * .5 + .5) * 255)},${Math.round((1 / length * .5 + .5) * 255)})`;
+    for (const target of [sparkleCtx, facetCtx]) {
+      const padding = target === facetCtx ? 2 : 0;
+      target.beginPath(); target.ellipse(px, py, 2 + (seed % 5) * .25 + padding, 1.05 + padding, seed % 628 / 100, 0, Math.PI * 2); target.fill();
+    }
   }
   const sparkleMap = new THREE.CanvasTexture(sparkleCanvas); sparkleMap.generateMipmaps = false; sparkleMap.minFilter = THREE.LinearFilter;
-  terrySurface = { normal: normalMap, roughness: roughnessMap, pigment, sparkle: sparkleMap };
+  const sparkleNormal = new THREE.CanvasTexture(facetCanvas); sparkleNormal.generateMipmaps = false; sparkleNormal.minFilter = THREE.LinearFilter;
+  terrySurface = { normal: normalMap, roughness: roughnessMap, pigment, sparkle: sparkleMap, sparkleNormal };
   return terrySurface;
 }
 
-function physicalMaterials(art: Artwork) {
-  const terry = art.material === "terry";
-  const resolution = 32, surface = terry ? terryGrainSurface() : fusedGrainSurface();
+type BeadMaterials = { faces: THREE.MeshPhysicalMaterial[]; mask?: THREE.MeshBasicMaterial };
+function physicalMaterials(art: Artwork): BeadMaterials {
+  const terry = art.material === "terry", jelly = art.material === "jelly";
+  const resolution = 16, surface = terry ? terryGrainSurface() : fusedGrainSurface();
+  const glints = terryGrainSurface();
   const color = document.createElement("canvas"); color.width = 40 * resolution; color.height = 42 * resolution;
   const ctx = color.getContext("2d")!;
   ctx.fillStyle = art.beads[0]?.color ?? "#f0eade"; ctx.fillRect(0, 0, color.width, color.height);
   for (const bead of art.beads) { ctx.fillStyle = bead.color; ctx.fillRect((bead.x - .2) * resolution, (bead.y - .2) * resolution, resolution * 1.4, resolution * 1.4); }
   for (const bead of art.beads) { ctx.fillStyle = bead.color; ctx.fillRect(bead.x * resolution, bead.y * resolution, resolution, resolution); }
   const fused = document.createElement("canvas"); fused.width = color.width; fused.height = color.height;
-  const fusedCtx = fused.getContext("2d")!; fusedCtx.filter = "blur(1.4px)"; fusedCtx.drawImage(color, 0, 0);
+  const fusedCtx = fused.getContext("2d")!; fusedCtx.filter = "blur(.7px)"; fusedCtx.drawImage(color, 0, 0);
   const image = fusedCtx.getImageData(0, 0, color.width, color.height);
-  for (let pixel = 0; pixel < surface.pigment.length; pixel++) {
+  for (let pixel = 0; pixel < color.width * color.height; pixel++) {
     const i = pixel * 4;
-    const pearl = !terry && beadGrain ? beadGrain[i] / 255 : .86;
-    const tint = surface.pigment[pixel] * (1 + (pearl - .86) * .15);
+    const grainPixel = Math.floor(pixel / color.width) * 2 * 1280 + (pixel % color.width) * 2;
+    const pearl = !terry && beadGrain ? beadGrain[grainPixel * 4] / 255 : .86;
+    const tint = surface.pigment[grainPixel] * (1 + (pearl - .86) * .15);
     for (let c = 0; c < 3; c++) image.data[i + c] *= tint;
   }
   ctx.putImageData(image, 0, 0);
   const map = new THREE.CanvasTexture(color); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4;
-  const face = terry ? new THREE.MeshPhysicalMaterial({
+  let transmissionMap: THREE.CanvasTexture | undefined, opacityMap: THREE.CanvasTexture | undefined, jellyNormal: THREE.CanvasTexture | undefined;
+  if (jelly) {
+    const transmission = document.createElement("canvas"), opacity = document.createElement("canvas");
+    for (const canvas of [transmission, opacity]) { canvas.width = color.width; canvas.height = color.height; }
+    const tctx = transmission.getContext("2d")!, actx = opacity.getContext("2d")!;
+    tctx.fillStyle = "#000"; tctx.fillRect(0, 0, color.width, color.height);
+    actx.fillStyle = "#fff"; actx.fillRect(0, 0, color.width, color.height);
+    const gelColors = new Set(art.translucentColors);
+    for (const bead of art.beads) if (gelColors.has(bead.color)) {
+      tctx.fillStyle = "#fff"; actx.fillStyle = "#dedede";
+      for (const target of [tctx, actx]) target.fillRect(bead.x * resolution, bead.y * resolution, resolution, resolution);
+    }
+    const gelBeads = art.beads.filter(bead => gelColors.has(bead.color));
+    const minX = Math.min(...gelBeads.map(b => b.x)), maxX = Math.max(...gelBeads.map(b => b.x)) + 1;
+    const minY = Math.min(...gelBeads.map(b => b.y)), maxY = Math.max(...gelBeads.map(b => b.y)) + 1;
+    const lens = document.createElement("canvas"); lens.width = color.width; lens.height = color.height;
+    const lensCtx = lens.getContext("2d")!, lensPixels = lensCtx.createImageData(lens.width, lens.height);
+    const gelPixels = tctx.getImageData(0, 0, lens.width, lens.height).data;
+    for (let y = 0; y < lens.height; y++) for (let x = 0; x < lens.width; x++) {
+      const i = (y * lens.width + x) * 4, body = gelPixels[i] > 128;
+      const frontFacet = art.id === "cake-violet" && y / resolution >= 23;
+      const left = frontFacet ? 15 : minX, right = frontFacet ? 30 : maxX;
+      const top = frontFacet ? 22 : minY, bottom = frontFacet ? 35 : maxY;
+      const nx = body ? ((x / resolution - left) / (right - left) - .5) * 1.3 : 0;
+      const ny = body ? -((y / resolution - top) / (bottom - top) - .5) * 1.4 : 0;
+      const length = Math.hypot(nx, ny, 1);
+      lensPixels.data[i] = (nx / length * .5 + .5) * 255;
+      lensPixels.data[i + 1] = (ny / length * .5 + .5) * 255;
+      lensPixels.data[i + 2] = (1 / length * .5 + .5) * 255; lensPixels.data[i + 3] = 255;
+    }
+    lensCtx.putImageData(lensPixels, 0, 0); jellyNormal = new THREE.CanvasTexture(lens);
+    transmissionMap = new THREE.CanvasTexture(transmission); opacityMap = new THREE.CanvasTexture(opacity);
+  }
+  const face = jelly ? new THREE.MeshPhysicalMaterial({
+    map, transmission: .62, transmissionMap, thickness: .5, ior: 1.45,
+    roughness: .18, metalness: 0, attenuationDistance: 3,
+    normalMap: jellyNormal, normalScale: new THREE.Vector2(1, 1),
+    clearcoat: 1, clearcoatMap: glints.sparkle, clearcoatRoughness: .2,
+    clearcoatNormalMap: glints.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
+  }) : terry ? new THREE.MeshPhysicalMaterial({
     map, normalMap: surface.normal, normalScale: new THREE.Vector2(1, 1),
-    roughness: 1, metalness: 0, specularIntensity: .12,
-    clearcoat: .9, clearcoatMap: surface.sparkle, clearcoatRoughness: .075,
-    clearcoatNormalMap: fusedGrainSurface().normal, clearcoatNormalScale: new THREE.Vector2(1, 1),
-    sheen: .12, sheenRoughness: 1, sheenColor: new THREE.Color("#fff6f4"),
+    color: new THREE.Color(1.23, 1.23, 1.23), roughness: 1, metalness: 0, specularIntensity: .06,
+    clearcoat: 1, clearcoatMap: glints.sparkle, clearcoatRoughness: .2,
+    clearcoatNormalMap: glints.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
+    sheen: .02, sheenRoughness: 1, sheenColor: new THREE.Color("#fff6f4"),
   }) : new THREE.MeshPhysicalMaterial({
     map, normalMap: surface.normal, normalScale: new THREE.Vector2(.3, .3),
     roughnessMap: surface.roughness, roughness: .85, metalness: 0, ior: 1.5,
-    clearcoat: .05, clearcoatRoughness: .32,
-    clearcoatNormalMap: surface.normal, clearcoatNormalScale: new THREE.Vector2(.4, .4),
+    clearcoat: 1, clearcoatMap: glints.sparkle, clearcoatRoughness: .2,
+    clearcoatNormalMap: glints.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
   });
-  return [face, new THREE.MeshPhysicalMaterial({ map, roughness: terry ? .95 : .48, metalness: 0, clearcoat: terry ? 0 : .25, clearcoatRoughness: .4, specularIntensity: terry ? .15 : 1 })];
+  const side = jelly ? face.clone() : new THREE.MeshPhysicalMaterial({ map, roughness: terry ? .95 : .48, metalness: 0, clearcoat: terry ? 0 : .25, clearcoatRoughness: .4, specularIntensity: terry ? .15 : 1 });
+  if (jelly) { side.normalMap = null; side.clearcoatNormalMap = null; }
+  return { faces: [face, side], mask: jelly ? new THREE.MeshBasicMaterial({ color: 0xffffff, alphaMap: opacityMap, transparent: true, depthWrite: true }) : undefined };
 }
 
-type BeadStudio = { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.OrthographicCamera; mesh: THREE.Mesh; materials: Map<string, THREE.MeshPhysicalMaterial[]>; completed: Map<string, THREE.BufferGeometry> };
+type BeadStudio = { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.OrthographicCamera; mesh: THREE.Mesh; materials: Map<string, BeadMaterials>; completed: Map<string, THREE.BufferGeometry> };
 let beadStudio: BeadStudio | undefined;
 let beadWebGLUnavailable = false;
 function getBeadStudio() {
@@ -504,11 +575,18 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
     if (count === art.beads.length) studio.completed.set(art.id, geometry);
   }
   const materials = studio.materials.get(art.id) ?? physicalMaterials(art); studio.materials.set(art.id, materials);
-  studio.mesh.geometry = geometry; studio.mesh.material = materials;
+  studio.mesh.geometry = geometry; studio.mesh.material = materials.faces;
   const aspect = width / height, viewHeight = Math.max(45, 43 / aspect);
   Object.assign(studio.camera, { left: -viewHeight * aspect / 2, right: viewHeight * aspect / 2, top: viewHeight / 2, bottom: -viewHeight / 2 }); studio.camera.updateProjectionMatrix();
+  studio.scene.background = materials.mask ? new THREE.Color(APP_BACKGROUND) : null;
   studio.renderer.setSize(width, height, false); studio.renderer.render(studio.scene, studio.camera);
   ctx.drawImage(studio.renderer.domElement, 0, 0);
+  if (materials.mask) {
+    studio.scene.background = null; studio.mesh.material = materials.mask;
+    studio.renderer.render(studio.scene, studio.camera);
+    ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(studio.renderer.domElement, 0, 0); ctx.globalCompositeOperation = "source-over";
+    studio.mesh.material = materials.faces;
+  }
   if (count !== art.beads.length) geometry.dispose();
   return true;
 }
@@ -524,7 +602,7 @@ function BeadArt({ art, count = art.beads.length, animated = false }: { art: Art
     void loadBeadGrain().then(() => { textureReady = true; paint(); });
     return () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); };
   }, [art, count]);
-  return <div className="bc-art bc-art-3d" role="img" aria-label={`${art.name} fused plastic bead pattern`} data-material={art.material} data-render-mode={ready ? "physical" : "fallback"} data-placed={count} data-active-color={art.beads[Math.max(0, count - 1)]?.color}>
+  return <div className="bc-art bc-art-3d" role="img" aria-label={`${art.name}, ${art.material === "jelly" ? "translucent jelly" : art.material === "terry" ? "soft textured" : "pearlescent"} bead pattern`} data-material={art.material} data-render-mode={ready ? "physical" : "fallback"} data-placed={count} data-active-color={art.beads[Math.max(0, count - 1)]?.color}>
     <canvas ref={ref} aria-hidden="true" style={{ width: "100%", height: "100%", opacity: ready ? 1 : 0 }} />
     {!ready && <div aria-hidden="true" style={{ display: "contents" }}><FlatBeadArt art={art} count={count} animated={animated} /></div>}
   </div>;
@@ -627,7 +705,7 @@ const styles = `
 .bc-stage{width:100%;height:100%;min-height:520px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;color:#242a26;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;isolation:isolate}.bc-stage[data-preview="interactive"]{min-height:844px}
 .bc-stage *{box-sizing:border-box}.bc-stage button{cursor:pointer;font-family:inherit;color:inherit}.bc-stage button:focus-visible{outline:2px solid #3c5044;outline-offset:4px}.bc-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .bc-phone-space{position:relative;flex-shrink:0;width:min(390px,calc(100% - 8px));aspect-ratio:1406/2822}.bc-phone{position:absolute;inset:0;width:100%;height:100%;transform-origin:top left;container-type:inline-size}.bc-device-frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
-.bc-screen{position:absolute;left:7.254623%;top:3.543586%;width:85.775249%;height:92.912828%;overflow:hidden;mask-image:url('/components/bead-club/iphone-screen-mask.svg');-webkit-mask-image:url('/components/bead-club/iphone-screen-mask.svg');mask-size:100% 100%;-webkit-mask-size:100% 100%;background:#e4e4e4;isolation:isolate}
+.bc-screen{position:absolute;left:7.254623%;top:3.543586%;width:85.775249%;height:92.912828%;overflow:hidden;mask-image:url('/components/bead-club/iphone-screen-mask.svg');-webkit-mask-image:url('/components/bead-club/iphone-screen-mask.svg');mask-size:100% 100%;-webkit-mask-size:100% 100%;background:${APP_BACKGROUND};isolation:isolate}
 
 .bc-status{height:55px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:4px clamp(15px,6cqw,24px) 0 clamp(16px,6.7cqw,26px);z-index:12;font-size:14px;font-weight:600;color:#242a26;background:transparent}.bc-indicators{display:flex;align-items:center;gap:5px}.bc-battery{width:21px;height:10px;border-radius:3px;border:1px solid currentColor;position:relative}.bc-battery:before{content:'';position:absolute;inset:1px;background:currentColor;border-radius:1px}.bc-battery:after{content:'';position:absolute;width:2px;height:4px;right:-4px;top:2px;background:currentColor;border-radius:1px}
 .bc-header::before,.bc-detail-nav::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
@@ -636,6 +714,6 @@ const styles = `
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
 .bc-glass-edge{position:absolute;bottom:0;left:51%;right:0;height:90px;pointer-events:none;z-index:6;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000);-webkit-mask-image:linear-gradient(transparent,#000)}.bc-glass-edge i:nth-child(2){top:25px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.bc-glass-edge i:nth-child(3){top:54px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.bc-screen[data-detail="true"] .bc-glass-edge{height:32px}
 .bc-glass-reflection{position:absolute;inset:0;border-radius:inherit;z-index:7;pointer-events:none;box-shadow:inset 0 0 2px #fff4}
-.bc-detail{position:absolute;inset:55px 0 0;background:#e4e4e4;z-index:4;overflow-y:auto;scrollbar-width:none;padding-bottom:58px}.bc-detail-nav{position:sticky;top:0;z-index:8;min-height:56px;display:flex;align-items:center;padding:0 12px;color:#fff}.bc-icon{width:44px;height:44px;min-width:44px;min-height:44px;border:1px solid #fff9;background:#ffffff24;backdrop-filter:blur(10px) saturate(1.25);-webkit-backdrop-filter:blur(10px) saturate(1.25);box-shadow:inset 1px 1px 1px #fffc,0 3px 9px #17231a0b;display:grid;place-items:center;border-radius:50%}.bc-icon svg{filter:drop-shadow(0 1px 1px #28362acc)}.bc-board{height:330px;margin:0 10px;position:relative;padding:8px 0;display:flex;justify-content:center;align-items:center}.bc-board .bc-art{width:100%;height:100%}.bc-detail-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px 0}.bc-detail-caption h2{flex:1;min-width:0;font-size:1.375rem;line-height:1.35;font-weight:500;letter-spacing:-.4px;margin:0;overflow-wrap:anywhere}.bc-playback{flex:0 0 auto;position:relative}.bc-play-button{position:relative;display:grid;place-items:center;width:60px;height:60px;aspect-ratio:1;border:0;border-radius:50%;background:linear-gradient(145deg,#ffffff80,#ffffff20 48%,#ffffff45);backdrop-filter:blur(12px) saturate(1.3);-webkit-backdrop-filter:blur(12px) saturate(1.3);box-shadow:inset 1px 1px 1px #fffe,inset -1px -1px 2px #ffffff80,0 5px 16px #24372b12;color:#304236;padding:0;flex-shrink:0}.bc-play-button::before{content:'';position:absolute;inset:2px;border-radius:50%;background:radial-gradient(ellipse at 28% 14%,#ffffff90,transparent 65%);pointer-events:none}.bc-play-button[aria-pressed="true"]{box-shadow:inset 1px 1px 1px #fff,inset -1px -1px 3px #ffffff80,0 3px 12px #24372b16}.bc-play-outline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.bc-play-symbol{position:relative;margin-left:2px}.bc-play-progress{transition:stroke-dashoffset .08s linear}
+.bc-detail{position:absolute;inset:55px 0 0;background:${APP_BACKGROUND};z-index:4;overflow-y:auto;scrollbar-width:none;padding-bottom:58px}.bc-detail-nav{position:sticky;top:0;z-index:8;min-height:56px;display:flex;align-items:center;padding:0 12px;color:#fff}.bc-icon{width:44px;height:44px;min-width:44px;min-height:44px;border:1px solid #fff9;background:#ffffff24;backdrop-filter:blur(10px) saturate(1.25);-webkit-backdrop-filter:blur(10px) saturate(1.25);box-shadow:inset 1px 1px 1px #fffc,0 3px 9px #17231a0b;display:grid;place-items:center;border-radius:50%}.bc-icon svg{filter:drop-shadow(0 1px 1px #28362acc)}.bc-board{height:330px;margin:0 10px;position:relative;padding:8px 0;display:flex;justify-content:center;align-items:center}.bc-board .bc-art{width:100%;height:100%}.bc-detail-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px 0}.bc-detail-caption h2{flex:1;min-width:0;font-size:1.375rem;line-height:1.35;font-weight:500;letter-spacing:-.4px;margin:0;overflow-wrap:anywhere}.bc-playback{flex:0 0 auto;position:relative}.bc-play-button{position:relative;display:grid;place-items:center;width:60px;height:60px;aspect-ratio:1;border:0;border-radius:50%;background:linear-gradient(145deg,#ffffff80,#ffffff20 48%,#ffffff45);backdrop-filter:blur(12px) saturate(1.3);-webkit-backdrop-filter:blur(12px) saturate(1.3);box-shadow:inset 1px 1px 1px #fffe,inset -1px -1px 2px #ffffff80,0 5px 16px #24372b12;color:#304236;padding:0;flex-shrink:0}.bc-play-button::before{content:'';position:absolute;inset:2px;border-radius:50%;background:radial-gradient(ellipse at 28% 14%,#ffffff90,transparent 65%);pointer-events:none}.bc-play-button[aria-pressed="true"]{box-shadow:inset 1px 1px 1px #fff,inset -1px -1px 3px #ffffff80,0 3px 12px #24372b16}.bc-play-outline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.bc-play-symbol{position:relative;margin-left:2px}.bc-play-progress{transition:stroke-dashoffset .08s linear}
 
 .bc-bead-drop{animation:bc-place .24s cubic-bezier(.2,.65,.3,1) both}@keyframes bc-place{from{opacity:0;transform:translateY(-.5px)}to{opacity:1;transform:translateY(0) scale(1)}}@container(max-width:280px){.bc-indicators{gap:3px}.bc-indicators svg{width:13px}.bc-battery{width:18px}}@media(prefers-reduced-motion:reduce){.bc-stage *{animation:none!important;transition:none!important}}`;
