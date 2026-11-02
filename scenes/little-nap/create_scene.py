@@ -18,6 +18,7 @@ from soup import create_water
 from paper_fibers import xuan_paper
 from animation import animate_scene,create_stars,POSTER
 from lettering import create_lettering
+from cleanup_scene import prepare_download
 
 DRAFT='--draft' in sys.argv
 ANIMATION='--animation' in sys.argv
@@ -75,6 +76,7 @@ for screen in bpy.data.screens:
 bpy.ops.object.select_all(action='DESELECT');pigs[0].select_set(True);bpy.context.view_layer.objects.active=pigs[0]
 bpy.ops.file.pack_all()
 (OUT/'LICENSE.txt').write_text((ROOT/'LICENSE').read_text()+'\n\nCOURIER PRIME TYPEFACE\n\n'+(HERE.parent/'apple-club/fonts/OFL.txt').read_text())
+prepare_download()
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'little-nap.blend'),compress=True)
 if not SAVE_ONLY:
     scene.render.filepath=str(OUT/'little-nap.png');assert bpy.ops.render.render(write_still=True)=={'FINISHED'}

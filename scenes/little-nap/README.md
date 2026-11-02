@@ -48,6 +48,13 @@ All geometry, procedural materials, facial marks, water motion, camera framing,
 lettering and lights remain editable. Courier Prime is packed into the scene;
 no add-ons or external files are needed to open the saved download.
 
+The download opens in the camera's material preview at frame 169. Objects are
+grouped by paper, piglets, bowl, water, lighting, lettering, stars and animation
+controls. Unused data is removed. The packed font has a relative path, and
+Cycles defaults to CPU so the file also renders without a configured GPU.
+Animation renders write to a `renders/` folder beside the downloaded file.
+Turn viewport overlays back on to inspect lights and control objects.
+
 Rebuild from the repository root:
 
 ```sh
@@ -72,6 +79,7 @@ fixed camera, sliding entrance, startled expressions, individual sways, followin
 ripples and golden stars.
 `watercolor_materials.py`, `pencil_finish.py` and `paper_fibers.py` define the
 pencil washes and paper tooth; `lettering.py` adds native editable text.
+`cleanup_scene.py` prepares the portable download without changing the artwork.
 The shared pencil helpers in `../shared/` also support the earlier Apple Club scene.
 
 ## Verification and license

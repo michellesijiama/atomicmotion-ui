@@ -44,6 +44,12 @@ assert len(water.data.shape_keys.key_blocks)==3
 assert len([o for o in scene.objects if o.name.startswith('Ripple carrier')])==5
 assert all(f.packed_file for f in bpy.data.fonts if f.filepath and f.filepath!='<builtin>')
 assert bpy.data.texts.get('READ ME · Little Nap')
+assert bpy.data.collections.get('08 · Animation controls')
+assert scene.cycles.device=='CPU','Download should not require a configured GPU'
+assert scene.render.filepath=='//renders/little-nap-'
+for name in ('meshes','materials','curves','cameras','lights','worlds','actions','collections','fonts'):
+    assert not [block.name for block in getattr(bpy.data,name) if block.users==0],('Unused data',name)
+assert all(font.filepath.startswith('//') for font in bpy.data.fonts if font.packed_file)
 assert scene.frame_end==288 and scene.render.fps==24
 assert (scene.render.resolution_x,scene.render.resolution_y)==(1080,1440)
 assert len([o for o in scene.objects if o.type=='LIGHT'])==3
