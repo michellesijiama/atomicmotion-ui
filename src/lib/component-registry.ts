@@ -109,7 +109,7 @@ export const componentRegistry = {
     index: "022",
     title: "Bead Club",
     description:
-      "A menu of tiny bead creations inside an official silver iPhone 16 Pro bezel. Browse Cakes, Treats and Friends in swipeable rows with larger artwork, soft terry textures and fine glitter. Open a piece to replay it one color at a time, including two translucent jelly cakes.",
+      "A café-style menu of bead creations inside a silver iPhone that fits the available screen height. Browse Cakes, Treats and Friends in swipeable rows with large textured artwork, sample prices and descriptions. Open a piece to replay its creation one color at a time.",
     category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
