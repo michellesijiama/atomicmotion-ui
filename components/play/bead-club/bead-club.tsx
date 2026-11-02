@@ -17,7 +17,7 @@ type Bead = { x: number; y: number; color: string };
 type BeadMaterial = "pressed" | "frosted" | "glitter";
 type Artwork = { material: BeadMaterial; id: string; name: string; category: "Sweet things" | "Little friends"; background: string; beads: Bead[]; colors: string[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
-const P = { pink: "#e7a9b1", rose: "#c97b8a", cream: "#fff1d8", white: "#f9f3e9", blue: "#a6c1d0", red: "#b93e48", dark: "#68343c", green: "#8baf83", leaf: "#547d60", yellow: "#efd07f", brown: "#a47659" };
+const P = { pink: "#ff90bd", rose: "#e75793", cream: "#fff2c7", white: "#fffdf4", blue: "#65cff1", red: "#ed3551", dark: "#5b2940", green: "#6cd690", leaf: "#279d69", yellow: "#ffdf53", brown: "#bf8050" };
 
 // Original patterns, made from a bead grid rather than flattened pictures.
 // Every occupied cell is a separate bead and can be replayed in placement order.
