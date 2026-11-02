@@ -34,9 +34,9 @@ export default async function ModelPage({ params }: Props) {
         <SiteHeader section="3d-studio" />
       </div>
       <main className="am-reveal min-h-0 flex-1 overflow-y-auto px-6 py-10 sm:px-8 lg:px-12" style={{ animationDelay: "0.1s" }}>
-        <div className="mx-auto grid min-h-full w-full max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16 xl:gap-24">
-          <div className="flex min-w-0 justify-center lg:justify-end">
-            <ModelPreview model={model} eager frameClassName="flex min-w-0 w-full max-w-[30rem] justify-center lg:justify-end" className="block h-auto w-full max-w-full rounded-[15px] object-contain lg:max-h-[calc(100dvh-12rem)] lg:w-auto" />
+        <div className="mx-auto grid min-h-full w-full max-w-6xl items-center gap-10 lg:w-fit lg:grid-cols-[auto_minmax(0,28rem)] lg:gap-16 xl:gap-24">
+          <div className="flex min-w-0 justify-center lg:w-[min(30rem,calc((100dvh-12rem)*0.75))]">
+            <ModelPreview model={model} eager frameClassName="block min-w-0 w-full max-w-[30rem]" className="block h-auto w-full max-w-full rounded-[15px] object-contain" />
           </div>
           <section aria-labelledby="model-title" className="grid min-w-0 gap-7 lg:max-w-md">
             <div className="grid gap-5">
