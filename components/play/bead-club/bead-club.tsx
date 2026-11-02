@@ -343,7 +343,8 @@ function physicalMaterials(art: Artwork) {
     const v = 128 + (pearl - .88) * 230 + (fine - .5) * 4;
     image.data[i] = image.data[i + 1] = image.data[i + 2] = v; image.data[i + 3] = 255;
     // Minute pigment variation and embedded flakes; never an opaque artwork background.
-    const tint = (.98 + (mini.seed % 17) / 500) * (1 + (pearl - .88) * strength);
+    // Center the grain around neutral reflectance so it doesn't gray the pigment.
+    const tint = (.985 + (mini.seed % 17) / 600) * (1 + (pearl - .86) * strength);
     for (let c = 0; c < 3; c++) {
       const base = colorImage.data[i + c] * tint;
       colorImage.data[i + c] = base + (255 - base) * Math.min(.8, glint * .6 + (fleck ? .08 : 0));
@@ -377,9 +378,9 @@ function getBeadStudio() {
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   const scene = new THREE.Scene();
   const room = new RoomEnvironment(); const pmrem = new THREE.PMREMGenerator(renderer);
-  const environment = pmrem.fromScene(room, .04).texture; scene.environment = environment; scene.environmentIntensity = .28; room.dispose(); pmrem.dispose();
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xaaa394, .08));
-  const light = new THREE.DirectionalLight(0xffffff, 1.1); light.position.set(-28, 38, 32); light.castShadow = true;
+  const environment = pmrem.fromScene(room, .04).texture; scene.environment = environment; scene.environmentIntensity = .36; room.dispose(); pmrem.dispose();
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xe6edfa, .18));
+  const light = new THREE.DirectionalLight(0xffffff, 1.7); light.position.set(-28, 38, 32); light.castShadow = true;
   Object.assign(light.shadow.camera, { left: -26, right: 26, top: 27, bottom: -27, near: 1, far: 120 });
   light.shadow.mapSize.set(512, 512); light.shadow.bias = -.0002; light.shadow.normalBias = .03; light.shadow.radius = 3.5;
   scene.add(light);
