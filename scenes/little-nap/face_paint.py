@@ -43,10 +43,16 @@ def paint_face(nodes,links,base,z0):
         ink_masks.append(stroke)
         nostril=ellipse(side*.075+.015,z0+.004,.021,.035)
         wash(nostril,(.16,.035,.025),'tiny ink nostril');ink_masks.append(nostril)
+    ears=[]
+    for side in (-1,1):
+        ear=op('MULTIPLY',ellipse(side*.68,.88,.10,.11),op('LESS_THAN',y,.02))
+        mix=node('ShaderNodeMixRGB','soft pink within each folded ear')
+        links.new(ear,mix.inputs[0]);links.new(result,mix.inputs[1]);mix.inputs[2].default_value=(.91,.37,.42,1)
+        result=mix.outputs[0];ears.append(ear)
     frame=nodes.new('NodeFrame');frame.label='FACE PAINT · flush pigment, no floating eye or nose objects'
     members=[n for n in nodes if n.label.startswith('Face ·')]
     for i,n in enumerate(members):n.parent=frame;n.location=((i%10)*180,-(i//10)*180)
     frame.location=(-1800,-2400)
     ink=ink_masks[0]
     for mask in ink_masks[1:]:ink=op('MAXIMUM',ink,mask)
-    return result,op('MULTIPLY',ink,front)
+    return result,op('MAXIMUM',op('MULTIPLY',ink,front),op('MULTIPLY',op('MAXIMUM',*ears),.70))

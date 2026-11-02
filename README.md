@@ -73,14 +73,15 @@ The scene packs its font and procedural materials; no external add-ons or textur
 
 The `/3d-studio` gallery presents editable Blender scenes alongside the interface
 library, using the same card grid and navigation. [Little Nap](scenes/little-nap/README.md)
-features two soft colored-pencil pig scoops stacked in a continuous blue lace bowl,
-with an eight-second loop: the bowl lands first, then two silky pudding pigs drop in,
-with soft rebounds, floating ink and warm glowing stars,
-a downloadable GIF and a 1080 × 1440
-still. Textured outlines surround sparse, paper-light color. Its models,
-procedural pigment shaders, paper grain, camera and light
-rig remain editable. Little Nap's scene assets use the MIT license;
-the packed Courier Prime typeface uses SIL OFL 1.1.
+features five whole, round pig tangyuan floating in clear water in a blue lace bowl.
+An eight-second loop keeps a fixed frontal camera while the dumplings gently
+float with tiny individual wobbles. Soft, volume-preserving shape changes, little nuzzles,
+following ripples and moving reflections bring the water to life.
+A downloadable GIF and a 1080 × 1440 still accompany the editable scene.
+Textured pencil outlines, pale pink and blue washes, fibrous paper, ink following the bowl rim
+and warm glowing stars retain the illustration style. The models, shaders,
+water waves, camera and three-light rig remain editable. Little Nap's original
+scene assets use MIT; the packed Courier Prime typeface uses SIL OFL 1.1.
 These scene downloads live in this repository and on the gallery; the
 `atomicmotion-free` export remains the React component library.
 

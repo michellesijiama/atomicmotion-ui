@@ -1,11 +1,15 @@
-"""Soft dessert hops, delayed ear flops, floating ink and quiet paper sparkles."""
+"""Fixed frontal camera, tiny independent tangyuan sways and following water ripples."""
 import bpy
 import math
+from mathutils import Vector
+
+DURATION=192
+POSTER=1
 
 
 def cyclic(obj):
-    action=obj.animation_data.action if obj.animation_data else None
-    if not action:return
+    if not obj.animation_data or not obj.animation_data.action:return
+    action=obj.animation_data.action
     bag=action.layers[0].strips[0].channelbag(obj.animation_data.action_slot)
     for curve in bag.fcurves:
         for key in curve.keyframe_points:
@@ -13,133 +17,89 @@ def cyclic(obj):
         curve.modifiers.new('CYCLES')
 
 
-def animate_pigs(group,bowl_group,duration=192):
-    lower=bpy.data.objects['Pig 1 · softly tilted pose']
-    upper=bpy.data.objects['Pig 2 · softly tilted pose']
-    controls=bpy.data.objects.new('MOTION · soft pudding controls',None)
-    bpy.context.scene.collection.objects.link(controls)
-    curves={
-        'lower_squish':[(1,1),(43,1),(49,.79),(56,1.085),(64,.955),(74,1),(78,1),(84,.91),(90,1.04),(101,1),(117,1),(123,.93),(131,1.04),(138,1.01),(146,.96),(155,1),(193,1)],
-        'upper_squish':[(1,1),(77,1),(84,.80),(91,1.095),(99,.955),(109,1),(119,1),(125,.96),(132,.93),(139,1.065),(148,.98),(157,1),(193,1)],
-        'hop_height':[(1,0),(123,0),(131,.075),(138,.12),(146,0),(193,0)],
-        'upper_air_gap':[(1,0),(127,0),(136,.025),(143,.035),(151,0),(193,0)],
-        'lower_drop':[(1,4.7),(33,4.7),(39,3.8),(45,1.75),(49,0),(181,0),(187,4.7),(193,4.7)],
-        'upper_drop':[(1,4.7),(67,4.7),(73,3.8),(79,1.75),(84,0),(181,0),(187,4.7),(193,4.7)],
-        'bowl_drop':[(1,4.6),(7,3.95),(13,2.1),(18,0),(23,.055),(29,0),(35,.012),(41,0),(181,0),(187,4.6),(193,4.6)],
-        'lower_wobble':[(1,0),(45,0),(51,.9),(57,-.55),(64,.28),(72,0),(80,0),(86,.5),(94,-.25),(105,0),(125,.3),(135,-.3),(147,.15),(157,0),(193,0)],
-        'upper_wobble':[(1,0),(80,0),(87,.85),(94,-.50),(101,.24),(111,0),(129,.28),(141,-.25),(153,0),(193,0)],
-        'drawing_visibility':[(1,1),(165,1),(181,0),(192,0),(193,1)],
-    }
-    for name,keys in curves.items():
-        for frame,value in keys:
-            controls[name]=float(value);controls.keyframe_insert(f'["{name}"]',frame=frame)
-    cyclic(controls)
-    def drive(obj,path,index,expression):
-        driver=obj.driver_add(path,index).driver;driver.type='SCRIPTED'
-        for name in curves:
-            if name not in expression:continue
-            variable=driver.variables.new();variable.name=name;variable.type='SINGLE_PROP'
-            variable.targets[0].id=controls;variable.targets[0].data_path=f'["{name}"]'
-        driver.expression=expression
-    for pose,base,sq,wob in [(lower,(.86,.70,.82),'lower_squish','lower_wobble'),(upper,(.74,.58,.59),'upper_squish','upper_wobble')]:
-        drive(pose,'scale',0,f'{base[0]} / sqrt({sq}) * (1 + .03 * {wob})')
-        drive(pose,'scale',1,f'{base[1]} / sqrt({sq}) / (1 + .03 * {wob})')
-        drive(pose,'scale',2,f'{base[2]} * {sq}')
-    drive(lower,'location',2,'.6256 + .92 * .82 * lower_squish + hop_height + lower_drop')
-    drive(upper,'location',2,'.6256 + 1.80 * .82 * lower_squish + hop_height + lower_drop + .92 * .59 * upper_squish + .0005 + upper_air_gap + upper_drop')
-    drive(upper,'rotation_euler',1,'-.06 + .04 * upper_wobble')
-    bowl=bpy.data.objects['Bowl · continuous blue vessel / ivory lace']
-    bowl_pose=bpy.data.objects.new('Bowl · soft landing pose',None);bowl_group.objects.link(bowl_pose)
-    bowl_pose.parent=bowl.parent
-    world=bowl.matrix_world.copy();bowl.parent=bowl_pose;bowl.matrix_world=world
-    drive(bowl_pose,'location',2,'bowl_drop')
-    for index,impact in [(1,49),(2,84)]:
-        body=bpy.data.objects[f'Pig {index} · round sleeping body']
-        body.shape_key_add(name='Basis')
-        flop=body.shape_key_add(name='Soft ear wobble');flop.slider_min=-.6
-        for base,target in zip(body.data.vertices,flop.data):
-            p=base.co
-            mask=max(0,min(1,(abs(p.x)-.58)/.30))*max(0,min(1,(p.z-.60)/.20))
-            mask*=max(0,min(1,(p.length-.98)/.09))
-            target.co.z-=.12*mask;target.co.x+=math.copysign(.035*mask,p.x)
-        for frame,value in [(1,0),(impact-3,0),(impact+4,.9),(impact+10,-.32),(impact+17,.35),(impact+25,0),(130,.16),(140,-.12),(153,0),(193,0)]:
-            flop.value=float(value);flop.keyframe_insert('value',frame=frame)
-        cyclic(body.data.shape_keys)
-    for name,frame in [('Bowl lands',18),('First pudding lands',49),('Second pudding lands',84),('Puddings settle',113),('Gentle shared hop',138),('Fade to paper',173)]:
-        bpy.context.scene.timeline_markers.new(name,frame=frame)
-    bpy.context.scene.frame_set(113)
-    return controls
-
-
-def fade_drawing(material,controls):
-    nodes,links=material.node_tree.nodes,material.node_tree.links
-    output=nodes.get('Material Output');surface=output.inputs['Surface'].links[0].from_socket
-    clear=nodes.new('ShaderNodeBsdfTransparent')
-    mix=nodes.new('ShaderNodeMixShader');mix.label='Drawing gently fades back into the paper'
-    links.new(clear.outputs[0],mix.inputs[1]);links.new(surface,mix.inputs[2]);links.new(mix.outputs[0],output.inputs['Surface'])
-    driver=mix.inputs[0].driver_add('default_value').driver;driver.type='SCRIPTED'
-    variable=driver.variables.new();variable.name='visibility';variable.type='SINGLE_PROP'
-    variable.targets[0].id=controls;variable.targets[0].data_path='["drawing_visibility"]'
-    driver.expression='visibility'
-
-
-def animate_ink(group,duration=192):
-    for i,obj in enumerate(group.objects):
-        original=obj.location.copy();angle=obj.rotation_euler.y
-        caption=obj.name.startswith('Caption')
-        amplitude=.012 if caption else .045
-        phase=(0 if obj.name.startswith('Little nap') else math.pi)+i*.06
-        for frame in range(1,duration+2,6):
-            t=math.tau*(frame-1)/duration
-            obj.location.z=original.z+amplitude*math.sin(t+phase)
-            obj.location.x=original.x+amplitude*.25*math.sin(t*2+phase)
-            obj.rotation_euler.y=angle+(.005 if caption else .028)*math.sin(t+phase)
-            obj.keyframe_insert('location',frame=frame);obj.keyframe_insert('rotation_euler',index=1,frame=frame)
+def animate_scene(camera,pigs,soup_group):
+    scene=bpy.context.scene;scene.frame_start=1;scene.frame_end=DURATION;scene.render.fps=24
+    target=Vector((.13,0,1.0));elevation=math.radians(19);azimuth=math.radians(-8)
+    camera.location=target+Vector((10*math.cos(elevation)*math.sin(azimuth),-10*math.cos(elevation)*math.cos(azimuth),10*math.sin(elevation)))
+    camera.rotation_euler=(target-camera.location).to_track_quat('-Z','Y').to_euler()
+    for i,pig in enumerate(pigs):
+        original=pig.location.copy();rotation=pig.rotation_euler.copy();radius=pig['Base radius']
+        pig['Motion']='A tiny individual buoyant sway, with its own phase, direction and soft elastic nuzzle.'
+        pig['Float height']=original.z
+        phase_offset=(.3,1.75,3.15,4.4,5.5)[i]
+        amplitude=(.012,.019,.010,.016,.014)[i]
+        softness=(.009,.013,.008,.011,.010)[i]
+        inward=Vector((original.x,original.y,0)).normalized()*.018
+        for frame in range(1,DURATION+2):
+            t=math.tau*(frame-1)/DURATION;phase=t+phase_offset
+            bob=amplitude*(.65*math.sin(phase)+.35*math.sin(2*t+phase_offset*1.7))
+            squish=1+softness*(.72*math.sin(phase+.7)+.28*math.sin(2*t+phase_offset*.3))
+            dx=.009*math.sin(phase)+.003*math.sin(2*t+phase_offset*.6)
+            dy=.007*math.cos(t+phase_offset*.6)
+            pig.location=original-inward+Vector((dx,dy,bob+radius*(squish-1)))
+            pig.scale=(radius/math.sqrt(squish),radius/math.sqrt(squish),radius*squish)
+            pig.rotation_euler=(rotation.x+.012*math.sin(phase)+.005*math.sin(2*t+phase_offset*.5),.009*math.sin(t+phase_offset*.4),rotation.z+.012*math.sin(t+phase_offset*1.2)+.006*math.sin(2*t+phase_offset))
+            pig.keyframe_insert('location',frame=frame);pig.keyframe_insert('scale',frame=frame);pig.keyframe_insert('rotation_euler',frame=frame)
+        cyclic(pig)
+    # Object-color uniforms animate the wash without recompiling its shader each frame.
+    ripples=[obj for obj in soup_group.objects if obj.name.startswith('Ripple ') and obj.type=='CURVE']
+    ripple_material=ripples[0].data.materials[0].copy();ripple_material.name='WATER · gentle shared ripple wash'
+    n,l=ripple_material.node_tree.nodes,ripple_material.node_tree.links
+    out=next(node for node in n if node.type=='OUTPUT_MATERIAL');surface=out.inputs['Surface'].links[0].from_socket
+    info=n.new('ShaderNodeObjectInfo');clear=n.new('ShaderNodeBsdfTransparent');fade=n.new('ShaderNodeMixShader')
+    l.new(info.outputs['Alpha'],fade.inputs[0]);l.new(clear.outputs[0],fade.inputs[1]);l.new(surface,fade.inputs[2]);l.new(fade.outputs[0],out.inputs['Surface'])
+    for obj in ripples:
+        obj.data.materials[0]=ripple_material
+        for frame in range(1,DURATION+2,3):
+            index=int(obj['Tangyuan'].split()[1])-1
+            phase=math.tau*(frame-1)/DURATION+(.3,1.75,3.15,4.4,5.5)[index]
+            spread=1+.018*math.sin(phase-.5)
+            obj.scale=(spread,spread,1);obj.color=(1,1,1,.17+.045*math.cos(phase-.6))
+            obj.keyframe_insert('scale',frame=frame);obj.keyframe_insert('color',index=3,frame=frame)
         cyclic(obj)
-    bpy.context.scene.frame_set(1)
+    reflections=[obj for obj in soup_group.objects if obj.name.startswith('Water reflection')]
+    material=reflections[0].data.materials[0]
+    n,l=material.node_tree.nodes,material.node_tree.links
+    emission=next(node for node in n if node.type=='EMISSION');original=emission.inputs['Color'].links[0].from_socket
+    info=n.new('ShaderNodeObjectInfo');multiply=n.new('ShaderNodeMixRGB');multiply.blend_type='MULTIPLY';multiply.inputs[0].default_value=1
+    l.new(original,multiply.inputs[1]);l.new(info.outputs['Color'],multiply.inputs[2]);l.new(multiply.outputs[0],emission.inputs['Color']);emission.inputs['Strength'].default_value=2
+    for i,obj in enumerate(reflections):
+        for frame in range(1,DURATION+2,3):
+            phase=math.tau*(frame-1)/DURATION
+            brightness=.65+.12*math.sin(phase+i*.7)
+            obj.color=(brightness,brightness,brightness,1)
+            pulse=1+.015*math.sin(phase+i*.5);obj.scale=(pulse,pulse,1);obj.rotation_euler.z=.018*math.sin(phase+i*.7)
+            obj.keyframe_insert('color',frame=frame);obj.keyframe_insert('scale',frame=frame);obj.keyframe_insert('rotation_euler',index=2,frame=frame)
+        cyclic(obj)
+    for label,frame in [('Quiet water',1),('Little individual sways',49),('Soft nuzzles',97),('A gentle drift',145)]:scene.timeline_markers.new(label,frame=frame)
 
 
-def create_stars(group,duration=192):
-    def halo_material():
-        mat=bpy.data.materials.new('STARS · warm translucent glow');mat.use_nodes=True
-        n,l=mat.node_tree.nodes,mat.node_tree.links;n.clear()
-        coord=n.new('ShaderNodeTexCoord')
-        xyz=n.new('ShaderNodeSeparateXYZ');l.new(coord.outputs['Generated'],xyz.inputs[0])
-        terms=[]
-        for socket in ('X','Z'):
-            delta=n.new('ShaderNodeMath');delta.operation='SUBTRACT';delta.inputs[1].default_value=.5;l.new(xyz.outputs[socket],delta.inputs[0])
-            term=n.new('ShaderNodeMath');term.operation='MULTIPLY';l.new(delta.outputs[0],term.inputs[0]);l.new(delta.outputs[0],term.inputs[1]);terms.append(term)
-        square=n.new('ShaderNodeMath');square.operation='ADD';l.new(terms[0].outputs[0],square.inputs[0]);l.new(terms[1].outputs[0],square.inputs[1])
-        exponent=n.new('ShaderNodeMath');exponent.operation='MULTIPLY';exponent.inputs[1].default_value=-23;l.new(square.outputs[0],exponent.inputs[0])
-        falloff=n.new('ShaderNodeMath');falloff.operation='POWER';falloff.inputs[0].default_value=math.e;l.new(exponent.outputs[0],falloff.inputs[1])
-        opacity=n.new('ShaderNodeMath');opacity.operation='MULTIPLY';opacity.inputs[1].default_value=.34;l.new(falloff.outputs[0],opacity.inputs[0])
-        emission=n.new('ShaderNodeEmission');emission.inputs['Color'].default_value=(1,.75,.27,1)
-        clear=n.new('ShaderNodeBsdfTransparent');mix=n.new('ShaderNodeMixShader');l.new(opacity.outputs[0],mix.inputs[0])
-        l.new(clear.outputs[0],mix.inputs[1]);l.new(emission.outputs[0],mix.inputs[2])
-        out=n.new('ShaderNodeOutputMaterial');l.new(mix.outputs[0],out.inputs['Surface'])
-        mat.surface_render_method='BLENDED'
-        return mat
-    halo=halo_material()
-    specs=[(-1.16,2.77,.085,0),(1.14,2.12,.070,1.9),(.91,3.57,.050,3.2),(-1.27,1.72,.037,4.3),(1.29,3.10,.034,.8)]
-    for index,(x,z,size,phase) in enumerate(specs,1):
-        parent=bpy.data.objects.new(f'Star {index} · glowing twinkle',None);group.objects.link(parent);parent.location=(x,-1.80,z)
-        vertices=[(math.cos(a)**3*size,-.025,math.sin(a)**3*size*1.25) for a in [math.tau*i/64 for i in range(64)]]
-        data=bpy.data.meshes.new('Four-point luminous sparkle');data.from_pydata(vertices,[],[tuple(range(64))])
-        core=bpy.data.objects.new(f'Sparkle core {index}',data);group.objects.link(core);core.parent=parent
-        material=bpy.data.materials.new(f'STAR {index} · luminous honey-white core');material.use_nodes=True
-        n,l=material.node_tree.nodes,material.node_tree.links;n.clear()
-        emission=n.new('ShaderNodeEmission');emission.inputs['Color'].default_value=(1,.58,.12,1)
-        out=n.new('ShaderNodeOutputMaterial');l.new(emission.outputs[0],out.inputs['Surface']);data.materials.append(material)
-        radius=size*3.6
-        mesh=bpy.data.meshes.new('Soft golden halo');mesh.from_pydata([(-radius,0,-radius),(radius,0,-radius),(radius,0,radius),(-radius,0,radius)],[],[(0,1,2,3)]);mesh.materials.append(halo)
-        glow=bpy.data.objects.new(f'Glow halo {index}',mesh);group.objects.link(glow);glow.parent=parent
-        for frame in range(1,duration+2,6):
-            t=math.tau*(frame-1)/duration
-            pulse=.18+.82*((1+math.sin(t*3+phase))/2)**2
-            parent.scale=(pulse,pulse,pulse);parent.location.z=z+.025*math.sin(t+phase)
-            parent.rotation_euler.y=.10*math.sin(t+phase)
-            parent.keyframe_insert('scale',frame=frame);parent.keyframe_insert('location',index=2,frame=frame);parent.keyframe_insert('rotation_euler',index=1,frame=frame)
-            emission.inputs['Strength'].default_value=2.0+4.0*pulse
-            emission.inputs['Strength'].keyframe_insert('default_value',frame=frame)
-        cyclic(parent);cyclic(material.node_tree)
-    bpy.context.scene.frame_set(113)
+def create_stars(group,camera):
+    halo=bpy.data.materials.new('STARS · soft golden glow on paper');halo.use_nodes=True
+    n,l=halo.node_tree.nodes,halo.node_tree.links;n.clear()
+    uv=n.new('ShaderNodeTexCoord');distance=n.new('ShaderNodeVectorMath');distance.operation='DISTANCE';distance.inputs[1].default_value=(.5,.5,0)
+    l.new(uv.outputs['UV'],distance.inputs[0])
+    ramp=n.new('ShaderNodeValToRGB');ramp.color_ramp.elements[0].position=.02;ramp.color_ramp.elements[0].color=(.32,.32,.32,1)
+    ramp.color_ramp.elements[1].position=.48;ramp.color_ramp.elements[1].color=(0,0,0,1);ramp.color_ramp.interpolation='EASE';l.new(distance.outputs['Value'],ramp.inputs[0])
+    clear=n.new('ShaderNodeBsdfTransparent');em=n.new('ShaderNodeEmission');em.inputs[0].default_value=(1,.72,.20,1)
+    mix=n.new('ShaderNodeMixShader');l.new(ramp.outputs[0],mix.inputs[0]);l.new(clear.outputs[0],mix.inputs[1]);l.new(em.outputs[0],mix.inputs[2])
+    out=n.new('ShaderNodeOutputMaterial');l.new(mix.outputs[0],out.inputs[0]);halo.surface_render_method='BLENDED'
+    specs=[(-1.48,1.30,.055),(1.48,1.32,.058),(-1.46,-1.39,.035),(1.38,-1.35,.038),(.49,1.83,.032)]
+    for i,(x,y,size) in enumerate(specs):
+        parent=bpy.data.objects.new(f'Star {i+1} · glowing twinkle',None);group.objects.link(parent);parent.parent=camera;parent.location=(x,y,-7.5)
+        verts=[(size*math.cos(a)**3,size*1.3*math.sin(a)**3,.01) for a in [math.tau*j/64 for j in range(64)]]
+        mesh=bpy.data.meshes.new('Four-point pencil sparkle');mesh.from_pydata(verts,[],[tuple(range(64))])
+        core=bpy.data.objects.new(f'Sparkle core {i+1}',mesh);group.objects.link(core);core.parent=parent
+        mat=bpy.data.materials.new(f'STAR {i+1} · luminous honey');mat.use_nodes=True
+        n,l=mat.node_tree.nodes,mat.node_tree.links;n.clear();em=n.new('ShaderNodeEmission');em.inputs[0].default_value=(1,.64,.16,1);em.inputs[1].default_value=2
+        out=n.new('ShaderNodeOutputMaterial');l.new(em.outputs[0],out.inputs[0]);mesh.materials.append(mat)
+        radius=size*4
+        mesh=bpy.data.meshes.new('Golden halo card');mesh.from_pydata([(-radius,-radius,0),(radius,-radius,0),(radius,radius,0),(-radius,radius,0)],[],[(0,1,2,3)])
+        uv=mesh.uv_layers.new()
+        for loop,co in zip(uv.data,[(0,0),(1,0),(1,1),(0,1)]):loop.uv=co
+        mesh.materials.append(halo);glow=bpy.data.objects.new(f'Glow halo {i+1}',mesh);group.objects.link(glow);glow.parent=parent
+        for frame in range(1,DURATION+2,6):
+            t=math.tau*(frame-1)/DURATION;pulse=.40+.60*((1+math.sin(3*t+i))/2)**2
+            parent.scale=(pulse,pulse,pulse);parent.location.y=y+.018*math.sin(t+i)
+            parent.keyframe_insert('scale',frame=frame);parent.keyframe_insert('location',index=1,frame=frame)
+        cyclic(parent)

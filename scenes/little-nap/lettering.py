@@ -1,37 +1,49 @@
-"""Small editable typewriter phrases that curl gently around the illustration."""
+"""Camera-facing, editable ink lettering on the fibrous paper composition."""
 import bpy
 import math
-import random
+from bisect import bisect_left
+from mathutils import Vector
+from animation import cyclic,DURATION
 
 
-def create_lettering(group,font_path):
+def create_lettering(group,font_path,camera):
     font=bpy.data.fonts.load(str(font_path))
-    rng=random.Random(33)
-    ink=bpy.data.materials.new('LETTERING · uneven ink pressed into paper');ink.use_nodes=True
+    ink=bpy.data.materials.new('LETTERING · warm dry ink');ink.use_nodes=True
     n,l=ink.node_tree.nodes,ink.node_tree.links;n.clear()
-    coord=n.new('ShaderNodeTexCoord');noise=n.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=930
-    l.new(coord.outputs['Window'],noise.inputs['Vector'])
-    ink_wash=n.new('ShaderNodeValToRGB');ink_wash.label='Dry and wet ink within each letter'
-    ink_wash.color_ramp.elements[0].color=(.17,.15,.13,1);ink_wash.color_ramp.elements[1].color=(.40,.37,.34,1)
-    l.new(noise.outputs['Fac'],ink_wash.inputs[0])
-    emission=n.new('ShaderNodeEmission');l.new(ink_wash.outputs[0],emission.inputs[0])
-    out=n.new('ShaderNodeOutputMaterial');l.new(emission.outputs[0],out.inputs[0])
-    def text(name,body,location,size):
-        data=bpy.data.curves.new(name,'FONT');data.font=font;data.body=body
-        data.size=size;data.align_x='CENTER';data.align_y='CENTER'
-        data.materials.append(ink)
-        obj=bpy.data.objects.new(name,data);group.objects.link(obj)
-        obj.location=location;obj.location.z+=rng.uniform(-.0015,.0015)
-        obj.rotation_euler=(math.pi/2,0,0)
+    coord=n.new('ShaderNodeTexCoord');noise=n.new('ShaderNodeTexNoise');noise.inputs['Scale'].default_value=740;l.new(coord.outputs['Window'],noise.inputs[0])
+    color=n.new('ShaderNodeValToRGB');color.color_ramp.elements[0].color=(.20,.17,.14,1);color.color_ramp.elements[1].color=(.52,.45,.38,1);l.new(noise.outputs['Fac'],color.inputs[0])
+    em=n.new('ShaderNodeEmission');l.new(color.outputs[0],em.inputs[0]);out=n.new('ShaderNodeOutputMaterial');l.new(em.outputs[0],out.inputs[0])
+    def text(name,body,x,y,size,angle=0):
+        data=bpy.data.curves.new(name,'FONT');data.font=font;data.body=body;data.size=size;data.align_x='CENTER';data.align_y='CENTER';data.materials.append(ink)
+        obj=bpy.data.objects.new(name,data);group.objects.link(obj);obj.parent=camera;obj.location=(x,y,-13.5);obj.rotation_euler.z=angle
+        for frame in range(1,DURATION+2,6):
+            t=math.tau*(frame-1)/DURATION
+            obj.location.y=y+.002*math.sin(t+x);obj.rotation_euler.z=angle+.002*math.sin(t+x)
+            obj.keyframe_insert('location',index=1,frame=frame);obj.keyframe_insert('rotation_euler',index=2,frame=frame)
+        cyclic(obj)
         return obj
-    def arc(label,body,cx,cz,radius,center_angle,size):
-        step=math.degrees(size*.64/radius)
-        start=center_angle+step*(len(body)-1)/2
+    # Trace the actual projected upper rim, then space letters by arc length.
+    bpy.context.view_layer.update()
+    center=camera.matrix_world.inverted()@Vector((0,0,1.425))
+    rx,ry=1.66,1.66*math.sin(math.radians(19))
+    points=[];distances=[0.]
+    for j in range(1201):
+        angle=math.pi*(1-j/1200)
+        normal=Vector((math.cos(angle)/rx,math.sin(angle)/ry)).normalized()
+        point=Vector((center.x+rx*math.cos(angle),center.y+ry*math.sin(angle)))+normal*.13
+        if points:distances.append(distances[-1]+(point-points[-1]).length)
+        points.append(point)
+    def rim_phrase(label,body,center_angle,size):
+        index=round((math.pi-math.radians(center_angle))/math.pi*1200)
+        middle=distances[index];advance=size*.61
         for i,char in enumerate(body):
-            angle=math.radians(start-i*step)
-            ob=text(f'{label} · letter {i+1:02d}',char,(cx+radius*math.cos(angle),-1.75,cz+radius*math.sin(angle)),size)
-            ob.rotation_euler[1]=math.pi/2-angle+rng.uniform(-.004,.004)
-    arc('Little nap','shh... little nap',.12,2.72,.98,42,.070)
-    arc('Sweet dreams','soft little dreams',-.05,1.38,1.12,135,.065)
-    text('Caption · bowl of dreams','A bowl full of soft little dreams.',(0,-1.75,.035),.067)
-    text('Caption · let the pudding sleep','Shh... let the little piggies sleep.',(0,-1.75,-.05),.067)
+            distance=middle+(i-(len(body)-1)/2)*advance
+            j=max(1,min(1199,bisect_left(distances,distance)))
+            amount=(distance-distances[j-1])/(distances[j]-distances[j-1])
+            point=points[j-1].lerp(points[j],amount)
+            tangent=points[j+1]-points[j-1]
+            text(f'{label} · {i+1:02d}',char,point.x,point.y,size,math.atan2(tangent.y,tangent.x))
+    rim_phrase('Five little wishes','five little wishes',128,.066)
+    rim_phrase('Sweet little nap','tiny wobbly dreams',52,.063)
+    text('Caption · dumpling dreams','Little dumplings, a very big nap.',0,-1.68,.067)
+    text('Caption · warm water','Warm water. Soft cheeks. Sweet dreams.',0,-1.80,.059)

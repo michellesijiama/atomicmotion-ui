@@ -1,44 +1,49 @@
 # Little Nap
 
-Two silky, rounded sleeping pig puddings stack in a cornflower-blue lace bowl,
-seen from the front. The lower pig sits inside the cavity; the upper pig rests
-along its companion's curved crown. Grainy rose-brown contours surround a very
-light pink pencil fill. Blue pencil lines describe the bowl and its lace. Much
-of the interior stays paper-light, with the irregular fibers still visible.
-Little ink-like English phrases and warm, softly glowing stars surround the drawing.
+Five whole, round sleeping pig tangyuan float in clear water in a cornflower-blue
+lace bowl. Pale pink and blue pencil washes, textured outlines and fibrous white
+paper retain the illustration style. Small English ink phrases follow the projected upper bowl rim, and softly
+glowing golden stars surround the drawing.
 
 - [Editable Blender scene](../../public/studio/little-nap/little-nap.blend)
 - [1080 × 1440 still](../../public/studio/little-nap/little-nap.png)
-- [Eight-second pudding landing GIF](../../public/studio/little-nap/little-nap-soft-hops.gif)
+- [Eight-second animated GIF](../../public/studio/little-nap/little-nap-soft-hops.gif)
 
-Created in **Blender 5.2.2 LTS**, with a Cycles still and an Eevee motion preview. The bowl is one closed, connected
-mesh, from the underside and low foot through the exterior, rounded lip,
-inner wall and cavity floor. The lace is a procedural UV pencil drawing of
-floral rosettes, fine mesh and scalloped borders. It stays attached as the
-bowl rotates. There are no separate polka-dot decorations.
+The existing GIF filename is retained so previously shared download URLs keep working.
 
-Each pig has a rose snout sculpted into its connected skin, slightly asymmetric
-closed eyelids and nostrils painted directly onto the surface, small folded ears,
-full cheeks and a soft drooping body. There are no separate floating facial pieces.
-The colored-pencil material uses uneven line pressure and broken pigment grains
-for the contour, with a sparse, pale interior that leaves the paper visible.
-The bowl's floral lace is drawn in blue pencil over a light blue wash.
-The connected bodies are voxel-welded, polished with seven smoothing passes and rendered with subdivision level 3.
-The upper underside follows the actual curved lower crown through an editable
-Geometry Nodes raycast, with a tiny clearance to prevent interpenetration.
-All models, shaders, paper, lighting, camera and text remain editable. Three area
-lights provide an upper-left key, a gentle fill and a rear light.
+Created in **Blender 5.2.2 LTS**, with a Cycles still and an Eevee motion preview.
+Each dumpling has one connected spherical skin, small folded ears and flush
+painted eyes, nostrils and snout. Every tangyuan remains whole. The bowl is one
+closed mesh from its foot and exterior through the rounded lip to the cavity.
+Its floral lace is a procedural UV pencil print. Clear water fits inside the
+cavity; the moving dumplings remain partly submerged.
 
-## Render and animate
+## Fixed camera, tiny individual sways and water
 
-Open the `.blend` and press F12. Press Space over the timeline to preview the
-eight-second loop: frames 1–192 at 24 fps. The `ANIMATION` root contains
-the slow sway. The bowl lands first, then the lower pudding drops in, followed
-by the upper pudding. Their volume-preserving squash and delayed rebounds settle
-into a gentle shared hop. Ink lettering floats and five golden stars glow. A height driver
-keeps the upper pig above the lower crown throughout each bounce. The drawing fades back into the paper before the next loop. The paper and
-camera stay fixed. The file opens on the settled poster at frame 113; jump to
-frame 1 to watch the entrance.
+Frames **1–192 at 24 fps** form a seamless eight-second loop. The camera remains
+at the frontal angle: 19-degree elevation and -8-degree azimuth. The saved file
+opens at the resting view, frame 1.
+
+Each tangyuan has a different phase, small amplitude and rocking direction.
+Their vertical drift stays below 0.026 scene units, with tiny forward nuzzles
+and almost imperceptible elastic shape changes. They remain in the water.
+These quiet motions repeat over eight seconds, preserving their volume and
+round shape without moving in identical rhythm.
+
+Ripple carriers follow each dumpling. Small expanding waves, editable surface
+wave shapes and changing reflections move with the water. Their opacity and
+brightness use object-color controls to keep the material shaders stable.
+
+Lettering is spaced by arc length along the actual projected bowl rim. It sits
+on the paper behind the floating dumplings. Three area lights provide a window
+key, soft fill and rim.
+
+## Open and rebuild
+
+Open the `.blend` and press F12 to render. Press Space over the timeline to play.
+All geometry, procedural materials, facial marks, water motion, camera framing,
+lettering and lights remain editable. Courier Prime is packed into the scene;
+no add-ons or external files are needed to open the saved download.
 
 Rebuild from the repository root:
 
@@ -46,36 +51,37 @@ Rebuild from the repository root:
 blender -b --factory-startup --python scenes/little-nap/create_scene.py
 ```
 
-Use `-- --draft` for a 720 × 960 preview in `.tmp/little-nap/`. Use
-`-- --animation` to render the 96 GIF source frames into
-`.tmp/little-nap/pudding-drop-frames/` at 480 × 640 and 12 fps using Eevee and subdivision level 2 for the small preview. The downloadable GIF is scaled to 396 × 528. Encode with:
+Use `-- --draft` for a 720 × 960 still in `.tmp/little-nap/`.
+Use `-- --save-only` to save without rendering. Use `-- --animation` to render
+96 preview frames at 480 × 640 and 12 fps into `.tmp/little-nap/hopping-gif-frames/`.
+Encode the downloadable GIF with:
 
 ```sh
-ffmpeg -framerate 12 -pattern_type glob -i '.tmp/little-nap/pudding-drop-frames/frame-*.png' \
-  -filter_complex '[0:v]scale=396:528:flags=lanczos,split[a][b];[a]palettegen=max_colors=64:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle' \
+ffmpeg -framerate 12 -pattern_type glob -i '.tmp/little-nap/hopping-gif-frames/frame-*.png' \
+  -filter_complex '[0:v]scale=396:528:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle' \
   -loop 0 public/studio/little-nap/little-nap-soft-hops.gif
 ```
 
-`bowl.py` and `pig.py` define the geometry; `contact.py` fits the scoop underside
-and `face_paint.py` draws the facial pigment on the skin. `animation.py` adds soft hops,
-ear wobble, staged landings, floating ink and glowing stars. `watercolor_materials.py` and
-`paper_fibers.py` define the pale colored fill and fibrous paper;
-`pencil_finish.py` adds the grainy contour and sparse interior; `lettering.py` adds the native, editable text. `../shared/` contains the pencil
-shaders and turntable helper, also used by the earlier Apple Club source.
-No external textures, fonts or add-ons are required by the saved `.blend`.
-Courier Prime is packed into the file under SIL OFL 1.1; its notice is in the
-embedded readme and downloadable `LICENSE.txt`. The source font and
-[license](../apple-club/fonts/OFL.txt) remain in the earlier scene's folder.
-The user-provided pig image informed the character proportions and is not
-embedded or distributed. All original scene geometry, code and renders use the
-repository's [MIT license](../../LICENSE).
+`pig.py` builds the round dumplings; `face_paint.py` paints their features directly
+onto the skin. `bowl.py` builds the continuous vessel and its lace. `soup.py`
+creates contained water, wave shapes and light strokes. `animation.py` adds the
+fixed camera, tiny individual sways, following ripples and golden stars.
+`watercolor_materials.py`, `pencil_finish.py` and `paper_fibers.py` define the
+pencil washes and paper tooth; `lettering.py` adds native editable text.
+The shared pencil helpers in `../shared/` also support the earlier Apple Club scene.
 
-Verify the saved geometry and animation:
+## Verification and license
 
 ```sh
 blender -b public/studio/little-nap/little-nap.blend --python scenes/little-nap/verify_scene.py
 ```
 
-The audit checks that both pig bodies and the bowl are connected and watertight,
-that the pig surfaces do not intersect during squash and hop extremes, and
-that fonts, transparency, portrait dimensions and the seamless eight-second loop are retained.
+The audit checks five whole, connected dumplings, a watertight bowl and water
+volume, safe spacing throughout the individual motion, continuous immersion, packed fonts, editable
+water waves, a fixed camera, three lights and the seamless loop.
+
+Original geometry, code and renders use the repository's [MIT license](../../LICENSE).
+The packed Courier Prime typeface uses SIL OFL 1.1; the notice is embedded in the
+Blender readme and downloadable `LICENSE.txt`. Its source font and
+[license](../apple-club/fonts/OFL.txt) remain in the earlier scene folder.
+Supplied visual references are not embedded or distributed.
