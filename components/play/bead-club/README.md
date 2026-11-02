@@ -1,6 +1,6 @@
 # Bead Club
 
-A minimal collection of six original bead patterns with rounded, heat-fused 3D geometry and soft plastic finishes inside an official silver iPhone 16 Pro bezel on a transparent stage. Open a tiny cake, strawberry or little friend and replay its creation bead by bead.
+A minimal collection of six original bead patterns with fused 3D bead relief, tiny pin dimples and pearly grain inside an official silver iPhone 16 Pro bezel on a transparent stage. Open a tiny cake, strawberry or little friend and replay its creation bead by bead.
 
 ![Bead Club preview](https://atomicmotion.dev/previews/bead-club.png)
 
