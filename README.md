@@ -66,7 +66,8 @@ integration instructions for every component.
 The `/3d-studio` gallery presents editable Blender scenes alongside the interface
 library, using the same card grid and navigation. [Little Nap](scenes/little-nap/README.md)
 features two soft colored-pencil pig scoops stacked in a continuous blue lace bowl,
-with a six-second loop of soft hops, slow swaying, floating ink and paper sparkles,
+with an eight-second loop: the bowl lands first, then two silky pudding pigs drop in,
+with soft rebounds, floating ink and warm glowing stars,
 a downloadable GIF and a 1080 × 1440
 still. Textured outlines surround sparse, paper-light color. Its models,
 procedural pigment shaders, paper grain, camera and light

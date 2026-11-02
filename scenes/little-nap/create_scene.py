@@ -17,7 +17,7 @@ from motion import setup_turntable
 from bowl import create_bowl
 from pig import create_pig
 from lettering import create_lettering
-from animation import animate_pigs, animate_ink, create_stars
+from animation import animate_pigs, animate_ink, create_stars, fade_drawing
 from paper_fibers import xuan_paper
 from pencil_finish import finish_bowl
 
@@ -43,8 +43,9 @@ tone.inputs[1].default_value=(.025,.08,.30,1)
 tone.inputs[2].default_value=(.35,.60,.95,1)
 vessel=create_bowl(bowl,blue)
 finish_bowl(blue)
-turntable=setup_turntable(pig,bowl,title='Little Nap',sway=True)
-animate_pigs(pig)
+turntable=setup_turntable(pig,bowl,title='Little Nap',sway=True,duration_frames=192,amplitude=.10)
+controls=animate_pigs(pig,bowl)
+for material in [blue,*[bpy.data.objects[f'Pig {i} · round sleeping body'].data.materials[0] for i in (1,2)]]:fade_drawing(material,controls)
 create_lettering(lettering,HERE.parent/'apple-club/fonts/CourierPrime-Regular.ttf')
 animate_ink(lettering);create_stars(stars)
 
@@ -103,10 +104,10 @@ readme.write('LITTLE NAP / ATOMIC MOTION\n\nBlender 5.2.2 / Cycles / 1080 x 1440
     'The pig shader uses actual transparency, variable pigment dilution,\n'
     'clear reverse faces and fibrous edge breakup, not glossy glass.\n'
     'The round bodies are voxel-welded, then polished and subdivided\n'
-    'at level 2, so the rounded silhouette has no profile-ring banding.\n'
-    'Animation: frames 1–144 at 24 fps; a seamless six-second soft hop loop.\n'
-    'Volume-preserving squash/stretch, delayed ears, tiny airy hops,\n'
-    'slow frontal swaying, floating ink and twinkling paper stars stay editable.\n'
+    'at render level 3, so the rounded silhouette has no profile-ring banding.\n'
+    'Animation: frames 1–192 at 24 fps; an eight-second pudding landing loop.\n'
+    'Volume-preserving squash/stretch, delayed ears, a bowl-first / two-pigs-next landing,\n'
+    'slow frontal swaying, floating ink and glowing golden stars stay editable.\n'
     'The upper height follows the lower crown with a driver to avoid overlap.\n'
     'Press Space over the timeline to play; ANIMATION holds the slow sway.\n'
     'The supplied pig reference guided the proportions and is not embedded.\n\n'
@@ -118,20 +119,21 @@ for screen in bpy.data.screens:
     for a in screen.areas:
         if a.type=='VIEW_3D':a.spaces.active.region_3d.view_perspective='CAMERA'
 bpy.ops.object.select_all(action='DESELECT');body.select_set(True);bpy.context.view_layer.objects.active=body
-scene.frame_set(5);bpy.context.view_layer.update()
-assert abs(bpy.data.objects['MOTION · soft pudding controls']['lower_squish']-.85)<1e-4, 'Squash motion is not evaluating'
-scene.frame_set(16);bpy.context.view_layer.update()
-assert bpy.data.objects['MOTION · soft pudding controls']['hop_height']>.19, 'Hop motion is not evaluating'
-scene.frame_set(1)
+scene.frame_set(49);bpy.context.view_layer.update()
+assert abs(controls['lower_squish']-.79)<1e-4, 'Landing squish is not evaluating'
+scene.frame_set(113)
 bpy.ops.file.pack_all()
 (OUT/'LICENSE.txt').write_text((ROOT/'LICENSE').read_text()+'\n\nCOURIER PRIME TYPEFACE\n\n'+(HERE.parent/'apple-club/fonts/OFL.txt').read_text())
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'little-nap.blend'),compress=True)
 scene.render.filepath=str(OUT/'little-nap.png')
 assert bpy.ops.render.render(write_still=True)=={'FINISHED'}, 'Still render was interrupted'
 if ANIMATION:
-    frames=ROOT/'.tmp/little-nap/rotation';frames.mkdir(parents=True,exist_ok=True)
+    frames=ROOT/'.tmp/little-nap/pudding-drop-frames';frames.mkdir(parents=True,exist_ok=True)
     scene.render.resolution_x=480;scene.render.resolution_y=640
     scene.render.engine='BLENDER_EEVEE';scene.eevee.taa_render_samples=16
+    for obj in (body,bpy.data.objects['Pig 2 · round sleeping body']):
+        for modifier in obj.modifiers:
+            if modifier.type=='SUBSURF':modifier.render_levels=2
     scene.frame_step=2;scene.render.filepath=str(frames/'frame-')
     assert bpy.ops.render.render(animation=True)=={'FINISHED'}, 'Animation render was interrupted'
 print('LITTLE_NAP_COMPLETE',OUT)

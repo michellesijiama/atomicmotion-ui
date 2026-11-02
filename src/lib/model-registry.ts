@@ -19,11 +19,11 @@ export const studioModels: StudioModel[] = [
     id: "little-nap",
     title: "Little Nap",
     description:
-      "Two sleepy piglet scoops bounce in a blue lace bowl. Grainy pencil outlines, pale color, floating notes and twinkling stars turn the still life into a playful paper illustration.",
+      "A blue lace bowl lands, then two soft pudding piglets drop in and wobble into a stack. Pencil outlines, pale color, floating notes and softly glowing stars bring this paper illustration to life.",
     image: "/studio/little-nap/little-nap.webp",
     gif: "/studio/little-nap/little-nap-soft-hops.gif",
     imageAlt:
-      "Two soft, asymmetrical sleeping pigs stack in a blue lace bowl, viewed from the front. Textured colored-pencil outlines and very pale fill on fibrous white paper, with floating English ink lettering and small four-point stars around the bowl.",
+      "Two rounded pudding piglets settle into a blue lace bowl, viewed from the front. Colored-pencil outlines and pale fill on fibrous white paper, with floating English notes and softly glowing golden stars.",
     blend: "/studio/little-nap/little-nap.blend",
     still: "/studio/little-nap/little-nap.png",
     license: "/studio/little-nap/LICENSE.txt",
