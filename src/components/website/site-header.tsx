@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ArrowUpRight, Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import type { StudioModel } from "@/lib/model-registry";
@@ -11,6 +11,7 @@ import { ComponentActions } from "@/components/website/component-actions";
 import { ModelActions } from "@/components/website/model-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
 import {
+  navIconButtonClass,
   navIconClass,
   navLinkClass,
   sectionNavLinkClass,
@@ -139,10 +140,9 @@ export function SiteHeader({
                 aria-expanded={activePanel === "component" || activePanel === "model"}
                 aria-controls={panelId}
                 aria-haspopup="true"
-                className={`${navLinkClass} max-w-48`}
+                className={navIconButtonClass}
               >
-                <span className="truncate">{component?.title ?? model?.title}</span>
-                <ChevronDown className={`${navIconClass} shrink-0 transition-transform ${activePanel === "component" || activePanel === "model" ? "rotate-180" : ""}`} aria-hidden="true" />
+                <Expand className={navIconClass} aria-hidden="true" />
               </button>
             </div>
           ) : null}
