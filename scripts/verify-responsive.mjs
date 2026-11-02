@@ -176,18 +176,36 @@ try {
       assert.ok(filled, `${model.id}: artwork fills its gallery card`);
       await visit(page, `/3d-studio/${model.id}`);
       await checkWidth(page, model.id);
-      const trigger = page.getByRole("button", { name: `Details about ${model.title}`, exact: true });
-      await reachable(trigger, `${model.id}: details`, { click: true });
-      await page.waitForTimeout(650);
+      assert.equal(await page.getByRole("button", { name: `Details about ${model.title}`, exact: true }).count(), 0, `${model.id}: details are inline`);
+      const order = await page.locator('main').evaluate((main) => {
+        const image = main.querySelector('img').getBoundingClientRect();
+        const details = main.querySelector('section[aria-labelledby="model-title"]').getBoundingClientRect();
+        return { imageBottom: image.bottom, detailsTop: details.top };
+      });
+      assert.ok(order.imageBottom <= order.detailsTop, `${model.id}: information follows artwork on mobile`);
       await reachable(page.getByRole("link", { name: "Download Blender file", exact: true }), `${model.id}: Blender download`);
-      await reachable(page.getByRole("button", { name: "Copy for AI", exact: true }), `${model.id}: AI context`);
+      assert.equal(await page.getByRole("button", { name: "Copy for AI", exact: true }).count(), 0, `${model.id}: no AI action`);
       await reachable(page.getByRole("link", { name: "Download GIF", exact: true }), `${model.id}: GIF download`);
-      await reachable(page.getByRole("button", { name: "Close", exact: true }), `${model.id}: close`, { click: true });
-      await page.waitForTimeout(650);
-      assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+      assert.equal(await page.getByRole("link", { name: "License", exact: true }).count(), 0, `${model.id}: no license action`);
       if (viewport.width === 390) await capture(page, model.id);
       await visit(page, "/3d-studio");
     }
+  }
+
+  await page.setViewportSize({ width: 1366, height: 900 });
+  for (const model of studioModels) {
+    await visit(page, `/3d-studio/${model.id}`);
+    const columns = await page.locator('main').evaluate((main) => {
+      const image = main.querySelector('img').getBoundingClientRect();
+      const details = main.querySelector('section[aria-labelledby="model-title"]').getBoundingClientRect();
+      return { imageRight: image.right, detailsLeft: details.left, imageTop: image.top, imageBottom: image.bottom, detailsTop: details.top, detailsBottom: details.bottom };
+    });
+    assert.ok(columns.imageRight < columns.detailsLeft, `${model.id}: artwork is left of information`);
+    assert.ok(columns.imageTop < columns.detailsBottom && columns.detailsTop < columns.imageBottom, `${model.id}: columns sit side by side`);
+    await reachable(page.getByRole("link", { name: "Download Blender file", exact: true }), `${model.id}: desktop download`);
+    await reachable(page.getByRole("link", { name: "Download GIF", exact: true }), `${model.id}: desktop GIF download`);
+    await checkWidth(page, `${model.id}: desktop columns`);
+    await capture(page, `${model.id}-desktop-columns`);
   }
 
   for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {

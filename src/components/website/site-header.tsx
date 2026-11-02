@@ -5,10 +5,8 @@ import Link from "next/link";
 import { ArrowUpRight, Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
-import type { StudioModel } from "@/lib/model-registry";
 import { AnimatedLogoLink } from "@/components/website/animated-logo-link";
 import { ComponentActions } from "@/components/website/component-actions";
-import { ModelActions } from "@/components/website/model-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
 import {
   navIconButtonClass,
@@ -17,16 +15,14 @@ import {
   sectionNavLinkClass,
 } from "@/components/website/styles";
 
-type ActivePanel = "about" | "component" | "model" | null;
+type ActivePanel = "about" | "component" | null;
 
 export function SiteHeader({
   component,
-  model,
   tagline,
   section = "interfaces",
 }: {
   component?: ComponentMeta;
-  model?: StudioModel;
   tagline?: string;
   section?: "interfaces" | "3d-studio";
 }) {
@@ -65,8 +61,6 @@ export function SiteHeader({
         footer={
           activePanel === "component" && component ? (
             <ComponentActions key={component.id} component={component} />
-          ) : activePanel === "model" && model ? (
-            <ModelActions key={model.id} model={model} />
           ) : undefined
         }
       >
@@ -94,12 +88,6 @@ export function SiteHeader({
               </p>
             ) : null}
           </div>
-        ) : activePanel === "model" && model ? (
-          <div className="grid gap-3">
-            <span className="font-mono text-body text-[var(--jitter-gray-600)]">{model.title}</span>
-            <p>{model.description}</p>
-            <a href={model.license} className="w-fit text-body text-[var(--jitter-gray-600)] underline underline-offset-4">License</a>
-          </div>
         ) : (
           <>
             AtomicMotion is a design library of expressive interfaces and
@@ -126,18 +114,15 @@ export function SiteHeader({
           <Link href="/3d-studio" aria-current={section === "3d-studio" ? "true" : undefined} className={sectionNavLinkClass}>
             3D Studio
           </Link>
-          {component || model ? (
+          {component ? (
             <div className="group/info relative">
               <button
                 type="button"
-                aria-label={`Details about ${component?.title ?? model?.title}`}
+                aria-label={`Details about ${component.title}`}
                 onClick={() =>
-                  setActivePanel((value) => {
-                    const panel = component ? "component" : "model";
-                    return value === panel ? null : panel;
-                  })
+                  setActivePanel((value) => value === "component" ? null : "component")
                 }
-                aria-expanded={activePanel === "component" || activePanel === "model"}
+                aria-expanded={activePanel === "component"}
                 aria-controls={panelId}
                 aria-haspopup="true"
                 className={navIconButtonClass}
