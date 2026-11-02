@@ -109,7 +109,7 @@ export const componentRegistry = {
     index: "022",
     title: "Bead Club",
     description:
-      "A minimal collection of six original bead patterns, including a soft terry-textured cake with fine shimmer and other pearlescent fused-bead finishes, inside an official silver iPhone 16 Pro bezel on a transparent stage. Open a tiny cake, strawberry or little friend and replay its creation bead by bead.",
+      "A minimal collection of six bead patterns, including a cherry cake recreated from a Mard-144 chart with soft terry texture and fine shimmer, inside an official silver iPhone 16 Pro bezel on a transparent stage. Open a cake, strawberry or little friend and replay its creation bead by bead.",
     category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

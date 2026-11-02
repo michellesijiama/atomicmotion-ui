@@ -19,8 +19,78 @@ type Artwork = { material: BeadMaterial; id: string; name: string; category: "Sw
 const PHONE_HEIGHT = 390 * 2822 / 1406;
 const P = { pink: "#ff90bd", rose: "#e75793", cream: "#fff2c7", white: "#fffdf4", blue: "#65cff1", red: "#ed3551", dark: "#5b2940", green: "#6cd690", leaf: "#279d69", yellow: "#ffdf53", brown: "#bf8050" };
 
-// Original patterns, made from a bead grid rather than flattened pictures.
-// Every occupied cell is a separate bead and can be replayed in placement order.
+// Cake transcribed from the supplied 50×50 Mard-144 chart. Exterior H2 cells
+// are transparent; enclosed white centers remain beads. The cropped grid is 40×42.
+const CAKE_CODES = ["A11","B10","B18","B7","C13","E1","E6","F1","F12","F14","F2","F6","F9","G1","G12","G15","G16","H12","H14","H2","H8"] as const;
+const CAKE_PALETTE: Record<(typeof CAKE_CODES)[number], string> = {
+  "A11": "#f5d19a",
+  "B10": "#5ebba4",
+  "B18": "#8dcdbd",
+  "B7": "#248e7c",
+  "C13": "#b9cef0",
+  "E1": "#ffd1ce",
+  "E6": "#f42f7e",
+  "F1": "#ff9c85",
+  "F12": "#ff557b",
+  "F14": "#ffa3b8",
+  "F2": "#ff3552",
+  "F6": "#c81948",
+  "F9": "#e44c7f",
+  "G1": "#ffe2c5",
+  "G12": "#ffd096",
+  "G15": "#fff8de",
+  "G16": "#ffe8dc",
+  "H12": "#f5f6ed",
+  "H14": "#cbd1ca",
+  "H2": "#fffdf5",
+  "H8": "#92898a"
+};
+const CAKE_GRID = [
+  ".............................B..........",
+  ".................B..........B...........",
+  ".................B....EEE...B...........",
+  "............BB...B....ETEE..D...........",
+  ".............B..GBJ...ETTEMGDU..........",
+  ".............B.GGGGG..EEEGGGLGG.BB......",
+  ".............DLGTGGGPPPTEGTGGGG.BEEEE...",
+  ".....EEE.....DGGGGGLPBPTGGGGGGLDEETTTE..",
+  "....ETTEE..IIDIIGGGGPCPPPGGGGGGDETTTTE..",
+  "...EETTTE.IPIIIIGGGUPBPPPGGGGIIUITEEE...",
+  "...EETTTEGIJIIIIIPPPPCDPPPLGIIIJIJE.....",
+  "...EEETTEGIIIIIKIPPPIDIGPPPGIRIIIIJJ....",
+  "....EEEJEPIIIIKIIPPIIDDIIPPIIIIIIIJJJ...",
+  "....JJEEEPIIIIIGPPGIJIIIKPPPIIIILPJPJJ..",
+  "..EEEJJEEPPIIIIPPJIIFIIILPPPPIIIIPPPMJJ.",
+  "..EJJJEEJEPPPPPPPJIIIIIIIPPPEPPPPPPPPJJ.",
+  ".EJJJJEEJEEEPPPPPJJIIIIIPPPPEEEPPPPPPJJJ",
+  ".EMJJEJEJMEEPMPPMEEEPMMPPPEEEEEEEPPPJJJJ",
+  "EMMJEEJEEEEPMPPMEEEEEEPPTEEEPPPEEPMMJJJJ",
+  "EMMMEJJJJEEJJPPEEPPPEEPEEPPPJEEEJJJJJJJM",
+  "E.MJEJJJJJJJJJPEEPPEEEEEEEEEEEJJJJJJJJMM",
+  "E.MEMJJJJJJJJJPPEEEEPPPEJMJJEEJJJJJMMMMM",
+  "E..EMMMJJJJJJJJJPPPPJMEEJJJJJEEJJMMMMMMU",
+  "...ENAHMMJJJJJJJJJJJJEJJJJJJJJEEMMMONOON",
+  "..EENNQOMMJJPPJFPJJJJEJJJJJPPJJJEMONNNNN",
+  "..EENNNQOMMJJJJJJJJMEMMMMJJJJJIMESNNNNNN",
+  "..EEJNNNQMMMMJJJJMMMEMMMMMMMMMMMEENNNJJN",
+  "..EEJJJNNOMMMMMMMMMEENNNOHMMMMMONNNJJJJN",
+  "..EENJJJNNOHMMMMHNNENNNNNNOOHHQNNEJJJNNN",
+  "..EENNNJJNNAOOANNNNENNNNNNNNNNNNJEJNNNNN",
+  "..EEPPNNJJNNNNNNNNEENNNNNNNNNJJJJENNQAPP",
+  "..EENPPANNJJJJJJNNEENNNNNJJJJJJJNENQPPNN",
+  "...EQQPPPNNNNNJJJJEEJJJJJJJJJNNNPEPPPP..",
+  "...E.NNNPPPPNNNNNNEEJJJNNNNNNNNOEEPN....",
+  ".......NNPPNANNNNNEENNNNNNNNNAPPEEN.....",
+  "........NNNPPPQQQNEENNNQQNQQPPPEEN......",
+  "..........NPPPPPPPEEPPPPPPPPPPNEE.......",
+  "..........NNNNNNPPEEPPPPPPPNNNPE........",
+  "...............NNNNPEPPPNNN....E........",
+  "..................NNENNNN...............",
+  "....................EE..................",
+  ".....................EE.................",
+];
+
+// Other patterns are procedural. Every occupied cell can be replayed in color order.
 function makePattern(id: string): Bead[] {
   const cells = new Map<string, Bead>();
   const dot = (x: number, y: number, color: string) => cells.set(`${x},${y}`, { x, y, color });
@@ -37,17 +107,10 @@ function makePattern(id: string): Bead[] {
     for (let i = 0; i <= steps; i++) dot(Math.round(x1 + (x2 - x1) * i / steps), Math.round(y1 + (y2 - y1) * i / steps), color);
   };
   if (id === "cake") {
-    oval(19, 35, 17, 5, P.pink);
-    rect(5, 21, 29, 13, P.cream); oval(19, 32, 14, 5, P.cream);
-    rect(5, 19, 29, 7, P.blue); oval(19, 25, 14, 4, P.blue);
-    for (let x = 6; x < 34; x += 6) oval(x, 29, 3, 2, P.white);
-    rect(5, 16, 29, 6, P.pink); oval(19, 17, 15, 5, P.white);
-    for (let x = 6; x < 35; x += 5) oval(x, 20, 3, 3, P.pink);
-    for (let x = 6; x < 35; x += 5) oval(x, 35, 3, 3, P.pink);
-    for (const [x, y] of [[11, 13], [20, 10], [28, 14]]) {
-      line(x, y - 2, x + 1, y - 8, P.dark); line(x + 1, y - 8, x + 3, y - 10, P.dark);
-      oval(x, y, 3, 3, P.red); dot(x - 1, y - 1, P.rose);
-    }
+    CAKE_GRID.forEach((row, y) => [...row].forEach((cell, x) => {
+      const code = CAKE_CODES[cell.charCodeAt(0) - 65];
+      if (code) dot(x, y, CAKE_PALETTE[code]);
+    }));
   } else if (id === "berry") {
     for (let y = 11; y < 35; y++) {
       const width = y < 17 ? 9 + (y - 11) * .6 : 13 - (y - 17) * .7;
@@ -511,7 +574,8 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
   const lastCard = React.useRef<HTMLButtonElement | null>(null);
   const reduced = !!useReducedMotion();
   const [scale, setScale] = React.useState(.8);
-  const [selected, setSelected] = React.useState<Artwork | null>(null);
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const selected = artworks.find(art => art.id === selectedId) ?? null;
   React.useEffect(() => {
     const element = host.current;
     if (!element || !loop) return;
@@ -521,17 +585,17 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
   }, [loop]);
   React.useEffect(() => {
     if (!loop || reduced) return;
-    const open = setTimeout(() => setSelected(artworks[0]), 2600);
-    const close = setTimeout(() => setSelected(null), 13600);
+    const open = setTimeout(() => setSelectedId(artworks[0].id), 2600);
+    const close = setTimeout(() => setSelectedId(null), 13600);
     const cycle = setInterval(() => {
-      setSelected(artworks[0]);
-      const timer = setTimeout(() => setSelected(null), 11000);
+      setSelectedId(artworks[0].id);
+      const timer = setTimeout(() => setSelectedId(null), 11000);
       pending.push(timer);
     }, 16200);
     const pending: ReturnType<typeof setTimeout>[] = [];
     return () => { clearTimeout(open); clearTimeout(close); clearInterval(cycle); pending.forEach(clearTimeout); };
   }, [loop, reduced]);
-  const close = () => { setSelected(null); requestAnimationFrame(() => lastCard.current?.focus({ preventScroll: true })); };
+  const close = () => { setSelectedId(null); requestAnimationFrame(() => lastCard.current?.focus({ preventScroll: true })); };
   return <div ref={host} className={`bc-stage ${className ?? ""}`} data-preview={loop ? "loop" : "interactive"}>
     <style>{styles}</style>
     <div className="bc-phone-space" style={loop ? { width: 390 * scale, height: PHONE_HEIGHT * scale } : undefined}><div className="bc-phone" style={loop ? { width: 390, height: PHONE_HEIGHT, transform: `scale(${scale})` } : undefined}>
@@ -541,7 +605,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
         <div className="bc-collection" inert={!!selected}>
           <header className="bc-header"><span>little bead club</span><Flower2 className="bc-flower" size={24} strokeWidth={1.8} aria-hidden="true" /></header>
           <div className="bc-list" aria-label="Bead collection">
-            {artworks.map((art, index) => <button className="bc-card" key={art.id} onClick={event => { lastCard.current = event.currentTarget; setSelected(art); }} aria-label={`Open ${art.name}`}>
+            {artworks.map((art, index) => <button className="bc-card" key={art.id} onClick={event => { lastCard.current = event.currentTarget; setSelectedId(art.id); }} aria-label={`Open ${art.name}`}>
               <div className="bc-card-copy"><span className="bc-number">{String(index + 1).padStart(2, "0")}</span><h2>{art.name}</h2><span className="bc-card-link">Play <ArrowUpRight size={16} /></span></div>
               <div className="bc-art-panel"><BeadArt art={art} /></div>
             </button>)}
