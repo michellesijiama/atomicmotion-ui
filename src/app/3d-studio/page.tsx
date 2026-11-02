@@ -4,16 +4,14 @@ import { SiteFooter } from "@/components/website/site-footer";
 import { SiteHeader } from "@/components/website/site-header";
 import { StudioModelBrowser } from "@/components/website/studio-model-browser";
 import { studioModels } from "@/lib/model-registry";
+import { pageMetadata } from "@/lib/site-metadata";
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://atomicmotion.dev"),
+export const metadata: Metadata = pageMetadata({
+  path: "/3d-studio",
   title: "3D Studio — AtomicMotion",
   description: "Explore creative AI-generated animations and download the editable Blender files.",
-  openGraph: {
-    title: "3D Studio — AtomicMotion",
-    images: [{ url: studioModels[0].image, width: studioModels[0].width, height: studioModels[0].height }],
-  },
-};
+  image: studioModels[0]?.image,
+});
 
 export default function StudioPage() {
   return (

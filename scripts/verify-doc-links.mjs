@@ -11,11 +11,12 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { posix } from "node:path";
 
-function markdownFilesIn(directory) {
+function markdownFilesIn(directory, recursive = false) {
   if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-    .map((entry) => `${directory}/${entry.name}`);
+    .flatMap((entry) => entry.isDirectory() && recursive
+      ? markdownFilesIn(`${directory}/${entry.name}`, true)
+      : entry.isFile() && entry.name.endsWith(".md") ? [`${directory}/${entry.name}`] : []);
 }
 
 function componentReadmes() {
@@ -37,11 +38,13 @@ const DOC_FILES = [
   "README.md",
   "ASSETS.md",
   "CONTRIBUTING.md",
+  "SECURITY.md",
   "components/README.md",
   "archive/README.md",
   "public/emoji/README.md",
   ...markdownFilesIn("docs"),
   ...markdownFilesIn("licenses"),
+  ...markdownFilesIn("scenes", true),
   ...componentReadmes(),
 ];
 

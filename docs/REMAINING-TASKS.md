@@ -1,6 +1,6 @@
 # Repository maintenance status
 
-AtomicMotion is a free, open-source design library with 17 registered components.
+AtomicMotion is a free, open-source design library with 20 registered components.
 The gallery's payment providers, purchase APIs and source locks have been removed.
 All component source, examples and runtime assets are published in the public
 component repository; the website uses Copy link and Copy for AI for all components.
@@ -13,8 +13,9 @@ dependency audit. Run `npm run verify:responsive` for gallery/browser checks.
 The public export has its own pinned lockfile and independent CI; refresh it
 with `npm run generate:free-lock` after dependency or import changes.
 
-No component implementation, preview, animation or gallery layout was redesigned
-for this change. Card source-price labels return to the original New status tag.
+Public source links are checked with `npm run verify:links`. After publishing a
+gallery deployment, include `-- --site` to check its live routes. A Git-only
+release marked `[skip deploy]` updates downloads but leaves the live gallery unchanged.
 
 ## Open asset provenance
 

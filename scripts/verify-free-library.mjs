@@ -40,6 +40,9 @@ try {
     }
   }
   check(result.components === catalog.length, "Exports every free component");
+  for (const filename of ["emoji-sketch.tsx", "index.ts", "README.md"]) {
+    check(readFileSync(path.join(output, "components/tool/emoji-sketch", filename)).equals(readFileSync(path.join(output, "components/play/emoji-sketch", filename))), `Previously shared Emoji Sketch URL remains usable: ${filename}`);
+  }
   for (const component of catalog) {
     const published = path.join(output, component.codePath);
     check(existsSync(published), `${component.id}: source is publicly available`);

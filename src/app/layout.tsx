@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Caveat, Geist, Geist_Mono, Instrument_Serif, Manrope, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import "../styles/globals.css";
+import { pageMetadata } from "@/lib/site-metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,10 +37,11 @@ const instrumentSerif = Instrument_Serif({
 
 const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/",
   title: "AtomicMotion — Design Library",
   description: "A design library of expressive interfaces and interactions for designers and frontend developers.",
-};
+});
 
 export default function RootLayout({
   children,

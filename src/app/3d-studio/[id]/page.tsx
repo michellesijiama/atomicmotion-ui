@@ -4,6 +4,7 @@ import { ComponentStage } from "@/components/website/component-stage";
 import { ModelPreview } from "@/components/website/model-preview";
 import { SiteHeader } from "@/components/website/site-header";
 import { getStudioModel, studioModels } from "@/lib/model-registry";
+import { pageMetadata } from "@/lib/site-metadata";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -13,7 +14,13 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const model = getStudioModel((await params).id);
-  return { title: `${model?.title ?? "Model not found"} — AtomicMotion`, description: model?.description };
+  if (!model) return { title: "Model not found — AtomicMotion" };
+  return pageMetadata({
+    path: `/3d-studio/${model.id}`,
+    title: `${model.title} — AtomicMotion`,
+    description: model.description,
+    image: model.image,
+  });
 }
 
 export default async function ModelPage({ params }: Props) {

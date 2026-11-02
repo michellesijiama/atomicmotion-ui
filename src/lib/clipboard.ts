@@ -3,7 +3,11 @@ export async function writeClipboardText(text: string) {
     await navigator.clipboard.writeText(text);
     return true;
   } catch {
-    const textarea = document.createElement("textarea");
+    // Browsers may deny the asynchronous clipboard API; try the legacy path.
+  }
+  const textarea = document.createElement("textarea");
+  const previousFocus = document.activeElement;
+  try {
     textarea.value = text;
     textarea.setAttribute("readonly", "");
     textarea.style.position = "fixed";
@@ -12,8 +16,11 @@ export async function writeClipboardText(text: string) {
     textarea.focus();
     textarea.select();
     textarea.setSelectionRange(0, textarea.value.length);
-    const copied = document.execCommand("copy");
-    document.body.removeChild(textarea);
-    return copied;
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    textarea.remove();
+    if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true });
   }
 }

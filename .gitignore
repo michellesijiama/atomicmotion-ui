@@ -13,6 +13,7 @@ CLAUDE.md
 AGENTS.md
 .claudecode/
 .claude/
+.codex/
 .devin/
 docs/superpowers/
 .vercel

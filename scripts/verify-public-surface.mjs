@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // Fails the build if a private/process file is tracked by git, or a tracked
 // file exceeds the size threshold. Run from the repo root — it reads
-// `git ls-files`, not a filesystem walk, so it only ever sees what's
-// actually shipped.
+// `git ls-files` in a checkout. GitHub source ZIPs have no Git metadata,
+// so inspect their extracted files while excluding local build output.
 import { execFileSync } from "node:child_process";
-import { statSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, statSync, readFileSync } from "node:fs";
 
 const MAX_BYTES = 3 * 1024 * 1024;
 
@@ -13,6 +13,8 @@ const DENYLIST_PATTERNS = [
   /(^|\/)AGENTS\.md$/,
   /(^|\/)\.claudecode\//,
   /(^|\/)\.claude\//,
+  /(^|\/)\.codex\//,
+  /(^|\/)(?:\.tmp|\.artifacts|node_modules|\.next|__pycache__)\//,
   /(^|\/)\.devin\//,
   /(^|\/)docs\/superpowers\//,
   /(^|\/)\.env(\.|$)/,
@@ -43,9 +45,20 @@ function documentedAssetPatterns(doc) {
 }
 
 function trackedFiles() {
-  return execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
-    .split("\0")
-    .filter(Boolean);
+  if (existsSync(".git")) {
+    return execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
+      .split("\0").filter(Boolean);
+  }
+  const buildDirectories = new Set(["node_modules", ".next", ".tmp", ".artifacts", "coverage", "build", "out"]);
+  function walk(directory, prefix = "") {
+    return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      if (!prefix && (buildDirectories.has(entry.name) || entry.name === "next-env.d.ts" || entry.name.endsWith(".tsbuildinfo"))) return [];
+      const name = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.isSymbolicLink()) throw new Error(`Symlink in source archive: ${name}`);
+      return entry.isDirectory() ? walk(name, name) : [name];
+    });
+  }
+  return walk(".");
 }
 
 function main() {

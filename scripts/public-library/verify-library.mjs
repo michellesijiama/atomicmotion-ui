@@ -31,5 +31,8 @@ for (const [filename, checksum] of Object.entries(manifest.files)) {
 const catalog = JSON.parse(readFileSync("catalog.json", "utf8"));
 assert.deepEqual(catalog.free.map(({ id }) => id), manifest.freeComponents);
 const publishedSources = Object.keys(manifest.files).filter((filename) => filename.endsWith(".tsx"));
-assert.deepEqual(publishedSources.sort(), catalog.free.map(({ source }) => source).sort(), "Only free component source may be published");
+assert.deepEqual(publishedSources.sort(), catalog.free.flatMap(({ source, legacySources = [] }) => [source, ...legacySources]).sort(), "Only free component source and declared compatibility copies may be published");
+for (const { source, legacySources = [] } of catalog.free) {
+  for (const legacy of legacySources) assert.equal(digest(readFileSync(legacy)), digest(readFileSync(source)), `Stale compatibility source: ${legacy}`);
+}
 console.log(`Public library verified: ${catalog.free.length} free components, ${publishedSources.length} source files.`);

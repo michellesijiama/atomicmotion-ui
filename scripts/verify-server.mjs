@@ -6,7 +6,8 @@ import { createServer } from "node:net";
 import { once } from "node:events";
 import { setTimeout as delay } from "node:timers/promises";
 import { readRegistry } from "./lib/registry.mjs";
-import { readComponentCatalog } from "./component-data.mjs";
+import { readComponentCatalog, readComponentData } from "./component-data.mjs";
+import { readFileSync } from "node:fs";
 
 const listener = createServer();
 listener.listen(0, "127.0.0.1");
@@ -40,14 +41,28 @@ try {
   }
   assert.ok(ready, `Server readiness timed out: ${logs}`);
   const { entries, videoIds } = readRegistry();
-  const paths = ["/", ...entries.map(({ id }) => `/components/${id}`)];
+  const { studioModels } = readComponentData("src/lib/model-registry.ts");
+  const paths = ["/", "/3d-studio", ...studioModels.map(({ id }) => `/3d-studio/${id}`), ...entries.map(({ id }) => `/components/${id}`)];
   for (const path of paths) {
     const response = await request(path);
     assert.equal(response.status, 200, path);
     assert.equal(response.headers.get("x-content-type-options"), "nosniff", path);
     assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin", path);
     assert.equal(response.headers.get("x-powered-by"), null, path);
-    assert.match(await response.text(), /AtomicMotion/, path);
+    const html = await response.text();
+    assert.match(html, /AtomicMotion/, path);
+    const canonical = html.match(/rel="canonical" href="([^"]+)"/)?.[1];
+    assert.ok(canonical, `${path}: canonical URL present`);
+    assert.equal(new URL(canonical).origin, "https://atomicmotion.dev", `${path}: public canonical origin`);
+    assert.equal(new URL(canonical).pathname, path, `${path}: canonical path`);
+    assert.match(html, /name="twitter:card" content="summary_large_image"/, `${path}: share preview card`);
+    assert.equal(html.match(/property="og:url" content="([^"]+)"/)?.[1], canonical, `${path}: matching Open Graph URL`);
+  }
+  for (const [source, destination] of [["/still-life", "/3d-studio"], ["/3d-studio/apple-club", "/3d-studio/little-nap"]]) {
+    const response = await request(source);
+    assert.equal(response.status, 308, source);
+    assert.equal(new URL(response.headers.get("location"), base).pathname, destination);
+    await response.arrayBuffer();
   }
   for (const [source, destination] of [["expanded-navigation", "soft-menu-reveal"], ["gradient-aura", "gradient-gummy-bear"]]) {
     const response = await request(`/components/${source}`);
@@ -55,10 +70,17 @@ try {
     assert.equal(new URL(response.headers.get("location"), base).pathname, `/components/${destination}`);
     await response.arrayBuffer();
   }
-  for (const path of ["/components/not-a-component", "/components/__proto__", "/not-a-route"]) {
+  for (const path of ["/components/not-a-component", "/components/__proto__", "/3d-studio/not-a-model", "/not-a-route"]) {
     const response = await request(path);
     assert.equal(response.status, 404, path);
     await response.arrayBuffer();
+  }
+  for (const model of studioModels) {
+    for (const path of new Set([model.image, model.gif, model.blend, model.still, model.license])) {
+      const response = await request(path);
+      assert.equal(response.status, 200, path);
+      assert.deepEqual(Buffer.from(await response.arrayBuffer()), readFileSync(`public${path}`), `${path}: original downloadable bytes`);
+    }
   }
   for (const path of [...entries.map(({ id }) => `/previews/${id}.png`), ...[...videoIds].map((id) => `/previews/${id}.mp4`), "/models/gummy-bear.glb", "/textures/wall-shadow.jpg"]) {
     const response = await request(path);

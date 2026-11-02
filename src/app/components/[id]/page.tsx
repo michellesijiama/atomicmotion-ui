@@ -5,6 +5,7 @@ import { ComponentStage } from "@/components/website/component-stage";
 import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
 import { componentList, getComponentById } from "@/lib/component-registry";
+import { pageMetadata } from "@/lib/site-metadata";
 
 type ComponentDetailPageProps = {
   params: Promise<{
@@ -30,10 +31,12 @@ export async function generateMetadata({
     };
   }
 
-  return {
+  return pageMetadata({
+    path: `/components/${component.id}`,
     title: `${component.title} — AtomicMotion UI`,
     description: component.description,
-  };
+    image: component.previewImage,
+  });
 }
 
 export default async function ComponentDetailPage({ params }: ComponentDetailPageProps) {

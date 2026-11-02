@@ -31,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", ".tmp", ".artifacts", "coverage"]
+  "exclude": ["node_modules", ".tmp", ".artifacts", ".claude", ".codex", "coverage"]
 }

@@ -127,6 +127,17 @@ test("surface rejects missing tracked files", (t) => {
   fail(f.run("verify-public-surface.mjs"), /tracked file is missing/);
 });
 
+test("surface supports a downloaded source archive without Git metadata", (t) => {
+  const f = fixture(t);
+  f.put("ASSETS.md", "| Path | Source |\n| --- | --- |\n| `public/known.svg` | Test |\n");
+  f.put("public/known.svg", "asset");
+  f.put(".next/cache.bin", Buffer.alloc(3 * 1024 * 1024 + 1));
+  f.put("node_modules/example/index.js", "dependency");
+  pass(f.run("verify-public-surface.mjs"));
+  f.put(".env.local", "TEST_SECRET=fixture");
+  fail(f.run("verify-public-surface.mjs"), /denylisted path tracked: .env.local/);
+});
+
 test("surface rejects an empty provenance document", (t) => {
   const f = surfaceFixture(t);
   f.put("public/models/known.glb", "asset");

@@ -9,6 +9,8 @@ import { createPublicLibraryPackage } from "./lib/public-library-package.mjs";
 
 const SITE = "https://atomicmotion.dev";
 const DEFAULT_OUTPUT = ".artifacts/atomicmotion-free";
+// Keep previously shared source URLs useful after category changes.
+const LEGACY_FOLDERS = { "emoji-sketch": ["components/tool/emoji-sketch"] };
 const digest = (value) => createHash("sha256").update(value).digest("hex");
 
 function readAllowedFile(filename) {
@@ -88,7 +90,13 @@ export function createPublicLibraryPlan() {
     assets.forEach(addFile);
     for (const asset of requiredAssets) assetRows.push(`- **${title}:** ${asset.path} — ${asset.license}. ${asset.credit}`);
     addText(`${folder}/README.md`, renderReadme(entries.get(id)));
-    return { id, title, description, category, source: codePath, demo: `${SITE}/components/${id}`, dependencies, assets };
+    const legacySources = (LEGACY_FOLDERS[id] ?? []).map((legacyFolder) => {
+      for (const filename of [`${id}.tsx`, "index.ts", "README.md"]) {
+        files.set(`${legacyFolder}/${filename}`, files.get(`${folder}/${filename}`));
+      }
+      return `${legacyFolder}/${id}.tsx`;
+    });
+    return { id, title, description, category, source: codePath, ...(legacySources.length ? { legacySources } : {}), demo: `${SITE}/components/${id}`, dependencies, assets };
   });
   addText("catalog.json", `${JSON.stringify({ free: freeCatalog }, null, 2)}\n`);
   addText("ASSETS.md", [
@@ -105,7 +113,7 @@ export function createPublicLibraryPlan() {
     "# AtomicMotion — Free Components", "",
     "A design library of expressive interfaces and interactions for designers and frontend developers.",
     "", `**[Explore the design library](${SITE})** — every live demo is free.`, "",
-    "All 17 gallery components are free and open source. Copy the source and required assets directly from this repository.",
+    `All ${freeCatalog.length} gallery components are free and open source. Copy the source and required assets directly from this repository.`,
     "", "## Free components", "", "| Component | Category | Source | Demo |", "| --- | --- | --- | --- |",
     ...freeCatalog.map(({ title, category, source, demo }) => `| ${title} | ${category} | [Source](${source}) | [Preview](${demo}) |`),
     "", "## Using a free component", "",

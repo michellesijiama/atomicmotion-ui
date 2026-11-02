@@ -9,6 +9,7 @@ import { createServer } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
 import { readRegistry } from "./lib/registry.mjs";
+import { readComponentData } from "./component-data.mjs";
 
 
 let base = process.env.RESPONSIVE_BASE_URL;
@@ -106,6 +107,7 @@ try {
   const page = await browser.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
   const { entries } = readRegistry();
+  const { studioModels } = readComponentData("src/lib/model-registry.ts");
   const homeWidths = [320, 375, 390, 430, 480, 639, 640, 641, 768, 960, 1007, 1008, 1023, 1024, 1280, 1366, 1920, 2560];
   // Limit category/header queries to their controls, rather than repeatedly
   // walking thousands of animated SVG nodes inside the gallery previews.
@@ -161,6 +163,31 @@ try {
       if (viewport.width === 390) await capture(page, id);
     }
     console.log(`All component routes at ${viewport.width}×${viewport.height}: OK`);
+    await visit(page, "/3d-studio");
+    await checkWidth(page, "3D Studio");
+    assert.equal(await page.getByRole("button", { name: "All", exact: true }).count(), 0, "Studio has no category filter");
+    for (const model of studioModels) {
+      const card = page.locator(`a[href="/3d-studio/${model.id}"]`);
+      const filled = await card.locator("img").evaluate((image) => {
+        const frame = image.closest("picture").parentElement.getBoundingClientRect();
+        const bounds = image.getBoundingClientRect();
+        return getComputedStyle(image).objectFit === "cover" && Math.abs(frame.width - bounds.width) < 1 && Math.abs(frame.height - bounds.height) < 1;
+      });
+      assert.ok(filled, `${model.id}: artwork fills its gallery card`);
+      await visit(page, `/3d-studio/${model.id}`);
+      await checkWidth(page, model.id);
+      const trigger = page.getByRole("button", { name: `Details about ${model.title}`, exact: true });
+      await reachable(trigger, `${model.id}: details`, { click: true });
+      await page.waitForTimeout(650);
+      await reachable(page.getByRole("link", { name: "Download Blender file", exact: true }), `${model.id}: Blender download`);
+      await reachable(page.getByRole("button", { name: "Copy for AI", exact: true }), `${model.id}: AI context`);
+      await reachable(page.getByRole("link", { name: "Download GIF", exact: true }), `${model.id}: GIF download`);
+      await reachable(page.getByRole("button", { name: "Close", exact: true }), `${model.id}: close`, { click: true });
+      await page.waitForTimeout(650);
+      assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+      if (viewport.width === 390) await capture(page, model.id);
+      await visit(page, "/3d-studio");
+    }
   }
 
   for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {

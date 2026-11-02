@@ -15,13 +15,17 @@ adapt the code and connect it to your own application behaviour.
 
 ## Source access and repositories
 
-All 17 components are free and open source under MIT. There are no purchases,
+All registered components are free and open source under MIT. There are no purchases,
 checkout integrations or locked source files.
 
 The public [atomicmotion-free repository](https://github.com/michellesijiama/atomicmotion-free)
 contains every registered component, its required runtime assets and setup
-instructions. The application repository contains the gallery and development
-checks. See [GitHub distribution](docs/github-distribution.md).
+instructions. The application repository contains the gallery, editable Blender scenes and
+development checks. See [GitHub distribution](docs/github-distribution.md).
+
+[Download the components ZIP](https://github.com/michellesijiama/atomicmotion-free/archive/refs/heads/main.zip)
+or [download the full gallery ZIP](https://github.com/michellesijiama/atomicmotion-ui/archive/refs/heads/main.zip).
+Both downloads work without private credentials or local environment files.
 
 To prepare a complete component release: `npm run export:free`, then
 `node scripts/export-free-library.mjs --verify .artifacts/atomicmotion-free`.
@@ -62,6 +66,10 @@ export function Demo() {
 integration instructions for every component.
 
 ## 3D Studio
+
+[Download Little Nap’s Blender file](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/studio/little-nap/little-nap.blend)
+or its [animated GIF](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/studio/little-nap/little-nap-soft-hops.gif).
+The scene packs its font and procedural materials; no external add-ons or textures are needed.
 
 The `/3d-studio` gallery presents editable Blender scenes alongside the interface
 library, using the same card grid and navigation. [Little Nap](scenes/little-nap/README.md)
@@ -123,7 +131,9 @@ Run gallery and maintenance commands from the repository root.
 │   ├── data-visualization/
 │   ├── gradient/
 │   ├── navigation/
-│   ├── tool/
+│   ├── immersive/
+│   ├── play/
+│   ├── template/
 │   └── typography/
 │       └── <id>/
 │           ├── <id>.tsx          # complete source
@@ -156,6 +166,9 @@ npm ci
 npm run dev
 ```
 
+A GitHub ZIP works too: extract it, enter the extracted folder and run the same commands.
+No `.env` file or API key is needed for the gallery or component demos.
+
 Open [localhost:3000](http://localhost:3000). The gallery uses Next.js, React,
 Tailwind CSS, Framer Motion and lucide-react; its 3D scenes use Three.js.
 
@@ -175,7 +188,9 @@ an independent install and check of the public free export, the production
 build, HTTP routes and headers, and production dependency audit.
 Browser checks cover the home page and all component routes at phone, tablet,
 desktop and short landscape sizes, including expanded menus and scroll endings.
-CI runs both suites.
+CI runs both suites. `npm run verify:links` separately checks the anonymous public
+GitHub downloads against the local publication, including their exact contents.
+Use `npm run verify:links -- --site` after deploying to check live preview routes too.
 
 After updating dependencies, run `npm run generate:free-lock` to refresh the
 public repository's tested dependency lock before exporting another release.

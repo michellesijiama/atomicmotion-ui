@@ -149,7 +149,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
       <div
         className={cn(
           "@container relative overflow-hidden rounded-[18px] border border-black/5",
-          loop ? "h-[560px] w-[620px]" : "h-[min(72vh,680px)] w-[min(100%,980px)]",
+          loop ? "h-[560px] w-[620px]" : "h-full max-h-[min(72dvh,680px)] w-[min(100%,980px)]",
         )}
       >
         <div className="pointer-events-none absolute left-3 top-3 z-50 flex h-9 items-center gap-3">

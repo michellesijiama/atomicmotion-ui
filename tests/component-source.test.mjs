@@ -116,7 +116,7 @@ test("README guard rejects a stale root catalogue while folder docs are current"
 });
 test("documentation guard includes the integration guide and catalogue overview", (t) => {
   const fixture = docsFixture(t);
-  for (const path of ["ASSETS.md", "CONTRIBUTING.md", "components/README.md", "archive/README.md", "public/emoji/README.md"]) fixture.put(path, "# Documentation");
+  for (const path of ["ASSETS.md", "CONTRIBUTING.md", "SECURITY.md", "components/README.md", "archive/README.md", "public/emoji/README.md"]) fixture.put(path, "# Documentation");
   const targets = Array.from({ length: 15 }, (_, i) => `docs/target-${i}.md`);
   for (const path of targets) fixture.put(path, "# Target");
   fixture.put("README.md", targets.map((path) => `[Target](${path})`).join("\n"));
@@ -124,8 +124,10 @@ test("documentation guard includes the integration guide and catalogue overview"
   assert.equal(result.status, 0, result.stderr);
   fixture.put("docs/COPY-PASTE.md", "[Missing source](../components/tool/missing/missing.tsx)");
   fixture.put("components/README.md", "[Missing category](missing/)");
+  fixture.put("scenes/example/README.md", "[Missing scene](../../public/studio/example/example.blend)");
   result = fixture.run("verify-doc-links.mjs");
   assert.equal(result.status, 1);
   assert.match(result.stderr, /docs\/COPY-PASTE.md: broken link/);
   assert.match(result.stderr, /components\/README.md: broken link/);
+  assert.match(result.stderr, /scenes\/example\/README.md: broken link/);
 });
