@@ -104,6 +104,19 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
+  beadClub: createComponentMeta({
+    id: "bead-club",
+    index: "022",
+    title: "Bead Club",
+    description:
+      "A minimal collection of six original, ironed bead patterns with pressed, frosted and glitter finishes inside a silver iPhone on a transparent stage. Open a tiny cake, strawberry or little friend and replay its creation bead by bead.",
+    category: "Play",
+    status: "NEW",
+    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
+    createdAt: "2026-11-02",
+    codePath: "components/play/bead-club/bead-club.tsx",
+
+  }),
   uiWalkthrough: createComponentMeta({
     id: "ui-walkthrough",
     index: "021",

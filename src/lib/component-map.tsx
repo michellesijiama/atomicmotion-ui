@@ -1,3 +1,4 @@
+import { BeadClub } from "@components/play/bead-club";
 import { DoodleCalendar } from "@components/data-visualization/doodle-calendar";
 import { PocketPiggy } from "@components/play/pocket-piggy";
 import { JardinOpening } from "@components/immersive/jardin-opening";
@@ -113,6 +114,7 @@ function PocketPiggyPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
+  "bead-club": BeadClub,
   "ui-walkthrough": UIWalkthroughPreview,
   "jardin-opening": JardinOpeningPreview,
   "emoji-sketch": EmojiSketchPreview,
