@@ -13,7 +13,7 @@ export type BeadClubProps = {
 
 type Bead = { x: number; y: number; color: string };
 type BeadMaterial = "pressed" | "frosted" | "glitter";
-type Artwork = { material: BeadMaterial; id: string; name: string; note: string; category: "Sweet things" | "Little friends"; background: string; beads: Bead[]; colors: string[] };
+type Artwork = { material: BeadMaterial; id: string; name: string; category: "Sweet things" | "Little friends"; background: string; beads: Bead[]; colors: string[] };
 const PHONE_HEIGHT = 390 * 622 / 302;
 const P = { pink: "#e7a9b1", rose: "#c97b8a", cream: "#fff1d8", white: "#f9f3e9", blue: "#a6c1d0", red: "#b93e48", dark: "#68343c", green: "#8baf83", leaf: "#547d60", yellow: "#efd07f", brown: "#a47659" };
 
@@ -90,12 +90,12 @@ function makePattern(id: string): Bead[] {
   );
 }
 const artworks: Artwork[] = [
-  { id: "cake", name: "Cherry on top", note: "A little celebration", category: "Sweet things", background: "#efe5e3" },
-  { id: "berry", name: "Berry sweet", note: "Freshly picked happiness", category: "Sweet things", background: "#e7ebdf" },
-  { id: "bunny", name: "Somebunny", note: "Your pocket-sized friend", category: "Little friends", background: "#e5eaf0" },
-  { id: "flower", name: "Hello, petal", note: "A flower that stays", category: "Little friends", background: "#eee5d9" },
-  { id: "pudding", name: "Sweet little wobble", note: "Made for a slow afternoon", category: "Sweet things", background: "#e6e9ef" },
-  { id: "bear", name: "Honey bear", note: "A very small hug", category: "Little friends", background: "#eadfd7" },
+  { id: "cake", name: "Cherry on top", category: "Sweet things", background: "#efe5e3" },
+  { id: "berry", name: "Berry sweet", category: "Sweet things", background: "#e7ebdf" },
+  { id: "bunny", name: "Somebunny", category: "Little friends", background: "#e5eaf0" },
+  { id: "flower", name: "Hello, petal", category: "Little friends", background: "#eee5d9" },
+  { id: "pudding", name: "Sweet little wobble", category: "Sweet things", background: "#e6e9ef" },
+  { id: "bear", name: "Honey bear", category: "Little friends", background: "#eadfd7" },
 ].map(item => { const beads = makePattern(item.id); return { ...item, material: (item.id === "cake" || item.id === "bunny" ? "pressed" : item.id === "pudding" || item.id === "bear" ? "glitter" : "frosted") as BeadMaterial, category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
 
 function BeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
@@ -241,7 +241,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
           <header className="bc-header"><span>little bead club</span><LittleFlower /></header>
           <div className="bc-list" aria-label="Bead collection">
             {artworks.map((art, index) => <button className="bc-card" key={art.id} onClick={event => { lastCard.current = event.currentTarget; setSelected(art); }} aria-label={`Open ${art.name}`}>
-              <div className="bc-card-copy"><span className="bc-number">{String(index + 1).padStart(2, "0")}</span><h2>{art.name}</h2><p>{art.note}.</p><span className="bc-card-link">Play <ArrowUpRight size={16} /></span></div>
+              <div className="bc-card-copy"><span className="bc-number">{String(index + 1).padStart(2, "0")}</span><h2>{art.name}</h2><span className="bc-card-link">Play <ArrowUpRight size={16} /></span></div>
               <div className="bc-art-panel"><BeadArt art={art} /></div>
             </button>)}
           </div>
@@ -266,7 +266,7 @@ const styles = `
 .bc-status{height:55px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:4px clamp(15px,6cqw,24px) 0 clamp(16px,6.7cqw,26px);z-index:12;font-size:14px;font-weight:600;color:#242a26;background:transparent}.bc-indicators{display:flex;align-items:center;gap:5px}.bc-battery{width:21px;height:10px;border-radius:3px;border:1px solid currentColor;position:relative}.bc-battery:before{content:'';position:absolute;inset:1px;background:currentColor;border-radius:1px}.bc-battery:after{content:'';position:absolute;width:2px;height:4px;right:-4px;top:2px;background:currentColor;border-radius:1px}
 .bc-header::before,.bc-detail-nav::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
 .bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;left:0;right:0;top:0;z-index:8;min-height:78px;color:#242a26;padding:14px 18px 26px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:1.0625rem;font-weight:500;letter-spacing:-.35px}.bc-flower{flex-shrink:0;color:#fff;stroke:#69736c;stroke-width:.09;paint-order:stroke fill;stroke-linejoin:round}.bc-list{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:94px 16px 72px;scrollbar-width:none;scroll-padding:16px 0 72px}.bc-list::-webkit-scrollbar{display:none}
-.bc-card{width:100%;border:0;background:transparent;padding:0;margin:0 0 28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px;text-align:left;align-items:center;scroll-margin:16px 0 72px}.bc-card-copy{padding:12px 0;display:flex;flex-direction:column;align-items:flex-start;min-width:0;overflow-wrap:anywhere}.bc-number{font-size:.875rem;color:#535e56;letter-spacing:.2px}.bc-card h2{font-size:1.25rem;line-height:1.25;font-weight:500;margin:10px 0 10px;letter-spacing:-.4px}.bc-card-copy p{font-size:1rem;line-height:1.5;color:#4c574f;margin:0}.bc-card-link{display:flex;align-items:center;gap:5px;font-size:1rem;line-height:1.5;min-height:44px;margin-top:12px}.bc-art-panel{height:252px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:transparent}.bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(1px 2px 1.5px #30393616)}.bc-art-panel>.bc-art{width:100%;height:100%;transition:transform .5s}.bc-card:hover .bc-art{transform:translateY(-2px)}
+.bc-card{width:100%;border:0;background:transparent;padding:0;margin:0 0 28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px;text-align:left;align-items:center;scroll-margin:16px 0 72px}.bc-card-copy{padding:12px 0;display:flex;flex-direction:column;align-items:flex-start;min-width:0;overflow-wrap:anywhere}.bc-number{font-size:.875rem;color:#535e56;letter-spacing:.2px}.bc-card h2{font-size:1.25rem;line-height:1.25;font-weight:500;margin:10px 0 10px;letter-spacing:-.4px}.bc-card-link{display:flex;align-items:center;gap:5px;font-size:1rem;line-height:1.5;min-height:44px;margin-top:12px}.bc-art-panel{height:252px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:transparent}.bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(1px 2px 1.5px #30393616)}.bc-art-panel>.bc-art{width:100%;height:100%;transition:transform .5s}.bc-card:hover .bc-art{transform:translateY(-2px)}
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
 .bc-glass-edge{position:absolute;bottom:0;left:51%;right:0;height:90px;pointer-events:none;z-index:6;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000);-webkit-mask-image:linear-gradient(transparent,#000)}.bc-glass-edge i:nth-child(2){top:25px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.bc-glass-edge i:nth-child(3){top:54px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.bc-screen[data-detail="true"] .bc-glass-edge{height:32px}
 .bc-glass-reflection{position:absolute;inset:0;border-radius:inherit;z-index:7;pointer-events:none;box-shadow:inset 0 0 2px #fff4}
