@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowUpRight, Flower2 } from "lucide-react";
 
@@ -14,7 +16,7 @@ export type BeadClubProps = {
 type Bead = { x: number; y: number; color: string };
 type BeadMaterial = "pressed" | "frosted" | "glitter";
 type Artwork = { material: BeadMaterial; id: string; name: string; category: "Sweet things" | "Little friends"; background: string; beads: Bead[]; colors: string[] };
-const PHONE_HEIGHT = 390 * 622 / 302;
+const PHONE_HEIGHT = 390 * 2822 / 1406;
 const P = { pink: "#e7a9b1", rose: "#c97b8a", cream: "#fff1d8", white: "#f9f3e9", blue: "#a6c1d0", red: "#b93e48", dark: "#68343c", green: "#8baf83", leaf: "#547d60", yellow: "#efd07f", brown: "#a47659" };
 
 // Original patterns, made from a bead grid rather than flattened pictures.
@@ -98,7 +100,7 @@ const artworks: Artwork[] = [
   { id: "bear", name: "Honey bear", category: "Little friends", background: "#eadfd7" },
 ].map(item => { const beads = makePattern(item.id); return { ...item, material: (item.id === "cake" || item.id === "bunny" ? "pressed" : item.id === "pudding" || item.id === "bear" ? "glitter" : "frosted") as BeadMaterial, category: item.category as Artwork["category"], beads, colors: [...new Set(beads.map(bead => bead.color))] }; });
 
-function BeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
+function FlatBeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
   const id = React.useId().replace(/:/g, "");
   const placed = art.beads.slice(0, count);
   const glitter = art.material === "glitter";
@@ -107,6 +109,20 @@ function BeadArt({ art, count = art.beads.length, animated = false }: { art: Art
   // A separate silhouette mask keeps the gentle color bleed inside the piece.
   const cell = (bead: Bead) => `M${bead.x - .06} ${bead.y - .06}h1.12v1.12h-1.12Z`;
   const silhouette = placed.map(cell).join("");
+  const depth = { x: .1, y: .28 };
+  const occupied = new Set(placed.map(bead => `${bead.x},${bead.y}`));
+  const underside = new Map<string, string[]>();
+  const sides: { path: string; color: string }[] = [];
+  const shade = (color: string, amount: number) => `#${color.slice(1).match(/../g)!.map(channel => Math.round(parseInt(channel, 16) * amount).toString(16).padStart(2, "0")).join("")}`;
+  const wall = (x1: number, y1: number, x2: number, y2: number) => `M${x1} ${y1}L${x2} ${y2}L${x2 + depth.x} ${y2 + depth.y}L${x1 + depth.x} ${y1 + depth.y}Z`;
+  for (const bead of placed) {
+    const paths = underside.get(bead.color) ?? [];
+    paths.push(cell(bead));
+    underside.set(bead.color, paths);
+    // Only the exposed perimeter has a side wall. Interior joins stay fused.
+    if (!occupied.has(`${bead.x + 1},${bead.y}`)) sides.push({ path: wall(bead.x + 1.06, bead.y - .06, bead.x + 1.06, bead.y + 1.06), color: shade(bead.color, .84) });
+    if (!occupied.has(`${bead.x},${bead.y + 1}`)) sides.push({ path: wall(bead.x - .06, bead.y + 1.06, bead.x + 1.06, bead.y + 1.06), color: shade(bead.color, .9) });
+  }
   return <svg viewBox="0 0 40 42" role="img" aria-label={`${art.name} ${art.material} fused bead pattern`} className="bc-art" data-material={art.material}>
     <defs>
       <filter id={`${id}-edge`} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
@@ -131,6 +147,12 @@ function BeadArt({ art, count = art.beads.length, animated = false }: { art: Art
       </filter>
       <linearGradient id={`${id}-light`} x1="0" y1="0" x2=".8" y2="1"><stop stopColor="#fff" stopOpacity=".05" /><stop offset=".55" stopColor="#fff" stopOpacity="0" /><stop offset="1" stopColor="#5c5149" stopOpacity=".04" /></linearGradient>
     </defs>
+    <g className="bc-bead-thickness" aria-hidden="true">
+      <g transform={`translate(${depth.x} ${depth.y})`} mask={`url(#${id}-shape)`}>
+        {[...underside].map(([color, paths]) => <path key={color} d={paths.join("")} fill={shade(color, .84)} />)}
+      </g>
+      {sides.map((side, index) => <path key={index} d={side.path} fill={side.color} stroke={side.color} strokeWidth=".045" strokeLinejoin="round" />)}
+    </g>
     <g className="bc-material-surface" mask={`url(#${id}-shape)`}>
       <g className="bc-fused-colors" filter={`url(#${id}-surface)`}>
         {placed.map(bead => <g key={`${bead.x}-${bead.y}`} data-bead-color={bead.color} className={animated ? "bc-bead-drop" : undefined} style={{ transformOrigin: `${bead.x + .5}px ${bead.y + .5}px` }}><path d={cell(bead)} fill={bead.color} /></g>)}
@@ -146,6 +168,157 @@ function BeadArt({ art, count = art.beads.length, animated = false }: { art: Art
       })}
     </g>
   </svg>;
+}
+
+// One offscreen renderer serves every preview; displayed canvases are plain 2D.
+// Geometry and lighting, rather than painted side-wall colors, create the depth.
+function fusedShapes(beads: Bead[]) {
+  type Edge = { x: number; y: number; ex: number; ey: number; dir: number; used?: boolean };
+  const occupied = new Set(beads.map(b => `${b.x},${b.y}`));
+  const edges: Edge[] = [];
+  const starts = new Map<string, Edge[]>();
+  const add = (edge: Edge) => { edges.push(edge); const key = `${edge.x},${edge.y}`; const list = starts.get(key) ?? []; list.push(edge); starts.set(key, list); };
+  for (const b of beads) {
+    if (!occupied.has(`${b.x},${b.y - 1}`)) add({ x: b.x, y: b.y, ex: b.x + 1, ey: b.y, dir: 0 });
+    if (!occupied.has(`${b.x + 1},${b.y}`)) add({ x: b.x + 1, y: b.y, ex: b.x + 1, ey: b.y + 1, dir: 1 });
+    if (!occupied.has(`${b.x},${b.y + 1}`)) add({ x: b.x + 1, y: b.y + 1, ex: b.x, ey: b.y + 1, dir: 2 });
+    if (!occupied.has(`${b.x - 1},${b.y}`)) add({ x: b.x, y: b.y + 1, ex: b.x, ey: b.y, dir: 3 });
+  }
+  const loops: { points: { x: number; y: number }[]; area: number }[] = [];
+  for (const first of edges) {
+    if (first.used) continue;
+    const points: { x: number; y: number }[] = [];
+    let edge: Edge | undefined = first;
+    while (edge && !edge.used) {
+      edge.used = true; points.push({ x: edge.x, y: edge.y });
+      if (edge.ex === first.x && edge.ey === first.y) break;
+      const dir: number = edge.dir;
+      edge = (starts.get(`${edge.ex},${edge.ey}`) ?? []).filter(candidate => !candidate.used).sort((a, b) => [1, 0, 3, 2].indexOf((a.dir - dir + 4) % 4) - [1, 0, 3, 2].indexOf((b.dir - dir + 4) % 4))[0];
+    }
+    const area = points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p.x * q.y - q.x * p.y; }, 0) / 2;
+    if (points.length > 2) loops.push({ points, area });
+  }
+  const outer = loops.filter(loop => loop.area > 0);
+  const contains = (poly: { x: number; y: number }[], p: { x: number; y: number }) => {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      if ((poly[i].y > p.y) !== (poly[j].y > p.y) && p.x < (poly[j].x - poly[i].x) * (p.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x) inside = !inside;
+    }
+    return inside;
+  };
+  const rounded = <T extends THREE.Path>(path: T, points: { x: number; y: number }[]) => {
+    const corners = points.filter((p, i) => { const a = points[(i + points.length - 1) % points.length], b = points[(i + 1) % points.length]; return (p.x - a.x) * (b.y - p.y) !== (p.y - a.y) * (b.x - p.x); });
+    for (let i = 0; i < corners.length; i++) {
+      const p = corners[i], a = corners[(i + corners.length - 1) % corners.length], b = corners[(i + 1) % corners.length];
+      const da = Math.hypot(a.x - p.x, a.y - p.y), db = Math.hypot(b.x - p.x, b.y - p.y), r = Math.min(.18, da / 3, db / 3);
+      const entry = { x: p.x + (a.x - p.x) * r / da - 20, y: 21 - p.y - (a.y - p.y) * r / da };
+      const exit = { x: p.x + (b.x - p.x) * r / db - 20, y: 21 - p.y - (b.y - p.y) * r / db };
+      if (!i) path.moveTo(entry.x, entry.y); else path.lineTo(entry.x, entry.y);
+      path.quadraticCurveTo(p.x - 20, 21 - p.y, exit.x, exit.y);
+    }
+    path.closePath(); return path;
+  };
+  return outer.map(loop => {
+    const shape = rounded(new THREE.Shape(), loop.points);
+    for (const hole of loops.filter(item => item.area < 0)) {
+      if (contains(loop.points, hole.points[0])) shape.holes.push(rounded(new THREE.Path(), hole.points));
+    }
+    return shape;
+  });
+}
+
+function physicalMaterials(art: Artwork) {
+  const resolution = 20;
+  const color = document.createElement("canvas"); color.width = 40 * resolution; color.height = 42 * resolution;
+  const ctx = color.getContext("2d")!;
+  ctx.fillStyle = art.beads[0]?.color ?? "#f0eade"; ctx.fillRect(0, 0, color.width, color.height);
+  for (const bead of art.beads) { ctx.fillStyle = bead.color; ctx.fillRect((bead.x - .2) * resolution, (bead.y - .2) * resolution, resolution * 1.4, resolution * 1.4); }
+  for (const bead of art.beads) { ctx.fillStyle = bead.color; ctx.fillRect(bead.x * resolution, bead.y * resolution, resolution, resolution); }
+  const bump = document.createElement("canvas"); bump.width = color.width; bump.height = color.height;
+  const bumpCtx = bump.getContext("2d")!; const image = bumpCtx.createImageData(bump.width, bump.height);
+  for (let y = 0; y < bump.height; y++) for (let x = 0; x < bump.width; x++) {
+    const seed = ((x * 73856093) ^ (y * 19349663)) >>> 0;
+    const dx = x % resolution / resolution - .5, dy = y % resolution / resolution - .5;
+    const v = 128 + (seed % 9 - 4) * .7 - Math.exp(-(dx * dx + dy * dy) / .025) * 22;
+    const i = (y * bump.width + x) * 4; image.data[i] = image.data[i + 1] = image.data[i + 2] = v; image.data[i + 3] = 255;
+  }
+  bumpCtx.putImageData(image, 0, 0);
+  const map = new THREE.CanvasTexture(color); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4;
+  const bumpMap = new THREE.CanvasTexture(bump); bumpMap.generateMipmaps = false; bumpMap.minFilter = THREE.LinearFilter;
+  const finish = art.material === "pressed" ? { bumpScale: .6, roughness: .55, clearcoat: .16 } : art.material === "frosted" ? { bumpScale: .38, roughness: .68, clearcoat: .08 } : { bumpScale: .3, roughness: .4, clearcoat: .32 };
+  const common = { map, bumpMap, ...finish, metalness: 0, clearcoatRoughness: .5, ior: 1.46 };
+  return [new THREE.MeshPhysicalMaterial(common), new THREE.MeshPhysicalMaterial({ ...common, bumpScale: .012, roughness: .46, clearcoat: .4 })];
+}
+
+type BeadStudio = { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.OrthographicCamera; mesh: THREE.Mesh; materials: Map<string, THREE.MeshPhysicalMaterial[]>; completed: Map<string, THREE.BufferGeometry> };
+let beadStudio: BeadStudio | undefined;
+let beadWebGLUnavailable = false;
+function getBeadStudio() {
+  if (beadStudio) return beadStudio;
+  if (beadWebGLUnavailable) return null;
+  let renderer: THREE.WebGLRenderer;
+  try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true }); }
+  catch { beadWebGLUnavailable = true; return null; }
+  renderer.setPixelRatio(1); renderer.setClearColor(0, 0); renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.NoToneMapping; renderer.toneMappingExposure = 1;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+  const scene = new THREE.Scene();
+  const room = new RoomEnvironment(); const pmrem = new THREE.PMREMGenerator(renderer);
+  const environment = pmrem.fromScene(room, .04).texture; scene.environment = environment; scene.environmentIntensity = .28; room.dispose(); pmrem.dispose();
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xaaa394, .08));
+  const light = new THREE.DirectionalLight(0xffffff, 1.1); light.position.set(-28, 38, 32); light.castShadow = true;
+  Object.assign(light.shadow.camera, { left: -26, right: 26, top: 27, bottom: -27, near: 1, far: 120 });
+  light.shadow.mapSize.set(512, 512); light.shadow.bias = -.0002; light.shadow.normalBias = .03; light.shadow.radius = 3.5;
+  scene.add(light);
+  const mesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhysicalMaterial()); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), new THREE.ShadowMaterial({ opacity: .12 })); floor.position.z = -.12; floor.receiveShadow = true; scene.add(floor);
+  const camera = new THREE.OrthographicCamera(-23, 23, 23, -23, .1, 180); camera.position.set(8, -42, 85); camera.lookAt(0, 0, 0);
+  beadStudio = { renderer, scene, camera, mesh, materials: new Map(), completed: new Map() };
+  return beadStudio;
+}
+
+function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: number) {
+  const studio = getBeadStudio();
+  if (!studio || studio.renderer.getContext().isContextLost()) return false;
+  const rect = canvas.getBoundingClientRect(); if (!rect.width || !rect.height) return false;
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  const width = Math.ceil(rect.width * pixelRatio), height = Math.ceil(rect.height * pixelRatio);
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext("2d")!; ctx.clearRect(0, 0, width, height);
+  if (!count) return true;
+  let geometry = count === art.beads.length ? studio.completed.get(art.id) : undefined;
+  if (!geometry) {
+    const uv = (vertices: number[], index: number) => new THREE.Vector2((vertices[index * 3] + 20) / 40, (vertices[index * 3 + 1] + 21) / 42);
+    geometry = new THREE.ExtrudeGeometry(fusedShapes(art.beads.slice(0, count)), {
+      depth: .26, curveSegments: 3, bevelEnabled: true, bevelThickness: .07, bevelSize: .1, bevelSegments: 4, steps: 1,
+      UVGenerator: { generateTopUV: (_g, vertices, ...indices) => indices.map(i => uv(vertices, i)), generateSideWallUV: (_g, vertices, ...indices) => indices.map(i => uv(vertices, i)) },
+    });
+    if (count === art.beads.length) studio.completed.set(art.id, geometry);
+  }
+  const materials = studio.materials.get(art.id) ?? physicalMaterials(art); studio.materials.set(art.id, materials);
+  studio.mesh.geometry = geometry; studio.mesh.material = materials;
+  const aspect = width / height, viewHeight = Math.max(45, 43 / aspect);
+  Object.assign(studio.camera, { left: -viewHeight * aspect / 2, right: viewHeight * aspect / 2, top: viewHeight / 2, bottom: -viewHeight / 2 }); studio.camera.updateProjectionMatrix();
+  studio.renderer.setSize(width, height, false); studio.renderer.render(studio.scene, studio.camera);
+  ctx.drawImage(studio.renderer.domElement, 0, 0);
+  if (count !== art.beads.length) geometry.dispose();
+  return true;
+}
+
+function BeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
+  const ref = React.useRef<HTMLCanvasElement>(null);
+  const [ready, setReady] = React.useState(false);
+  React.useEffect(() => {
+    const canvas = ref.current; if (!canvas) return;
+    let frame = 0;
+    const paint = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => { try { if (drawPhysicalBeads(canvas, art, count)) setReady(true); } catch { setReady(false); } }); };
+    const observer = new ResizeObserver(paint); observer.observe(canvas); paint();
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
+  }, [art, count]);
+  return <div className="bc-art bc-art-3d" role="img" aria-label={`${art.name} fused plastic bead pattern`} data-material={art.material} data-render-mode={ready ? "physical" : "fallback"} data-placed={count} data-active-color={art.beads[Math.max(0, count - 1)]?.color}>
+    <canvas ref={ref} aria-hidden="true" style={{ width: "100%", height: "100%", opacity: ready ? 1 : 0 }} />
+    {!ready && <div aria-hidden="true" style={{ display: "contents" }}><FlatBeadArt art={art} count={count} animated={animated} /></div>}
+  </div>;
 }
 
 function Replay({ art, onBack, reduced }: { art: Artwork; onBack: () => void; reduced: boolean }) {
@@ -186,15 +359,6 @@ function Replay({ art, onBack, reduced }: { art: Artwork; onBack: () => void; re
   </motion.section>;
 }
 
-// Same 280 × 600 screen, 7px bezel, 4px band and 44px screen radius as
-// UI Walkthrough's IPhoneFrame. A single width unit keeps every radius aligned.
-function SilverIPhoneFrame() {
-  return <div className="bc-silver-frame" aria-hidden="true">
-    <span className="bc-side bc-side-action" /><span className="bc-side bc-side-up" /><span className="bc-side bc-side-down" /><span className="bc-side bc-side-power" />
-    <span className="bc-frame-band" /><span className="bc-frame-bezel" />
-  </div>;
-}
-
 
 export function BeadClub({ loop = false, className }: BeadClubProps) {
   const host = React.useRef<HTMLDivElement>(null);
@@ -225,9 +389,8 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
   return <div ref={host} className={`bc-stage ${className ?? ""}`} data-preview={loop ? "loop" : "interactive"}>
     <style>{styles}</style>
     <div className="bc-phone-space" style={loop ? { width: 390 * scale, height: PHONE_HEIGHT * scale } : undefined}><div className="bc-phone" style={loop ? { width: 390, height: PHONE_HEIGHT, transform: `scale(${scale})` } : undefined}>
-      <SilverIPhoneFrame />
+
       <div className="bc-screen" data-detail={!!selected}>
-        <div className="bc-island" aria-hidden="true"><span /></div>
         <div className="bc-status" aria-hidden="true"><b>9:41</b><div className="bc-indicators"><svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 8v3M5 6v5M9 3v8M13 0v11" stroke="currentColor" strokeWidth="2" /></svg><svg width="15" height="12" viewBox="0 0 15 12"><path d="M1 4Q7.5-1 14 4M3 7q4.5-4 9 0M6 10q1.5-2 3 0" fill="none" stroke="currentColor" strokeWidth="1.7" /></svg><span className="bc-battery" /></div></div>
         <div className="bc-collection" inert={!!selected}>
           <header className="bc-header"><span>little bead club</span><Flower2 className="bc-flower" size={24} strokeWidth={1.8} aria-hidden="true" /></header>
@@ -243,7 +406,9 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
         <div className="bc-glass-reflection" aria-hidden="true" />
         <div className="bc-home" aria-hidden="true" />
       </div>
-
+      {/* Apple Design Resources product bezel; retain its separate asset terms. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="bc-device-frame" src="/components/bead-club/iphone-16-pro-white.png" width="1406" height="2822" alt="" aria-hidden="true" draggable={false} />
     </div></div>
   </div>;
 }
@@ -251,17 +416,16 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
 const styles = `
 .bc-stage{width:100%;height:100%;min-height:520px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;color:#242a26;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;isolation:isolate}.bc-stage[data-preview="interactive"]{min-height:844px}
 .bc-stage *{box-sizing:border-box}.bc-stage button{cursor:pointer;font-family:inherit;color:inherit}.bc-stage button:focus-visible{outline:2px solid #3c5044;outline-offset:4px}.bc-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
-.bc-phone-space{position:relative;flex-shrink:0;width:min(390px,calc(100% - 16px));aspect-ratio:302/622}.bc-phone{position:absolute;inset:0;width:100%;height:100%;transform-origin:top left;container-type:inline-size;--bc-silver:linear-gradient(145deg,#e4e5e6 0%,#9b9da0 26%,#d7d8db 52%,#96989c 76%,#c7c9cd 100%)}
-.bc-silver-frame{position:absolute;inset:0;pointer-events:none}.bc-frame-band{position:absolute;inset:0;border-radius:calc(100cqw * 55 / 302);background:var(--bc-silver);box-shadow:0 20px 36px -24px #17201a55}.bc-frame-bezel{position:absolute;inset:calc(100cqw * 4 / 302);border-radius:calc(100cqw * 51 / 302);background:#050506}.bc-side{position:absolute;left:-.83%;width:1.16%;border-radius:2px;background:var(--bc-silver)}.bc-side-action{top:19.13%;height:3.54%}.bc-side-up{top:25.56%;height:7.07%}.bc-side-down{top:34.24%;height:7.07%}.bc-side-power{left:auto;right:-.83%;top:28.78%;height:11.25%}
-.bc-screen{position:absolute;inset:calc(100cqw * 11 / 302);overflow:hidden;border-radius:calc(100cqw * 44 / 302);clip-path:inset(0 round calc(100cqw * 44 / 302));background:#e4e4e4;isolation:isolate}.bc-island{position:absolute;left:50%;top:calc(100cqw * 10 / 302);width:calc(100cqw * 84 / 302);height:calc(100cqw * 24 / 302);transform:translateX(-50%);border-radius:calc(100cqw * 12 / 302);background:#000;pointer-events:none;z-index:15}.bc-island>span{position:absolute;right:calc(100cqw * 9 / 302);top:calc(100cqw * 8 / 302);width:calc(100cqw * 8 / 302);height:calc(100cqw * 8 / 302);border-radius:50%;background:#111a24;box-shadow:inset 0 0 0 1.5px #1c2733}
+.bc-phone-space{position:relative;flex-shrink:0;width:min(390px,calc(100% - 8px));aspect-ratio:1406/2822}.bc-phone{position:absolute;inset:0;width:100%;height:100%;transform-origin:top left;container-type:inline-size}.bc-device-frame{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
+.bc-screen{position:absolute;left:7.254623%;top:3.543586%;width:85.775249%;height:92.912828%;overflow:hidden;mask-image:url('/components/bead-club/iphone-screen-mask.svg');-webkit-mask-image:url('/components/bead-club/iphone-screen-mask.svg');mask-size:100% 100%;-webkit-mask-size:100% 100%;background:#e4e4e4;isolation:isolate}
 
 .bc-status{height:55px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:4px clamp(15px,6cqw,24px) 0 clamp(16px,6.7cqw,26px);z-index:12;font-size:14px;font-weight:600;color:#242a26;background:transparent}.bc-indicators{display:flex;align-items:center;gap:5px}.bc-battery{width:21px;height:10px;border-radius:3px;border:1px solid currentColor;position:relative}.bc-battery:before{content:'';position:absolute;inset:1px;background:currentColor;border-radius:1px}.bc-battery:after{content:'';position:absolute;width:2px;height:4px;right:-4px;top:2px;background:currentColor;border-radius:1px}
 .bc-header::before,.bc-detail-nav::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
 .bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;left:0;right:0;top:0;z-index:8;min-height:78px;color:#242a26;padding:14px 18px 26px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:1.0625rem;font-weight:500;letter-spacing:-.35px}.bc-flower{flex-shrink:0;color:#fff;filter:drop-shadow(0 1px 1px #28362a99)}.bc-list{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:94px 16px 72px;scrollbar-width:none;scroll-padding:16px 0 72px}.bc-list::-webkit-scrollbar{display:none}
-.bc-card{width:100%;border:0;background:transparent;padding:0;margin:0 0 28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px;text-align:left;align-items:center;scroll-margin:16px 0 72px}.bc-card-copy{padding:12px 0;display:flex;flex-direction:column;align-items:flex-start;min-width:0;overflow-wrap:anywhere}.bc-number{font-size:.875rem;color:#535e56;letter-spacing:.2px}.bc-card h2{font-size:1.25rem;line-height:1.25;font-weight:500;margin:10px 0 10px;letter-spacing:-.4px}.bc-card-link{display:flex;align-items:center;gap:5px;font-size:1rem;line-height:1.5;min-height:44px;margin-top:12px}.bc-art-panel{height:252px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:transparent}.bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(1px 2px 1.5px #30393616)}.bc-art-panel>.bc-art{width:100%;height:100%;transition:transform .5s}.bc-card:hover .bc-art{transform:translateY(-2px)}
+.bc-card{width:100%;border:0;background:transparent;padding:0;margin:0 0 28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:10px;text-align:left;align-items:center;scroll-margin:16px 0 72px}.bc-card-copy{padding:12px 0;display:flex;flex-direction:column;align-items:flex-start;min-width:0;overflow-wrap:anywhere}.bc-number{font-size:.875rem;color:#535e56;letter-spacing:.2px}.bc-card h2{font-size:1.25rem;line-height:1.25;font-weight:500;margin:10px 0 10px;letter-spacing:-.4px}.bc-card-link{display:flex;align-items:center;gap:5px;font-size:1rem;line-height:1.5;min-height:44px;margin-top:12px}.bc-art-panel{height:252px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:transparent}.bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(.5px 3px 1.5px #493d3033)}.bc-art-3d{position:relative;filter:none}.bc-art-3d>canvas{position:absolute;inset:0}.bc-art-panel>.bc-art{width:100%;height:100%;transition:transform .5s}.bc-card:hover .bc-art{transform:translateY(-2px)}
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
 .bc-glass-edge{position:absolute;bottom:0;left:51%;right:0;height:90px;pointer-events:none;z-index:6;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000);-webkit-mask-image:linear-gradient(transparent,#000)}.bc-glass-edge i:nth-child(2){top:25px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.bc-glass-edge i:nth-child(3){top:54px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.bc-screen[data-detail="true"] .bc-glass-edge{height:32px}
 .bc-glass-reflection{position:absolute;inset:0;border-radius:inherit;z-index:7;pointer-events:none;box-shadow:inset 0 0 2px #fff4}
 .bc-detail{position:absolute;inset:55px 0 0;background:#e4e4e4;z-index:4;overflow-y:auto;scrollbar-width:none;padding-bottom:58px}.bc-detail-nav{position:sticky;top:0;z-index:8;min-height:56px;display:flex;align-items:center;padding:0 12px;color:#fff}.bc-icon{width:44px;height:44px;min-width:44px;min-height:44px;border:1px solid #fff9;background:#ffffff24;backdrop-filter:blur(10px) saturate(1.25);-webkit-backdrop-filter:blur(10px) saturate(1.25);box-shadow:inset 1px 1px 1px #fffc,0 3px 9px #17231a0b;display:grid;place-items:center;border-radius:50%}.bc-icon svg{filter:drop-shadow(0 1px 1px #28362acc)}.bc-board{height:330px;margin:0 10px;position:relative;padding:8px 0;display:flex;justify-content:center;align-items:center}.bc-board .bc-art{width:100%;height:100%}.bc-detail-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px 0}.bc-detail-caption h2{flex:1;min-width:0;font-size:1.375rem;line-height:1.35;font-weight:500;letter-spacing:-.4px;margin:0;overflow-wrap:anywhere}.bc-playback{flex:0 0 auto;position:relative}.bc-play-button{position:relative;display:grid;place-items:center;width:60px;height:60px;aspect-ratio:1;border:0;border-radius:50%;background:linear-gradient(145deg,#ffffff80,#ffffff20 48%,#ffffff45);backdrop-filter:blur(12px) saturate(1.3);-webkit-backdrop-filter:blur(12px) saturate(1.3);box-shadow:inset 1px 1px 1px #fffe,inset -1px -1px 2px #ffffff80,0 5px 16px #24372b12;color:#304236;padding:0;flex-shrink:0}.bc-play-button::before{content:'';position:absolute;inset:2px;border-radius:50%;background:radial-gradient(ellipse at 28% 14%,#ffffff90,transparent 65%);pointer-events:none}.bc-play-button[aria-pressed="true"]{box-shadow:inset 1px 1px 1px #fff,inset -1px -1px 3px #ffffff80,0 3px 12px #24372b16}.bc-play-outline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.bc-play-symbol{position:relative;margin-left:2px}.bc-play-progress{transition:stroke-dashoffset .08s linear}
 
-.bc-bead-drop{animation:bc-place .24s cubic-bezier(.2,.65,.3,1) both}@keyframes bc-place{from{opacity:0;transform:translateY(-.5px)}to{opacity:1;transform:translateY(0) scale(1)}}@media(prefers-reduced-motion:reduce){.bc-stage *{animation:none!important;transition:none!important}}`;
+.bc-bead-drop{animation:bc-place .24s cubic-bezier(.2,.65,.3,1) both}@keyframes bc-place{from{opacity:0;transform:translateY(-.5px)}to{opacity:1;transform:translateY(0) scale(1)}}@container(max-width:280px){.bc-indicators{gap:3px}.bc-indicators svg{width:13px}.bc-battery{width:18px}}@media(prefers-reduced-motion:reduce){.bc-stage *{animation:none!important;transition:none!important}}`;

@@ -1,0 +1,11 @@
+iPhone 16 Pro — White Titanium product bezel
+Copyright Apple Inc. All rights reserved.
+
+Original resource: https://developer.apple.com/design/resources/
+Product-image usage: https://developer.apple.com/app-store/marketing/guidelines/
+PNG source: https://github.com/jamesjingyi/mockup-device-frames/blob/main/Exports/iOS/16%20Pro/16%20Pro%20-%20White%20Titanium.png
+
+The supplied product bezel is retained without modification. The separate SVG
+mask follows its transparent screen opening to position the demonstrated UI.
+These device assets retain Apple's terms and are not covered by this
+repository's MIT code license. iPhone is a trademark of Apple Inc.
