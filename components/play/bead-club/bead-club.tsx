@@ -3,11 +3,10 @@
 import * as React from "react";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, Flower2, Pause, Play } from "lucide-react";
+import { ArrowLeft, CakeSlice } from "lucide-react";
 
 export type BeadClubProps = {
-  /** Plays a quiet demonstration on gallery cards. */
+  /** Uses compact sizing for gallery previews. */
   loop?: boolean;
   /** Additional classes for the preview area. */
   className?: string;
@@ -15,17 +14,16 @@ export type BeadClubProps = {
 
 type Bead = { x: number; y: number; color: string };
 type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry" | "jelly";
-type Artwork = { material: BeadMaterial; id: string; name: string; price: string; description: string; category: "Bento" | "Mains" | "Sides"; background: string; beads: Bead[]; colors: string[]; translucentColors?: readonly string[] };
+type Artwork = { material: BeadMaterial; id: string; name: string; price: string; description: string; category: "Cream" | "Jelly"; background: string; beads: Bead[]; colors: string[]; translucentColors?: readonly string[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
-const P = { white: "#fffdf2", cream: "#f8eccf", rim: "#a9cbd6", blue: "#75a8bc", rice: "#e8dfc9", green: "#82bc68", leaf: "#397f57", red: "#e85d50", orange: "#f39a54", yellow: "#f4ce69", brown: "#985737", dark: "#593e35" };
 
 const APP_BACKGROUND = "#f2f2f2";
 const JELLY_COLORS: Record<string, readonly string[]> = {
-  sushi: ["#ff9a68", "#ef7654"],
-  ramen: ["#bc7d41", "#e0a45c"],
+  "cake-peach": ["#ffad83", "#f18489", "#ffd1a3"],
+  "cake-violet": ["#c5a6f4", "#967bcf", "#e1cefa"],
 };
 
-// Original meal patterns; every occupied cell is replayed in color order.
+// Original cake patterns on a shared bead grid.
 function makePattern(id: string): Bead[] {
   const cells = new Map<string, Bead>();
   const dot = (x: number, y: number, color: string) => cells.set(`${x},${y}`, { x, y, color });
@@ -41,11 +39,10 @@ function makePattern(id: string): Bead[] {
     const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
     for (let i = 0; i <= steps; i++) dot(Math.round(x1 + (x2 - x1) * i / steps), Math.round(y1 + (y2 - y1) * i / steps), color);
   };
-  const roundedRect = (x: number, y: number, w: number, h: number, r: number, color: string) => {
-    for (let py = y; py < y + h; py++) for (let px = x; px < x + w; px++) {
-      const dx = Math.max(x + r - px, 0, px - (x + w - 1 - r));
-      const dy = Math.max(y + r - py, 0, py - (y + h - 1 - r));
-      if (dx * dx + dy * dy <= r * r) dot(px, py, color);
+  const heart = (cx: number, cy: number, rx: number, ry: number, color: string) => {
+    for (let y = Math.floor(cy - ry * 1.3); y <= cy + ry; y++) for (let x = Math.floor(cx - rx * 1.2); x <= cx + rx * 1.2; x++) {
+      const nx = (x - cx) / rx, ny = (cy - y) / ry;
+      if ((nx * nx + ny * ny - 1) ** 3 - nx * nx * ny ** 3 <= 0) dot(x, y, color);
     }
   };
   const polygon = (points: number[][], color: string) => {
@@ -58,129 +55,107 @@ function makePattern(id: string): Bead[] {
       if (inside) dot(x, y, color);
     }
   };
-  const broccoli = (x: number, y: number) => {
-    rect(x - 1, y, 3, 4, P.green);
-    for (const [dx,dy] of [[-2,0],[2,0],[0,-2]]) oval(x+dx,y+dy,2.5,2,P.leaf);
-    dot(x - 1, y - 2, P.green); dot(x + 2, y, P.green);
+  const flower = (x: number, y: number, size: number, petals: string, center: string) => {
+    for (let i = 0; i < 5; i++) oval(x + Math.cos(i * Math.PI * 2 / 5) * size, y + Math.sin(i * Math.PI * 2 / 5) * size, size * .72, size * .6, petals);
+    oval(x, y, Math.max(1, size * .45), Math.max(1, size * .45), center);
   };
-  const tomato = (x: number, y: number, size = 2) => { oval(x,y,size,size,P.red); dot(x-1,y-1,"#ffba8d"); dot(x,y-size,P.leaf); };
-  const plate = () => { oval(20,25,18,13,P.rim); oval(20,24,17,12,P.white); oval(20,24,14,9,P.cream); };
+  const fruit = (x: number, y: number, color: string, leaf: string, cream: string) => {
+    line(x, y - 5, x + 1, y - 2, leaf);
+    oval(x, y, 2.6, 2.8, color); dot(x, y + 3, color);
+    line(x - 2, y - 2, x + 2, y - 2, leaf);
+    dot(x - 1, y - 1, cream); dot(x + 1, y + 1, cream);
+  };
+  if (id === "cake-heart") {
+    const pink = "#ff89ae", shade = "#de5688", cream = "#fff4d9", red = "#ef3d67", green = "#459f80";
 
-  if (id.startsWith("bento-")) {
-    // A tall, thin-rimmed lunch box, packed above a lower bed of rice.
-    roundedRect(6,1,28,39,4,"#96755d"); roundedRect(7,2,26,37,3,"#efd8b5");
-    roundedRect(8,3,24,35,2,"#fff9e9");
-    const rice = id === "bento-salmon" ? "#c8a9b3" : "#fff9e9";
-    roundedRect(8,22,24,16,2,rice); line(8,21,31,21,"#cfb79a");
-    for(let y=23;y<37;y+=3)for(let x=9;x<31;x+=3){
-      const shift=(y%2), color=id==="bento-salmon"?"#ad8593":"#dfcfb1";
-      dot(x+shift,y,color); dot(x+1+shift,y+1,color);
-      if((x+y)%4===0)dot(x,y+1,id==="bento-salmon"?"#e1c2c8":P.white);
-    }
-    const noodles = (x: number,y: number,w: number,h: number,base: string,edge: string) => {
-      roundedRect(x,y,w,h,1,base);
-      for(let row=0;row<h-1;row+=2)for(let i=0;i<w;i++){
-        const py=Math.max(y,Math.min(y+h-1,y+row+Math.round(Math.sin(i*.9+row))));dot(x+i,py,edge);
-      }
-    };
-    if(id === "bento-salmon") {
-      noodles(17,5,8,14,"#d8a252","#a6783d");
-      roundedRect(26,4,6,15,2,"#b57a43"); roundedRect(26,4,5,14,1,"#f0b16a");
-      for(let y=6;y<17;y+=3)line(26,y,30,y+2,"#ffe0a0");
-      for(const [x,y]of [[11,6],[16,6]]){oval(x,y,4,3,"#6e9853");oval(x,y,3,2,"#bed07f");dot(x,y,"#e2dfa4");dot(x+1,y+1,"#a4b369");}
-      for(const y of [10,14,18]){
-        roundedRect(8,y,8,4,1,"#c3a04e");roundedRect(8,y,7,3,1,"#f5d46e");line(9,y+1,13,y+1,"#fff0a9");dot(11,y+2,"#93a267");
-      }
-      for(const [x,y]of [[20,19],[24,20],[29,18]]){oval(x,y,2.5,2.5,"#987043");dot(x-1,y-1,"#b9945a");}
-      line(26,18,30,17,"#e4d7aa");
-    } else if(id === "bento-ebi") {
-      broccoli(11,6); broccoli(17,6);
-      tomato(11,12,2.5); tomato(17,12,2.5);
-      noodles(8,15,12,6,"#efbb5b","#b98437");
-      oval(28,9,4,5,"#e9dfbf"); oval(28,8,3,4,P.white);oval(28,9,2,3,"#f6ce4b");
-      oval(28,17,4,4,"#987044");oval(29,16,2,2,"#b48b54");
-      roundedRect(21,4,5,16,2,"#b88d3f");roundedRect(21,4,4,15,1,"#dbb25e");
-      for(const [x,y]of [[22,6],[23,9],[22,12],[24,15],[22,17]])dot(x,y,"#f5d58a");
-      polygon([[21,18],[20,22],[23,21],[25,23],[25,19]],"#d98142");
-    } else if(id === "bento-chicken") {
-      for(const [x,y]of [[11,5],[16,5],[10,9]]){oval(x,y,4,3,"#6f9e54");oval(x-1,y-1,3,2,"#a8c66c");}
-      for(const [x,y]of [[13,8],[18,8],[16,12]]){oval(x,y,3,3,"#956a3b");oval(x,y-1,2,2,"#bd9556");dot(x+1,y-1,"#d5b47a");}
-      noodles(22,4,10,11,"#f4ecd2","#c8c2a0");
-      for(const [x,y]of [[10,16],[17,17]]){
-        oval(x,y,2,4,"#c87242");oval(x,y-1,2,3,"#eb9a61");dot(x-1,y-1,P.dark);dot(x+1,y-1,P.dark);
-        for(let dx=-2;dx<=2;dx+=2)line(x+dx,y+2,x+dx+(dx?Math.sign(dx):0),y+5,"#e98b54");
-      }
-      roundedRect(22,17,10,5,1,"#c59a42");roundedRect(22,17,9,4,1,"#f1c95e");
-      for(let x=23;x<31;x+=2)line(x,17,x,20,"#ffe29a");line(22,19,30,19,"#d2aa4d");
-    } else if(id === "bento-nori") {
-      for(let y=4;y<20;y+=4)for(let x=9;x<31;x+=4){dot(x,y,"#dfcfb1");dot(x+1,y+1,"#dfcfb1");}
-      oval(20,11,10,8,"#4b4b3c");oval(20,10,9,7,"#535242");
-      oval(20,11,2.5,2.5,"#fff0b3");line(19,9,21,9,P.white);
-      roundedRect(10,25,20,12,1,"#514e3d");rect(12,26,16,9,P.white);rect(15,35,11,2,"#514e3d");
-      oval(20,29,3.5,3.5,"#b34d55");oval(20,28,2.5,2.5,"#d96971");dot(19,27,"#ee9190");
-      for(const [x,y]of [[15,32],[18,33],[22,33],[25,32],[14,30]])dot(x,y,"#746149");
-    }
-  } else if (id === "steak") {
-    plate();
-    for(const [x,y]of [[25,11],[28,10],[31,12],[33,13]]) { line(x,y,x-2,y+8,"#cf994c"); line(x-1,y,x-3,y+7,P.yellow); }
-    broccoli(10,14); broccoli(15,13);
-    const outline=[[7,22],[10,18],[18,17],[24,20],[27,26],[24,31],[17,33],[10,31],[6,27]];
-    polygon(outline,"#784332"); polygon([[9,22],[12,19],[18,19],[23,22],[25,26],[22,30],[16,31],[10,29],[8,26]],"#be7351");
-    polygon([[11,23],[15,21],[20,22],[23,26],[20,29],[15,29],[11,27]],"#d99476");
-    for(const [x,y]of [[10,22],[14,20],[18,21],[21,24]])line(x,y,x+4,y+6,"#8b4b36");
-    rect(15,23,3,2,"#ffdf8f"); dot(16,23,P.white); dot(19,29,P.leaf); dot(12,28,P.leaf);
-  } else if (id === "burger") {
-    oval(20,36,18,2,P.rim); oval(20,35,17,2,P.white);
-    oval(20,31,14,4,"#c98640"); roundedRect(6,28,29,5,2,"#efb965");
-    roundedRect(5,25,30,5,2,"#754533"); line(8,26,31,26,"#a16542");
-    polygon([[6,24],[34,24],[30,28],[24,26],[19,29],[14,26],[8,27]],"#ffcf53");
-    for(let x=6;x<=34;x+=4)oval(x,23,3,2,P.leaf);
-    roundedRect(6,20,29,3,1,P.red); line(9,21,30,21,"#ff9c71");
-    roundedRect(5,16,31,5,2,"#ce8e40"); oval(20,15,15,7,"#f2bb63");
-    oval(20,13,13,5,"#ffd581");
-    for(const [x,y]of [[11,13],[17,11],[24,12],[29,15],[20,15],[14,16]])line(x,y,x+1,y,P.white);
-  } else if (id === "pasta") {
-    plate(); oval(20,24,12,8,"#77a46b");
-    for (let row=0;row<5;row++) for(let step=0;step<15;step++) {
-      const x=10+step, y=18+row*3+Math.round(Math.sin(step*.8+row)*1.5);
-      dot(x,y,P.yellow); if(step%3!==0)dot(x+1,y,"#f9e0a1");
-    }
-    for(const [x,y]of [[11,20],[29,23],[18,29]])tomato(x,y,2.5);
-    for(const [x,y]of [[16,17],[25,28],[28,18]]){oval(x,y,3,1,P.leaf);dot(x,y-1,P.green);}
-    for(const [x,y]of [[14,25],[22,20],[25,25],[18,23],[21,30]])line(x,y,x+1,y,P.white);
-  } else if (id === "ramen") {
-    roundedRect(28,7,6,13,1,"#36594c"); line(29,8,29,17,"#6c8d64");
-    for(let y=18;y<=33;y++){const w=Math.round(16-(y-18)*.36);rect(20-w,y,w*2+1,1,P.rim);}
-    oval(20,33,11,3,P.rim); oval(20,16,17,7,"#688fa3"); oval(20,16,16,6,P.cream); oval(20,16,14,5,"#bc7d41");
-    oval(20,16,12,3,"#e0a45c");
-    for(let i=0;i<18;i++)dot(9+i,16+Math.round(Math.sin(i*1.1)*2),P.yellow);
-    oval(12,16,5,2.5,"#ce9474"); oval(12,16,3,1.5,"#f4c3a6"); dot(12,16,"#c87f64");
-    oval(27,17,4,3,P.white); oval(27,17,2,2,"#eeac46"); dot(27,16,P.yellow);
-    for(const [x,y]of [[17,13],[21,14],[23,18],[18,20]]){dot(x,y,P.leaf);dot(x+1,y,P.green);}
-    line(8,25,32,25,P.blue); line(10,30,30,30,P.blue); rect(17,35,7,2,P.blue);
-  } else if (id === "sushi") {
-    plate();
-    for(const [x,y]of [[11,22],[23,29]]) { oval(x,y,7,5,"#3f5c4c");oval(x,y-1,6,4,P.white);oval(x,y-1,3,2,"#ff9a68");rect(x,y-2,2,2,P.green);dot(x-2,y,P.rice); }
-    oval(25,15,9,4,P.rice); oval(25,14,9,4,P.white); oval(25,12,9,3,"#ef7654");
-    for(const x of [20,24,28])line(x,10,x+2,14,"#ff9a68");
-    oval(8,12,3,2,"#f2c1b4"); oval(10,10,2,1,"#ffdaca"); oval(32,31,3,2,P.green); dot(31,30,"#c4dea0");
-  } else if (id === "salad") {
-    plate();
-    for(const [x,y]of [[10,21],[15,16],[22,16],[29,20],[28,27],[20,31],[12,28],[20,23]]) { oval(x,y,4,3,P.leaf);oval(x-1,y-1,3,2,P.green); }
-    for(const [x,y]of [[13,19],[27,25],[18,29]])tomato(x,y,2.5);
-    for(const [x,y]of [[21,19],[12,26]]){oval(x,y,3,2,"#629c68");oval(x,y,2,1,"#d3e3b0");dot(x,y,"#8fb075");}
-    line(23,27,27,29,"#d7a5be"); line(16,22,19,24,"#d7a5be");
-    for(const [x,y]of [[17,18],[23,24],[18,27]])rect(x,y,2,2,"#ffedb9");
-  } else if (id === "tempura") {
-    oval(20,29,18,9,P.rim); oval(20,28,17,8,P.white);
-    for(const [sx,sy]of [[10,16],[19,13],[27,16]]) {
-      for(let i=9;i>=0;i--){const x=sx+Math.round(Math.sin(i*.32)*3);oval(x,sy+i,2.5,2,"#d59743");oval(x-1,sy+i,2,1,"#f5cc74");if(i%3===0)dot(x,sy+i,P.cream);}
-      polygon([[sx-2,sy],[sx-3,sy-5],[sx,sy-3],[sx+3,sy-5],[sx+2,sy]],"#e58255");
-    }
-    oval(28,32,4,3,P.yellow); oval(28,32,2,2,"#fff1b3"); line(25,30,30,34,P.white);
-    oval(10,31,4,2,P.leaf); line(8,32,13,29,P.green);
+    for (let dy = 12; dy >= 1; dy--) heart(20, 15 + dy, 12, 6, dy > 8 ? shade : dy > 5 ? cream : pink);
+    heart(20, 15, 12, 6, "#f45c99"); heart(20, 14, 10.8, 5.2, cream);
+    for (const [x,y] of [[8,23],[12,26],[17,29],[23,29],[28,26],[32,23]]) oval(x,y,1.5,1,cream);
+    fruit(13, 11, red, green, cream); fruit(26, 11, red, green, cream); fruit(20, 18, "#ff6385", green, cream);
+    oval(18, 31, 3, 1.8, "#d1b1ed"); oval(23, 31, 3, 1.8, "#d1b1ed");
+    dot(20, 31, "#a57bcc"); line(20, 32, 17, 35, "#d1b1ed"); line(21, 32, 24, 35, "#d1b1ed");
+  } else if (id === "cake-cloud") {
+    const blue = "#81cfee", shade = "#579fcf", white = "#fff8e9", berry = "#5361a8";
+     oval(20, 33, 15, 4, shade);
+    rect(5, 24, 31, 10, blue); oval(20, 24, 15, 4, white);
+    for (let x = 6; x <= 34; x += 4) { oval(x,26,2,2,white); if(x%8===6)rect(x,26,1,4,white); }
+    oval(20, 22, 10, 3, "#b4a9e9"); rect(10, 13, 21, 10, "#d2e8f5");
+    oval(20, 13, 10, 4, blue);
+    for (let x = 11; x <= 29; x += 3) oval(x,15,2,2,white);
+    for (const [x,y] of [[13,11],[17,9],[21,10],[25,9],[28,12]]) oval(x,y,3,2,white);
+    for (const [x,y] of [[14,8],[22,7],[27,10]]) { oval(x,y,2,2,berry); dot(x-1,y-1,"#a2b7ef"); }
+    line(22,4,22,6,"#5ba392"); oval(24,4,2,1,"#7fc7b0");
+    for (const [x,y] of [[12,31],[27,30]]) { line(x-1,y,x+1,y,"#fff0b7");line(x,y-1,x,y+1,"#fff0b7"); }
+    oval(20, 32, 4, 2, white);
+  } else if (id === "cake-peach") {
+    const [gel, shade, glow] = JELLY_COLORS["cake-peach"];
+
+    oval(20,29,12,5,shade); rect(8,19,25,11,gel); oval(20,19,12,9,gel);
+    oval(20,17,10,6,glow);
+    for (const x of [10,15,25,30]) line(x,21,x,29, x<20?glow:shade);
+    oval(20,30,11,3,gel); line(11,31,28,31,glow);
+    oval(20,12,8,4,"#f28088"); oval(20,11,6,3,"#ffdfac");
+    line(18,9,23,12,"#ffc58c"); dot(23,12,"#f59d7e");
+    oval(13,9,3,1.6,"#69ad8e"); oval(16,7,1.5,3,"#96c9a4");
+    rect(10,31,21,1,"#fff4dc"); rect(10,32,21,2,"#d1a16c");
+    flower(29,30,2,"#fff7e4","#ffd27f");
+
+  } else if (id === "cake-matcha") {
+    const green = "#8fc480", dark = "#528b67", light = "#c5dfa4", cream = "#fff1d1";
+    rect(6,16,29,17,dark); oval(20,33,14,2,dark);
+    rect(6,20,29,5,green); rect(6,26,29,3,cream); rect(6,30,29,3,light);
+    oval(20,16,14,5,dark); oval(20,15,14,5,light); rect(9,11,23,8,light);
+    for(let x=7;x<=33;x+=4)oval(x,20,2,1.5,cream);
+    for(const [x,y]of [[11,12],[24,13],[29,16]])flower(x,y,2,cream,"#e5bc65");
+    flower(18,17,2.4,"#f8a9bc","#fff0b1");
+    oval(14,14,3,1,dark); oval(27,11,2.5,1,dark); oval(23,17,2,1,green);
+    for(const [x,y]of [[10,24],[20,24],[30,24]])dot(x,y,"#d7ebbb");
+
+  } else if (id === "cake-violet") {
+    const [gel, shade, glow] = JELLY_COLORS["cake-violet"];
+
+    polygon([[6,17],[15,23],[15,34],[6,27]],shade);
+    polygon([[15,23],[30,21],[30,32],[15,35]],gel);
+    polygon([[30,21],[33,16],[33,27],[30,32]],shade);
+    polygon([[20,9],[33,16],[30,22],[15,24],[6,17]],glow);
+    line(16,25,16,32,glow); line(29,23,29,30,glow);
+    for(const [x,y]of [[20,28],[25,31],[11,24]])dot(x,y,glow);
+    oval(20,14,5,2,"#fff5e6"); oval(20,12,3,2,"#fff9ed");
+    for(const [x,y]of [[12,15],[26,16]]){oval(x,y,2,2,"#7252ac");dot(x-1,y-1,"#b4a3df");}
+    flower(27,12,1.8,"#fff4dc","#f1cf79");
+    oval(16,11,2.5,1,"#7ebda3");
+    polygon([[15,32],[30,30],[30,32],[15,34]],"#fff1d4");
+    polygon([[15,34],[30,32],[30,33],[15,36]],"#c09a70");
+  } else if (id === "cake-strawberry") {
+     oval(20,31,14,5,"#e8c48d");
+    rect(6,18,29,14,"#f6dca9"); rect(6,23,29,3,"#f78b9f"); rect(6,26,29,2,"#fff5db");
+    oval(20,18,14,5,"#fff9e9");
+    for(const x of [8,14,25,31])oval(x,21,2,2,"#fff9e9");
+    oval(19,14,3,2,"#fff9e9"); fruit(12,14,"#ed4c68","#4f9873","#ffe1ad");
+    fruit(24,13,"#ed4c68","#4f9873","#ffe1ad"); fruit(30,18,"#f3657c","#4f9873","#ffe1ad");
+    for(const [x,y]of [[10,30],[19,32],[30,30]])dot(x,y,"#fff3cf");
+  } else if (id === "cake-chocolate") {
+
+    polygon([[6,18],[31,18],[31,34],[6,31]],"#95604a");
+    polygon([[31,18],[35,13],[35,29],[31,34]],"#634335");
+    polygon([[6,18],[19,6],[35,13],[31,18]],"#704936");
+    polygon([[7,23],[30,23],[30,26],[7,25]],"#edcba1");
+    polygon([[7,28],[30,29],[30,31],[7,30]],"#bf7f74");
+    line(8,20,29,20,"#b58768");
+    rect(22,10,8,3,"#493127"); line(23,10,28,10,"#b78968");
+    oval(20,14,3,2,"#e6c79f");fruit(13,15,"#dc526a","#618761","#ffe2b1");
+    for(const [x,y]of [[24,16],[28,15],[20,29],[11,27]])dot(x,y,"#dcb487");
+  } else if (id === "cake-lemon") {
+     oval(20,31,14,5,"#dfb75d");rect(6,18,29,14,"#efd07f");
+    rect(6,24,29,3,"#fff4d4");rect(7,30,27,2,"#fff1bd");
+    oval(20,18,14,5,"#fff8de");for(const x of [8,13,27,32])oval(x,21,2,2,"#fff8de");
+    oval(20,12,6,6,"#dcaf43");oval(20,12,5,5,"#f8dc72");
+    for(const [x,y]of [[20,7],[24,9],[25,12],[24,16],[20,17],[16,16],[15,12],[16,9]])line(20,12,x,y,"#fff4bf");
+    oval(27,11,4,1.5,"#74a57a");oval(25,9,1.5,3,"#98c194");
+    oval(10,17,3,1.5,"#fffdf0");oval(30,18,3,1.5,"#fffdf0");
   }
-  // Finish each color before moving on; scatter placements within that color.
+  // Finish one color before picking up the next. Within each color, scatter
+  // placements across the pattern instead of sweeping through horizontal rows.
   const colorGroups = new Map<string, Bead[]>();
   for (const bead of cells.values()) {
     const group = colorGroups.get(bead.color);
@@ -188,23 +163,22 @@ function makePattern(id: string): Bead[] {
     else colorGroups.set(bead.color, [bead]);
   }
   const placementOrder = (bead: Bead) => ((bead.x * 73856093) ^ (bead.y * 19349663)) >>> 0;
-  return [...colorGroups.values()].flatMap(group => group.sort((a,b)=>placementOrder(a)-placementOrder(b)||a.y-b.y||a.x-b.x));
+  return [...colorGroups.values()].flatMap(group =>
+    group.sort((a, b) => placementOrder(a) - placementOrder(b) || a.y - b.y || a.x - b.x)
+  );
 }
 const artworks: Artwork[] = [
-  { id:"bento-salmon", name:"Salmon bento", price:"$18.50", description:"Grilled salmon, tamagoyaki, cucumber and meatballs over shiso rice.", category:"Bento", background:"#eee5d9" },
-  { id:"bento-ebi", name:"Ebi fry bento", price:"$17.50", description:"Crispy prawn, egg, spaghetti, tomatoes and broccoli with rice.", category:"Bento", background:"#eee5d9" },
-  { id:"bento-chicken", name:"Karaage bento", price:"$16.50", description:"Karaage chicken, octopus sausages, corn, sprouts and steamed rice.", category:"Bento", background:"#eee5d9" },
-  { id:"bento-nori", name:"Nori bento", price:"$15.00", description:"Nori rice, a soft egg centre and a little umeboshi rice parcel.", category:"Bento", background:"#eee5d9" },
-  { id:"steak", name:"Steak & fries", price:"$26.00", description:"Grilled steak with herb butter, golden fries and broccoli.", category:"Mains", background:"#e5edf0" },
-  { id:"burger", name:"House burger", price:"$16.00", description:"Beef patty, cheddar, lettuce and tomato on a sesame bun.", category:"Mains", background:"#f4ead8" },
-  { id:"pasta", name:"Pesto pasta", price:"$17.50", description:"Pasta tossed in basil pesto with cherry tomatoes and Parmesan.", category:"Mains", background:"#e8efdd" },
-  { id:"ramen", name:"Tonkotsu ramen", price:"$18.00", description:"Rich pork broth, noodles, chashu, egg and spring onions.", category:"Mains", background:"#e3edf0" },
-  { id:"sushi", name:"Salmon rolls", price:"$12.00", description:"Salmon nigiri and maki with cucumber, ginger and wasabi.", category:"Sides", background:"#e3edf0" },
-  { id:"salad", name:"Garden salad", price:"$9.00", description:"Leafy greens, cucumber, cherry tomatoes and lemon dressing.", category:"Sides", background:"#e8efdd" },
-  { id:"tempura", name:"Crispy tempura", price:"$11.00", description:"Golden prawn tempura with shiso and a wedge of lemon.", category:"Sides", background:"#f4ead8" },
-].map(item=>{const beads=makePattern(item.id);return {...item, material:(JELLY_COLORS[item.id]?"jelly":item.id.startsWith("bento-")?"terry":"frosted") as BeadMaterial, translucentColors:JELLY_COLORS[item.id], category:item.category as Artwork["category"], beads, colors:[...new Set(beads.map(bead=>bead.color))]};});
+  { id:"cake-strawberry", name:"Strawberry cake", price:"$8.50", description:"Vanilla sponge, strawberry cream and fresh berries.", category:"Cream", background:"#efe5e3" },
+  { id:"cake-cloud", name:"Blueberry cloud", price:"$9.00", description:"Blueberry sponge layered with soft vanilla cream.", category:"Cream", background:"#e3eff5" },
+  { id:"cake-matcha", name:"Matcha cake", price:"$8.00", description:"Matcha sponge, vanilla cream and little sugar flowers.", category:"Cream", background:"#e8efdd" },
+  { id:"cake-chocolate", name:"Chocolate slice", price:"$9.50", description:"Chocolate sponge, ganache and a berry cream layer.", category:"Cream", background:"#eaded5" },
+  { id:"cake-lemon", name:"Lemon chiffon", price:"$8.00", description:"Light lemon sponge with citrus glaze and fresh cream.", category:"Cream", background:"#f3ecd8" },
+  { id:"cake-heart", name:"Berry heart", price:"$8.50", description:"Strawberry cream, vanilla sponge and a little sugar bow.", category:"Cream", background:"#efe5e3" },
+  { id:"cake-peach", name:"Peach cheesecake", price:"$7.50", description:"Peach jelly, vanilla cheesecake and a biscuit base.", category:"Jelly", background:"#f8e8dd" },
+  { id:"cake-violet", name:"Violet cheesecake", price:"$8.50", description:"Blackcurrant jelly, vanilla cheesecake and blueberries.", category:"Jelly", background:"#eee7f7" },
+].map(item=>{const beads=makePattern(item.id);return {...item, material:(JELLY_COLORS[item.id]?"jelly":"terry") as BeadMaterial, translucentColors:JELLY_COLORS[item.id], category:item.category as Artwork["category"], beads, colors:[...new Set(beads.map(bead=>bead.color))]};});
 
-function FlatBeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
+function FlatBeadArt({ art, count = art.beads.length, }: { art: Artwork; count?: number }) {
   const id = React.useId().replace(/:/g, "");
   const placed = art.beads.slice(0, count);
   const glitter = art.material === "glitter";
@@ -259,7 +233,7 @@ function FlatBeadArt({ art, count = art.beads.length, animated = false }: { art:
     </g>
     <g className="bc-material-surface" mask={`url(#${id}-shape)`}>
       <g className="bc-fused-colors" filter={`url(#${id}-surface)`}>
-        {placed.map(bead => <g key={`${bead.x}-${bead.y}`} data-bead-color={bead.color} className={animated ? "bc-bead-drop" : undefined} style={{ transformOrigin: `${bead.x + .5}px ${bead.y + .5}px` }}><path d={cell(bead)} fill={bead.color} /></g>)}
+        {placed.map(bead => <g key={`${bead.x}-${bead.y}`} data-bead-color={bead.color} style={{ transformOrigin: `${bead.x + .5}px ${bead.y + .5}px` }}><path d={cell(bead)} fill={bead.color} /></g>)}
       </g>
       <path d={silhouette} fill={`url(#${id}-light)`} />
       {placed.map(bead => {
@@ -612,7 +586,7 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
   return true;
 }
 
-function BeadArt({ art, count = art.beads.length, animated = false }: { art: Artwork; count?: number; animated?: boolean }) {
+function BeadArt({ art, count = art.beads.length, }: { art: Artwork; count?: number }) {
   const ref = React.useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = React.useState(false);
   React.useEffect(() => {
@@ -625,85 +599,32 @@ function BeadArt({ art, count = art.beads.length, animated = false }: { art: Art
   }, [art, count]);
   return <div className="bc-art bc-art-3d" role="img" aria-label={`${art.name}, ${art.material === "jelly" ? "translucent jelly" : art.material === "terry" ? "soft textured" : "pearlescent"} bead pattern`} data-material={art.material} data-render-mode={ready ? "physical" : "fallback"} data-placed={count} data-active-color={art.beads[Math.max(0, count - 1)]?.color}>
     <canvas ref={ref} aria-hidden="true" style={{ width: "100%", height: "100%", opacity: ready ? 1 : 0 }} />
-    {!ready && <div aria-hidden="true" style={{ display: "contents" }}><FlatBeadArt art={art} count={count} animated={animated} /></div>}
+    {!ready && <div aria-hidden="true" style={{ display: "contents" }}><FlatBeadArt art={art} count={count} /></div>}
   </div>;
 }
 
-function Replay({ art, onBack, reduced }: { art: Artwork; onBack: () => void; reduced: boolean }) {
-  const [progress, setProgress] = React.useState(reduced ? 1 : 0);
-  const [wantsPlayback, setPlaying] = React.useState(!reduced);
-  const playing = wantsPlayback && progress < 1;
+function CakeDetail({ art, onBack }: { art: Artwork; onBack: () => void }) {
   const backRef = React.useRef<HTMLButtonElement>(null);
-  const statusId = React.useId();
   React.useEffect(() => { backRef.current?.focus({ preventScroll: true }); }, []);
-  React.useEffect(() => {
-    if (!playing) return;
-    let last = 0;
-    let frame = 0;
-    const tick = (now: number) => {
-      if (last && now - last < 40) { frame = requestAnimationFrame(tick); return; }
-      const delta = last ? (now - last) / 8000 : 0;
-      last = now;
-      setProgress(value => Math.min(1, value + delta));
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [playing]);
-  return <motion.section className="bc-detail" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : .25 }} onKeyDown={event => { if (event.key === "Escape") onBack(); }} aria-label={`${art.name} replay`}>
+  return <section className="bc-detail" onKeyDown={event => { if (event.key === "Escape") onBack(); }} aria-label={`${art.name} details`}>
     <div className="bc-detail-nav"><button ref={backRef} className="bc-icon" onClick={onBack} aria-label="Back to collection"><ArrowLeft size={21} /></button></div>
-    <div className="bc-board"><BeadArt art={art} count={Math.floor(progress * art.beads.length)} animated={!reduced && playing} /></div>
-    <div className="bc-detail-caption"><h2>{art.name}</h2>
-    <div className="bc-playback">
-      <button className="bc-play-button" aria-label={playing ? "Pause" : progress >= 1 ? "Replay" : "Play"} aria-pressed={playing} aria-describedby={statusId} onClick={() => {
-        if (progress >= 1) { setProgress(0); setPlaying(true); }
-        else setPlaying(value => !value);
-      }}>
-        <svg className="bc-play-outline" viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="28.5" fill="none" stroke="#78827b" strokeWidth="1.5" /><circle className="bc-play-progress" cx="30" cy="30" r="28.5" fill="none" stroke="#3c5044" strokeWidth="2" pathLength="1" strokeDasharray="1" strokeDashoffset={1 - progress} strokeLinecap="round" transform="rotate(-90 30 30)" /></svg>
-        {playing ? <Pause className="bc-play-symbol" size={22} fill="currentColor" aria-hidden="true" /> : <Play className="bc-play-symbol" size={23} fill="currentColor" aria-hidden="true" />}
-      </button>
-      <span className="bc-sr-only" id={statusId} role="status">{progress >= 1 ? "Pattern complete." : playing ? "Playing pattern animation." : "Animation paused."}</span>
-    </div></div>
-  </motion.section>;
+    <div className="bc-board"><BeadArt art={art} /></div>
+    <div className="bc-detail-caption"><h2>{art.name}</h2><p className="bc-menu-price">{art.price}</p><p className="bc-detail-description">{art.description}</p></div>
+  </section>;
 }
 
 
-const menuSections = (["Bento", "Mains", "Sides"] as const).map(category => ({
-  id: category.toLowerCase(), title: category, items: artworks.filter(art => art.category === category),
-}));
+const menuSections = [
+  { id: "all", title: "All", items: artworks },
+  { id: "cream", title: "Cream", items: artworks.filter(art => art.category === "Cream") },
+  { id: "jelly", title: "Jelly", items: artworks.filter(art => art.category === "Jelly") },
+];
 
-function MenuShelf({ items, onOpen }: { items: Artwork[]; onOpen: (art: Artwork, button: HTMLButtonElement) => void }) {
-  const start = React.useRef<{ x: number; left: number } | null>(null);
-  const suppressClick = React.useRef(false);
-  const [dragging, setDragging] = React.useState(false);
-  return <div className={`bc-shelf${dragging ? " bc-shelf-dragging" : ""}`} role="group" aria-label="Swipe to browse patterns"
-    onPointerDown={event => {
-      if (event.pointerType !== "mouse" || event.button !== 0) return;
-      start.current = { x: event.clientX, left: event.currentTarget.scrollLeft }; suppressClick.current = false;
-    }}
-    onPointerMove={event => {
-      const point = start.current; if (!point) return;
-      const delta = event.clientX - point.x;
-      if (!suppressClick.current && Math.abs(delta) < 8) return;
-      suppressClick.current = true; setDragging(true);
-      if (!event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
-      event.currentTarget.scrollLeft = point.left - delta;
-      event.preventDefault();
-    }}
-    onPointerUp={event => {
-      start.current = null; setDragging(false);
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-      if (!suppressClick.current) return;
-      const track = event.currentTarget;
-      const step = (track.firstElementChild?.getBoundingClientRect().width ?? 0) + 16;
-      if (step) track.scrollTo({ left: Math.round(track.scrollLeft / step) * step, behavior: "smooth" });
-    }}
-    onPointerCancel={() => { start.current = null; setDragging(false); suppressClick.current = false; }}
-    onPointerLeave={() => { if (!suppressClick.current) start.current = null; }}
-    onClickCapture={event => { if (suppressClick.current) { event.preventDefault(); event.stopPropagation(); suppressClick.current = false; } }}>
+function MenuGrid({ items, onOpen }: { items: Artwork[]; onOpen: (art: Artwork, button: HTMLButtonElement) => void }) {
+  return <div className="bc-food-grid">
     {items.map(art => <article className="bc-menu-card" key={art.id}>
       <button className="bc-menu-open" aria-label={`Open ${art.name}`} onClick={event => onOpen(art, event.currentTarget)}><BeadArt art={art} /></button>
-      <div className="bc-menu-caption"><div className="bc-menu-info"><h3>{art.name}</h3><p className="bc-menu-price">{art.price}</p><p className="bc-menu-description">{art.description}</p></div><button className="bc-play-button" aria-label={`Play ${art.name}`} onClick={event => onOpen(art, event.currentTarget)}><Play className="bc-play-symbol" size={23} fill="currentColor" aria-hidden="true" /></button></div>
+      <div className="bc-menu-caption"><h3>{art.name}</h3><p className="bc-menu-price">{art.price}</p><p className="bc-menu-description">{art.description}</p></div>
     </article>)}
   </div>;
 }
@@ -712,13 +633,12 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
   const host = React.useRef<HTMLDivElement>(null);
   const lastCard = React.useRef<HTMLButtonElement | null>(null);
   const menu = React.useRef<HTMLDivElement>(null);
-  const sectionRefs = React.useRef<(HTMLElement | null)[]>([]);
   const [activeSection, setActiveSection] = React.useState(0);
   const menuId = React.useId();
-  const reduced = !!useReducedMotion();
   const [scale, setScale] = React.useState<number | null>(null);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const selected = artworks.find(art => art.id === selectedId) ?? null;
+  const category = menuSections[activeSection];
   React.useEffect(() => {
     const element = host.current;
     if (!element) return;
@@ -726,38 +646,27 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
     observer.observe(element);
     return () => observer.disconnect();
   }, [loop]);
-  React.useEffect(() => {
-    if (!loop || reduced) return;
-    const open = setTimeout(() => setSelectedId(artworks[0].id), 2600);
-    const close = setTimeout(() => setSelectedId(null), 13600);
-    const cycle = setInterval(() => {
-      setSelectedId(artworks[0].id);
-      const timer = setTimeout(() => setSelectedId(null), 11000);
-      pending.push(timer);
-    }, 16200);
-    const pending: ReturnType<typeof setTimeout>[] = [];
-    return () => { clearTimeout(open); clearTimeout(close); clearInterval(cycle); pending.forEach(clearTimeout); };
-  }, [loop, reduced]);
   const open = (art: Artwork, button: HTMLButtonElement) => { lastCard.current = button; setSelectedId(art.id); };
   const close = () => { setSelectedId(null); requestAnimationFrame(() => lastCard.current?.focus({ preventScroll: true })); };
   return <div ref={host} className={`bc-stage ${className ?? ""}`} data-preview={loop ? "loop" : "interactive"}>
     <style>{styles}</style>
-    <div className="bc-phone-space" style={{ width: 390 * (scale ?? 0), height: PHONE_HEIGHT * (scale ?? 0), visibility: scale === null ? "hidden" : "visible" }}><div className="bc-phone" style={loop ? { width: 390, height: PHONE_HEIGHT, transform: `scale(${scale ?? 0})` } : undefined}>
+    <div className="bc-phone-space" style={{ width: 390 * (scale ?? 0), height: PHONE_HEIGHT * (scale ?? 0), visibility: scale === null ? "hidden" : "visible" }}><div className="bc-phone" style={{ width: 390, height: PHONE_HEIGHT, transform: `scale(${scale ?? 0})` }}>
 
       <div className="bc-screen" data-detail={!!selected}>
         <div className="bc-status" aria-hidden="true"><b>9:41</b><div className="bc-indicators"><svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 8v3M5 6v5M9 3v8M13 0v11" stroke="currentColor" strokeWidth="2" /></svg><svg width="15" height="12" viewBox="0 0 15 12"><path d="M1 4Q7.5-1 14 4M3 7q4.5-4 9 0M6 10q1.5-2 3 0" fill="none" stroke="currentColor" strokeWidth="1.7" /></svg><span className="bc-battery" /></div></div>
         <div className="bc-collection" inert={!!selected}>
-          <header className="bc-header"><span>little bead club</span><Flower2 className="bc-flower" size={24} strokeWidth={1.8} aria-hidden="true" /></header>
-          <nav className="bc-menu-tabs" aria-label="Pattern categories">{menuSections.map((section, index) => <button key={section.id} aria-current={activeSection === index ? "location" : undefined} onClick={() => { const target = sectionRefs.current[index]; if (target && menu.current) menu.current.scrollTo({ top: target.offsetTop - 12, behavior: reduced ? "instant" : "smooth" }); }}>{section.title}</button>)}</nav>
-          <div ref={menu} className="bc-list" aria-label="Bead menu" onScroll={event => { const top = event.currentTarget.scrollTop; let index = 0; sectionRefs.current.forEach((section, i) => { if (section && section.offsetTop <= top + 40) index = i; }); if (top + event.currentTarget.clientHeight >= event.currentTarget.scrollHeight - 1) index = menuSections.length - 1; setActiveSection(index); }}>
-            {menuSections.map((section, index) => <section className="bc-menu-section" key={section.id} ref={element => { sectionRefs.current[index] = element; }} aria-labelledby={`${menuId}-${section.id}`}>
-              <h2 id={`${menuId}-${section.id}`}>{section.title}</h2>
-              <MenuShelf items={section.items} onOpen={open} />
-            </section>)}
+          <header className="bc-header"><span>Little Bead Club</span><CakeSlice className="bc-food-icon" size={21} strokeWidth={1.8} aria-hidden="true" /></header>
+          <nav className="bc-menu-tabs" aria-label="Pattern categories">{menuSections.map((section, index) => <button key={section.id} aria-pressed={activeSection === index} onClick={() => { setActiveSection(index); menu.current?.scrollTo({ top: 0, behavior: "instant" }); }}>{section.title}</button>)}</nav>
+          <div ref={menu} className="bc-list" aria-label="Bead menu">
+            <section className="bc-menu-section" key={category.id} aria-labelledby={`${menuId}-${category.id}`}>
+              <h2 className="bc-sr-only" id={`${menuId}-${category.id}`}>{category.title}</h2>
+              <MenuGrid items={category.items} onOpen={open} />
+            </section>
           </div>
         </div>
-        <AnimatePresence>{selected && <Replay key={selected.id} art={selected} reduced={reduced} onBack={close} />}</AnimatePresence>
-        <div className="bc-glass-edge" aria-hidden="true"><i /><i /><i /></div>
+        {selected && <CakeDetail key={selected.id} art={selected} onBack={close} />}
+        <div className="bc-top-glass" aria-hidden="true"><i /><i /><i /><i /></div>
+        <div className="bc-glass-edge" aria-hidden="true"><i /><i /><i /><i /></div>
         <div className="bc-glass-reflection" aria-hidden="true" />
         <div className="bc-home" aria-hidden="true" />
       </div>
@@ -776,13 +685,13 @@ const styles = `
 
 .bc-status{height:55px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:4px clamp(15px,6cqw,24px) 0 clamp(16px,6.7cqw,26px);z-index:12;font-size:14px;font-weight:600;color:#242a26;background:transparent}.bc-indicators{display:flex;align-items:center;gap:5px}.bc-battery{width:21px;height:10px;border-radius:3px;border:1px solid currentColor;position:relative}.bc-battery:before{content:'';position:absolute;inset:1px;background:currentColor;border-radius:1px}.bc-battery:after{content:'';position:absolute;width:2px;height:4px;right:-4px;top:2px;background:currentColor;border-radius:1px}
 .bc-header::before,.bc-detail-nav::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
-.bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:relative;z-index:8;flex-shrink:0;min-height:68px;color:#242a26;padding:10px 20px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:clamp(18px,5.65cqw,22px);font-weight:500;letter-spacing:-.35px}.bc-flower{flex-shrink:0;color:#fff;filter:drop-shadow(0 1px 1px #28362a99)}
-.bc-menu-tabs{display:flex;gap:20px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;padding:0 20px;min-height:48px;border-bottom:1px solid #242a2614;z-index:8}.bc-menu-tabs button{flex-shrink:0;position:relative;min-height:48px;border:0;background:transparent;padding:0;font-size:16px;font-weight:500;white-space:nowrap;color:#58635b}.bc-menu-tabs button[aria-current]{color:#242a26}.bc-menu-tabs button[aria-current]::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:currentColor;border-radius:3px}
-.bc-list{position:relative;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px 0 52px;scrollbar-width:none}.bc-list::-webkit-scrollbar,.bc-shelf::-webkit-scrollbar{display:none}.bc-menu-section{padding:0 0 28px;scroll-margin-top:12px}.bc-menu-section>h2{font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.4px;margin:10px 20px 8px}.bc-shelf{display:flex;gap:16px;overflow-x:auto;overflow-y:hidden;padding:0 14px 14px;scroll-snap-type:x mandatory;scroll-padding:14px;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab}.bc-shelf-dragging{cursor:grabbing;scroll-snap-type:none;user-select:none}.bc-menu-card{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always}.bc-menu-open{display:block;width:100%;height:auto;aspect-ratio:1;border:0;background:transparent;padding:0;cursor:inherit!important}.bc-menu-caption{display:grid;grid-template-columns:minmax(0,1fr) 60px;column-gap:16px;align-items:start;min-height:80px;padding:6px}.bc-menu-caption h3{grid-column:1;grid-row:1;font-size:22px;line-height:1.25;font-weight:500;letter-spacing:-.4px;margin:0;min-width:0;overflow-wrap:anywhere}.bc-menu-caption .bc-play-button{border:1.5px solid #78827b;margin-top:2px;grid-column:2;grid-row:1 / 3}.bc-menu-info{display:contents}.bc-menu-price{grid-column:1;grid-row:2;font-size:18px;line-height:1.4;font-weight:500;margin:7px 0}.bc-menu-description{grid-column:1 / -1;grid-row:3;font-size:16px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-stage svg{flex-shrink:0}
+.bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;top:0;left:0;right:0;z-index:8;flex-shrink:0;min-height:48px;color:#242a26;padding:6px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:16px;font-weight:500;letter-spacing:-.25px}.bc-food-icon{flex-shrink:0;color:#171b18;filter:none;background:none;box-shadow:none}
+.bc-menu-tabs{position:absolute;top:48px;left:0;right:0;display:flex;align-items:center;gap:8px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;padding:4px 20px 8px;min-height:56px;z-index:8}.bc-menu-tabs button{flex-shrink:0;min-height:40px;border:1px solid #242a2614;border-radius:999px;background:#ffffff80;padding:0 16px;font-size:14px;font-weight:500;white-space:nowrap;color:#58635b}.bc-menu-tabs button[aria-pressed="true"]{color:#fff;background:#28332c;border-color:#28332c}
+.bc-list{position:absolute;inset:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:116px 18px 132px;scrollbar-width:none}.bc-list::-webkit-scrollbar{display:none}.bc-menu-section{padding:0}.bc-food-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:20px;align-items:start}.bc-menu-card{min-width:0}.bc-menu-open{display:block;width:100%;height:auto;aspect-ratio:1;border:0;background:transparent;padding:0}.bc-menu-caption{padding:4px 2px 0;text-align:center}.bc-menu-caption h3{font-size:14px;line-height:1.3;font-weight:500;letter-spacing:-.1px;margin:0;overflow-wrap:anywhere}.bc-menu-price{font-size:12.5px;line-height:1.4;font-weight:400;margin:4px 0;color:#58635b}.bc-menu-description{font-size:12px;line-height:1.4;color:#58635b;margin:5px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.bc-stage svg{flex-shrink:0}
 .bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(.5px 3px 1.5px #493d3033)}.bc-art-3d{position:relative;filter:none}.bc-art-3d>canvas{position:absolute;inset:0;pointer-events:none}
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
-.bc-glass-edge{position:absolute;bottom:0;left:0;right:0;height:28px;pointer-events:none;z-index:6;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000);-webkit-mask-image:linear-gradient(transparent,#000)}.bc-glass-edge i:nth-child(2){top:10px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}.bc-glass-edge i:nth-child(3){top:18px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.bc-screen[data-detail="true"] .bc-glass-edge{height:32px}
+.bc-top-glass{position:absolute;top:0;left:0;right:0;height:176px;pointer-events:none;z-index:6;background:transparent}.bc-top-glass i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(#000 60%,transparent);-webkit-mask-image:linear-gradient(#000 60%,transparent)}.bc-top-glass i:nth-child(2){height:150px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bc-top-glass i:nth-child(3){height:128px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.bc-top-glass i:nth-child(4){height:106px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.bc-glass-edge{position:absolute;bottom:0;left:0;right:0;height:124px;pointer-events:none;z-index:9;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000 75%);-webkit-mask-image:linear-gradient(transparent,#000 75%)}.bc-glass-edge i:nth-child(2){top:20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bc-glass-edge i:nth-child(3){top:42px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.bc-glass-edge i:nth-child(4){top:64px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .bc-glass-reflection{position:absolute;inset:0;border-radius:inherit;z-index:7;pointer-events:none;box-shadow:inset 0 0 2px #fff4}
-.bc-detail{position:absolute;inset:55px 0 0;background:${APP_BACKGROUND};z-index:4;overflow-y:auto;scrollbar-width:none;padding-bottom:58px}.bc-detail-nav{position:sticky;top:0;z-index:8;min-height:56px;display:flex;align-items:center;padding:0 12px;color:#fff}.bc-icon{width:44px;height:44px;min-width:44px;min-height:44px;border:1px solid #fff9;background:#4e5b53cc;backdrop-filter:blur(10px) saturate(1.25);-webkit-backdrop-filter:blur(10px) saturate(1.25);box-shadow:inset 1px 1px 1px #fffc,0 3px 9px #17231a0b;display:grid;place-items:center;border-radius:50%}.bc-icon svg{filter:drop-shadow(0 1px 1px #28362acc)}.bc-board{height:clamp(180px,85cqw,330px);margin:0 10px;position:relative;padding:8px 0;display:flex;justify-content:center;align-items:center}.bc-board .bc-art{width:100%;height:100%}.bc-detail-caption{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px 0}.bc-detail-caption h2{flex:1;min-width:0;font-size:1.375rem;line-height:1.35;font-weight:500;letter-spacing:-.4px;margin:0;overflow-wrap:anywhere}.bc-playback{flex:0 0 auto;position:relative}.bc-play-button{position:relative;display:grid;place-items:center;width:60px;height:60px;aspect-ratio:1;border:0;border-radius:50%;background:linear-gradient(145deg,#ffffff80,#ffffff20 48%,#ffffff45);backdrop-filter:blur(12px) saturate(1.3);-webkit-backdrop-filter:blur(12px) saturate(1.3);box-shadow:inset 1px 1px 1px #fffe,inset -1px -1px 2px #ffffff80,0 5px 16px #24372b12;color:#304236;padding:0;flex-shrink:0}.bc-play-button::before{content:'';position:absolute;inset:2px;border-radius:50%;background:radial-gradient(ellipse at 28% 14%,#ffffff90,transparent 65%);pointer-events:none}.bc-play-button[aria-pressed="true"]{box-shadow:inset 1px 1px 1px #fff,inset -1px -1px 3px #ffffff80,0 3px 12px #24372b16}.bc-play-outline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.bc-play-symbol{position:relative;margin-left:0}.bc-play-symbol.lucide-play{margin-left:2px}.bc-play-progress{transition:stroke-dashoffset .08s linear}
-
-.bc-bead-drop{animation:bc-place .24s cubic-bezier(.2,.65,.3,1) both}@keyframes bc-place{from{opacity:0;transform:translateY(-.5px)}to{opacity:1;transform:translateY(0) scale(1)}}@container(max-width:280px){.bc-indicators{gap:3px}.bc-indicators svg{width:13px}.bc-battery{width:18px}}@media(prefers-reduced-motion:reduce){.bc-stage *{animation:none!important;transition:none!important}}`;
+.bc-detail{position:absolute;inset:55px 0 0;background:${APP_BACKGROUND};z-index:8;overflow-y:auto;scrollbar-width:none;padding-bottom:58px}.bc-detail-nav{position:sticky;top:0;z-index:8;min-height:56px;display:flex;align-items:center;padding:0 12px;color:#242a26}.bc-icon{width:44px;height:44px;min-width:44px;min-height:44px;border:1px solid #242a2624;background:#ffffff50;backdrop-filter:blur(10px) saturate(1.25);-webkit-backdrop-filter:blur(10px) saturate(1.25);box-shadow:none;display:grid;place-items:center;border-radius:50%}.bc-icon svg{filter:none}.bc-board{display:block;width:calc(100% - 20px);border:0;background:transparent;height:clamp(180px,85cqw,330px);margin:0 10px;position:relative;padding:8px 0;display:flex;justify-content:center;align-items:center}.bc-board .bc-art{width:100%;height:100%}.bc-detail-caption{padding:16px 22px 0}.bc-detail-caption h2{min-width:0;font-size:17px;line-height:1.35;font-weight:500;letter-spacing:-.4px;margin:0;overflow-wrap:anywhere}.bc-detail-description{font-size:14px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-detail-caption .bc-menu-price{font-size:14px;margin-top:6px}
+`;

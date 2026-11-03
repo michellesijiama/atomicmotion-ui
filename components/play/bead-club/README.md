@@ -1,12 +1,12 @@
 # Bead Club
 
-A restaurant menu made of fused bead art inside a silver iPhone that fits the screen height. Browse four packed, portrait-format Japanese bento boxes alongside steak, burgers, pasta, ramen and sides, each with a sample price and description. Open any meal to replay its creation one color at a time.
+A light cake menu made of fused bead art inside a silver iPhone that fits the screen height, with transparent progressive blur along the top and bottom. Browse eight static cream and jelly cakes in a compact two-column grid with category buttons, prices and descriptions. Tap any cake to see its complete artwork and details.
 
 ![Bead Club preview](https://atomicmotion.dev/previews/bead-club.png)
 
 - **Category:** Play
 - **Demo:** https://atomicmotion.dev/components/bead-club
-- **Dependencies:** framer-motion, lucide-react, three
+- **Dependencies:** lucide-react, three
 
 ## Setup
 
@@ -16,7 +16,7 @@ Enable Tailwind in your app stylesheet (`@import "tailwindcss";`) and make sure 
 Install the compatible dependency ranges tested by this repository:
 
 ```bash
-npm install framer-motion@^12.40.0 lucide-react@^1.18.0 three@^0.169.0
+npm install lucide-react@^1.18.0 three@^0.169.0
 ```
 
 For TypeScript, also install the matching Three.js declarations:
@@ -49,7 +49,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `loop` | `boolean` | `false` | Plays a quiet demonstration on gallery cards. |
+| `loop` | `boolean` | `false` | Uses compact sizing for gallery previews. |
 | `className` | `string` | — | Additional classes for the preview area. |
 
 Named export: `BeadClub`. Public types: `BeadClubProps`.
