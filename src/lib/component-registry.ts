@@ -109,7 +109,7 @@ export const componentRegistry = {
     index: "022",
     title: "Bead Club",
     description:
-      "Nine cake designs adapted from a supplied illustration sheet, each made of 700 fused beads with soft texture, fine glitter, natural depth and a softly blurred shadow. Browse a static single-column menu with one large cake per row inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake for a larger view.",
+      "Nine cake designs adapted from a supplied illustration sheet, each made of 700 fused beads with soft texture, fine glitter, natural depth and a softly blurred shadow. Browse a static single-column menu with one large cake per row inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake to gently enlarge it in place while surrounding text fades into ingredient notes, with a persistent back icon and cake title above.",
     category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",

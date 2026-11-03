@@ -14,7 +14,7 @@ export type BeadClubProps = {
 
 type Bead = { x: number; y: number; color: string };
 type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry" | "jelly";
-type Artwork = { id: string; name: string; price: string; description: string; category: "Tarts" | "Cakes"; beads: Bead[]; material: BeadMaterial; translucentColors?: readonly string[] };
+type Artwork = { id: string; name: string; price: string; description: string; detailDescription: string; category: "Tarts" | "Cakes"; beads: Bead[]; material: BeadMaterial; translucentColors?: readonly string[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
 const APP_BACKGROUND = "#f2f2f2";
 // Simplified from the user-supplied cake illustration sheet. Each occupied cell
@@ -672,15 +672,15 @@ const cakePatterns: Record<string, { palette: string[]; rows: string[] }> = {
 };
 
 const artworks: Artwork[] = [
-  { id: "lavender-grape-tart", name: "Lavender grape tart", price: "$9.50", description: "Lavender cream, blackcurrant and grapes in a buttery tart shell", category: "Tarts" },
-  { id: "rose-lychee-tart", name: "Rose lychee tart", price: "$9.00", description: "Rose cream, juicy lychee and berries on a crisp tart base", category: "Tarts" },
-  { id: "pistachio-roll", name: "Pistachio roll cake", price: "$9.50", description: "Pistachio rolls layered with lychee cream and bayberry filling", category: "Cakes" },
-  { id: "bayberry-lychee-cake", name: "Bayberry lychee cake", price: "$8.50", description: "Airy sponge, fresh cream and a bright fruit topping", category: "Cakes" },
-  { id: "blueberry-basque", name: "Blueberry basque", price: "$9.50", description: "Blueberry cheesecake with pistachio cream and a flower finish", category: "Cakes" },
-  { id: "mango-lychee-basque", name: "Mango lychee basque", price: "$9.00", description: "Soft fruit cream, lychee pieces and layers of pistachio cake", category: "Cakes" },
-  { id: "guava-crepe-cake", name: "Guava crepe cake", price: "$9.50", description: "Pink guava cream, pistachio crepe rolls and fresh fruit", category: "Cakes" },
-  { id: "yogurt-mille-feuille", name: "Yogurt mille feuille", price: "$10.00", description: "Delicate blue layers, yogurt cream and golden physalis", category: "Cakes" },
-  { id: "raspberry-basque", name: "Raspberry basque", price: "$9.00", description: "Pistachio cheesecake, raspberry cream and a fresh berry", category: "Cakes" },
+  { id: "lavender-grape-tart", name: "Lavender grape tart", price: "$9.50", description: "Lavender cream, blackcurrant and grapes in a buttery tart shell", detailDescription: "Golden grapes and blackcurrant nestle in lavender cream over a buttery tart shell, finished with soft pink piping and tiny flowers", category: "Tarts" },
+  { id: "rose-lychee-tart", name: "Rose lychee tart", price: "$9.00", description: "Rose cream, juicy lychee and berries on a crisp tart base", detailDescription: "Juicy lychee and bright berries sit on rose cream, with a crisp golden base and a generous swirl of vanilla frosting", category: "Tarts" },
+  { id: "pistachio-roll", name: "Pistachio roll cake", price: "$9.50", description: "Pistachio rolls layered with lychee cream and bayberry filling", detailDescription: "Pistachio rolls meet pale pink cream and a ribbon of bayberry, topped with a soft scoop of lychee cream", category: "Cakes" },
+  { id: "bayberry-lychee-cake", name: "Bayberry lychee cake", price: "$8.50", description: "Airy sponge, fresh cream and a bright fruit topping", detailDescription: "Light sponge and fresh cream wrap around juicy fruit, with a golden citrus topping and little green leaves", category: "Cakes" },
+  { id: "blueberry-basque", name: "Blueberry basque", price: "$9.50", description: "Blueberry cheesecake with pistachio cream and a flower finish", detailDescription: "Deep blueberry layers and nutty pistachio cream meet a toasted cheesecake base, finished with berries and a little violet flower", category: "Cakes" },
+  { id: "mango-lychee-basque", name: "Mango lychee basque", price: "$9.00", description: "Soft fruit cream, lychee pieces and layers of pistachio cake", detailDescription: "Pink fruit cream and pale green pistachio layers hold pieces of lychee, with a soft cream swirl and fresh fruit on top", category: "Cakes" },
+  { id: "guava-crepe-cake", name: "Guava crepe cake", price: "$9.50", description: "Pink guava cream, pistachio crepe rolls and fresh fruit", detailDescription: "Pistachio crepe rolls sit between layers of pink guava cream, with fresh fruit and a delicate flower on top", category: "Cakes" },
+  { id: "yogurt-mille-feuille", name: "Yogurt mille feuille", price: "$10.00", description: "Delicate blue layers, yogurt cream and golden physalis", detailDescription: "Delicate blue layers support a soft cloud of yogurt cream, crowned with golden physalis and a tiny edible flower", category: "Cakes" },
+  { id: "raspberry-basque", name: "Raspberry basque", price: "$9.00", description: "Pistachio cheesecake, raspberry cream and a fresh berry", detailDescription: "Nutty pistachio cheesecake meets soft raspberry cream, with piped vanilla frosting and a bright berry on top", category: "Cakes" },
 ].map(art => {
   const pattern = cakePatterns[art.id];
   const beads = pattern.rows.flatMap((row, y) => [...row].flatMap((color, x) => color === "." ? [] : [{ x, y, color: pattern.palette[parseInt(color, 24)] }]));
@@ -1134,40 +1134,39 @@ function BeadArt({ art, count = art.beads.length, }: { art: Artwork; count?: num
   </div>;
 }
 
-function CakeDetail({ art, onBack }: { art: Artwork; onBack: () => void }) {
-  const backRef = React.useRef<HTMLButtonElement>(null);
-  React.useEffect(() => { backRef.current?.focus({ preventScroll: true }); }, []);
-  return <section className="bc-detail" onKeyDown={event => { if (event.key === "Escape") onBack(); }} aria-label={`${art.name} details`}>
-    <div className="bc-detail-nav"><button ref={backRef} className="bc-icon" onClick={onBack} aria-label="Back to collection"><ArrowLeft size={21} /></button></div>
-    <div className="bc-board"><BeadArt art={art} /></div>
-    <div className="bc-detail-caption"><div className="bc-menu-heading"><h2>{art.name}</h2><p className="bc-menu-price">{art.price}</p></div><p className="bc-detail-description">{art.description}</p></div>
-  </section>;
-}
-
-
 const menuSections = [
   { id: "all", title: "All", items: artworks },
   { id: "tarts", title: "Tarts", items: artworks.filter(art => art.category === "Tarts") },
   { id: "cakes", title: "Cakes", items: artworks.filter(art => art.category === "Cakes") },
 ];
 
-function MenuGrid({ items, onOpen }: { items: Artwork[]; onOpen: (art: Artwork, button: HTMLButtonElement) => void }) {
+function MenuGrid({ items, selectedId, detailShift, onOpen, onClose }: { items: Artwork[]; selectedId: string | null; detailShift: number; onOpen: (art: Artwork, button: HTMLButtonElement) => void; onClose: () => void }) {
   return <div className="bc-food-grid">
-    {items.map(art => <article className="bc-menu-card" key={art.id}>
-      <button className="bc-menu-open" aria-label={`Open ${art.name}`} onClick={event => onOpen(art, event.currentTarget)}><BeadArt art={art} /></button>
-      <div className="bc-menu-caption"><div className="bc-menu-heading"><h3>{art.name}</h3><p className="bc-menu-price">{art.price}</p></div><p className="bc-menu-description">{art.description}</p></div>
-    </article>)}
+    {items.map(art => {
+      const expanded = art.id === selectedId;
+      return <article className="bc-menu-card" key={art.id} data-expanded={expanded} data-dimmed={!!selectedId && !expanded} inert={!!selectedId && !expanded} aria-hidden={!!selectedId && !expanded} style={{ "--detail-shift": `${expanded ? detailShift : 0}px` } as React.CSSProperties}>
+        <button className="bc-menu-open" aria-label={`${expanded ? "Close" : "Open"} ${art.name}`} aria-expanded={expanded} onClick={event => expanded ? onClose() : onOpen(art, event.currentTarget)}><BeadArt art={art} /></button>
+        <div className="bc-menu-caption">
+          <div className="bc-caption-summary" aria-hidden={expanded} inert={expanded}><div className="bc-menu-heading"><h3>{art.name}</h3><p className="bc-menu-price">{art.price}</p></div><p className="bc-menu-description">{art.description}</p></div>
+          <div className="bc-caption-detail" aria-hidden={!expanded} inert={!expanded}><div className="bc-menu-heading"><h3>About this cake</h3><p className="bc-menu-price">{art.price}</p></div><p className="bc-menu-description">{art.detailDescription}</p></div>
+        </div>
+      </article>;
+    })}
   </div>;
 }
 
 export function BeadClub({ loop = false, className }: BeadClubProps) {
   const host = React.useRef<HTMLDivElement>(null);
   const lastCard = React.useRef<HTMLButtonElement | null>(null);
+  const back = React.useRef<HTMLButtonElement>(null);
   const menu = React.useRef<HTMLDivElement>(null);
+  const scrollBeforeExpand = React.useRef(0);
   const [activeSection, setActiveSection] = React.useState(0);
   const menuId = React.useId();
   const [scale, setScale] = React.useState<number | null>(null);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [detailShift, setDetailShift] = React.useState(0);
+  const [detailTitle, setDetailTitle] = React.useState("");
   const selected = artworks.find(art => art.id === selectedId) ?? null;
   const category = menuSections[activeSection];
   React.useEffect(() => {
@@ -1177,25 +1176,47 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
     observer.observe(element);
     return () => observer.disconnect();
   }, [loop]);
-  const open = (art: Artwork, button: HTMLButtonElement) => { lastCard.current = button; setSelectedId(art.id); };
-  const close = () => { setSelectedId(null); requestAnimationFrame(() => lastCard.current?.focus({ preventScroll: true })); };
-  return <div ref={host} className={`bc-stage ${className ?? ""}`} data-preview={loop ? "loop" : "interactive"}>
+  const open = (art: Artwork, button: HTMLButtonElement) => {
+    lastCard.current = button;
+    const list = menu.current;
+    if (list) {
+      scrollBeforeExpand.current = list.scrollTop;
+      const rect = button.getBoundingClientRect(), container = list.getBoundingClientRect();
+      const unit = list.clientWidth / container.width;
+      const center = (rect.top + rect.height / 2 - container.top) * unit;
+      const safeCenter = Math.max(210, Math.min(list.clientHeight - 260, center));
+      setDetailShift(safeCenter - center);
+    }
+    setDetailTitle(art.name);
+    setSelectedId(art.id);
+    requestAnimationFrame(() => back.current?.focus({ preventScroll: true }));
+  };
+  const close = () => {
+    setSelectedId(null);
+    requestAnimationFrame(() => {
+      menu.current?.scrollTo({ top: scrollBeforeExpand.current, behavior: "instant" });
+      lastCard.current?.focus({ preventScroll: true });
+    });
+  };
+  return <div ref={host} className={`bc-stage ${className ?? ""}`} data-preview={loop ? "loop" : "interactive"} onKeyDown={event => { if (event.key === "Escape" && selectedId) close(); }}>
     <style>{styles}</style>
     <div className="bc-phone-space" style={{ width: 390 * (scale ?? 0), height: PHONE_HEIGHT * (scale ?? 0), visibility: scale === null ? "hidden" : "visible" }}><div className="bc-phone" style={{ width: 390, height: PHONE_HEIGHT, transform: `scale(${scale ?? 0})` }}>
 
       <div className="bc-screen" data-detail={!!selected}>
         <div className="bc-status" aria-hidden="true"><b>9:41</b><div className="bc-indicators"><svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 8v3M5 6v5M9 3v8M13 0v11" stroke="currentColor" strokeWidth="2" /></svg><svg width="15" height="12" viewBox="0 0 15 12"><path d="M1 4Q7.5-1 14 4M3 7q4.5-4 9 0M6 10q1.5-2 3 0" fill="none" stroke="currentColor" strokeWidth="1.7" /></svg><span className="bc-battery" /></div></div>
-        <div className="bc-collection" inert={!!selected}>
-          <header className="bc-header"><span>Little Bead Club</span><CakeSlice className="bc-food-icon" size={21} strokeWidth={1.8} aria-hidden="true" /></header>
-          <nav className="bc-menu-tabs" aria-label="Pattern categories">{menuSections.map((section, index) => <button key={section.id} aria-pressed={activeSection === index} onClick={() => { setActiveSection(index); menu.current?.scrollTo({ top: 0, behavior: "instant" }); }}>{section.title}</button>)}</nav>
-          <div ref={menu} className="bc-list" aria-label="Cake menu">
+        <div className="bc-collection">
+          <header className="bc-header">
+            <div className="bc-header-copy"><span className="bc-brand" aria-hidden={!!selected}>Little Bead Club</span><div className="bc-detail-header" aria-hidden={!selected} inert={!selected}><button ref={back} className="bc-icon" onClick={close} aria-label="Back to collection"><ArrowLeft size={20} /></button><h2 className="bc-detail-title">{detailTitle}</h2></div></div>
+            <CakeSlice className="bc-food-icon" size={21} strokeWidth={1.8} aria-hidden="true" />
+          </header>
+          <nav className="bc-menu-tabs" aria-label="Pattern categories" inert={!!selected} aria-hidden={!!selected}>{menuSections.map((section, index) => <button key={section.id} aria-pressed={activeSection === index} onClick={() => { setActiveSection(index); menu.current?.scrollTo({ top: 0, behavior: "instant" }); }}>{section.title}</button>)}</nav>
+          <div ref={menu} className="bc-list" aria-label={selected ? `${selected.name} details` : "Cake menu"} data-expanded={!!selected}>
             <section className="bc-menu-section" key={category.id} aria-labelledby={`${menuId}-${category.id}`}>
               <h2 className="bc-sr-only" id={`${menuId}-${category.id}`}>{category.title}</h2>
-              <MenuGrid items={category.items} onOpen={open} />
+              <MenuGrid items={category.items} selectedId={selectedId} detailShift={detailShift} onOpen={open} onClose={close} />
             </section>
           </div>
         </div>
-        {selected && <CakeDetail key={selected.id} art={selected} onBack={close} />}
         <div className="bc-top-glass" aria-hidden="true"><i /><i /><i /><i /></div>
         <div className="bc-glass-edge" aria-hidden="true"><i /><i /><i /><i /></div>
         <div className="bc-glass-reflection" aria-hidden="true" />
@@ -1215,14 +1236,16 @@ const styles = `
 .bc-screen{position:absolute;left:7.254623%;top:3.543586%;width:85.775249%;height:92.912828%;overflow:hidden;mask-image:url('/components/bead-club/iphone-screen-mask.svg');-webkit-mask-image:url('/components/bead-club/iphone-screen-mask.svg');mask-size:100% 100%;-webkit-mask-size:100% 100%;background:${APP_BACKGROUND};isolation:isolate}
 
 .bc-status{height:55px;position:relative;display:flex;align-items:center;justify-content:space-between;padding:4px clamp(15px,6cqw,24px) 0 clamp(16px,6.7cqw,26px);z-index:12;font-size:14px;font-weight:600;color:#242a26;background:transparent}.bc-indicators{display:flex;align-items:center;gap:5px}.bc-battery{width:21px;height:10px;border-radius:3px;border:1px solid currentColor;position:relative}.bc-battery:before{content:'';position:absolute;inset:1px;background:currentColor;border-radius:1px}.bc-battery:after{content:'';position:absolute;width:2px;height:4px;right:-4px;top:2px;background:currentColor;border-radius:1px}
-.bc-header::before,.bc-detail-nav::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
-.bc-screen[data-detail="true"] .bc-collection{visibility:hidden}.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;top:0;left:0;right:0;z-index:8;flex-shrink:0;min-height:48px;color:#242a26;padding:6px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:16px;font-weight:500;letter-spacing:-.25px}.bc-food-icon{flex-shrink:0;color:#171b18;filter:none;background:none;box-shadow:none}
+.bc-header::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
+.bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;top:0;left:0;right:0;z-index:8;flex-shrink:0;min-height:48px;color:#242a26;padding:6px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:16px;font-weight:500;letter-spacing:-.25px}.bc-food-icon{flex-shrink:0;color:#171b18;filter:none;background:none;box-shadow:none}
 .bc-menu-tabs{position:absolute;top:48px;left:0;right:0;display:flex;align-items:center;gap:8px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;padding:4px 20px 8px;min-height:56px;z-index:8}.bc-menu-tabs button{flex-shrink:0;min-height:40px;border:1px solid #242a2614;border-radius:999px;background:#ffffff80;padding:0 16px;font-size:14px;font-weight:500;white-space:nowrap;color:#58635b}.bc-menu-tabs button[aria-pressed="true"]{color:#fff;background:#28332c;border-color:#28332c}
-.bc-list{position:absolute;inset:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:116px 18px 132px;scrollbar-width:none}.bc-list::-webkit-scrollbar{display:none}.bc-menu-section{padding:0}.bc-food-grid{display:grid;grid-template-columns:minmax(0,1fr);row-gap:36px;align-items:start}.bc-menu-card{min-width:0}.bc-menu-open{display:block;width:100%;height:auto;aspect-ratio:1;border:0;background:transparent;padding:0}.bc-menu-caption{padding:8px 6px 0;text-align:left}.bc-menu-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.bc-menu-heading>h2,.bc-menu-heading>h3{min-width:0}.bc-menu-caption h3{font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.2px;margin:0;overflow-wrap:anywhere}.bc-menu-price{flex-shrink:0;font-size:14px;line-height:1.4;font-weight:500;margin:0;color:#3b453e;white-space:nowrap;font-variant-numeric:tabular-nums}.bc-menu-description{font-size:13px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-stage svg{flex-shrink:0}
+.bc-list{position:absolute;inset:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:116px 18px 132px;scrollbar-width:none}.bc-list::-webkit-scrollbar{display:none}.bc-menu-section{padding:0}.bc-food-grid{display:grid;grid-template-columns:minmax(0,1fr);row-gap:36px;align-items:start}.bc-menu-card{min-width:0;position:relative;transform:translateY(var(--detail-shift,0px));transition:opacity .24s ease,transform .8s cubic-bezier(.22,.68,.2,1);will-change:auto}.bc-menu-card[data-dimmed="true"]{opacity:0;pointer-events:none}.bc-menu-card[data-expanded="true"]{z-index:4}.bc-menu-open{display:block;width:100%;height:auto;aspect-ratio:1;border:0;background:transparent;padding:0;transform:scale(1);transition:transform .85s cubic-bezier(.22,.68,.2,1)}.bc-menu-card[data-expanded="true"] .bc-menu-open{transform:scale(1.08)}.bc-menu-caption{position:relative;padding:8px 6px 0;text-align:left}.bc-caption-summary{opacity:1;filter:blur(0);transform:translateY(0);transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-caption-detail{position:absolute;top:8px;left:6px;right:6px;opacity:0;filter:blur(3px);transform:translateY(8px);pointer-events:none;transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-menu-card[data-expanded="true"] .bc-caption-summary{opacity:0;filter:blur(3px);transform:translateY(-5px)}.bc-menu-card[data-expanded="true"] .bc-caption-detail{opacity:1;filter:blur(0);transform:translateY(0);pointer-events:auto;transition:opacity .5s .18s ease,filter .5s .18s ease,transform .65s .18s ease}.bc-menu-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.bc-menu-heading>h2,.bc-menu-heading>h3{min-width:0}.bc-menu-caption h3{font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.2px;margin:0;overflow-wrap:anywhere}.bc-menu-price{flex-shrink:0;font-size:14px;line-height:1.4;font-weight:500;margin:0;color:#3b453e;white-space:nowrap;font-variant-numeric:tabular-nums}.bc-menu-description{font-size:13px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-stage svg{flex-shrink:0}
 .bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(.5px 3px 3.5px #493d3029)}.bc-art-3d{position:relative;filter:none}.bc-art-3d>canvas{position:absolute;inset:0;pointer-events:none}
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
 .bc-top-glass{position:absolute;top:0;left:0;right:0;height:176px;pointer-events:none;z-index:6;background:transparent}.bc-top-glass i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(#000 60%,transparent);-webkit-mask-image:linear-gradient(#000 60%,transparent)}.bc-top-glass i:nth-child(2){height:150px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bc-top-glass i:nth-child(3){height:128px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.bc-top-glass i:nth-child(4){height:106px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .bc-glass-edge{position:absolute;bottom:0;left:0;right:0;height:124px;pointer-events:none;z-index:9;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000 75%);-webkit-mask-image:linear-gradient(transparent,#000 75%)}.bc-glass-edge i:nth-child(2){top:20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bc-glass-edge i:nth-child(3){top:42px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.bc-glass-edge i:nth-child(4){top:64px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .bc-glass-reflection{position:absolute;inset:0;border-radius:inherit;z-index:7;pointer-events:none;box-shadow:inset 0 0 2px #fff4}
-.bc-detail{position:absolute;inset:55px 0 0;background:${APP_BACKGROUND};z-index:8;overflow-y:auto;scrollbar-width:none;padding-bottom:58px}.bc-detail-nav{position:sticky;top:0;z-index:8;min-height:56px;display:flex;align-items:center;padding:0 12px;color:#242a26}.bc-icon{width:44px;height:44px;min-width:44px;min-height:44px;border:1px solid #242a2624;background:#ffffff50;backdrop-filter:blur(10px) saturate(1.25);-webkit-backdrop-filter:blur(10px) saturate(1.25);box-shadow:none;display:grid;place-items:center;border-radius:50%}.bc-icon svg{filter:none}.bc-board{display:block;width:calc(100% - 20px);border:0;background:transparent;height:clamp(180px,85cqw,330px);margin:0 10px;position:relative;padding:8px 0;display:flex;justify-content:center;align-items:center}.bc-board .bc-art{width:100%;height:100%}.bc-detail-caption{padding:16px 22px 0}.bc-detail-caption h2{min-width:0;font-size:17px;line-height:1.35;font-weight:500;letter-spacing:-.4px;margin:0;overflow-wrap:anywhere}.bc-detail-description{font-size:14px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-detail-caption .bc-menu-price{font-size:14px;margin:0}
+/* The cake canvas stays in its original card throughout expansion. */
+.bc-header-copy{position:relative;flex:1;min-width:0;min-height:36px;display:flex;align-items:center}.bc-brand{opacity:1;filter:blur(0);transition:opacity .18s ease,filter .18s ease}.bc-detail-header{position:absolute;inset:0;display:flex;align-items:center;gap:9px;opacity:0;filter:blur(3px);pointer-events:none;transition:opacity .2s ease,filter .2s ease}.bc-detail-title{min-width:0;margin:0;font-size:15px;line-height:1.3;font-weight:600;letter-spacing:-.2px}.bc-icon{width:36px;height:36px;flex:0 0 36px;border:1px solid #242a2624;background:#ffffff50;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:none;display:grid;place-items:center;border-radius:50%}.bc-menu-tabs{opacity:1;filter:blur(0);transition:opacity .2s ease,filter .2s ease}.bc-screen[data-detail="true"] .bc-brand{opacity:0;filter:blur(3px)}.bc-screen[data-detail="true"] .bc-detail-header{opacity:1;filter:blur(0);pointer-events:auto;transition:opacity .45s .16s ease,filter .45s .16s ease}.bc-screen[data-detail="true"] .bc-menu-tabs{opacity:0;filter:blur(3px);pointer-events:none}.bc-list[data-expanded="true"]{overflow:hidden}
+@media(prefers-reduced-motion:reduce){.bc-stage *{transition-duration:.01ms!important;transition-delay:0ms!important}}
 `;
