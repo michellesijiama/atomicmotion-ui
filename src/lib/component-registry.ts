@@ -117,10 +117,9 @@ export const componentRegistry = {
     codePath: "components/play/bead-club/bead-club.tsx",
     previewStatic: true,
     requiredAssets: [
-      { path: "public/components/bead-club/fused-pearl-grain.png", license: "MIT", credit: "Original pearlescent fused-plastic microtexture generated with built-in ImageGen for AtomicMotion UI. Cake bead maps were adapted from a user-supplied illustration sheet; no separate license for the reference artwork was supplied." },
       { path: "public/components/bead-club/iphone-16-pro-white.png", license: "Apple Design Resources terms", credit: "Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/" },
       { path: "public/components/bead-club/iphone-screen-mask.svg", license: "Apple Design Resources terms", credit: "Screen-opening mask derived from the product bezel alpha, for accurate UI placement." },
-      { path: "public/components/bead-club/TERMS.txt", license: "Apple Design Resources terms", credit: "Retain the source and product-bezel usage terms; this asset is not MIT-licensed." },
+      { path: "public/components/bead-club/TERMS.txt", license: "Apple Design Resources terms", credit: "Retain the device-image terms and supplied cake-art provenance; these visual references are separate from the MIT code license." },
     ],
 
   }),

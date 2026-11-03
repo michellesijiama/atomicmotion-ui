@@ -6,18 +6,30 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { ArrowLeft, CakeSlice } from "lucide-react";
 
 export type BeadClubProps = {
-  /** Uses compact sizing for gallery previews. */
+  /** Brand name shown above the menu. */
+  title?: string;
+  /** Uses compact sizing for gallery previews without automatic playback. */
   loop?: boolean;
   /** Additional classes for the preview area. */
   className?: string;
 };
 
 type Bead = { x: number; y: number; color: string };
-type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry" | "jelly";
-type Artwork = { id: string; name: string; price: string; description: string; detailDescription: string; category: "Tarts" | "Cakes"; beads: Bead[]; material: BeadMaterial; translucentColors?: readonly string[] };
+type Artwork = { id: string; name: string; price: string; description: string; detailDescription: string; category: "Tarts" | "Cakes"; beads: Bead[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
 const APP_BACKGROUND = "#f2f2f2";
-const CAKE_FOCUS_OFFSET = 50;
+// Adjust the feel here without changing the rendering or card markup.
+const MOTION = {
+  focusOffset: 50,
+  scrollMinScale: .96,
+  expandedScale: 1.04,
+  scrollDuration: .7,
+  expandDuration: 1.05,
+  pointerDamping: .095,
+  hoverLift: 1.4,
+  framesPerSecond: 30,
+} as const;
+const CAKE_FOCUS_OFFSET = MOTION.focusOffset;
 // Simplified from the user-supplied cake illustration sheet. Each occupied cell
 // represents one bead, with exactly 700 beads per cake and a limited color palette.
 // The reference artwork retains its own rights, separate from the component code.
@@ -672,26 +684,27 @@ const cakePatterns: Record<string, { palette: string[]; rows: string[] }> = {
   }
 };
 
-const artworks: Artwork[] = [
+const cakeMenu: Omit<Artwork, "beads">[] = [
   { id: "lavender-grape-tart", name: "Lavender grape tart", price: "$9.50", description: "Lavender cream, blackcurrant and grapes in a buttery tart shell", detailDescription: "Golden grapes and blackcurrant nestle in lavender cream over a buttery tart shell, finished with soft pink piping and tiny flowers", category: "Tarts" },
   { id: "rose-lychee-tart", name: "Rose lychee tart", price: "$9.00", description: "Rose cream, juicy lychee and berries on a crisp tart base", detailDescription: "Juicy lychee and bright berries sit on rose cream, with a crisp golden base and a generous swirl of vanilla frosting", category: "Tarts" },
   { id: "pistachio-roll", name: "Pistachio roll cake", price: "$9.50", description: "Pistachio rolls layered with lychee cream and bayberry filling", detailDescription: "Pistachio rolls meet pale pink cream and a ribbon of bayberry, topped with a soft scoop of lychee cream", category: "Cakes" },
+  { id: "guava-crepe-cake", name: "Guava crepe cake", price: "$9.50", description: "Pink guava cream, pistachio crepe rolls and fresh fruit", detailDescription: "Pistachio crepe rolls sit between layers of pink guava cream, with fresh fruit and a delicate flower on top", category: "Cakes" },
   { id: "bayberry-lychee-cake", name: "Bayberry lychee cake", price: "$8.50", description: "Airy sponge, fresh cream and a bright fruit topping", detailDescription: "Light sponge and fresh cream wrap around juicy fruit, with a golden citrus topping and little green leaves", category: "Cakes" },
   { id: "blueberry-basque", name: "Blueberry basque", price: "$9.50", description: "Blueberry cheesecake with pistachio cream and a flower finish", detailDescription: "Deep blueberry layers and nutty pistachio cream meet a toasted cheesecake base, finished with berries and a little violet flower", category: "Cakes" },
   { id: "mango-lychee-basque", name: "Mango lychee basque", price: "$9.00", description: "Soft fruit cream, lychee pieces and layers of pistachio cake", detailDescription: "Pink fruit cream and pale green pistachio layers hold pieces of lychee, with a soft cream swirl and fresh fruit on top", category: "Cakes" },
-  { id: "guava-crepe-cake", name: "Guava crepe cake", price: "$9.50", description: "Pink guava cream, pistachio crepe rolls and fresh fruit", detailDescription: "Pistachio crepe rolls sit between layers of pink guava cream, with fresh fruit and a delicate flower on top", category: "Cakes" },
   { id: "yogurt-mille-feuille", name: "Yogurt mille feuille", price: "$10.00", description: "Delicate blue layers, yogurt cream and golden physalis", detailDescription: "Delicate blue layers support a soft cloud of yogurt cream, crowned with golden physalis and a tiny edible flower", category: "Cakes" },
   { id: "raspberry-basque", name: "Raspberry basque", price: "$9.00", description: "Pistachio cheesecake, raspberry cream and a fresh berry", detailDescription: "Nutty pistachio cheesecake meets soft raspberry cream, with piped vanilla frosting and a bright berry on top", category: "Cakes" },
-].map(art => {
+];
+
+const artworks: Artwork[] = cakeMenu.map(art => {
   const pattern = cakePatterns[art.id];
   const beads = pattern.rows.flatMap((row, y) => [...row].flatMap((color, x) => color === "." ? [] : [{ x, y, color: pattern.palette[parseInt(color, 24)] }]));
-  return { ...art, category: art.category as Artwork["category"], material: "terry", beads };
+  return { ...art, beads };
 });
 
 function FlatBeadArt({ art, count = art.beads.length, }: { art: Artwork; count?: number }) {
   const id = React.useId().replace(/:/g, "");
   const placed = art.beads.slice(0, count);
-  const glitter = art.material === "glitter";
   // Overlapping cells fuse into one continuous surface. The material is lit
   // and textured once across the whole piece, never stamped onto each cell.
   // A separate silhouette mask keeps the gentle color bleed inside the piece.
@@ -711,7 +724,7 @@ function FlatBeadArt({ art, count = art.beads.length, }: { art: Artwork; count?:
     if (!occupied.has(`${bead.x + 1},${bead.y}`)) sides.push({ path: wall(bead.x + 1.06, bead.y - .06, bead.x + 1.06, bead.y + 1.06), color: shade(bead.color, .84) });
     if (!occupied.has(`${bead.x},${bead.y + 1}`)) sides.push({ path: wall(bead.x - .06, bead.y + 1.06, bead.x + 1.06, bead.y + 1.06), color: shade(bead.color, .9) });
   }
-  return <svg viewBox="0 0 40 42" role="img" aria-label={`${art.name} ${art.material} fused bead pattern`} className="bc-art" data-material={art.material} style={art.material === "jelly" ? { opacity: .8 } : undefined}>
+  return <svg viewBox="0 0 40 42" role="img" aria-label={`${art.name}, soft textured bead pattern`} className="bc-art" data-material="terry">
     <defs>
       <filter id={`${id}-edge`} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
         <feGaussianBlur stdDeviation=".14" />
@@ -722,7 +735,7 @@ function FlatBeadArt({ art, count = art.beads.length, }: { art: Artwork; count?:
       </mask>
       <filter id={`${id}-surface`} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
         <feGaussianBlur in="SourceGraphic" stdDeviation=".14" result="melted" />
-        <feTurbulence type="fractalNoise" baseFrequency={art.material === "pressed" ? "3.1 5.3" : "4.2"} numOctaves="3" seed="23" result="grain" />
+        <feTurbulence type="fractalNoise" baseFrequency="4.2" numOctaves="3" seed="23" result="grain" />
         <feDiffuseLighting in="grain" surfaceScale=".16" diffuseConstant=".8" lightingColor="#fff" result="relief"><feDistantLight azimuth="225" elevation="50" /></feDiffuseLighting>
         <feComponentTransfer in="relief" result="softRelief"><feFuncA type="linear" slope=".13" /></feComponentTransfer>
         <feComposite in="softRelief" in2="melted" operator="in" result="texture" />
@@ -750,7 +763,6 @@ function FlatBeadArt({ art, count = art.beads.length, }: { art: Artwork; count?:
         const seed = ((bead.x * 73856093) ^ (bead.y * 19349663)) >>> 0;
         const x = bead.x + .13 + (seed % 71) / 100;
         const y = bead.y + .1 + ((seed >>> 6) % 76) / 100;
-        if (glitter && seed % 5 === 0) return <path key={`${bead.x}-${bead.y}`} d={`M${x} ${y - .045}l.04 .04l-.035 .06l-.04 -.045Z`} fill="#fff" opacity=".65" />;
         if (seed % 19 === 0) return <circle key={`${bead.x}-${bead.y}`} cx={x} cy={y} r=".025" fill="#fff" opacity=".3" />;
         return null;
       })}
@@ -824,72 +836,12 @@ function fusedShapes(beads: Bead[]) {
   });
 }
 
-let beadGrain: Uint8ClampedArray | undefined;
-let beadGrainLoading: Promise<void> | undefined;
-function loadBeadGrain() {
-  if (!beadGrainLoading) beadGrainLoading = new Promise(resolve => {
-    const image = new Image();
-    image.onload = () => {
-      const canvas = document.createElement("canvas"); canvas.width = 1280; canvas.height = 1344;
-      const ctx = canvas.getContext("2d");
-      if (ctx) { ctx.drawImage(image, 0, 0, canvas.width, canvas.height); beadGrain = ctx.getImageData(0, 0, canvas.width, canvas.height).data; }
-      resolve();
-    };
-    image.onerror = () => resolve();
-    image.src = "/components/bead-club/fused-pearl-grain.png";
-  });
-  return beadGrainLoading;
-}
-
-type GrainSurface = { normal: THREE.CanvasTexture; roughness: THREE.CanvasTexture; pigment: Float32Array; sparkle?: THREE.CanvasTexture; sparkleNormal?: THREE.CanvasTexture };
-let grainSurface: GrainSurface | undefined;
-function fusedGrainSurface() {
-  if (grainSurface) return grainSurface;
-  const width = 1280, height = 1344, pitch = 8;
-  const canvas = document.createElement("canvas"); canvas.width = width; canvas.height = height;
-  const ctx = canvas.getContext("2d")!;
-  const normal = ctx.createImageData(width, height), roughness = ctx.createImageData(width, height);
-  const pigment = new Float32Array(width * height);
-  const hash = (x: number, y: number) => {
-    let n = Math.imul(x, 1597334677) ^ Math.imul(y, 3812015801);
-    n = Math.imul(n ^ n >>> 16, 2246822507);
-    return (n ^ n >>> 13) >>> 0;
-  };
-  const columns = Math.ceil(width / pitch) + 2, rows = Math.ceil(height / pitch) + 2;
-  const grains = Array.from({ length: columns * rows }, (_, i) => {
-    const x = i % columns - 1, y = Math.floor(i / columns) - 1, seed = hash(x, y);
-    const angle = (seed & 65535) / 65535 * Math.PI * 2, tilt = .24 + ((seed >>> 16) & 255) / 255 * .5;
-    return { x: (x + .15 + (seed & 255) / 255 * .7) * pitch, y: (y + .15 + ((seed >>> 8) & 255) / 255 * .7) * pitch, nx: Math.cos(angle) * tilt, ny: Math.sin(angle) * tilt, seed };
-  });
-  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-    const gx = Math.floor(x / pitch), gy = Math.floor(y / pitch);
-    let nearest = grains[(gy + 1) * columns + gx + 1], distance = Infinity;
-    for (let cy = gy; cy <= gy + 2; cy++) for (let cx = gx; cx <= gx + 2; cx++) {
-      const grain = grains[cy * columns + cx], dx = x - grain.x, dy = y - grain.y;
-      const d = dx * dx + dy * dy;
-      if (d < distance) { distance = d; nearest = grain; }
-    }
-    const i = (y * width + x) * 4;
-    const nx = nearest.nx + (x - nearest.x) / pitch * .18;
-    const ny = nearest.ny - (y - nearest.y) / pitch * .18;
-    const length = Math.hypot(nx, ny, 1);
-    normal.data[i] = (nx / length * .5 + .5) * 255;
-    normal.data[i + 1] = (ny / length * .5 + .5) * 255;
-    normal.data[i + 2] = (1 / length * .5 + .5) * 255; normal.data[i + 3] = 255;
-    const pearl = beadGrain ? beadGrain[i] / 255 : .86;
-    const r = 75 + (nearest.seed >>> 8 & 255) / 255 * 120 + (pearl - .86) * 80;
-    roughness.data[i] = roughness.data[i + 1] = roughness.data[i + 2] = r; roughness.data[i + 3] = 255;
-    pigment[y * width + x] = .97 + (nearest.seed & 255) / 255 * .06;
-  }
-  ctx.putImageData(normal, 0, 0);
-  const normalMap = new THREE.CanvasTexture(canvas); normalMap.generateMipmaps = false; normalMap.minFilter = THREE.LinearFilter;
-  const roughCanvas = document.createElement("canvas"); roughCanvas.width = width; roughCanvas.height = height;
-  roughCanvas.getContext("2d")!.putImageData(roughness, 0, 0);
-  const roughnessMap = new THREE.CanvasTexture(roughCanvas); roughnessMap.generateMipmaps = false; roughnessMap.minFilter = THREE.LinearFilter;
-  grainSurface = { normal: normalMap, roughness: roughnessMap, pigment };
-  return grainSurface;
-}
-
+type GrainSurface = {
+  normal: THREE.CanvasTexture;
+  pigment: Float32Array;
+  sparkle: THREE.CanvasTexture;
+  sparkleNormal: THREE.CanvasTexture;
+};
 let terrySurface: GrainSurface | undefined;
 function terryGrainSurface() {
   if (terrySurface) return terrySurface;
@@ -917,7 +869,7 @@ function terryGrainSurface() {
   const smooth = document.createElement("canvas"); smooth.width = width; smooth.height = height;
   const smoothCtx = smooth.getContext("2d")!; smoothCtx.filter = "blur(.65px)"; smoothCtx.drawImage(pile, 0, 0);
   const heights = smoothCtx.getImageData(0, 0, width, height).data;
-  const normal = ctx.createImageData(width, height), roughness = ctx.createImageData(width, height);
+  const normal = ctx.createImageData(width, height);
   const pigment = new Float32Array(width * height);
   let mean = 0; for (let i = 0; i < heights.length; i += 4) mean += heights[i] / 255;
   mean /= width * height;
@@ -930,13 +882,10 @@ function terryGrainSurface() {
     normal.data[i] = (nx / length * .5 + .5) * 255;
     normal.data[i + 1] = (ny / length * .5 + .5) * 255;
     normal.data[i + 2] = (1 / length * .5 + .5) * 255; normal.data[i + 3] = 255;
-    roughness.data[i] = roughness.data[i + 1] = roughness.data[i + 2] = 255; roughness.data[i + 3] = 255;
     pigment[y * width + x] = 1 + (h - mean) * .18;
   }
   ctx.putImageData(normal, 0, 0);
   const normalMap = new THREE.CanvasTexture(pile); normalMap.generateMipmaps = false; normalMap.minFilter = THREE.LinearFilter;
-  smoothCtx.putImageData(roughness, 0, 0);
-  const roughnessMap = new THREE.CanvasTexture(smooth); roughnessMap.generateMipmaps = false; roughnessMap.minFilter = THREE.LinearFilter;
   const sparkleCanvas = document.createElement("canvas"); sparkleCanvas.width = width; sparkleCanvas.height = height;
   const sparkleCtx = sparkleCanvas.getContext("2d")!;
   sparkleCtx.fillStyle = "#000"; sparkleCtx.fillRect(0, 0, width, height); sparkleCtx.fillStyle = "#fff";
@@ -956,15 +905,13 @@ function terryGrainSurface() {
   }
   const sparkleMap = new THREE.CanvasTexture(sparkleCanvas); sparkleMap.generateMipmaps = false; sparkleMap.minFilter = THREE.LinearFilter;
   const sparkleNormal = new THREE.CanvasTexture(facetCanvas); sparkleNormal.generateMipmaps = false; sparkleNormal.minFilter = THREE.LinearFilter;
-  terrySurface = { normal: normalMap, roughness: roughnessMap, pigment, sparkle: sparkleMap, sparkleNormal };
+  terrySurface = { normal: normalMap, pigment, sparkle: sparkleMap, sparkleNormal };
   return terrySurface;
 }
 
-type BeadMaterials = { faces: THREE.MeshPhysicalMaterial[]; mask?: THREE.MeshBasicMaterial };
+type BeadMaterials = { faces: THREE.MeshPhysicalMaterial[] };
 function physicalMaterials(art: Artwork): BeadMaterials {
-  const terry = art.material === "terry", jelly = art.material === "jelly";
-  const resolution = 16, surface = terry ? terryGrainSurface() : fusedGrainSurface();
-  const glints = terryGrainSurface();
+  const resolution = 16, surface = terryGrainSurface();
   const color = document.createElement("canvas"); color.width = 40 * resolution; color.height = 42 * resolution;
   const ctx = color.getContext("2d")!;
   ctx.fillStyle = art.beads[0]?.color ?? "#f0eade"; ctx.fillRect(0, 0, color.width, color.height);
@@ -976,8 +923,7 @@ function physicalMaterials(art: Artwork): BeadMaterials {
   for (let pixel = 0; pixel < color.width * color.height; pixel++) {
     const i = pixel * 4;
     const grainPixel = Math.floor(Math.floor(pixel / color.width) / color.height * 1344) * 1280 + Math.floor((pixel % color.width) / color.width * 1280);
-    const pearl = !terry && beadGrain ? beadGrain[grainPixel * 4] / 255 : .86;
-    const tint = surface.pigment[grainPixel] * (1 + (pearl - .86) * .15);
+    const tint = surface.pigment[grainPixel];
     for (let c = 0; c < 3; c++) image.data[i + c] *= tint;
   }
   ctx.putImageData(image, 0, 0);
@@ -994,58 +940,15 @@ function physicalMaterials(art: Artwork): BeadMaterials {
     ctx.fillStyle = "#574b3614"; ctx.fill();
   }
   const map = new THREE.CanvasTexture(color); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4;
-  let transmissionMap: THREE.CanvasTexture | undefined, opacityMap: THREE.CanvasTexture | undefined, jellyNormal: THREE.CanvasTexture | undefined;
-  if (jelly) {
-    const transmission = document.createElement("canvas"), opacity = document.createElement("canvas");
-    for (const canvas of [transmission, opacity]) { canvas.width = color.width; canvas.height = color.height; }
-    const tctx = transmission.getContext("2d")!, actx = opacity.getContext("2d")!;
-    tctx.fillStyle = "#000"; tctx.fillRect(0, 0, color.width, color.height);
-    actx.fillStyle = "#fff"; actx.fillRect(0, 0, color.width, color.height);
-    const gelColors = new Set(art.translucentColors);
-    for (const bead of art.beads) if (gelColors.has(bead.color)) {
-      tctx.fillStyle = "#fff"; actx.fillStyle = "#dedede";
-      for (const target of [tctx, actx]) target.fillRect(bead.x * resolution, bead.y * resolution, resolution, resolution);
-    }
-    const gelBeads = art.beads.filter(bead => gelColors.has(bead.color));
-    const minX = Math.min(...gelBeads.map(b => b.x)), maxX = Math.max(...gelBeads.map(b => b.x)) + 1;
-    const minY = Math.min(...gelBeads.map(b => b.y)), maxY = Math.max(...gelBeads.map(b => b.y)) + 1;
-    const lens = document.createElement("canvas"); lens.width = color.width; lens.height = color.height;
-    const lensCtx = lens.getContext("2d")!, lensPixels = lensCtx.createImageData(lens.width, lens.height);
-    const gelPixels = tctx.getImageData(0, 0, lens.width, lens.height).data;
-    for (let y = 0; y < lens.height; y++) for (let x = 0; x < lens.width; x++) {
-      const i = (y * lens.width + x) * 4, body = gelPixels[i] > 128;
-      const left = minX, right = maxX, top = minY, bottom = maxY;
-      const nx = body ? ((x / resolution - left) / (right - left) - .5) * 1.3 : 0;
-      const ny = body ? -((y / resolution - top) / (bottom - top) - .5) * 1.4 : 0;
-      const length = Math.hypot(nx, ny, 1);
-      lensPixels.data[i] = (nx / length * .5 + .5) * 255;
-      lensPixels.data[i + 1] = (ny / length * .5 + .5) * 255;
-      lensPixels.data[i + 2] = (1 / length * .5 + .5) * 255; lensPixels.data[i + 3] = 255;
-    }
-    lensCtx.putImageData(lensPixels, 0, 0); jellyNormal = new THREE.CanvasTexture(lens);
-    transmissionMap = new THREE.CanvasTexture(transmission); opacityMap = new THREE.CanvasTexture(opacity);
-  }
-  const face = jelly ? new THREE.MeshPhysicalMaterial({
-    map, transmission: .62, transmissionMap, thickness: .5, ior: 1.45,
-    roughness: .18, metalness: 0, attenuationDistance: 3,
-    normalMap: jellyNormal, normalScale: new THREE.Vector2(1, 1),
-    clearcoat: 1, clearcoatMap: glints.sparkle, clearcoatRoughness: .2,
-    clearcoatNormalMap: glints.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
-  }) : terry ? new THREE.MeshPhysicalMaterial({
+  const face = new THREE.MeshPhysicalMaterial({
     map, normalMap: surface.normal, normalScale: new THREE.Vector2(.38, .38),
     color: new THREE.Color(1.1, 1.1, 1.1), roughness: 1, metalness: 0, specularIntensity: .06,
-    clearcoat: 1, clearcoatMap: glints.sparkle, clearcoatRoughness: .2,
-    clearcoatNormalMap: glints.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
+    clearcoat: 1, clearcoatMap: surface.sparkle, clearcoatRoughness: .2,
+    clearcoatNormalMap: surface.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
     sheen: .02, sheenRoughness: 1, sheenColor: new THREE.Color("#fff6f4"),
-  }) : new THREE.MeshPhysicalMaterial({
-    map, normalMap: surface.normal, normalScale: new THREE.Vector2(.3, .3),
-    roughnessMap: surface.roughness, roughness: .85, metalness: 0, ior: 1.5,
-    clearcoat: 1, clearcoatMap: glints.sparkle, clearcoatRoughness: .2,
-    clearcoatNormalMap: glints.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
   });
-  const side = jelly ? face.clone() : new THREE.MeshPhysicalMaterial({ map, roughness: terry ? .95 : .48, metalness: 0, clearcoat: terry ? 0 : .25, clearcoatRoughness: .4, specularIntensity: terry ? .15 : 1 });
-  if (jelly) { side.normalMap = null; side.clearcoatNormalMap = null; }
-  return { faces: [face, side], mask: jelly ? new THREE.MeshBasicMaterial({ color: 0xffffff, alphaMap: opacityMap, transparent: true, depthWrite: true }) : undefined };
+  const side = new THREE.MeshPhysicalMaterial({ map, roughness: .95, metalness: 0, clearcoat: 0, clearcoatRoughness: .4, specularIntensity: .15 });
+  return { faces: [face, side] };
 }
 
 type BeadStudio = { renderer: THREE.WebGLRenderer; light: THREE.DirectionalLight; scene: THREE.Scene; camera: THREE.PerspectiveCamera; mesh: THREE.Mesh; materials: Map<string, BeadMaterials>; completed: Map<string, THREE.BufferGeometry> };
@@ -1100,11 +1003,11 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
   studio.light.position.set(-28 + Math.sin(pose.time * .6) * 4 * pose.shimmer, 38 + Math.cos(pose.time * .45) * 3 * pose.shimmer, 32);
   const aspect = width / height, viewHeight = Math.max(45, 43 / aspect);
   studio.camera.aspect = aspect; studio.camera.fov = 2 * Math.atan(viewHeight / (2 * 95)) * 180 / Math.PI; studio.camera.updateProjectionMatrix();
-  studio.scene.background = materials.mask ? new THREE.Color(APP_BACKGROUND) : null;
+  studio.scene.background = null;
   studio.renderer.setSize(width, height, false); studio.renderer.render(studio.scene, studio.camera);
   // Blur only the alpha-derived cast shadow; keep the bead surface sharp.
   ctx.save();
-  if (!materials.mask) {
+  {
     ctx.shadowColor = "rgba(73,61,48,.16)";
     ctx.shadowBlur = (5 + pose.lift * .5) * pixelRatio;
     ctx.shadowOffsetY = (3 + pose.lift * .5) * pixelRatio;
@@ -1138,12 +1041,6 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
   canvas.dataset.rotationZ = pose.rotationZ.toFixed(5);
   canvas.dataset.lift = pose.lift.toFixed(3);
   canvas.dataset.glints = String(visibleGlints);
-  if (materials.mask) {
-    studio.scene.background = null; studio.mesh.material = materials.mask;
-    studio.renderer.render(studio.scene, studio.camera);
-    ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(studio.renderer.domElement, 0, 0); ctx.globalCompositeOperation = "source-over";
-    studio.mesh.material = materials.faces;
-  }
   if (count !== art.beads.length) geometry.dispose();
   return true;
 }
@@ -1156,36 +1053,36 @@ function BeadArt({ art, count = art.beads.length, interactive = false }: { art: 
   React.useEffect(() => {
     const canvas = ref.current; if (!canvas) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let frame = 0, disposed = false, textureReady = false, lastPaint = 0, rendered = false;
+    let frame = 0, disposed = false, lastPaint = 0, rendered = false;
     const started = performance.now();
     if (!interactive) targetRotation.current = { x: 0, y: 0, z: 0, lift: 0 };
     const render = (now: number) => {
       frame = 0;
-      if (disposed || document.hidden || !textureReady) return;
+      if (disposed || document.hidden) return;
       const moving = !reducedMotion.matches;
       const target = interactive && moving ? targetRotation.current : { x: 0, y: 0, z: 0, lift: 0 };
       let settling = false;
       for (const axis of ["x", "y", "z", "lift"] as const) {
         const difference = target[axis] - rotation.current[axis];
-        rotation.current[axis] = moving ? rotation.current[axis] + difference * .095 : 0;
+        rotation.current[axis] = moving ? rotation.current[axis] + difference * MOTION.pointerDamping : 0;
         if (Math.abs(difference) < .00005) rotation.current[axis] = target[axis];
         else if (moving) settling = true;
       }
-      if (!rendered || !moving || now - lastPaint >= 1000 / 30) {
+      if (!rendered || !moving || now - lastPaint >= 1000 / MOTION.framesPerSecond) {
         lastPaint = now;
         try {
           const success = drawPhysicalBeads(canvas, art, count, { rotationX: rotation.current.x, rotationY: rotation.current.y, rotationZ: rotation.current.z, lift: rotation.current.lift, shimmer: interactive && moving ? Math.min((now - started) / 650, 1) : 0, time: now / 1000 });
           if (!rendered || !success) setReady(success);
           rendered = success;
-        } catch { setReady(false); }
+        } catch { rendered = false; setReady(false); }
       }
-      if (interactive && moving || settling) frame = requestAnimationFrame(render);
+      if (rendered && (interactive && moving || settling)) frame = requestAnimationFrame(render);
     };
-    const paint = () => { if (textureReady && !disposed && !document.hidden && !frame) frame = requestAnimationFrame(render); };
+    const paint = () => { if (!disposed && !document.hidden && !frame) frame = requestAnimationFrame(render); };
     const observer = new ResizeObserver(paint); observer.observe(canvas);
     document.addEventListener("visibilitychange", paint);
     reducedMotion.addEventListener("change", paint);
-    void loadBeadGrain().then(() => { textureReady = true; paint(); });
+    paint();
     return () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); document.removeEventListener("visibilitychange", paint); reducedMotion.removeEventListener("change", paint); };
   }, [art, count, interactive]);
   const tilt = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -1193,9 +1090,9 @@ function BeadArt({ art, count = art.beads.length, interactive = false }: { art: 
     const rect = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - .5;
     const y = (event.clientY - rect.top) / rect.height - .5;
-    targetRotation.current = { x: -y * .14, y: x * .18, z: x * .012, lift: 1.4 };
+    targetRotation.current = { x: -y * .14, y: x * .18, z: x * .012, lift: MOTION.hoverLift };
   };
-  return <div className="bc-art bc-art-3d" role="img" aria-label={`${art.name}, ${art.material === "jelly" ? "translucent jelly" : art.material === "terry" ? "soft textured" : "pearlescent"} bead pattern`} data-material={art.material} data-render-mode={ready ? "physical" : "fallback"} data-interactive={interactive} data-placed={count} data-active-color={art.beads[Math.max(0, count - 1)]?.color} onPointerEnter={tilt} onPointerMove={tilt} onPointerLeave={() => { targetRotation.current = { x: 0, y: 0, z: 0, lift: 0 }; }}>
+  return <div className="bc-art bc-art-3d" role="img" aria-label={`${art.name}, soft textured bead pattern`} data-material="terry" data-render-mode={ready ? "physical" : "fallback"} data-interactive={interactive} data-placed={count} data-active-color={art.beads[Math.max(0, count - 1)]?.color} onPointerEnter={tilt} onPointerMove={tilt} onPointerLeave={() => { targetRotation.current = { x: 0, y: 0, z: 0, lift: 0 }; }}>
     <canvas ref={ref} aria-hidden="true" style={{ width: "100%", height: "100%", opacity: ready ? 1 : 0 }} />
     {!ready && <div aria-hidden="true" style={{ display: "contents" }}><FlatBeadArt art={art} count={count} /></div>}
   </div>;
@@ -1208,11 +1105,16 @@ const menuSections = [
 ];
 
 function MenuGrid({ items, selectedId, detailShift, onOpen, onClose }: { items: Artwork[]; selectedId: string | null; detailShift: number; onOpen: (art: Artwork, button: HTMLButtonElement) => void; onClose: () => void }) {
+  const pointerStart = React.useRef({ x: 0, y: 0 });
+  const dragged = React.useRef(false);
   return <div className="bc-food-grid">
     {items.map(art => {
       const expanded = art.id === selectedId;
       return <article className="bc-menu-card" key={art.id} data-expanded={expanded} data-dimmed={!!selectedId && !expanded} inert={!!selectedId && !expanded} aria-hidden={!!selectedId && !expanded} style={{ "--detail-shift": `${expanded ? detailShift : 0}px` } as React.CSSProperties}>
-        <button className="bc-menu-open" aria-label={`${expanded ? "Close" : "Open"} ${art.name}`} aria-expanded={expanded} onClick={event => expanded ? onClose() : onOpen(art, event.currentTarget)}><BeadArt art={art} interactive={expanded} /></button>
+        <button className="bc-menu-open" aria-label={`${expanded ? "Close" : "Open"} ${art.name}`} aria-expanded={expanded}
+          onPointerDown={event => { pointerStart.current = { x: event.clientX, y: event.clientY }; dragged.current = false; }}
+          onPointerMove={event => { if (event.buttons && Math.hypot(event.clientX - pointerStart.current.x, event.clientY - pointerStart.current.y) > 5) dragged.current = true; }}
+          onClick={event => { if (event.detail && dragged.current) return; if (expanded) onClose(); else onOpen(art, event.currentTarget); }}><BeadArt art={art} interactive={expanded} /></button>
         <div className="bc-menu-caption">
           <div className="bc-caption-summary" aria-hidden={expanded} inert={expanded}><div className="bc-menu-heading"><h3>{art.name}</h3><p className="bc-menu-price">{art.price}</p></div><p className="bc-menu-description">{art.description}</p></div>
           <div className="bc-caption-detail" aria-hidden={!expanded} inert={!expanded}><div className="bc-menu-heading"><h3>About this cake</h3><p className="bc-menu-price">{art.price}</p></div><p className="bc-menu-description">{art.detailDescription}</p></div>
@@ -1222,7 +1124,7 @@ function MenuGrid({ items, selectedId, detailShift, onOpen, onClose }: { items: 
   </div>;
 }
 
-export function BeadClub({ loop = false, className }: BeadClubProps) {
+export function BeadClub({ title = "Little Bead Club", loop = false, className }: BeadClubProps) {
   const host = React.useRef<HTMLDivElement>(null);
   const lastCard = React.useRef<HTMLButtonElement | null>(null);
   const back = React.useRef<HTMLButtonElement>(null);
@@ -1250,7 +1152,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
       const distance = Math.abs(bounds.top + bounds.height / 2 - focusCenter);
       const proximity = Math.max(0, 1 - distance / (rect.height * .6));
       const eased = proximity * proximity * (3 - 2 * proximity);
-      return { button, zoom: reduced ? 1 : .96 + .04 * eased };
+      return { button, zoom: reduced ? 1 : MOTION.scrollMinScale + (1 - MOTION.scrollMinScale) * eased };
     });
     updates.forEach(({ button, zoom }) => button.style.setProperty("--focus-scale", zoom.toFixed(4)));
   }, []);
@@ -1309,7 +1211,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
         <div className="bc-status" aria-hidden="true"><b>9:41</b><div className="bc-indicators"><svg width="16" height="12" viewBox="0 0 16 12"><path d="M1 8v3M5 6v5M9 3v8M13 0v11" stroke="currentColor" strokeWidth="2" /></svg><svg width="15" height="12" viewBox="0 0 15 12"><path d="M1 4Q7.5-1 14 4M3 7q4.5-4 9 0M6 10q1.5-2 3 0" fill="none" stroke="currentColor" strokeWidth="1.7" /></svg><span className="bc-battery" /></div></div>
         <div className="bc-collection">
           <header className="bc-header">
-            <div className="bc-header-copy"><span className="bc-brand" aria-hidden={!!selected}>Little Bead Club</span><div className="bc-detail-header" aria-hidden={!selected} inert={!selected}><button ref={back} className="bc-icon" onClick={close} aria-label="Back to collection"><ArrowLeft size={20} /></button><h2 className="bc-detail-title">{detailTitle}</h2></div></div>
+            <div className="bc-header-copy"><span className="bc-brand" aria-hidden={!!selected}>{title}</span><div className="bc-detail-header" aria-hidden={!selected} inert={!selected}><button ref={back} className="bc-icon" onClick={close} aria-label="Back to collection"><ArrowLeft size={20} /></button><h2 className="bc-detail-title">{detailTitle}</h2></div></div>
             <CakeSlice className="bc-food-icon" size={21} strokeWidth={1.8} aria-hidden="true" />
           </header>
           <nav className="bc-menu-tabs" aria-label="Pattern categories" inert={!!selected} aria-hidden={!!selected}>{menuSections.map((section, index) => <button key={section.id} aria-pressed={activeSection === index} onClick={() => { setActiveSection(index); menu.current?.scrollTo({ top: 0, behavior: "instant" }); }}>{section.title}</button>)}</nav>
@@ -1342,13 +1244,13 @@ const styles = `
 .bc-header::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
 .bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;top:0;left:0;right:0;z-index:8;flex-shrink:0;min-height:48px;color:#242a26;padding:6px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:16px;font-weight:500;letter-spacing:-.25px}.bc-food-icon{flex-shrink:0;color:#171b18;filter:none;background:none;box-shadow:none}
 .bc-menu-tabs{position:absolute;top:48px;left:0;right:0;display:flex;align-items:center;gap:8px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;padding:4px 20px 8px;min-height:56px;z-index:8}.bc-menu-tabs button{flex-shrink:0;min-height:40px;border:1px solid #242a2614;border-radius:999px;background:#ffffff80;padding:0 16px;font-size:14px;font-weight:500;white-space:nowrap;color:#58635b}.bc-menu-tabs button[aria-pressed="true"]{color:#fff;background:#28332c;border-color:#28332c}
-.bc-list{position:absolute;inset:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;scroll-padding:${114 - CAKE_FOCUS_OFFSET}px 0 ${114 + CAKE_FOCUS_OFFSET}px;padding:calc(var(--cake-snap-inset,188px) - ${CAKE_FOCUS_OFFSET}px) 18px calc(var(--cake-snap-inset,188px) + ${CAKE_FOCUS_OFFSET}px);scrollbar-width:none}.bc-list::-webkit-scrollbar{display:none}.bc-menu-section{padding:0}.bc-food-grid{display:grid;grid-template-columns:minmax(0,1fr);row-gap:36px;align-items:start}.bc-menu-card{min-width:0;position:relative;transform:translateY(var(--detail-shift,0px));transition:opacity .24s ease,transform .8s cubic-bezier(.22,.68,.2,1);will-change:auto}.bc-menu-card[data-dimmed="true"]{opacity:0;pointer-events:none}.bc-menu-card[data-expanded="true"]{z-index:4}.bc-menu-open{scroll-snap-align:center;scroll-snap-stop:always;display:block;width:100%;height:auto;aspect-ratio:1;border:0;background:transparent;padding:0;transform:scale(var(--focus-scale,1));transition:transform .7s cubic-bezier(.22,1,.36,1)}.bc-menu-card[data-expanded="true"] .bc-menu-open{transform:scale(1.04);transition-duration:1.05s}.bc-menu-caption{position:relative;padding:8px 6px 0;text-align:left}.bc-caption-summary{opacity:1;filter:blur(0);transform:translateY(0);transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-caption-detail{position:absolute;top:8px;left:6px;right:6px;opacity:0;filter:blur(3px);transform:translateY(8px);pointer-events:none;transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-menu-card[data-expanded="true"] .bc-caption-summary{opacity:0;filter:blur(3px);transform:translateY(-5px)}.bc-menu-card[data-expanded="true"] .bc-caption-detail{opacity:1;filter:blur(0);transform:translateY(0);pointer-events:auto;transition:opacity .5s .18s ease,filter .5s .18s ease,transform .65s .18s ease}.bc-menu-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.bc-menu-heading>h2,.bc-menu-heading>h3{min-width:0}.bc-menu-caption h3{font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.2px;margin:0;overflow-wrap:anywhere}.bc-menu-price{flex-shrink:0;font-size:14px;line-height:1.4;font-weight:500;margin:0;color:#3b453e;white-space:nowrap;font-variant-numeric:tabular-nums}.bc-menu-description{font-size:13px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-stage svg{flex-shrink:0}
+.bc-list{position:absolute;inset:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;scroll-padding:${114 - CAKE_FOCUS_OFFSET}px 0 ${114 + CAKE_FOCUS_OFFSET}px;padding:calc(var(--cake-snap-inset,188px) - ${CAKE_FOCUS_OFFSET}px) 18px calc(var(--cake-snap-inset,188px) + ${CAKE_FOCUS_OFFSET}px);scrollbar-width:none}.bc-list::-webkit-scrollbar{display:none}.bc-menu-section{padding:0}.bc-food-grid{display:grid;grid-template-columns:minmax(0,1fr);row-gap:36px;align-items:start}.bc-menu-card{min-width:0;position:relative;transform:translateY(var(--detail-shift,0px));transition:opacity .24s ease,transform .8s cubic-bezier(.22,.68,.2,1);will-change:auto}.bc-menu-card[data-dimmed="true"]{opacity:0;pointer-events:none}.bc-menu-card[data-expanded="true"]{z-index:4}.bc-menu-open{scroll-snap-align:center;scroll-snap-stop:always;display:block;width:100%;height:auto;aspect-ratio:1;border:0;background:transparent;padding:0;transform:scale(var(--focus-scale,1));transition:transform ${MOTION.scrollDuration}s cubic-bezier(.22,1,.36,1)}.bc-menu-card[data-expanded="true"] .bc-menu-open{transform:scale(${MOTION.expandedScale});transition-duration:${MOTION.expandDuration}s}.bc-menu-caption{position:relative;padding:8px 6px 0;text-align:left}.bc-caption-summary{opacity:1;filter:blur(0);transform:translateY(0);transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-caption-detail{position:absolute;top:8px;left:6px;right:6px;opacity:0;filter:blur(3px);transform:translateY(8px);pointer-events:none;transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-menu-card[data-expanded="true"] .bc-caption-summary{opacity:0;filter:blur(3px);transform:translateY(-5px)}.bc-menu-card[data-expanded="true"] .bc-caption-detail{opacity:1;filter:blur(0);transform:translateY(0);pointer-events:auto;transition:opacity .5s .18s ease,filter .5s .18s ease,transform .65s .18s ease}.bc-menu-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.bc-menu-heading>h2,.bc-menu-heading>h3{min-width:0}.bc-menu-caption h3{font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.2px;margin:0;overflow-wrap:anywhere}.bc-menu-price{flex-shrink:0;font-size:14px;line-height:1.4;font-weight:500;margin:0;color:#3b453e;white-space:nowrap;font-variant-numeric:tabular-nums}.bc-menu-description{font-size:13px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-stage svg{flex-shrink:0}
 .bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(.5px 3px 3.5px #493d3029)}.bc-art-3d{position:relative;filter:none}.bc-art-3d>canvas{position:absolute;inset:0;pointer-events:none}
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
 .bc-top-glass{position:absolute;top:0;left:0;right:0;height:176px;pointer-events:none;z-index:6;background:transparent}.bc-top-glass i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(#000 60%,transparent);-webkit-mask-image:linear-gradient(#000 60%,transparent)}.bc-top-glass i:nth-child(2){height:150px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bc-top-glass i:nth-child(3){height:128px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.bc-top-glass i:nth-child(4){height:106px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .bc-glass-edge{position:absolute;bottom:0;left:0;right:0;height:124px;pointer-events:none;z-index:9;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000 75%);-webkit-mask-image:linear-gradient(transparent,#000 75%)}.bc-glass-edge i:nth-child(2){top:20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bc-glass-edge i:nth-child(3){top:42px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.bc-glass-edge i:nth-child(4){top:64px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .bc-glass-reflection{position:absolute;inset:0;border-radius:inherit;z-index:7;pointer-events:none;box-shadow:inset 0 0 2px #fff4}
 /* The cake canvas stays in its original card throughout expansion. */
-.bc-header-copy{position:relative;flex:1;min-width:0;min-height:36px;display:flex;align-items:center}.bc-brand{opacity:1;filter:blur(0);transition:opacity .18s ease,filter .18s ease}.bc-detail-header{position:absolute;inset:0;display:flex;align-items:center;gap:9px;opacity:0;filter:blur(3px);pointer-events:none;transition:opacity .2s ease,filter .2s ease}.bc-detail-title{min-width:0;margin:0;font-size:15px;line-height:1.3;font-weight:600;letter-spacing:-.2px}.bc-icon{width:36px;height:36px;flex:0 0 36px;border:1px solid #242a2624;background:#ffffff50;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:none;display:grid;place-items:center;border-radius:50%}.bc-menu-tabs{opacity:1;filter:blur(0);transition:opacity .2s ease,filter .2s ease}.bc-screen[data-detail="true"] .bc-brand{opacity:0;filter:blur(3px)}.bc-screen[data-detail="true"] .bc-detail-header{opacity:1;filter:blur(0);pointer-events:auto;transition:opacity .45s .16s ease,filter .45s .16s ease}.bc-screen[data-detail="true"] .bc-menu-tabs{opacity:0;filter:blur(3px);pointer-events:none}.bc-list[data-expanded="true"]{overflow:hidden;scroll-snap-type:none}
+.bc-header-copy{position:relative;flex:1;min-width:0;min-height:36px;display:flex;align-items:center}.bc-brand{opacity:1;filter:blur(0);transition:opacity .18s ease,filter .18s ease}.bc-detail-header{position:absolute;inset:0;display:flex;align-items:center;gap:9px;opacity:0;filter:blur(3px);pointer-events:none;transition:opacity .2s ease,filter .2s ease}.bc-detail-title{min-width:0;margin:0;font-size:15px;line-height:1.3;font-weight:600;letter-spacing:-.2px}.bc-icon{width:44px;height:44px;flex:0 0 44px;border:1px solid #242a2624;background:#ffffff50;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:none;display:grid;place-items:center;border-radius:50%}.bc-menu-tabs{opacity:1;filter:blur(0);transition:opacity .2s ease,filter .2s ease}.bc-screen[data-detail="true"] .bc-brand{opacity:0;filter:blur(3px)}.bc-screen[data-detail="true"] .bc-detail-header{opacity:1;filter:blur(0);pointer-events:auto;transition:opacity .45s .16s ease,filter .45s .16s ease}.bc-screen[data-detail="true"] .bc-menu-tabs{opacity:0;filter:blur(3px);pointer-events:none}.bc-list[data-expanded="true"]{overflow:hidden;scroll-snap-type:none}
 @media(prefers-reduced-motion:reduce){.bc-stage *{transition-duration:.01ms!important;transition-delay:0ms!important}.bc-menu-open{transform:scale(1)!important}}
 `;

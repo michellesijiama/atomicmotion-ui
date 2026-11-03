@@ -49,7 +49,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `loop` | `boolean` | `false` | Uses compact sizing for gallery previews. |
+| `title` | `string` | `"Little Bead Club"` | Brand name shown above the menu. |
+| `loop` | `boolean` | `false` | Uses compact sizing for gallery previews without automatic playback. |
 | `className` | `string` | — | Additional classes for the preview area. |
 
 Named export: `BeadClub`. Public types: `BeadClubProps`.
@@ -60,10 +61,9 @@ Named export: `BeadClub`. Public types: `BeadClubProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/components/bead-club/fused-pearl-grain.png](../../../public/components/bead-club/fused-pearl-grain.png) — MIT. Original pearlescent fused-plastic microtexture generated with built-in ImageGen for AtomicMotion UI. Cake bead maps were adapted from a user-supplied illustration sheet; no separate license for the reference artwork was supplied.
 - [public/components/bead-club/iphone-16-pro-white.png](../../../public/components/bead-club/iphone-16-pro-white.png) — Apple Design Resources terms. Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/
 - [public/components/bead-club/iphone-screen-mask.svg](../../../public/components/bead-club/iphone-screen-mask.svg) — Apple Design Resources terms. Screen-opening mask derived from the product bezel alpha, for accurate UI placement.
-- [public/components/bead-club/TERMS.txt](../../../public/components/bead-club/TERMS.txt) — Apple Design Resources terms. Retain the source and product-bezel usage terms; this asset is not MIT-licensed.
+- [public/components/bead-club/TERMS.txt](../../../public/components/bead-club/TERMS.txt) — Apple Design Resources terms. Retain the device-image terms and supplied cake-art provenance; these visual references are separate from the MIT code license.
 
 Copy the component and every required asset, preserving the attribution above.
 
