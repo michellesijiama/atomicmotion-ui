@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { ComponentStage } from "@/components/website/component-stage";
+import { ComponentStage, StageHeader } from "@/components/website/component-stage";
 import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
 import { componentList, getComponentById } from "@/lib/component-registry";
-import { pageMetadata } from "@/lib/site-metadata";
+import { LIBRARY_NAME, pageMetadata } from "@/lib/site-metadata";
 
 type ComponentDetailPageProps = {
   params: Promise<{
@@ -27,13 +27,13 @@ export async function generateMetadata({
 
   if (!component) {
     return {
-      title: "Component not found — AtomicMotion UI",
+      title: `Component not found — ${LIBRARY_NAME}`,
     };
   }
 
   return pageMetadata({
     path: `/components/${component.id}`,
-    title: `${component.title} — AtomicMotion UI`,
+    title: `${component.title} — ${LIBRARY_NAME}`,
     description: component.description,
     image: component.previewImage,
   });
@@ -58,9 +58,9 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   // reveals the header then the preview.
   return (
     <ComponentStage>
-      <div className="am-reveal relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
+      <StageHeader>
         <SiteHeader component={component} />
-      </div>
+      </StageHeader>
 
       <div
         className="am-reveal @container grid min-h-0 flex-1 grid-cols-1 overflow-x-hidden overflow-y-auto px-6 pb-6 sm:px-8 lg:px-12"

@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
 
 export const SITE_URL = "https://atomicmotion.dev";
+export const SITE_NAME = "AtomicMotion";
+export const LIBRARY_NAME = "AtomicMotion UI";
+export const DEFAULT_SHARE_IMAGE = "/previews/gemini-live.png";
+export const DESIGNER = {
+  name: "Sijia Ma",
+  linkedIn: "https://www.linkedin.com/in/michellesijiama/",
+} as const;
 
 export function pageMetadata({
   path,
   title,
   description,
-  image = "/previews/gemini-live.png",
+  image = DEFAULT_SHARE_IMAGE,
 }: {
   path: string;
   title: string;
@@ -20,7 +27,7 @@ export function pageMetadata({
     alternates: { canonical: path },
     openGraph: {
       type: "website",
-      siteName: "AtomicMotion",
+      siteName: SITE_NAME,
       url: path,
       title,
       description,

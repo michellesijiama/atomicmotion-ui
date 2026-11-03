@@ -6,22 +6,24 @@ import type { ComponentMeta } from "@/lib/component-registry";
 import { writeClipboardText } from "@/lib/clipboard";
 import { actionPrimaryClass, actionSecondaryClass } from "@/components/website/styles";
 
+const COPY_FEEDBACK_MS = 1800;
+
+/** Sets `state` back to `to` once `COPY_FEEDBACK_MS` after it becomes `from`. */
+function useResetAfter<T>(state: T, from: T, to: T, setState: (value: T) => void) {
+  useEffect(() => {
+    if (state !== from) return;
+    const timer = setTimeout(() => setState(to), COPY_FEEDBACK_MS);
+    return () => clearTimeout(timer);
+  }, [state, from, to, setState]);
+}
+
 export function ComponentActions({ component }: { component: ComponentMeta }) {
   const [failedText, setFailedText] = useState("");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [linkCopyState, setLinkCopyState] = useState<"idle" | "copied">("idle");
 
-  useEffect(() => {
-    if (copyState !== "copied") return;
-    const timer = setTimeout(() => setCopyState("idle"), 1800);
-    return () => clearTimeout(timer);
-  }, [copyState]);
-
-  useEffect(() => {
-    if (linkCopyState !== "copied") return;
-    const timer = setTimeout(() => setLinkCopyState("idle"), 1800);
-    return () => clearTimeout(timer);
-  }, [linkCopyState]);
+  useResetAfter(copyState, "copied", "idle", setCopyState);
+  useResetAfter(linkCopyState, "copied", "idle", setLinkCopyState);
 
   async function copyLink() {
     const copied = await writeClipboardText(component.codeHref);

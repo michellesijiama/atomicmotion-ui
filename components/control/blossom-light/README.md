@@ -43,8 +43,8 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `defaultBrightness` | `number` | `72` | 0–100. Where the light starts. Until the slider is touched it keeps climbing and falling on its own; after that it stays where it is put. |
-| `label` | `string` | `"Brightness"` | The line under the number. |
+| `defaultBrightness` | `number` | `72` | 0–100. Where the light starts. Adaptive mode (on at first) then eases it to the outside level; touching the slider holds it wherever it is put. |
+| `label` | `string` | `"Brightness"` | Accessible name of the brightness slider. |
 | `defaultWarmth` | `number` | `30` | 0–100, cool daylight to candle amber. |
 | `src` | `string` | `"/textures/wall-shadow.jpg"` | The wall behind everything: leaf shadow on white plaster ships with the component at this path; point it anywhere else you like. |
 | `loop` | `boolean` | — | Accepted for the gallery card; this control has no motion of its own. |

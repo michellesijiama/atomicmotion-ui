@@ -50,7 +50,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `className` | `string` | — | Additional classes for the root container. |
-| `loop` | `boolean` | `false` | Automatic preview mode. |
+| `loop` | `boolean` | `false` | Gallery card: show a static poster image instead of mounting WebGL. |
 
 Named export: `GradientGummyBear`. Public types: `GradientGummyBearProps`.
 - **Source access:** Free and open source.
@@ -61,7 +61,7 @@ Named export: `GradientGummyBear`. Public types: `GradientGummyBearProps`.
 The component code is one file, but it also loads these files at runtime:
 
 - [public/models/gummy-bear.glb](../../../public/models/gummy-bear.glb) — CC-BY 3.0. "Gummy Bear" by Poly by Google, via Poly Pizza (https://poly.pizza/m/5zl16PPAItW) — attribution required.
-- [public/gummy-bear-poster.png](../../../public/gummy-bear-poster.png) — MIT (gallery capture). Poster captured by Sijia Ma; retain the model attribution above. Used when WebGL or model loading is unavailable.
+- [public/gummy-bear-poster.png](../../../public/gummy-bear-poster.png) — MIT (gallery capture). Poster captured by Sijia Ma; retain the model attribution above. Used as the static gallery preview.
 
 Copy the component and every required asset, preserving the attribution above.
 

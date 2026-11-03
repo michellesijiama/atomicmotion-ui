@@ -1,6 +1,6 @@
 # Repository maintenance status
 
-AtomicMotion is a free, open-source design library with 20 registered components.
+AtomicMotion is a free, open-source design library of registered components.
 The gallery's payment providers, purchase APIs and source locks have been removed.
 All component source, examples and runtime assets are published in the public
 component repository; the website uses Copy link and Copy for AI for all components.

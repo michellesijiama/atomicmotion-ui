@@ -17,19 +17,16 @@ export type GeminiLiveProps = {
 };
 
 const m3ColorScheme = {
-  surface: "#141218",
   surfaceContainerLow: "#1d1b20",
-  surfaceContainer: "#211f26",
   surfaceContainerHigh: "#2b2930",
-  surfaceContainerHighest: "#36343b",
   onSurface: "#e6e0e9",
   onSurfaceVariant: "#cac4d0",
   outlineVariant: "#49454f",
-  primary: "#d0bcff",
-  primaryContainer: "#4f378b",
 } as const;
 const activeListeningBlue = "#4285f4";
 const activeListeningBlueLight = "#8ab4f8";
+/** Google blue (the same rgb as `activeListeningBlue`) at the given alpha. */
+const blueA = (alpha: number) => `rgba(66,133,244,${alpha})`;
 const activeListeningRestrictedEdgeGlow = "restricted-edge-glow";
 const activeListeningPulsePattern = "random-dynamic-subtle-ring";
 const activeListeningFluidGradient = "fluid-conic-blue-edge-gradient";
@@ -148,6 +145,14 @@ function SourceChip({
 
 type EdgeWaveSide = "top" | "right" | "bottom" | "left";
 
+/** Per side: the opacity keyframes and how long one wave cycle takes (seconds). */
+const SIDE: Record<EdgeWaveSide, { opacity: number[]; duration: number }> = {
+  top: { opacity: [0.72, 0.1, 0.02, 0.84, 0.16, 0.04, 0.94, 0.12], duration: 7.8 },
+  right: { opacity: [0.08, 0.62, 0.14, 0.02, 0.78, 0.1, 0.04, 0.68], duration: 9.4 },
+  bottom: { opacity: [0.04, 0.18, 0.76, 0.08, 0.02, 0.64, 0.12, 0.04], duration: 8.8 },
+  left: { opacity: [0.1, 0.02, 0.52, 0.12, 0.82, 0.06, 0.2, 0.04], duration: 10.2 },
+};
+
 function FluidEdgeGradient({ active }: { active: boolean }) {
   return (
     <>
@@ -168,8 +173,7 @@ function FluidEdgeGradient({ active }: { active: boolean }) {
             : { opacity: 0.08, rotate: 0, scale: 0.99 }
         }
         style={{
-          background:
-            "conic-gradient(from 42deg at 50% 50%, rgba(66,133,244,0) 0deg, rgba(66,133,244,0.88) 34deg, rgba(138,180,248,0.92) 58deg, rgba(66,133,244,0.16) 92deg, rgba(66,133,244,0) 132deg, rgba(66,133,244,0.74) 188deg, rgba(138,180,248,0.82) 214deg, rgba(66,133,244,0) 258deg, rgba(66,133,244,0.72) 316deg, rgba(66,133,244,0) 360deg)",
+          background: `conic-gradient(from 42deg at 50% 50%, ${blueA(0)} 0deg, ${blueA(0.88)} 34deg, rgba(138,180,248,0.92) 58deg, ${blueA(0.16)} 92deg, ${blueA(0)} 132deg, ${blueA(0.74)} 188deg, rgba(138,180,248,0.82) 214deg, ${blueA(0)} 258deg, ${blueA(0.72)} 316deg, ${blueA(0)} 360deg)`,
           mixBlendMode: "screen",
         }}
         transition={{
@@ -198,8 +202,7 @@ function FluidEdgeGradient({ active }: { active: boolean }) {
             : { opacity: 0.06, backgroundPosition: "0% 18%" }
         }
         style={{
-          background:
-            "radial-gradient(circle at 12% 18%, rgba(138,180,248,0.86) 0 6%, rgba(66,133,244,0.24) 12%, rgba(66,133,244,0) 24%), radial-gradient(circle at 92% 28%, rgba(66,133,244,0.88) 0 7%, rgba(66,133,244,0.18) 16%, rgba(66,133,244,0) 30%), radial-gradient(circle at 62% 104%, rgba(138,180,248,0.78) 0 7%, rgba(66,133,244,0.18) 18%, rgba(66,133,244,0) 32%)",
+          background: `radial-gradient(circle at 12% 18%, rgba(138,180,248,0.86) 0 6%, ${blueA(0.24)} 12%, ${blueA(0)} 24%), radial-gradient(circle at 92% 28%, ${blueA(0.88)} 0 7%, ${blueA(0.18)} 16%, ${blueA(0)} 30%), radial-gradient(circle at 62% 104%, rgba(138,180,248,0.78) 0 7%, ${blueA(0.18)} 18%, ${blueA(0)} 32%)`,
           backgroundSize: "160% 160%",
           mixBlendMode: "screen",
         }}
@@ -215,6 +218,8 @@ function FluidEdgeGradient({ active }: { active: boolean }) {
 }
 
 function EdgeWave({ active, side }: { active: boolean; side: EdgeWaveSide }) {
+  // Unique per instance, so two Gemini Live cards on one page never share a gradient.
+  const gradientId = `${React.useId().replace(/[^a-zA-Z0-9_-]/g, "")}-edge-wave-${side}`;
   const horizontal = side === "top" || side === "bottom";
   const paths = horizontal
     ? edgeWaveFrequencyPaths.horizontal
@@ -227,14 +232,7 @@ function EdgeWave({ active, side }: { active: boolean; side: EdgeWaveSide }) {
     side === "right" && "bottom-6 right-[-15px] top-6 w-12",
     side === "left" && "bottom-6 left-[-15px] top-6 w-12",
   );
-  const opacity =
-    side === "top"
-      ? [0.72, 0.1, 0.02, 0.84, 0.16, 0.04, 0.94, 0.12]
-      : side === "right"
-        ? [0.08, 0.62, 0.14, 0.02, 0.78, 0.1, 0.04, 0.68]
-        : side === "bottom"
-          ? [0.04, 0.18, 0.76, 0.08, 0.02, 0.64, 0.12, 0.04]
-          : [0.1, 0.02, 0.52, 0.12, 0.82, 0.06, 0.2, 0.04];
+  const { opacity, duration } = SIDE[side];
   const translate = horizontal
     ? { x: active ? [-16, 28, -8, 36, -16] : 0 }
     : { y: active ? [-18, 24, -10, 30, -18] : 0 };
@@ -248,7 +246,7 @@ function EdgeWave({ active, side }: { active: boolean; side: EdgeWaveSide }) {
     >
       <defs>
         <linearGradient
-          id={`edge-wave-${side}`}
+          id={gradientId}
           x1="0%"
           x2={horizontal ? "100%" : "0%"}
           y1="0%"
@@ -284,12 +282,11 @@ function EdgeWave({ active, side }: { active: boolean; side: EdgeWaveSide }) {
         fill="none"
         filter="blur(15px) drop-shadow(0 0 30px rgba(66,133,244,0.85))"
         initial={false}
-        stroke={`url(#edge-wave-${side})`}
+        stroke={`url(#${gradientId})`}
         strokeLinecap="round"
         strokeLinejoin="round"
         transition={{
-          duration:
-            side === "top" ? 7.8 : side === "right" ? 9.4 : side === "bottom" ? 8.8 : 10.2,
+          duration,
           ease: "easeInOut",
           repeat: Infinity,
           times: [0, 0.14, 0.28, 0.45, 0.62, 0.78, 1],
@@ -315,7 +312,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
   return (
     <div
       className={cn(
-        "relative isolate flex h-full min-h-full w-full items-center justify-center overflow-hidden bg-transparent px-5 py-5",
+        "relative isolate flex h-full min-h-full w-full items-center justify-center overflow-hidden bg-transparent py-5",
         "px-3 sm:px-5",
         !loop && "h-auto min-h-[max(320px,calc(min(920px,100cqw_-_40px)/1.95_+_40px))]",
         className,
@@ -324,7 +321,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
         color: m3ColorScheme.onSurface,
       }}
     >
-      <motion.div
+      <div
         className={cn(
           "relative aspect-[1.95/1] w-full max-w-[920px] overflow-hidden rounded-[28px] ring-1",
           activeListeningRestrictedEdgeGlow,
@@ -334,9 +331,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
         style={{
           "--m3-on-surface": m3ColorScheme.onSurface,
           "--m3-on-surface-variant": m3ColorScheme.onSurfaceVariant,
-          "--m3-primary": m3ColorScheme.primary,
           backgroundColor: m3ColorScheme.surfaceContainerLow,
-          borderColor: m3ColorScheme.outlineVariant,
         } as React.CSSProperties}
       >
         <div
@@ -405,9 +400,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
             </SourceChip>
           </div>
 
-          <div className="pointer-events-none flex flex-1 items-center justify-center">
-            <span className="sr-only">Material 3 live surface center area</span>
-          </div>
+          <div className="pointer-events-none flex flex-1 items-center justify-center" />
 
           <div className="mt-auto flex justify-end">
             <div
@@ -423,7 +416,6 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
                 className={m3BottomControlButtonClassName}
               >
                 <MaterialSymbolIcon name="pause" className="size-[22px]" />
-                <span className="sr-only">Pause</span>
               </button>
               <span
                 className="h-7 w-px"
@@ -440,7 +432,7 @@ export function GeminiLive({ className, loop = false }: GeminiLiveProps) {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

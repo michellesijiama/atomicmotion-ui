@@ -17,18 +17,24 @@ function cn(...inputs: ClassValue[]) {
 
 export type GradientGummyBearProps = {
   className?: string;
+  /** Gallery card: show a static poster image instead of mounting WebGL. */
   loop?: boolean;
 };
 
-// A single glossy, translucent 3D gummy bear that idles with a gentle sway
-// and bob. Physically-based translucent material with real environment
-// reflections, a multi-color vertex gradient, transparent background, and
-// cursor-responsive gummy motion.
+// A single glossy, translucent 3D gummy bear that works as a movable magnifier
+// lens. It always faces the camera and does not idle, sway or rotate: it only
+// slides across a paragraph of text behind it, following the cursor.
+// Physically-based transmissive material with real environment reflections,
+// one pink glass colour, and a transparent background.
 //
 // Model: "Gummy Bear" by Poly by Google (Google Poly), licensed CC-BY,
 // sourced via poly.pizza. Served locally from public/models/gummy-bear.glb.
 
 const GUMMY_COLOR = "#ff789a";
+// The backdrop plane is 3.35 tall. 5.03 is the height the camera sees at the
+// backdrop's depth: 2 * (4.9 + 1.65) * tan(42deg / 2), from the camera at z 4.9,
+// FOV 42 and the backdrop at z -1.65. So this is the share of the container
+// height the square backdrop covers.
 const BACKDROP_SCREEN_RATIO = 3.35 / 5.03;
 const BACKDROP_HALF_SIZE = 3.35 / 2;
 const LENS_EDGE_PADDING = 0.16;
@@ -187,11 +193,14 @@ export function GradientGummyBear({ className, loop = false }: GradientGummyBear
 
     const scene = new THREE.Scene();
     const pmrem = new THREE.PMREMGenerator(renderer);
-    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const room = new RoomEnvironment();
+    const envTexture = pmrem.fromScene(room, 0.04).texture;
+    room.dispose();
     scene.environment = envTexture;
 
     const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
     camera.position.set(0, 0, 4.9);
+    camera.lookAt(0, 0, 0);
 
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
     keyLight.position.set(2, 3, 4);
@@ -264,7 +273,6 @@ export function GradientGummyBear({ className, loop = false }: GradientGummyBear
     void document.fonts?.ready.then(() => {
       if (!cancelled) {
         setTextTexture();
-        backdropMaterial.needsUpdate = true;
       }
     });
 
@@ -296,7 +304,7 @@ export function GradientGummyBear({ className, loop = false }: GradientGummyBear
         model.scale.setScalar(scale);
 
         // glTF is Y-up and this bear already faces +Z toward the camera, so
-        // no base yaw is needed (the idle sway adds gentle rotation).
+        // no base yaw is needed.
 
         // Recenter to the origin using the bounding box AFTER scale is
         // applied, so the offset is correct in the transformed space.
@@ -307,7 +315,7 @@ export function GradientGummyBear({ className, loop = false }: GradientGummyBear
         model.position.sub(center);
 
         model.traverse((child) => {
-          if (!(child instanceof THREE.Mesh) || child.userData.skipGummyMaterial) return;
+          if (!(child instanceof THREE.Mesh)) return;
           const mesh = child;
           const original = mesh.geometry;
 
@@ -394,8 +402,6 @@ export function GradientGummyBear({ className, loop = false }: GradientGummyBear
       group.position.x = cx * lensTravel.x;
       group.position.y = -cy * lensTravel.y;
 
-      camera.lookAt(0, 0, 0);
-
       renderer.render(scene, camera);
     };
     raf = requestAnimationFrame(render);
@@ -449,6 +455,7 @@ export function GradientGummyBear({ className, loop = false }: GradientGummyBear
       bumpTex.dispose();
       envTexture.dispose();
       pmrem.dispose();
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, [loop]);

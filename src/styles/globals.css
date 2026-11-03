@@ -18,6 +18,7 @@
   --jitter-purple: #7a40ed;
   --jitter-blue: #1377e4;
   --jitter-orange: #ff8316;
+  --am-panel-bg: #f5f5f5;
   --am-header-bg: transparent;
   --am-header-border: rgba(14, 16, 17, 0.1);
   --am-nav-bg: rgba(14, 16, 17, 0.06);
@@ -98,7 +99,7 @@ pre {
 
 ::selection {
   background: var(--jitter-ink);
-  color: #ffffff;
+  color: var(--jitter-white);
 }
 
 button,
@@ -131,38 +132,6 @@ a {
   animation: am-reveal 1.15s cubic-bezier(0.62, 0, 0.32, 1) backwards;
 }
 
-/* Dropdown surface animation: fade + subtle scale-up from the top. */
-@keyframes am-dropdown {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.am-dropdown {
-  animation: am-dropdown 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
-  transform-origin: top right;
-}
-
-/* Full-width panel reveal: opacity-only fade (no transform — a transformed
-   ancestor would break the inner backdrop-filter blur). */
-@keyframes am-panel {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.am-panel {
-  animation: am-panel 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -170,9 +139,7 @@ a {
     scroll-behavior: auto !important;
   }
 
-  .am-reveal,
-  .am-dropdown,
-  .am-panel {
+  .am-reveal {
     animation: none;
   }
 }

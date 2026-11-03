@@ -27,12 +27,6 @@ const PALETTE = {
   paper: "#93A6DB",
   ink: "#2E1B0F",
   cup: "#43291A",
-  // Text sits in the dark half of the palette on purpose. Cream or pink type on
-  // periwinkle measures about 1.8:1 and 1.4:1 — nowhere near the 4.5:1 WCAG AA
-  // asks for at these sizes. Brown lands at 7.7:1 and the wine at 5.0:1, and it
-  // matches the source illustration, which keeps its captions dark and spends
-  // its pink on the one display word.
-  wine: "#6E2437",
   // Blush fills the undrunk part of each cup and draws its outline. As type it
   // would be unusable (1.4:1 on the card) and its edge against the card is only
   // 1.40:1 — under the 3:1 WCAG 1.4.11 wants of a meaningful graphic. What keeps
@@ -46,6 +40,12 @@ const PALETTE = {
 
 /** Every cup is authored on its own 120×120 field. */
 const FIELD = 120;
+
+/** How far the coffee's surface runs past each side of the field (and, doubled, below it). */
+const OVERSHOOT = 12;
+
+/** Digits stay the same width as they change, and sit on the baseline. */
+const NUMERALS = "lining-nums tabular-nums";
 
 type Cup = {
   key: string;
@@ -113,6 +113,16 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
+/** The whole drinks a 0–100 level stands for, for this cup. */
+function toCount(cup: Cup, level: number) {
+  return Math.round((level / 100) * cup.limit);
+}
+
+/** The 0–100 level that a whole number of drinks pours to, for this cup. */
+function toLevel(cup: Cup, count: number) {
+  return (count / cup.limit) * 100;
+}
+
 /** The cubic-bezier(0.65, 0, 0.35, 1) ease-in-out, in closed form. */
 function easeInOutCubic(p: number) {
   return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
@@ -138,8 +148,7 @@ function stopAt(cup: Cup, cupIndex: number, n: number) {
 
 /**
  * Where a cup sits while the card is idling. Each cup runs on its own period
- * and offset, so the three drift independently instead of stepping together —
- * which is what made the old synchronised version look mechanical.
+ * and offset, so the three drift independently instead of stepping together.
  */
 function idleLevel(cup: Cup, cupIndex: number, ms: number) {
   const phase = ms + cup.offset;
@@ -167,7 +176,7 @@ function crestPoints(
   // Flatten the surface as the cup fills: less headroom, less slosh.
   const amp = 3.2 * (0.35 + 0.65 * Math.sin(Math.PI * clamp(level, 0, 1)));
   let d = "";
-  for (let x = -12; x <= FIELD + 12; x += 5) {
+  for (let x = -OVERSHOOT; x <= FIELD + OVERSHOOT; x += 5) {
     const u = x / FIELD;
     const y =
       base +
@@ -179,13 +188,8 @@ function crestPoints(
 }
 
 /** The surface closed off below the field, so it fills as a body of coffee. */
-function coffeePath(
-  level: number,
-  t: number,
-  bounds: [number, number],
-  seed: number,
-): string {
-  return `${crestPoints(level, t, bounds, seed)}L${FIELD + 12},${FIELD + 24} L-12,${FIELD + 24} Z`;
+function coffeePath(crest: string): string {
+  return `${crest}L${FIELD + OVERSHOOT},${FIELD + OVERSHOOT * 2} L-${OVERSHOOT},${FIELD + OVERSHOOT * 2} Z`;
 }
 
 function usePrefersReducedMotion() {
@@ -252,9 +256,7 @@ export function CoffeeGauge({
     () =>
       logged && !controlled
         ? logged.counts
-        : (CUPS.map((cup, i) =>
-            Math.round((levels[i] / 100) * cup.limit),
-          ) as [number, number, number]),
+        : (CUPS.map((cup, i) => toCount(cup, levels[i])) as [number, number, number]),
     [controlled, logged, levels],
   );
 
@@ -268,12 +270,12 @@ export function CoffeeGauge({
   const toggle = () => {
     if (!expanded && !logged && !controlled) {
       const committed = CUPS.map((cup, i) =>
-        clamp(Math.round((levels[i] / 100) * cup.limit), 0, cup.limit),
+        clamp(toCount(cup, levels[i]), 0, cup.limit),
       ) as [number, number, number];
       setLogged({
         counts: committed,
         from: levels,
-        to: CUPS.map((cup, i) => (committed[i] / cup.limit) * 100),
+        to: CUPS.map((cup, i) => toLevel(cup, committed[i])),
         at: clockMs,
       });
     }
@@ -288,7 +290,7 @@ export function CoffeeGauge({
       // Pour from wherever the gauges happen to be, so the first tap out of the
       // idle state doesn't jump.
       from: levels,
-      to: CUPS.map((cup, i) => (next[i] / cup.limit) * 100),
+      to: CUPS.map((cup, i) => toLevel(cup, next[i])),
       at: clockMs,
     });
   };
@@ -352,10 +354,7 @@ export function CoffeeGauge({
         </svg>
 
         <header className="relative flex items-center justify-between">
-          <span
-            className="text-[15px] italic"
-            style={{ color: PALETTE.ink, letterSpacing: "0.01em" }}
-          >
+          <span className="text-[15px] italic" style={{ letterSpacing: "0.01em" }}>
             {title}
           </span>
           {/* Only the uncontrolled card owns its numbers. Pass `values` and the
@@ -397,8 +396,8 @@ export function CoffeeGauge({
             const level = levels[i] / 100;
             const reading = Math.round(levels[i]);
             const seed = i * 1.7;
-            const coffee = coffeePath(level, t, cup.bounds, seed);
             const crest = crestPoints(level, t, cup.bounds, seed);
+            const coffee = coffeePath(crest);
 
             return (
               <div key={cup.key} className="flex flex-col items-center gap-1">
@@ -551,16 +550,13 @@ export function CoffeeGauge({
 
                 <span
                   className="text-[11px] italic leading-none"
-                  style={{ color: PALETTE.ink, opacity: 0.9 }}
+                  style={{ opacity: 0.9 }}
                 >
                   {cup.label}
                 </span>
                 <span
                   className="text-[20px] leading-none"
-                  style={{
-                    color: PALETTE.ink,
-                    fontVariantNumeric: "lining-nums tabular-nums",
-                  }}
+                  style={{ fontVariantNumeric: NUMERALS }}
                 >
                   {reading}
                   <span className="ml-[3px] text-[11px]">%</span>
@@ -590,7 +586,7 @@ export function CoffeeGauge({
                 >
                   <span
                     className="text-[12px] italic"
-                    style={{ color: PALETTE.ink, opacity: 0.9 }}
+                    style={{ opacity: 0.9 }}
                   >
                     {cup.label}
                   </span>
@@ -603,10 +599,7 @@ export function CoffeeGauge({
                     />
                     <span
                       className="w-[52px] text-center text-[12px]"
-                      style={{
-                        color: PALETTE.ink,
-                        fontVariantNumeric: "lining-nums tabular-nums",
-                      }}
+                      style={{ fontVariantNumeric: NUMERALS }}
                     >
                       {counts[i]} / {cup.limit}
                     </span>
@@ -648,8 +641,9 @@ function StepButton({
       className="grid h-6 w-6 place-items-center rounded-full text-[13px] leading-none transition-opacity disabled:opacity-30"
       style={{
         color: PALETTE.ink,
-        // Drawn, not filled — the same brown stroke the cups are outlined in,
-        // so the controls read as part of the illustration.
+        // Drawn, not filled — an outline like the cups' (those are outlined in
+        // PALETTE.blush; these stay ink for contrast), so the controls read as
+        // part of the illustration.
         background: "transparent",
         border: `1.5px solid ${PALETTE.ink}`,
       }}

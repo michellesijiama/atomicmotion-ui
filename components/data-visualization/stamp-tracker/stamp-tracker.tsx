@@ -8,7 +8,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 // Stamp Tracker — four habits as a deck of tall blocks of risograph colour on a bare black phone
-// screen — cocoa, pink, sky and mint, each with its own pattern ink — fanned like a loose stack
+// screen — sky, cocoa, pink and mint, each with its own pattern ink — fanned like a loose stack
 // of paper. A Day / Week / Month switch at the top chooses what a card shows: one big stamp for
 // today, a row of seven days, or the whole month. Tap a day and a rubber stamp comes down on it,
 // leaving the habit's silhouette printed in the pattern ink, rough at the edge and speckled where
@@ -100,6 +100,19 @@ const CARD_RADIUS = 36;
 const CARD_PAD = 24;
 /** The grids reach a little into the card's side padding, so a row runs nearly edge to edge. */
 const GRID_BLEED = 4;
+/** The card's header: the habit's name and, under it, what the card is showing — two lines of this height. */
+const HEADER_H = 30;
+/** The weekday label row above a grid, the gap under it (and between month rows) and the grid's bottom padding. */
+const LABEL_H = 20;
+const GRID_GAP = 10;
+const GRID_PAD_B = 2;
+/** The sheet each card's illustration is drawn on. */
+const SHEET_W = 240;
+const SHEET_H = 190;
+/** How far, in degrees, a card tilts as it flies off the left edge or comes back in from it. */
+const FLY_TILT = 6;
+/** Turns riso grain into dark specks (alpha ramp), shared by the two stamp inks. */
+const SPECK_MATRIX = "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  30 0 0 0 -9";
 /** Where each card sits in the stack. All four show: the three behind are smaller and narrower, pivot about their top edge and tilt a little, so only their rounded tops show above the front card. */
 const SLOTS = [
   { y: 0, scale: 1, rotate: 0 },
@@ -142,6 +155,11 @@ function hash01(input: string) {
 /** A local date as "YYYY-MM-DD". */
 function isoOf(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** A date's column in a Monday-first week: Monday 0 … Sunday 6. */
+function mondayCol(d: Date) {
+  return (d.getDay() + 6) % 7;
 }
 
 /** Habit → the ISO dates that carry a stamp. */
@@ -222,7 +240,7 @@ function Print({ habit, textured }: { habit: Habit; textured?: string }) {
 // a flat three-quarter view, objects scattered with room between them, one or two of them filled solid
 // and the rest left as paper (the card colour), a scatter of tiny marks, and a tiny person getting up
 // to something at a much smaller scale. Every outline is drawn point by point with a little seeded
-// irregularity, so no circle is a perfect circle and no line is quite straight. Drawn on a 240 × 190 sheet.
+// irregularity, so no circle is a perfect circle and no line is quite straight. Drawn on a 240 × 190 sheet (SHEET_W × SHEET_H).
 
 type Pt = readonly [number, number];
 const f1 = (n: number) => Math.round(n * 10) / 10;
@@ -447,7 +465,7 @@ function Scene({ habit, ink, paper }: { habit: HabitId; ink: string; paper: stri
 /** The scene, drawn through a faint hand-inked wobble so no edge is machine-straight. */
 function Illustration({ habit, inkFilter, width }: { habit: Habit; inkFilter: string; width: number }) {
   return (
-    <svg aria-hidden viewBox="0 0 240 190" width={width} height={(width * 190) / 240} style={{ display: "block", overflow: "visible", pointerEvents: "none" }}>
+    <svg aria-hidden viewBox={`0 0 ${SHEET_W} ${SHEET_H}`} width={width} height={(width * SHEET_H) / SHEET_W} style={{ display: "block", overflow: "visible", pointerEvents: "none" }}>
       <g filter={`url(#${inkFilter})`}>
         <Scene habit={habit.id} ink={habit.stamp} paper={habit.card} />
       </g>
@@ -587,6 +605,9 @@ function pose(depth: number) {
   return { y: lerp(a.y, b.y, f), scale: lerp(a.scale, b.scale, f), rotate: lerp(a.rotate, b.rotate, f) };
 }
 
+/** How far below its back slot a card sits when it's tucked out of sight behind the pile. */
+const TUCK_DROP = 84;
+
 /**
  * Where a card is, as a pure function of the swipe. `p` is the swipe's progress: 0 at rest, 1 when the front card
  * has been taken fully off to the left, -1 when the card at the back has been brought fully round to the front.
@@ -594,9 +615,6 @@ function pose(depth: number) {
  * the stack, and `e` is 1 while a card is still below the screen waiting to rise in.
  * The outer layer (o…) holds a card's place in the stack, the inner one (i…) is the card being moved by the hand.
  */
-/** How far below its back slot a card sits when it's tucked out of sight behind the pile. */
-const TUCK_DROP = 84;
-
 function cardState(p0: number, d: number, t: number, e: number) {
   const p = clamp(p0, -1, 1);
   let oy = 0;
@@ -610,7 +628,7 @@ function cardState(p0: number, d: number, t: number, e: number) {
   if (p >= 0) {
     if (d === 0) {
       ix = -p * FLY;
-      ir = clamp((ix / CARD_W) * 6, -6, 6);
+      ir = clamp((ix / CARD_W) * FLY_TILT, -FLY_TILT, FLY_TILT);
       content = 1;
       opacity = p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1; // fades a little as it goes out
     } else {
@@ -634,7 +652,7 @@ function cardState(p0: number, d: number, t: number, e: number) {
         // …then comes in over the top from the left edge.
         const k = (q - 0.15) / 0.85;
         ix = -(1 - k) * FLY;
-        ir = -6 * (1 - k);
+        ir = -FLY_TILT * (1 - k);
         z = 8;
         content = clamp((q - 0.15) / 0.25, 0, 1);
       }
@@ -751,7 +769,7 @@ function DeckCard({ habit, depth, view, progress, tuck, enter, stamps, cal, pres
     <div className="grid" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
       {WEEKDAYS.map((w, c) => (
         // Today's weekday is picked out in the stamp ink, the same colour as the stamps.
-        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 14, lineHeight: "20px", color: c === cols ? habit.stamp : undefined }}>
+        <span key={w} className="text-center" style={{ fontWeight: c === cols ? 600 : 500, fontSize: 14, lineHeight: `${LABEL_H}px`, color: c === cols ? habit.stamp : undefined }}>
           {w}
         </span>
       ))}
@@ -760,10 +778,13 @@ function DeckCard({ habit, depth, view, progress, tuck, enter, stamps, cal, pres
 
   // How much room the grid leaves above it, and so how big the illustration can be (none in Day view, or if it would be cramped).
   const rows = Math.ceil(cal.month.cells.length / 7);
-  const gridH = view === "week" ? 20 + 10 + VARIANT.week.size + 2 : 20 + 10 + rows * VARIANT.cell.size + (rows - 1) * 10 + 2;
-  const freeH = CARD_H - CARD_PAD * 2 - 60 - gridH;
-  const illoW = view === "week" ? 240 : 172;
-  const illo = view !== "day" && freeH >= 110 ? { gridH, width: Math.min(illoW, ((freeH - 28) * 240) / 190) } : null;
+  const gridH =
+    view === "week"
+      ? LABEL_H + GRID_GAP + VARIANT.week.size + GRID_PAD_B
+      : LABEL_H + GRID_GAP + rows * VARIANT.cell.size + (rows - 1) * GRID_GAP + GRID_PAD_B;
+  const freeH = CARD_H - CARD_PAD * 2 - HEADER_H * 2 - gridH;
+  const illoW = view === "week" ? SHEET_W : 172;
+  const illo = view !== "day" && freeH >= 110 ? { gridH, width: Math.min(illoW, ((freeH - 28) * SHEET_W) / SHEET_H) } : null;
 
   const todayWeekCol = cal.week.cells.findIndex((c) => c.iso === cal.todayIso);
   const todayCell = cal.week.cells[todayWeekCol] ?? cal.week.cells[0];
@@ -802,11 +823,11 @@ function DeckCard({ habit, depth, view, progress, tuck, enter, stamps, cal, pres
         {/* The front card shows its contents and the one behind it fades its in while you swipe; the rest are bare blocks of colour. */}
         <motion.div className="relative flex h-full flex-col" style={{ opacity: content }}>
           {/* The header: the habit, and under it what the card is showing, the same size in grey. */}
-                    <div style={{ fontWeight: 600, fontSize: 24, lineHeight: "30px", letterSpacing: "-0.02em" }}>
+                    <div style={{ fontWeight: 600, fontSize: 24, lineHeight: `${HEADER_H}px`, letterSpacing: "-0.02em" }}>
             <h3 className="m-0" style={{ font: "inherit", letterSpacing: "inherit" }}>
               {habit.name}
             </h3>
-            <div className="relative" style={{ height: 30, opacity: 0.8 }}>
+            <div className="relative" style={{ height: HEADER_H, opacity: 0.8 }}>
               <AnimatePresence initial={false} mode="wait">
                 <motion.div key={view} className="absolute inset-x-0 top-0 whitespace-nowrap" {...fade()}>
                   {subtitle}
@@ -827,9 +848,9 @@ function DeckCard({ habit, depth, view, progress, tuck, enter, stamps, cal, pres
             ) : null}
             <AnimatePresence initial={false} mode="wait">
               {view === "month" ? (
-                <motion.div key="month" className="absolute inset-x-0 bottom-0" style={{ marginInline: -GRID_BLEED, paddingBottom: 2 }} {...fade()}>
+                <motion.div key="month" className="absolute inset-x-0 bottom-0" style={{ marginInline: -GRID_BLEED, paddingBottom: GRID_PAD_B }} {...fade()}>
                   {labelRow(cal.month.todayCol)}
-                  <div className="grid justify-items-center" style={{ marginTop: 10, gridTemplateColumns: "repeat(7, 1fr)", rowGap: 10 }}>
+                  <div className="grid justify-items-center" style={{ marginTop: GRID_GAP, gridTemplateColumns: "repeat(7, 1fr)", rowGap: GRID_GAP }}>
                     {cal.month.cells.map((cell, i) =>
                       cell ? button("cell", cell) : <span key={`blank-${i}`} aria-hidden style={{ width: VARIANT.cell.size, height: VARIANT.cell.size }} />,
                     )}
@@ -837,9 +858,9 @@ function DeckCard({ habit, depth, view, progress, tuck, enter, stamps, cal, pres
                 </motion.div>
               ) : null}
               {view === "week" ? (
-                <motion.div key="week" className="absolute inset-x-0 bottom-0" style={{ marginInline: -GRID_BLEED, paddingBottom: 2 }} {...fade()}>
+                <motion.div key="week" className="absolute inset-x-0 bottom-0" style={{ marginInline: -GRID_BLEED, paddingBottom: GRID_PAD_B }} {...fade()}>
                   {labelRow(todayWeekCol)}
-                  <div className="grid justify-items-center" style={{ marginTop: 10, gridTemplateColumns: "repeat(7, 1fr)" }}>
+                  <div className="grid justify-items-center" style={{ marginTop: GRID_GAP, gridTemplateColumns: "repeat(7, 1fr)" }}>
                     {cal.week.cells.map((cell) => button("week", cell))}
                   </div>
                 </motion.div>
@@ -911,8 +932,6 @@ function ViewSwitch({ view, onChange, uid }: { view: View; onChange: (v: View) =
     </div>
   );
 }
-
-/* ───────────────────────────── the deck ───────────────────────────── */
 
 /* ───────────────────────────── the touch cursor ───────────────────────────── */
 
@@ -996,12 +1015,13 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
   const month = today.getMonth();
   const dom = today.getDate();
   const todayIso = isoOf(today);
+  const col = mondayCol(new Date(year, month, dom));
 
   // Everything the cards need to draw this month, this week and today.
   const cal = React.useMemo<Calendar>(() => {
     const spokenOf = (d: Date) => `${MONTHS[d.getMonth()]} ${d.getDate()}`;
     const cellOf = (d: Date): Cell => ({ iso: isoOf(d), day: d.getDate(), spoken: spokenOf(d) });
-    const firstCol = (new Date(year, month, 1).getDay() + 6) % 7; // Monday first
+    const firstCol = mondayCol(new Date(year, month, 1));
     const days = new Date(year, month + 1, 0).getDate();
     const cells: (Cell | null)[] = [];
     // Whole rows only: blanks before the 1st and after the last day, so every row has seven slots.
@@ -1009,21 +1029,19 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
       const day = slot - firstCol + 1;
       cells.push(day < 1 || day > days ? null : cellOf(new Date(year, month, day)));
     }
-    const col = (today.getDay() + 6) % 7;
     const week = Array.from({ length: 7 }, (_, i) => cellOf(new Date(year, month, dom - col + i)));
     const first = new Date(year, month, dom - col);
     const last = new Date(year, month, dom - col + 6);
     return {
       todayIso,
-      month: { name: MONTHS[month], cells, todayCol: (firstCol + dom - 1) % 7 },
+      month: { name: MONTHS[month], cells, todayCol: col },
       week: { range: `${MONTHS_SHORT[first.getMonth()]} ${first.getDate()} – ${MONTHS_SHORT[last.getMonth()]} ${last.getDate()}`, cells: week },
       day: { weekday: WEEKDAYS_LONG[col], label: `${MONTHS_SHORT[month]} ${dom}` },
     };
-  }, [year, month, dom, today, todayIso]);
+  }, [year, month, dom, col, todayIso]);
 
   // Past days start stamped at each habit's rate: the month so far, and any earlier days of this week.
   const [initial] = React.useState<Stamps>(() => {
-    const col = (today.getDay() + 6) % 7;
     const from = Math.min(1, dom - col);
     const out = {} as Record<HabitId, Set<string>>;
     for (const habit of HABITS) {
@@ -1369,14 +1387,14 @@ export function StampTracker({ today = DEFAULT_TODAY, loop = false, onChange, cl
                 <feTurbulence type="fractalNoise" baseFrequency="0.4" numOctaves="2" seed="3" result="grain" />
                 <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="11" result="warp" />
                 <feDisplacementMap in="SourceGraphic" in2="warp" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="rough" />
-                <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  30 0 0 0 -9" result="speck" />
+                <feColorMatrix in="grain" type="matrix" values={SPECK_MATRIX} result="speck" />
                 <feComposite in="rough" in2="speck" operator="in" />
               </filter>
               <filter id={inkFilters.hero} x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
                 <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="21" result="warp" />
                 <feDisplacementMap in="SourceGraphic" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="rough" />
                 <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="5" result="grain" />
-                <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  30 0 0 0 -9" result="speck" />
+                <feColorMatrix in="grain" type="matrix" values={SPECK_MATRIX} result="speck" />
                 <feComposite in="rough" in2="speck" operator="in" />
               </filter>
               {/* The illustrations: just a hand's wobble and a hint of dryness, so the lines read as inked, not stamped. */}

@@ -14,7 +14,7 @@ export type PocketPiggyProps = {
   /** Accepted for the gallery card. The piggy simply idles on its own;
    *  there are no scripted presses. */
   loop?: boolean;
-  /** The largest the device is shown, in px. It still shrinks to fit. */
+  /** The largest the device is shown, in px. Defaults to 420. It still shrinks to fit. */
   maxSize?: number;
   className?: string;
 };
@@ -29,9 +29,17 @@ const MAX_SIZE = 420;
 const W = 320;
 const H = 183;
 
+/** The film-grain buffer, even smaller, stamped up to fill the effects layer. */
+const NOISE_W = 160;
+const NOISE_H = 92;
+
 /** The screen, in the units the doodle is drawn in. */
 const SW = 388;
 const SH = 222;
+
+/** Where the screen's top-left corner sits on the device. */
+const SCREEN_LEFT = 26;
+const SCREEN_TOP = 28;
 
 /** Where the doodle is first frozen at, for the still frame. */
 const REST_TIME = 3.1;
@@ -81,6 +89,14 @@ const DUST = (() => {
 /* ------------------------------------------------------------------------- */
 
 const ROOM_INK = "#3a3a3a";
+
+/** The bed's duvet outline, drawn again as the tucked-in cover and its clip, and the fold across it. */
+const DUVET_PATH = "M15 90 Q44 83 73 90 L73 164 Q73 169 68 169 H20 Q15 169 15 164 Z";
+const DUVET_FOLD = "M15 99 Q44 105 73 99";
+
+/** The night wash over the room and the cover, and how far it dims at full night. */
+const NIGHT_TINT = "#14204a";
+const NIGHT_DIM = 0.55;
 
 type Pt = { x: number; y: number };
 const pt = (x: number, y: number): Pt => ({ x, y });
@@ -251,8 +267,9 @@ const KEY_GRAIN = grain(0.95, 160, 11, 1.6);
 /* The hardware                                                               */
 /* ------------------------------------------------------------------------- */
 
-/** The body's outer corner, and how far in from the body's edge the screen
- *  sits. The screen's top corners are concentric with the body's, so the glass
+/** The body's outer corner, and the inset (about the middle of the screen's
+ *  bezel, between SCREEN_LEFT and SCREEN_TOP) that its top corners are rounded
+ *  from. The screen's top corners are concentric with the body's, so the glass
  *  curves parallel to the machine's own shoulders. */
 const BODY_RADIUS = 68;
 const SCREEN_INSET = 27;
@@ -268,6 +285,13 @@ const SINK = 6;
 const KEY_RADIUS = 16;
 /** The face sits a pixel inside the skirt. */
 const FACE_RADIUS = KEY_RADIUS - 1;
+
+/** The recessed tray the four keys sit in, and the gap between it and them. */
+const TRAY_LEFT = 38;
+const TRAY_BOTTOM = 40;
+const TRAY_W = 364;
+const TRAY_H = 118;
+const TRAY_PAD = 4;
 
 const glassRadius = (grow = 0) =>
   `${SCREEN_TOP_RADIUS + grow}px ${SCREEN_TOP_RADIUS + grow}px ${KEY_RADIUS + grow}px ${KEY_RADIUS + grow}px`;
@@ -389,11 +413,6 @@ function ActivityIcon({ id }: { id: (typeof ACTIVITIES)[number]["id"] }) {
   );
 }
 
-const NOISE_W = 160;
-const NOISE_H = 92;
-
-/** The room, drawn once: wood floor, balcony, bed, desk and the rest, all in
- *  thin dark ink over flat soft fills. */
 function Plant({ cx, cy, seed, n = 11, r = 11, pot = 6 }: { cx: number; cy: number; seed: number; n?: number; r?: number; pot?: number }) {
   return (
     <g transform={`translate(${cx} ${cy})`}>
@@ -405,6 +424,8 @@ function Plant({ cx, cy, seed, n = 11, r = 11, pot = 6 }: { cx: number; cy: numb
   );
 }
 
+/** The room, drawn once: wood floor, balcony, bed, desk and the rest, all in
+ *  thin dark ink over flat soft fills. */
 function Room({ uid }: { uid: string }) {
   const line = { stroke: ROOM_INK, strokeWidth: 1.2, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
   return (
@@ -462,7 +483,7 @@ function Room({ uid }: { uid: string }) {
       <rect x="45" y="63" width="25" height="22" rx="8" fill="#f2b896" {...line} />
       <path d="M24 70 Q31 67 38 70 M51 70 Q58 67 65 70" fill="none" stroke="#c9a28a" strokeWidth="0.9" />
       <rect x="15" y="86" width="58" height="83" rx="5" fill={`url(#${uid}-plaid)`} {...line} />
-      <path d="M15 99 Q44 105 73 99" fill="none" stroke={ROOM_INK} strokeWidth="0.9" />
+      <path d={DUVET_FOLD} fill="none" stroke={ROOM_INK} strokeWidth="0.9" />
       <rect x="14" y="142" width="60" height="17" rx="2" fill="#eab08a" {...line} />
       <path d="M20 144 V157 M26 144 V157 M32 144 V157 M38 144 V157 M44 144 V157 M50 144 V157 M56 144 V157 M62 144 V157 M68 144 V157" fill="none" stroke="#d58f68" strokeWidth="0.9" />
       <path d="M17 159 v4 M23 159 v4 M29 159 v4 M35 159 v4 M41 159 v4 M47 159 v4 M53 159 v4 M59 159 v4 M65 159 v4" fill="none" stroke="#d58f68" strokeWidth="0.9" />
@@ -642,9 +663,8 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
     const noiseCtx = noiseCanvas.getContext("2d");
     const noiseData = noiseCtx ? noiseCtx.createImageData(NOISE_W, NOISE_H) : null;
     let noiseSeed = 0x9e3779b9;
-    let noiseFresh = false;
     const fillNoise = () => {
-      if (!noiseCtx || !noiseData || noiseFresh) return;
+      if (!noiseCtx || !noiseData) return;
       const d = noiseData.data;
       let s = noiseSeed;
       for (let i = 0; i < d.length; i += 4) {
@@ -659,7 +679,6 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
       }
       noiseSeed = s;
       noiseCtx.putImageData(noiseData, 0, 0);
-      noiseFresh = true;
     };
     const stamp = (alpha: number) => {
       fillNoise();
@@ -891,8 +910,8 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
       const actId = w.act && au >= 0 ? ACTIVITIES[w.act.i].id : "";
 
       // The room's light: the room dims, the lamp warms.
-      set(els.dim, "opacity", fx(w.night * 0.55));
-      set(els.dimCover, "opacity", fx(w.night * 0.55));
+      set(els.dim, "opacity", fx(w.night * NIGHT_DIM));
+      set(els.dimCover, "opacity", fx(w.night * NIGHT_DIM));
       set(els.lamp, "opacity", fx(w.night));
 
       // The piggy: waddle when walking, breathing, hops, wiggles and stretches.
@@ -1014,8 +1033,9 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
 
       // The fish swims, a little keener at feeding time.
       const feeding = actId === "fish";
-      const fxp = 108 + Math.sin(t * (feeding ? 2.6 : 0.8)) * 12;
-      const dir = Math.cos(t * (feeding ? 2.6 : 0.8)) >= 0 ? 1 : -1;
+      const fishW = feeding ? 2.6 : 0.8;
+      const fxp = 108 + Math.sin(t * fishW) * 12;
+      const dir = Math.cos(t * fishW) >= 0 ? 1 : -1;
       set(
         els.fish,
         "transform",
@@ -1073,7 +1093,6 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
 
     // The glass's own mischief, over the top of the picture.
     const paintTube = (now: number) => {
-      noiseFresh = false;
       const t = w.t;
       const n = w.night;
       ctx.clearRect(0, 0, W, H);
@@ -1348,7 +1367,7 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
         </div>
 
         {/* The screen, sunk into the top. */}
-        <div className="absolute" style={{ left: 26, top: 28, width: 388, height: 222 }}>
+        <div className="absolute" style={{ left: SCREEN_LEFT, top: SCREEN_TOP, width: SW, height: SH }}>
           <div
             aria-hidden="true"
             className="absolute"
@@ -1388,7 +1407,7 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
                   <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G" />
                 </filter>
                 <clipPath id={`${uid}-duvet`}>
-                  <path d="M15 90 Q44 83 73 90 L73 164 Q73 169 68 169 H20 Q15 169 15 164 Z" />
+                  <path d={DUVET_PATH} />
                 </clipPath>
               </defs>
 
@@ -1396,7 +1415,7 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
               <g filter={`url(#${uid}-room)`}>
                 <Room uid={uid} />
               </g>
-              <rect data-p="dim" x="0" y="0" width={SW} height={SH} fill="#14204a" opacity="0" />
+              <rect data-p="dim" x="0" y="0" width={SW} height={SH} fill={NIGHT_TINT} opacity="0" />
               {/* Fairy lights along the wall: they keep twinkling after dark. */}
               <path d="M12 56 Q40 62 68 56 T124 56 T180 56 T236 56 T292 56 T348 56 L380 57" fill="none" stroke="#6b5a45" strokeWidth="0.6" opacity="0.7" />
               {Array.from({ length: 19 }, (_, i) => {
@@ -1474,10 +1493,10 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
 
                 {/* Tucked in: the duvet over everything but its head. */}
                 <g data-p="cover" opacity="0">
-                  <path d="M15 90 Q44 83 73 90 L73 164 Q73 169 68 169 H20 Q15 169 15 164 Z" fill={`url(#${uid}-plaid)`} stroke={ROOM_INK} strokeWidth="1.2" />
-                  <path d="M15 99 Q44 105 73 99" fill="none" stroke={ROOM_INK} strokeWidth="0.9" />
+                  <path d={DUVET_PATH} fill={`url(#${uid}-plaid)`} stroke={ROOM_INK} strokeWidth="1.2" />
+                  <path d={DUVET_FOLD} fill="none" stroke={ROOM_INK} strokeWidth="0.9" />
                   <g clipPath={`url(#${uid}-duvet)`}>
-                    <rect data-p="dimCover" x="10" y="80" width="70" height="95" fill="#14204a" opacity="0" />
+                    <rect data-p="dimCover" x="10" y="80" width="70" height="95" fill={NIGHT_TINT} opacity="0" />
                   </g>
                 </g>
 
@@ -1623,17 +1642,17 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
           aria-hidden="true"
           className="absolute"
           style={{
-            left: 38,
-            bottom: 40,
-            width: 364,
-            height: 118,
-            borderRadius: KEY_RADIUS + 4,
+            left: TRAY_LEFT,
+            bottom: TRAY_BOTTOM,
+            width: TRAY_W,
+            height: TRAY_H,
+            borderRadius: KEY_RADIUS + TRAY_PAD,
             backgroundImage: "linear-gradient(180deg, #060607 0%, #0b0b0c 100%)",
             boxShadow:
               "0 1px 0 rgba(255,255,255,0.10), 0 -1px 0 rgba(0,0,0,0.55), inset 0 8px 10px -1px rgba(0,0,0,0.95), inset 0 0 0 1px rgba(0,0,0,0.9), inset 0 -2px 3px rgba(0,0,0,0.35)",
           }}
         />
-        <div className="absolute flex gap-[4.5px]" style={{ left: 42, bottom: 44, width: 356, height: 110 }}>
+        <div className="absolute flex gap-[4.5px]" style={{ left: TRAY_LEFT + TRAY_PAD, bottom: TRAY_BOTTOM + TRAY_PAD, width: TRAY_W - TRAY_PAD * 2, height: TRAY_H - TRAY_PAD * 2 }}>
           {keys.map((key, i) => {
             const isDown = down === i;
             const travel = isDown ? SINK : 0;
@@ -1642,8 +1661,8 @@ export function PocketPiggy({ maxSize = MAX_SIZE, className }: PocketPiggyProps)
                 key={i}
                 type="button"
                 aria-label={key.label}
-                aria-pressed={i === 0 && !picker.open ? key.pressed : undefined}
-                aria-expanded={i === 3 ? picker.open : undefined}
+                aria-pressed={key.kind === "sleep" ? key.pressed : undefined}
+                aria-expanded={key.kind === "open" || key.kind === "close" ? picker.open : undefined}
                 onClick={() => {
                   if (key.kind === "sleep" || key.kind === "feed" || key.kind === "home") actRef.current?.(key.kind);
                   else if (key.kind === "open") setPicker((st) => ({ ...st, open: true }));

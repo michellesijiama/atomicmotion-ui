@@ -14,7 +14,7 @@ function cn(...inputs: ClassValue[]) {
 export type GeometricLogoRevealProps = {
   className?: string;
   loop?: boolean;
-  /** The wordmark to assemble. Defaults to the Form&Fun homage. */
+  /** The wordmark to assemble. Defaults to "Atomic&Motion". */
   text?: string;
   /** Small superscript after the wordmark (e.g. a trademark). */
   mark?: string;
@@ -28,11 +28,13 @@ export type GeometricLogoRevealProps = {
 // scales to the component's own width in both the card preview and full page.
 
 // Smooth, soft-landing ease-out (easeOutExpo-ish) for a graceful settle.
-const revealEase = [0.22, 1, 0.36, 1] as const;
+const REVEAL_EASE = [0.22, 1, 0.36, 1] as const;
 
 const WORD_START = 0.28;
 const LETTER_STAGGER = 0.11;
 const LETTER_DUR = 1.05;
+// Seconds the finished logo rests before the loop replays.
+const HOLD_S = 2;
 
 // Each letter's ink wipes in from a different edge, with a small matching slide,
 // so the wordmark assembles from mixed directions instead of a single sweep.
@@ -59,7 +61,7 @@ export function GeometricLogoReveal({
   const [runId, setRunId] = React.useState(0);
   React.useEffect(() => {
     if (!loop) return;
-    const cycleMs = Math.round((wordDone + 2) * 1000);
+    const cycleMs = Math.round((wordDone + HOLD_S) * 1000);
     const interval = setInterval(() => setRunId((id) => id + 1), cycleMs);
     return () => clearInterval(interval);
   }, [loop, wordDone]);
@@ -85,10 +87,12 @@ export function GeometricLogoReveal({
         {/* The wordmark that assembles from its ghost. */}
         <div
           className="relative flex items-start font-[family-name:var(--font-plus-jakarta-sans,system-ui)] text-[clamp(28px,9.5cqw,120px)] font-medium leading-[0.9] tracking-[-0.04em]"
+          role="img"
           aria-label={text}
         >
           {letters.map((ch, i) => {
             const from = REVEAL_DIRECTIONS[i % REVEAL_DIRECTIONS.length];
+            const delay = WORD_START + i * LETTER_STAGGER;
             return (
               <span
                 key={`${ch}-${i}`}
@@ -104,14 +108,14 @@ export function GeometricLogoReveal({
                   animate={{ clipPath: "inset(0% 0% 0% 0%)", x: 0, y: 0, opacity: 1 }}
                   transition={{
                     duration: LETTER_DUR,
-                    delay: WORD_START + i * LETTER_STAGGER,
-                    ease: revealEase,
+                    delay,
+                    ease: REVEAL_EASE,
                     // Fade in over the first part of the move so the sliding ink
                     // never reads as a hard echo over the ghost.
                     opacity: {
                       duration: LETTER_DUR * 0.55,
-                      delay: WORD_START + i * LETTER_STAGGER,
-                      ease: revealEase,
+                      delay,
+                      ease: REVEAL_EASE,
                     },
                   }}
                 >
@@ -127,7 +131,7 @@ export function GeometricLogoReveal({
               className="ml-[0.4cqw] mt-[1cqw] text-[2.4cqw] leading-none text-[var(--glr-ink)]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: wordDone - 0.15, ease: revealEase }}
+              transition={{ duration: 0.4, delay: wordDone - 0.15, ease: REVEAL_EASE }}
             >
               {mark}
             </motion.span>

@@ -1,3 +1,4 @@
+import { DESIGNER } from "@/lib/site-metadata";
 import { cn } from "@/lib/utils";
 
 function LinkedInIcon({ className }: { className?: string }) {
@@ -15,8 +16,8 @@ function LinkedInIcon({ className }: { className?: string }) {
 
 export function DesignerCreditLink({
   className,
-  href = "https://www.linkedin.com/in/michellesijiama/",
-  label = "Designed by Sijia Ma",
+  href = DESIGNER.linkedIn,
+  label = `Designed by ${DESIGNER.name}`,
 }: {
   className?: string;
   href?: string;
@@ -27,7 +28,7 @@ export function DesignerCreditLink({
       href={href}
       target="_blank"
       rel="noreferrer"
-      aria-label="Sijia Ma on LinkedIn"
+      aria-label={`${DESIGNER.name} on LinkedIn`}
       className={cn(
         "group/linkedin inline-flex items-baseline gap-2 transition hover:text-[var(--jitter-ink)]",
         className,

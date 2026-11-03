@@ -5,10 +5,11 @@ import type { ReactNode } from "react";
 
 import { DesignerCreditLink } from "@/components/website/designer-credit-link";
 import { actionGhostClass } from "@/components/website/styles";
+import { EASE_OUT_EXPO } from "@/lib/motion";
 
 const panelTransition = {
   duration: 0.56,
-  ease: [0.22, 1, 0.36, 1],
+  ease: EASE_OUT_EXPO,
 } as const;
 
 type ExpandingAboutPanelProps = {
@@ -35,7 +36,7 @@ export function ExpandingAboutPanel({
         opacity: open ? 1 : 0,
       }}
       transition={panelTransition}
-      className="fixed inset-x-3 top-3 z-40 max-h-[calc(100dvh-24px)] overflow-hidden rounded-[20px] border border-black/[0.08] bg-[#f5f5f5] sm:inset-x-4 sm:top-4 sm:max-h-[calc(100dvh-32px)]"
+      className="fixed inset-x-3 top-3 z-40 max-h-[calc(100dvh-24px)] overflow-hidden rounded-[20px] border border-black/[0.08] bg-[var(--am-panel-bg)] sm:inset-x-4 sm:top-4 sm:max-h-[calc(100dvh-32px)]"
       aria-hidden={!open}
       inert={!open}
       style={{ pointerEvents: open ? "auto" : "none" }}
@@ -49,7 +50,7 @@ export function ExpandingAboutPanel({
         transition={{
           duration: open ? 0.42 : 0.16,
           delay: open ? 0.12 : 0,
-          ease: [0.22, 1, 0.36, 1],
+          ease: EASE_OUT_EXPO,
         }}
         className="flex h-full flex-col overflow-hidden px-5 pb-5 pt-40 sm:px-8 sm:pb-6 sm:pt-32"
       >

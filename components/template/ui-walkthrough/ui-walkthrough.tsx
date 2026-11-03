@@ -19,8 +19,10 @@
  *     {(ctx) => <MyScreen added={ctx.tapped("add")} squeeze={ctx.press("add")} />}
  *   </UIWalkthrough>
  *
- * Everything under "Demo content" at the end of this file is the example screen and script. Replace
- * or delete it; nothing above it needs to change.
+ * Everything under "Demo content" at the end of this file is the example screen and script. It is
+ * also what the component falls back to when `steps` or `children` is left out, so pass both of
+ * your own before deleting it, and drop the two fallbacks (`defaultWalkthroughSteps` and
+ * `DemoFeed`) from UIWalkthrough when you do.
  */
 
 import * as React from "react";
@@ -101,6 +103,8 @@ const THEME = {
   icon: "#ffffff",
   hairline: "inset 0 0 0 1px rgba(255,255,255,.07)",
   label: "#26272b",
+  /** The before and after divider and handle, and the callout ring. */
+  ring: "rgba(255,255,255,.9)",
 };
 const FONT = "var(--font-poppins, Poppins), Poppins, ui-sans-serif, system-ui, sans-serif";
 
@@ -140,6 +144,8 @@ const VIEW_MASK = "linear-gradient(to bottom, transparent 0, #000 36px)";
 const SCREEN_RADIUS = 44;
 const BEZEL = 7;
 const BAND = 4;
+/** How far the titanium band's outer edge sits outside the screen canvas. */
+const FRAME_EDGE = BEZEL + BAND;
 const TITANIUM = "linear-gradient(145deg, #4a4a4f 0%, #1b1b1e 26%, #3a3a3e 52%, #141416 76%, #2f2f33 100%)";
 
 /* ------------------------------------------------------------------------- */
@@ -148,6 +154,8 @@ const TITANIUM = "linear-gradient(145deg, #4a4a4f 0%, #1b1b1e 26%, #3a3a3e 52%, 
 
 /** Seconds: the phone landing, the fade before the loop, one camera move, the default tap, a tap's state change. */
 const INTRO = 1.4;
+/** Seconds the phone takes to rise into place at the start of each loop. */
+const LAND = 1.3;
 const OUTRO = 1.1;
 const CAMERA = 1.3;
 const TAP_AT = 1.6;
@@ -208,7 +216,7 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, layou
 
   // Camera: its framing rules are applied once, in buildTimeline.
   const zoom = reduced ? 1 : sample(timeline.zoom, t, cameraEase);
-  const land = reduced ? 1 : outEase(clamp01(t / 1.3));
+  const land = reduced ? 1 : outEase(clamp01(t / LAND));
   const lift = (reduced ? 0 : sample(timeline.shift, t, cameraEase)) + (1 - land) * 40;
   const phoneOpacity = reduced ? 1 : fadeEase(clamp01(t / 0.7));
   const outro = 1 - fadeEase(clamp01((t - (timeline.total - OUTRO)) / (OUTRO - 0.15)));
@@ -220,7 +228,7 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, layou
 
   const tapT = current?.tap ? ctx.time - (current.tapAt ?? TAP_AT) : -Infinity;
   const calloutAt = current?.focus ? CAMERA : 0.6;
-  const callout = current?.callout && calloutBox ? Math.min(reduced ? 1 : outEase(clamp01((ctx.time - calloutAt) / 1)), wordsOut) : 0;
+  const callout = current?.callout && calloutBox ? Math.min(reduced ? 1 : outEase(clamp01(ctx.time - calloutAt)), wordsOut) : 0;
 
   return (
     <div ref={hostRef} className={cn("relative flex h-full min-h-[320px] w-full items-center justify-center overflow-hidden", className)}>
@@ -232,10 +240,12 @@ export function UIWalkthrough({ steps = defaultWalkthroughSteps, children, layou
               {current ? (
                 <div key={ctx.step}>
                   <div aria-label={current.title} style={{ fontSize: 30, lineHeight: 1.15, fontWeight: 500, letterSpacing: "-0.02em", color: THEME.title }}>
+                    <span className="sr-only">{current.title}</span>
                     <RisingWords text={current.title} time={ctx.time} start={0.2} end={duration} reduced={reduced} />
                   </div>
                   {current.caption ? (
                     <div aria-label={current.caption} style={{ marginTop: 12, maxWidth: 280, marginInline: stage === LAYOUTS.stacked ? "auto" : undefined, fontSize: 16, lineHeight: 1.5, color: THEME.caption }}>
+                      <span className="sr-only">{current.caption}</span>
                       <RisingWords text={current.caption} time={ctx.time} start={0.55} end={duration} reduced={reduced} />
                     </div>
                   ) : null}
@@ -343,10 +353,9 @@ function RisingWords({ text, time, start, end, reduced }: { text: string; time: 
 /* ------------------------------------------------------------------------- */
 
 function IPhoneFrame() {
-  const edge = BEZEL + BAND;
   const button = (side: "left" | "right", top: number, height: number): React.CSSProperties => ({
     position: "absolute",
-    [side]: -edge - 2.5,
+    [side]: -FRAME_EDGE - 2.5,
     top,
     width: 3.5,
     height,
@@ -359,7 +368,7 @@ function IPhoneFrame() {
       <span style={button("left", 148, 44)} />
       <span style={button("left", 202, 44)} />
       <span style={button("right", 168, 70)} />
-      <span style={{ position: "absolute", inset: -edge, borderRadius: SCREEN_RADIUS + edge, background: TITANIUM, boxShadow: "0 30px 60px -20px rgba(0,0,0,.6)" }} />
+      <span style={{ position: "absolute", inset: -FRAME_EDGE, borderRadius: SCREEN_RADIUS + FRAME_EDGE, background: TITANIUM, boxShadow: "0 30px 60px -20px rgba(0,0,0,.6)" }} />
       <span style={{ position: "absolute", inset: -BEZEL, borderRadius: SCREEN_RADIUS + BEZEL, background: "#050506" }} />
     </div>
   );
@@ -431,7 +440,7 @@ function BeforeAfter({ before, time, duration, wordsOut, reduced }: { before: Re
   return (
     <div style={{ position: "absolute", inset: 0, opacity: shown }}>
       <div style={{ position: "absolute", inset: 0, clipPath: `inset(0 0 0 ${x.toFixed(2)}px)` }}>{before}</div>
-      <span style={{ position: "absolute", left: x - 1, top: 0, bottom: 0, width: 2, background: "rgba(255,255,255,.9)" }} />
+      <span style={{ position: "absolute", left: x - 1, top: 0, bottom: 0, width: 2, background: THEME.ring }} />
       <span
         style={{
           position: "absolute",
@@ -443,7 +452,7 @@ function BeforeAfter({ before, time, duration, wordsOut, reduced }: { before: Re
           marginTop: -15,
           borderRadius: "50%",
           background: THEME.screen,
-          boxShadow: "inset 0 0 0 1.5px rgba(255,255,255,.9)",
+          boxShadow: `inset 0 0 0 1.5px ${THEME.ring}`,
           display: "grid",
           placeItems: "center",
         }}
@@ -478,7 +487,7 @@ function CalloutRing({ box, progress }: { box: Box; progress: number }) {
         width: box.w + 12,
         height: box.h + 12,
         borderRadius: Math.min(box.w, box.h) / 2 + 6,
-        boxShadow: "inset 0 0 0 1.5px rgba(255,255,255,.9)",
+        boxShadow: `inset 0 0 0 1.5px ${THEME.ring}`,
         opacity: progress,
         transform: `scale(${(1.25 - 0.25 * progress).toFixed(3)})`,
       }}
@@ -505,7 +514,7 @@ function CalloutLabel({
 }) {
   const left = box.x + box.w / 2 < PHONE_W / 2;
   const start = onStage(left ? box.x - 6 : box.x + box.w + 6, box.y + box.h / 2);
-  const edge = (PHONE_W / 2 + BEZEL + BAND) * zoom;
+  const edge = (PHONE_W / 2 + FRAME_EDGE) * zoom;
   // Keep the label on the stage even where the phone leaves little room beside it (the stacked
   // layout); its width is estimated from the text.
   const labelW = label.length * 6.4 + 26;
@@ -558,11 +567,11 @@ const EDGE_NEAR_MISS = 120;
  *  The camera never moves sideways, so a push-in can't slide the phone over the words. */
 function frame(focus: WalkthroughStep["focus"], stage: Layout) {
   if (!focus) return { zoom: 1, shift: 0 };
-  const maxZoom = stage === LAYOUTS.split ? (stage.phone.x - (COPY_LEFT + COPY_W + COPY_GAP)) / (PHONE_W / 2 + BEZEL + BAND) : Infinity;
+  const maxZoom = stage === LAYOUTS.split ? (stage.phone.x - (COPY_LEFT + COPY_W + COPY_GAP)) / (PHONE_W / 2 + FRAME_EDGE) : Infinity;
   const zoom = Math.min(focus.zoom, maxZoom);
   // Scaling about the phone's centre, this shift puts focus.y on the stage's centre line.
   let shift = (PHONE_H / 2 - focus.y) * zoom;
-  const half = (PHONE_H / 2 + BEZEL + BAND) * zoom;
+  const half = (PHONE_H / 2 + FRAME_EDGE) * zoom;
   const bottom = stage.phone.y + half + shift;
   const top = stage.phone.y - half + shift;
   if (bottom > stage.h - EDGE_ROOM && bottom < stage.h + EDGE_NEAR_MISS) shift -= bottom - (stage.h - EDGE_ROOM);
@@ -629,7 +638,7 @@ function makeContext(steps: WalkthroughStep[], timeline: Timeline, t: number, re
  *  on top), scales it down so the whole thing is always in view, and runs the clock, in seconds
  *  since mount, paused while the stage is off screen. The clock starts on a settled frame so the
  *  first paint (and the server render) is never empty. */
-function useStage(layout: "auto" | "split" | "stacked") {
+function useStage(layout: NonNullable<UIWalkthroughProps["layout"]>) {
   const hostRef = React.useRef<HTMLDivElement>(null);
   const fitRef = React.useRef<HTMLDivElement>(null);
   const [auto, setAuto] = React.useState<"split" | "stacked">("split");

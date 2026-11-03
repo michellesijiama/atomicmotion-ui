@@ -22,8 +22,10 @@ See [copy-paste integration](../docs/COPY-PASTE.md) for setup and troubleshootin
 | Cursor | [cursor](cursor/) |
 | Data Visualization | [data-visualization](data-visualization/) |
 | Gradient | [gradient](gradient/) |
+| Immersive | [immersive](immersive/) |
 | Navigation | [navigation](navigation/) |
 | Play | [play](play/) |
+| Template | [template](template/) |
 | Typography | [typography](typography/) |
 
 The gallery shell lives separately in `src/components/website/`. Incomplete

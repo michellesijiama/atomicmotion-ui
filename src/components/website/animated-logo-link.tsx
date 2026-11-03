@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+import { EASE_OUT_EXPO } from "@/lib/motion";
+import { SITE_NAME } from "@/lib/site-metadata";
 import { cn } from "@/lib/utils";
 
 // Header logo — the same ghost→ink assembly as the Geometric Logo Reveal
@@ -11,7 +13,6 @@ import { cn } from "@/lib/utils";
 // as a light-gray ghost, then each letter's
 // ink wipes in from a different edge (top/bottom/left/right, cycling) with a
 // soft fade + slide on a smooth cubic-bezier ease.
-const revealEase = [0.22, 1, 0.36, 1] as const;
 const WORD_START = 0.06;
 const LETTER_STAGGER = 0.045;
 const LETTER_DUR = 0.5;
@@ -26,7 +27,7 @@ const REVEAL_DIRECTIONS = [
 export function AnimatedLogoLink({
   className,
   href = "/",
-  label = "AtomicMotion",
+  label = SITE_NAME,
 }: {
   className?: string;
   href?: string;
@@ -59,8 +60,8 @@ export function AnimatedLogoLink({
                 transition={{
                   duration: LETTER_DUR,
                   delay,
-                  ease: revealEase,
-                  opacity: { duration: LETTER_DUR * 0.55, delay, ease: revealEase },
+                  ease: EASE_OUT_EXPO,
+                  opacity: { duration: LETTER_DUR * 0.55, delay, ease: EASE_OUT_EXPO },
                 }}
               >
                 {ch}

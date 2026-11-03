@@ -29,8 +29,6 @@ export type ComponentMeta = {
   title: string;
   description: string;
   category: string;
-  status: string;
-  statusClassName: string;
   createdAt: string;
   codePath: string;
   codeHref: string;
@@ -111,17 +109,27 @@ export const componentRegistry = {
     description:
       "Nine cake designs adapted from a supplied illustration sheet, each made of 700 fused beads with soft texture, fine glitter, natural depth and a softly blurred shadow. Browse a single-column menu with centered scroll snapping, a gentle slide-in zoom and one large cake per row inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake to gently enlarge it in place while surrounding text fades into ingredient notes, with a persistent back icon and cake title above. Expanded cakes twinkle with reflective glints and respond to the pointer with a gentle 3D card tilt and forward lift. Cakes settle slightly above the screen center for a balanced composition.",
     category: "Play",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-11-02",
     codePath: "components/play/bead-club/bead-club.tsx",
     previewStatic: true,
     requiredAssets: [
-      { path: "public/components/bead-club/iphone-16-pro-white.png", license: "Apple Design Resources terms", credit: "Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/" },
-      { path: "public/components/bead-club/iphone-screen-mask.svg", license: "Apple Design Resources terms", credit: "Screen-opening mask derived from the product bezel alpha, for accurate UI placement." },
-      { path: "public/components/bead-club/TERMS.txt", license: "Apple Design Resources terms", credit: "Retain the device-image terms and supplied cake-art provenance; these visual references are separate from the MIT code license." },
+      {
+        path: "public/components/bead-club/iphone-16-pro-white.png",
+        license: "Apple Design Resources terms",
+        credit:
+          "Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/",
+      },
+      {
+        path: "public/components/bead-club/iphone-screen-mask.svg",
+        license: "Apple Design Resources terms",
+        credit: "Screen-opening mask derived from the product bezel alpha, for accurate UI placement.",
+      },
+      {
+        path: "public/components/bead-club/TERMS.txt",
+        license: "Apple Design Resources terms",
+        credit: "Retain the device-image terms and supplied cake-art provenance; these visual references are separate from the MIT code license.",
+      },
     ],
-
   }),
   uiWalkthrough: createComponentMeta({
     id: "ui-walkthrough",
@@ -130,8 +138,6 @@ export const componentRegistry = {
     description:
       "A dark product walkthrough for portfolio case studies, an iPhone beside short captions that pushes in, taps, slides a before and after and labels a part, with one steps list to swap in your own screen",
     category: "Template",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-10-17",
     codePath: "components/template/ui-walkthrough/ui-walkthrough.tsx",
     inspiredBy: { label: "Atomic Motion", href: "https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion" },
@@ -143,8 +149,6 @@ export const componentRegistry = {
     description:
       "A living hand-illustrated New York garden inside an accurately proportioned 13-inch iPad Pro. A wordless garden slowly draws closer, then the English City in Bloom logo is written one ink stroke at a time. Botanical details and a Manhattan silhouette finish the mark before the entry button appears. Birds fly and flowers sway around distant visitors. Layered scenery adds gentle pointer parallax; reduced motion is respected.",
     category: "Immersive",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-10-26",
     codePath: "components/immersive/jardin-opening/jardin-opening.tsx",
     requiredAssets: [
@@ -164,8 +168,6 @@ export const componentRegistry = {
     description:
       "Pick an emoji and watch it drawn on, stroke by stroke, as a hand-sketched line animation — real OpenMoji vector paths self-drawing with a subtle pencil wobble.",
     category: "Play",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-20",
     codePath: "components/play/emoji-sketch/emoji-sketch.tsx",
     requiredAssets: [
@@ -189,8 +191,6 @@ export const componentRegistry = {
     description:
       "A frosted menu that unfolds from a stable nav row with a smooth bell-curve transition",
     category: "Navigation",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-20",
     codePath: "components/navigation/soft-menu-reveal/soft-menu-reveal.tsx",
     inspiredBy: { label: "Jitter", href: "https://madewithjitter.com" },
@@ -202,8 +202,6 @@ export const componentRegistry = {
     description:
       "A project filter bar with a soft gray dropdown and clipped text reveal",
     category: "Navigation",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-22",
     codePath: "components/navigation/filter-dropdown-reveal/filter-dropdown-reveal.tsx",
     inspiredBy: { label: "MAD", href: "https://www.i-mad.com/projects?page=2" },
@@ -215,8 +213,6 @@ export const componentRegistry = {
     description:
       "A sticky editorial title that stretches tall, then compresses as scroll progress scrubs its vertical scale",
     category: "Typography",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-22",
     codePath:
       "components/typography/scroll-scrubbed-typography/scroll-scrubbed-typography.tsx",
@@ -229,8 +225,6 @@ export const componentRegistry = {
     description:
       "A compact app shell where a top-left icon press expands the left sidebar and shifts the workspace",
     category: "Navigation",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-25",
     codePath: "components/navigation/codex-sidebar-reveal/codex-sidebar-reveal.tsx",
     inspiredBy: { label: "Codex", href: "https://openai.com/codex" },
@@ -242,8 +236,6 @@ export const componentRegistry = {
     description:
       "A floating live-assistant panel with source chips, blue edge glow, listening pulses, and compact pause and keyboard controls",
     category: "AI",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-06-28",
     codePath: "components/ai/gemini-live/gemini-live.tsx",
     inspiredBy: { label: "Gemini", href: "https://gemini.google.com" },
@@ -255,8 +247,6 @@ export const componentRegistry = {
     description:
       "A geometric wordmark assembles from a gray ghost — letters fill to ink in a staggered left-to-right cascade, settling into the solid logo",
     category: "Typography",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-07-08",
     codePath: "components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx",
     inspiredBy: { label: "Form&Fun", href: "https://www.formandfun.co" },
@@ -268,8 +258,6 @@ export const componentRegistry = {
     description:
       "A translucent 3D gummy bear (Three.js) with a soft pink gradient, light glowing through the jelly, and cursor parallax",
     category: "3D",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-07-08",
     codePath: "components/3d/gradient-gummy-bear/gradient-gummy-bear.tsx",
     // The component fetches this GLB at runtime, so the folder alone is not
@@ -284,7 +272,7 @@ export const componentRegistry = {
       {
         path: "public/gummy-bear-poster.png",
         license: "MIT (gallery capture)",
-        credit: "Poster captured by Sijia Ma; retain the model attribution above. Used when WebGL or model loading is unavailable.",
+        credit: "Poster captured by Sijia Ma; retain the model attribution above. Used as the static gallery preview.",
       },
     ],
     // Heavy Three.js scene — show the looping video poster in the gallery
@@ -298,8 +286,6 @@ export const componentRegistry = {
     description:
       "A circular pointer whose ring fills with page progress while a sculpted 3D form rotates with the scroll",
     category: "Cursor",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-08-06",
     codePath: "components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx",
     inspiredBy: { label: "Inversa", href: "https://inversa.com" },
@@ -311,8 +297,6 @@ export const componentRegistry = {
     description:
       "A conversational microphone that blooms into an AI response panel, reveals replies word by word, and offers copy or regenerate actions",
     category: "AI",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-08-11",
     codePath: "components/ai/voice-bloom/voice-bloom.tsx",
     inspiredBy: { label: "Atomic Motion", href: "https://www.figma.com/design/RREH9uRHTK7iWVvcWmXm0l/Atomic-Motion" },
@@ -324,8 +308,6 @@ export const componentRegistry = {
     description:
       "A studio landing page whose whole hero is one draggable 3D sphere, wrapped in a Renaissance painting that the next one sweeps around to replace every four seconds",
     category: "3D",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-08-17",
     codePath: "components/3d/showreel-sphere/showreel-sphere.tsx",
     inspiredBy: { label: "Little Troop", href: "https://littletroop.com" },
@@ -353,8 +335,6 @@ export const componentRegistry = {
     description:
       "Three hand-drawn coffee cups on a periwinkle card, each a liquid gauge that pours and drains on its own rhythm — empty they read as outlines, full they read as the solid silhouette; open the card and you can log what you actually drank",
     category: "Data Visualization",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-08-23",
     codePath: "components/data-visualization/coffee-gauge/coffee-gauge.tsx",
   }),
@@ -365,8 +345,6 @@ export const componentRegistry = {
     description:
       "A progress indicator drawn as a stippled moon — a lunar photograph resampled into coloured dots that light left to right like a terminator crossing the disc, from new moon at nothing to full at a hundred; collapsed it sits as a glance-sized moon at the same phase",
     category: "Data Visualization",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-03",
     codePath: "components/data-visualization/halftone-bloom/halftone-bloom.tsx",
   }),
@@ -377,8 +355,6 @@ export const componentRegistry = {
     description:
       "A square of wall whose light is the controls in the middle of it: leaf shadow on white plaster, dimmed and lifted by a brightness pill that fills line by line, turned from cool to amber by a tone slider, and sent to follow the weather outside by an Adaptive toggle, while the leaf shadow on the wall stirs in a wind — all flat frosted glass, scaling itself to fit wherever it is put",
     category: "Control",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-09",
     codePath: "components/control/blossom-light/blossom-light.tsx",
     requiredAssets: [
@@ -396,8 +372,6 @@ export const componentRegistry = {
     description:
       "Eight event cards on a ring inside a phone lying on its side — swipe and they follow your finger and snap one page at a time, the neighbours turning away like cover flow. Each card is a heat-map field with circles, ellipses, arcs and coils painted onto it as heat, every shape its own halo-to-core gradient, in palettes borrowed from painters — Monet, Rothko, Hilma af Klint, O'Keeffe kept cohesive; Matisse and Delaunay loud — rippling, breathing, orbiting and swaying under printed grain",
     category: "Gradient",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-18",
     codePath: "components/gradient/gradient-event-card/gradient-event-card.tsx",
   }),
@@ -408,8 +382,6 @@ export const componentRegistry = {
     description:
       "Four habits as a deck of tall blocks of risograph colour on a bare black phone screen — sky, cocoa, pink and mint, each with its own pattern ink — fanned like a loose stack. Swipe through water, coffee, move and read with a silky, interruptible gesture that follows a finger or a two-finger trackpad swipe, flip between Day, Week and Month, and tap a day to press a rubber stamp onto it. The middle of each card holds a loose hand-inked line drawing in the style of a Japanese tabletop illustration, with a tiny person getting up to something among the objects",
     category: "Data Visualization",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-30",
     codePath: "components/data-visualization/stamp-tracker/stamp-tracker.tsx",
   }),
@@ -420,8 +392,6 @@ export const componentRegistry = {
     description:
       "A sketchbook-style diary for everyday life in Japan. Tap today’s +, write a note, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and refreshing the preview starts a fresh diary.",
     category: "Data Visualization",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-09-29",
     codePath: "components/data-visualization/doodle-calendar/doodle-calendar.tsx",
     requiredAssets: [
@@ -448,8 +418,6 @@ export const componentRegistry = {
     description:
       "A hand-drawn piggy lives in a tiny top-down home on a glowing CRT, and four chunky keys look after it, Sleep tucks it into bed, Feed puts an apple on the table, Home sends it back to its cushion, and Play lets you pick what it does next",
     category: "Play",
-    status: "NEW",
-    statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
     createdAt: "2026-10-13",
     codePath: "components/play/pocket-piggy/pocket-piggy.tsx",
   }),

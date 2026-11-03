@@ -29,6 +29,8 @@ const HEXES = [
 const GEOMETRY = "path, circle, ellipse, line, polyline, polygon, rect";
 const BRUSH = 0.45;
 const MASK_W = 3;
+// Fallback source: the same OpenMoji line drawings on jsDelivr, tried when the
+// bundled /public/emoji copy is missing or unusable.
 const CDN = "https://cdn.jsdelivr.net/npm/openmoji@15.0.0/black/svg";
 // Target cell size — the grid picks the column/row count closest to this so
 // whole stickers tile the frame exactly.
@@ -151,9 +153,8 @@ const PALETTE = [
   "#FFC9C2",
 ];
 
-// One live, self-drawing sticker. Memoised so panning (which only moves the
-// world wrapper) never re-renders already-mounted cells — only newly entered
-// cells render and animate themselves on.
+// One live, self-drawing sticker. Memoised so a parent re-render (the replay
+// timer or a resize) never re-renders cells whose props are unchanged.
 const StickerCell = React.memo(function StickerCell({
   trace,
   color,
@@ -267,14 +268,14 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
+      const texts = await Promise.all(HEXES.map(fetchEmojiSvg));
+      if (cancelled) return;
       const result: Trace[] = [];
-      for (const hex of HEXES) {
-        const text = await fetchEmojiSvg(hex);
-        if (cancelled) return;
+      for (const text of texts) {
         const parsed = text ? parseEmoji(text) : null;
         if (parsed) result.push(parsed);
       }
-      if (!cancelled) setTraces(result);
+      setTraces(result);
     })();
     return () => {
       cancelled = true;
@@ -334,12 +335,12 @@ export function EmojiSketch({ loop = false, className }: EmojiSketchProps) {
     >
       <style>
         {`
-          .am-body-white :is(path, circle, ellipse, line, polyline, polygon, rect) {
+          .am-body-white :is(${GEOMETRY}) {
             fill: #ffffff; stroke: #ffffff; stroke-width: 18px;
             stroke-linejoin: round; stroke-linecap: round;
           }
           .am-body-white { filter: drop-shadow(0 1.6px 1.3px rgba(0,0,0,0.30)); }
-          .am-body-color :is(path, circle, ellipse, line, polyline, polygon, rect) {
+          .am-body-color :is(${GEOMETRY}) {
             fill: var(--body, #fff); stroke: var(--body, #fff); stroke-width: 14px;
             stroke-linejoin: round; stroke-linecap: round;
           }

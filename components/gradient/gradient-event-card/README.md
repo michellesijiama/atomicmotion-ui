@@ -43,7 +43,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `events` | `EventItem[]` | `EVENTS` | The invites, in order. Five ship by default. |
+| `events` | `EventItem[]` | `EVENTS` | The invites, in order. Eight ship by default. |
 | `defaultIndex` | `number` | `0` | Which card starts in the centre. |
 | `loop` | `boolean` | `false` | Advance on its own until someone swipes (the gallery card sets it). |
 | `onSelect` | `(event: EventItem) => void` | — | A card has settled in the centre. |

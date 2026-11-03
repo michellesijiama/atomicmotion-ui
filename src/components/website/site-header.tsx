@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight, Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
+import { SITE_NAME } from "@/lib/site-metadata";
 import { AnimatedLogoLink } from "@/components/website/animated-logo-link";
 import { ComponentActions } from "@/components/website/component-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
@@ -19,11 +20,9 @@ type ActivePanel = "about" | "component" | null;
 
 export function SiteHeader({
   component,
-  tagline,
   section = "interfaces",
 }: {
   component?: ComponentMeta;
-  tagline?: string;
   section?: "interfaces" | "3d-studio";
 }) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
@@ -90,7 +89,7 @@ export function SiteHeader({
           </div>
         ) : (
           <>
-            AtomicMotion is a design library of expressive interfaces and
+            {SITE_NAME} is a design library of expressive interfaces and
             interactions, and 3D scenes. Explore live demos, copy
             component source code, and download editable Blender scenes.
           </>
@@ -100,11 +99,6 @@ export function SiteHeader({
       <div className="relative z-50 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <AnimatedLogoLink />
-          {tagline ? (
-            <span className="text-body text-[var(--jitter-gray-600)]">
-              {tagline}
-            </span>
-          ) : null}
         </div>
 
         <nav className="flex max-w-full flex-wrap items-center gap-2" aria-label="Primary">

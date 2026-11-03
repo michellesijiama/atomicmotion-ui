@@ -20,13 +20,14 @@ export type EventItem = {
   mood: AuraMoodName;
   /** Title lines; each entry is one line. */
   title: string[];
+  /** Shown as the date line's tooltip. */
   subtitle: string;
   /** The date badge. `dateTime` is the machine-readable ISO date. */
   date: { month: string; day: string; weekday: string; dateTime: string };
 };
 
 export type GradientEventCardProps = {
-  /** The invites, in order. Five ship by default. */
+  /** The invites, in order. Eight ship by default. */
   events?: EventItem[];
   /** Which card starts in the centre. */
   defaultIndex?: number;
@@ -299,11 +300,10 @@ void main() {
   gl_FragColor = vec4(col, 1.0);
 }`;
 
-
-
-
-
 type AuraParams = { pattern: AuraPattern; mood: AuraMood; seed: number };
+
+/** What the renderer needs per frame: the mood's colours already flattened to RGB triples. */
+type AuraFrame = { pattern: AuraPattern; ramp: number[]; accent: number[]; seed: number };
 
 const hexToRgb = (hex: string): [number, number, number] => [
   parseInt(hex.slice(1, 3), 16) / 255,
@@ -354,13 +354,13 @@ class AuraRenderer {
     this.canvas = canvas;
   }
 
-  draw(target: HTMLCanvasElement, { pattern, mood, seed }: AuraParams, time: number) {
+  draw(target: HTMLCanvasElement, { pattern, ramp, accent, seed }: AuraFrame, time: number) {
     const { gl, u } = this;
     gl.uniform1f(u.u_time, time);
     gl.uniform1f(u.u_seed, seed);
     gl.uniform1f(u.u_pattern, PATTERN_INDEX[pattern]);
-    gl.uniform3fv(u.u_ramp, mood.field.flatMap(hexToRgb));
-    gl.uniform3fv(u.u_accent, mood.accents.flatMap(hexToRgb));
+    gl.uniform3fv(u.u_ramp, ramp);
+    gl.uniform3fv(u.u_accent, accent);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     target.getContext("2d")?.drawImage(this.canvas, 0, 0);
   }
@@ -386,7 +386,7 @@ function Aura({ pattern, mood, seed, live }: AuraParams & { live: boolean }) {
     const target = ref.current;
     const r = getRenderer();
     if (!target || !r) return;
-    const params = { pattern, mood, seed };
+    const params: AuraFrame = { pattern, ramp: mood.field.flatMap(hexToRgb), accent: mood.accents.flatMap(hexToRgb), seed };
     if (!live) {
       r.draw(target, params, clock.current);
       return;
@@ -441,15 +441,16 @@ type CardProps = {
 /** One square: the aura, a short fade, the share button, and the title with its date. */
 function Card({ event, front, live, seed, onShare }: CardProps) {
   const { title, subtitle, date, pattern, mood } = event;
-  const { ink } = MOODS[mood] as AuraMood;
+  const m: AuraMood = MOODS[mood];
+  const { ink } = m;
   return (
     <article
       aria-hidden={front ? undefined : true}
       aria-label={front ? `${title.join(" ")}, ${date.weekday} ${date.day} ${date.month}` : undefined}
       className="relative overflow-hidden"
-      style={{ width: CARD, height: CARD, borderRadius: CARD_RADIUS, background: MOODS[mood].field[0] }}
+      style={{ width: CARD, height: CARD, borderRadius: CARD_RADIUS, background: m.field[0] }}
     >
-      <Aura pattern={pattern} mood={MOODS[mood]} seed={seed} live={live} />
+      <Aura pattern={pattern} mood={m} seed={seed} live={live} />
 
       <motion.button
         type="button"
@@ -601,10 +602,14 @@ export function GradientEventCard({
   const panStart = React.useRef(0);
   const moved = React.useRef(false);
 
+  const settling = React.useRef<ReturnType<typeof animate> | null>(null);
+  React.useEffect(() => () => settling.current?.stop(), []);
+
   const settle = React.useCallback(
     (target: number) => {
       const i = ((Math.round(-target / STEP) % n) + n) % n;
-      animate(track, target, {
+      settling.current?.stop();
+      settling.current = animate(track, target, {
         ...SNAP,
         onComplete: () => {
           setActive(i);

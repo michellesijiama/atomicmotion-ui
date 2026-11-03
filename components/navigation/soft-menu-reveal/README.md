@@ -45,7 +45,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `className` | `string` | — | Additional classes for the root container. |
-| `loop` | `boolean` | `false` | Automatic preview mode. |
+| `loop` | `boolean` | `false` | Preview mode: the panel opens and closes on its own timer, ignores outside clicks and Escape, and shows the contact address as plain text instead of a link (the preview sits inside a card link, and anchors cannot nest). |
 
 Named export: `SoftMenuReveal`. Public types: `SoftMenuRevealProps`.
 - **Source access:** Free and open source.

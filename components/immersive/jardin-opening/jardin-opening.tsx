@@ -15,11 +15,30 @@ export type JardinOpeningProps = {
   className?: string;
 };
 
+// PNG basenames, written once and shared by the preloader and the renderers.
 const SCENERY = [
-  { name: "background", depth: 5, duration: "48s", delay: "-12s" },
-  { name: "midground", depth: 13, duration: "37s", delay: "-8s" },
-  { name: "foreground", depth: 24, duration: "29s", delay: "-4s" },
+  { name: "background", file: "background-nyc-sunny", depth: 5, duration: "48s", delay: "-12s" },
+  { name: "midground", file: "midground", depth: 13, duration: "37s", delay: "-8s" },
+  { name: "foreground", file: "foreground", depth: 24, duration: "29s", delay: "-4s" },
 ] as const;
+const ASSETS = {
+  visitors: "garden-visitors",
+  flower: "flower",
+  bird: "bird-sprite",
+  logo: "city-in-bloom-logo",
+} as const;
+
+const DEVICE_W = 2816;
+const DEVICE_H = 2155;
+const MAX_DEVICE_W = 980;
+const LOGO_W = 2172;
+const LOGO_H = 724;
+const TITLE_W = 800;
+const TITLE_H = 240;
+// Seconds before the invitation fades in when no logo animation sets its own timing.
+const INVITE_DELAY = 7.6;
+// Generic brush stroke that paints custom titles.
+const BRUSH_PATH = Array.from({ length: 31 }, (_, i) => `${i ? "L" : "M"} ${70 + i * 22} ${i % 2 ? 12 : 232}`).join(" ");
 
 // Centerlines are authored against the original logo pixels; each path is one pen movement.
 // All completed strokes remain in the mask, so the ink accumulates without opacity fades.
@@ -74,10 +93,10 @@ const LOGO_WRITE_START = LOGO_STROKES[0].delay;
 const LOGO_DRAW_END = LOGO_WRITE_START + (Math.max(...LOGO_STROKES.map((stroke) => stroke.delay + stroke.duration)) - LOGO_WRITE_START) / LOGO_WRITE_SPEED;
 
 const STYLES = `
-.jardin-opening { --jardin-ink: #253d37; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
-.jardin-opening .jardin-device { width: var(--jardin-width, min(100%, 980px)); aspect-ratio: 2816 / 2155; padding: 0; border-radius: calc(var(--jardin-width, 980px) * .039); background: #101112; border: 1px solid #505153; box-shadow: 0 2px 0 #08090a, inset 0 0 0 3px #252628, 0 24px 46px -30px #10141270; }
+.jardin-opening { --jardin-ink: #253d37; color: var(--jardin-ink); font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
+.jardin-opening .jardin-device { width: var(--jardin-width, min(100%, ${MAX_DEVICE_W}px)); aspect-ratio: ${DEVICE_W} / ${DEVICE_H}; padding: 0; border-radius: calc(var(--jardin-width, ${MAX_DEVICE_W}px) * .039); background: #101112; border: 1px solid #505153; box-shadow: 0 2px 0 #08090a, inset 0 0 0 3px #252628, 0 24px 46px -30px #10141270; }
 .jardin-opening .jardin-camera { position:absolute; left: calc(50% - 2.5px); top: 1.55%; width: 5px; height: 5px; border-radius: 50%; background: #060709; box-shadow: inset 0 0 0 1px #232833; }
-.jardin-opening .jardin-screen { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(var(--jardin-width, 980px) * .940255); aspect-ratio: 2752 / 2064; border-radius: calc(var(--jardin-width, 980px) * .025); isolation: isolate; background: #f5e9dc; container-type: inline-size; }
+.jardin-opening .jardin-screen { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(var(--jardin-width, ${MAX_DEVICE_W}px) * .940255); aspect-ratio: 2752 / 2064; border-radius: calc(var(--jardin-width, ${MAX_DEVICE_W}px) * .025); isolation: isolate; background: #f5e9dc; container-type: inline-size; }
 .jardin-opening .jardin-layer { position: absolute; inset: -5%; pointer-events: none; }
 .jardin-opening .jardin-layer[data-layer="midground"] { z-index: 2; }
 .jardin-opening .jardin-layer[data-layer="foreground"] { z-index: 4; }
@@ -96,7 +115,7 @@ const STYLES = `
 .jardin-opening .jardin-invitation { opacity: 0; visibility: hidden; }
 .jardin-opening .jardin-screen[data-ready="true"] .jardin-brush { animation: jardin-paint 4.6s cubic-bezier(.32,.05,.27,1) 3s both; animation-play-state: var(--jardin-play, running); }
 .jardin-opening .jardin-screen[data-ready="true"] .jardin-frost { animation: jardin-thaw 5s ease 2.5s both; animation-play-state: var(--jardin-play, running); }
-.jardin-opening .jardin-screen[data-ready="true"] .jardin-invitation { animation: jardin-invite 1.4s ease var(--jardin-invite-delay, 7.6s) both; animation-play-state: var(--jardin-play, running); }
+.jardin-opening .jardin-screen[data-ready="true"] .jardin-invitation { animation: jardin-invite 1.4s ease var(--jardin-invite-delay, ${INVITE_DELAY}s) both; animation-play-state: var(--jardin-play, running); }
 .jardin-opening .jardin-screen[data-intro-complete="true"] .jardin-invitation { animation: none; opacity: 1; visibility: visible; }
 .jardin-opening .jardin-entry { min-height: 44px; gap: 16px; padding: 0 10px; font-size: max(9px, 1.1cqw); font-weight: 500; letter-spacing: .015em; }
 .jardin-opening button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
@@ -108,7 +127,7 @@ const STYLES = `
 .jardin-opening .jardin-life { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .jardin-opening .jardin-blooms { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 .jardin-opening .jardin-flight { position: absolute; left: 0; top: 0; width: 7cqw; height: 5.25cqw; animation: jardin-flight 23s linear infinite; animation-delay: -5s; }
-.jardin-opening .jardin-flight-alt { top: 10%; width: 5cqw; height: 3.75cqw; animation-duration: 23s; animation-delay: -16.5s; }
+.jardin-opening .jardin-flight-alt { top: 10%; width: 5cqw; height: 3.75cqw; animation-delay: -16.5s; }
 .jardin-opening .jardin-bird-sprite { width: 100%; height: 100%; background-size: 200% 200%; background-repeat: no-repeat; animation: jardin-wings .72s steps(1, end) infinite; }
 .jardin-opening .jardin-flower-holder { position: absolute; left: -4%; bottom: -5%; width: 24cqw; height: 24cqw; }
 .jardin-opening .jardin-flower-holder-alt { left: auto; right: -4%; bottom: 2%; width: 21cqw; height: 21cqw; transform: scaleX(-1); }
@@ -132,24 +151,23 @@ const STYLES = `
 /** The logo follows individual calligraphy strokes; custom titles retain the generic brush. */
 function PaintedTitle({ title, logoSrc, failed }: { title: string; logoSrc?: string; failed: () => void }) {
   const id = React.useId().replace(/:/g, "");
-  const [writingGroup, setWritingGroup] = React.useState("");
-  const brush = Array.from({ length: 31 }, (_, i) => `${i ? "L" : "M"} ${70 + i * 22} ${i % 2 ? 12 : 232}`).join(" ");
+  const [boxW, boxH] = logoSrc ? [LOGO_W, LOGO_H] : [TITLE_W, TITLE_H];
   return (
-    <h1 className="jardin-title m-0" aria-label={title} data-writing-group={writingGroup}>
-      <svg viewBox={logoSrc ? "0 0 2172 724" : "0 0 800 240"} aria-hidden="true" focusable="false">
+    <h1 className="jardin-title m-0" aria-label={title}>
+      <svg viewBox={`0 0 ${boxW} ${boxH}`} aria-hidden="true" focusable="false">
         <defs>
           <filter id={`${id}-grain`} x="-10%" y="-10%" width="120%" height="120%">
             <feTurbulence type="fractalNoise" baseFrequency=".045 .12" numOctaves={2} seed={8} result="grain" />
             <feDisplacementMap in="SourceGraphic" in2="grain" scale={6} xChannelSelector="R" yChannelSelector="G" />
           </filter>
-          <mask id={`${id}-ink`} maskUnits="userSpaceOnUse" x="0" y="0" width={logoSrc ? 2172 : 800} height={logoSrc ? 724 : 240} style={{ maskType: "luminance" }}>
+          <mask id={`${id}-ink`} maskUnits="userSpaceOnUse" x="0" y="0" width={boxW} height={boxH} style={{ maskType: "luminance" }}>
             {logoSrc ? LOGO_STROKES.map((stroke, index) => (
-              <path key={index} className="jardin-ink-stroke" data-stroke={index} data-stroke-group={stroke.group} onAnimationStart={() => setWritingGroup(stroke.group)} d={stroke.d} pathLength={1} fill="none" stroke="white" strokeWidth={stroke.width} strokeLinecap="round" strokeLinejoin="round" style={{ "--stroke-duration": `${(stroke.duration / LOGO_WRITE_SPEED).toFixed(3)}s`, "--stroke-delay": `${(LOGO_WRITE_START + (stroke.delay - LOGO_WRITE_START) / LOGO_WRITE_SPEED).toFixed(3)}s` } as React.CSSProperties} />
-            )) : <path className="jardin-brush" d={brush} pathLength={1} fill="none" stroke="white" strokeWidth={46} strokeLinecap="round" strokeLinejoin="round" filter={`url(#${id}-grain)`} />}
+              <path key={index} className="jardin-ink-stroke" data-stroke={index} data-stroke-group={stroke.group} d={stroke.d} pathLength={1} fill="none" stroke="white" strokeWidth={stroke.width} strokeLinecap="round" strokeLinejoin="round" style={{ "--stroke-duration": `${(stroke.duration / LOGO_WRITE_SPEED).toFixed(3)}s`, "--stroke-delay": `${(LOGO_WRITE_START + (stroke.delay - LOGO_WRITE_START) / LOGO_WRITE_SPEED).toFixed(3)}s` } as React.CSSProperties} />
+            )) : <path className="jardin-brush" d={BRUSH_PATH} pathLength={1} fill="none" stroke="white" strokeWidth={46} strokeLinecap="round" strokeLinejoin="round" filter={`url(#${id}-grain)`} />}
           </mask>
         </defs>
         {logoSrc ? (
-          <image className="jardin-logo-mark" href={logoSrc} x="0" y="0" width="2172" height="724" mask={`url(#${id}-ink)`} onError={failed} />
+          <image className="jardin-logo-mark" href={logoSrc} x="0" y="0" width={LOGO_W} height={LOGO_H} mask={`url(#${id}-ink)`} onError={failed} />
         ) : (
           <g textAnchor="middle" fontSize={Math.min(178, 1100 / Math.max(1, title.length))} letterSpacing="-.035em">
             <text className="jardin-frost" x="400" y="178" fill="#e8f5ef" stroke="#d0e6df" strokeWidth=".7">{title}</text>
@@ -166,12 +184,12 @@ function GardenLife({ assetBase, failed }: { assetBase: string; failed: () => vo
     <>
       <div className="jardin-visitors" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="jardin-art" src={`${assetBase}/garden-visitors.png`} width={1448} height={1086} alt="" draggable={false} onError={failed} />
+        <img className="jardin-art" src={`${assetBase}/${ASSETS.visitors}.png`} width={1448} height={1086} alt="" draggable={false} onError={failed} />
       </div>
       <div className="jardin-life" aria-hidden="true">
       {[false, true].map((alternate) => (
         <div key={String(alternate)} className={`jardin-flight ${alternate ? "jardin-flight-alt" : ""}`} data-garden-animation="flight">
-          <div className="jardin-bird-sprite" data-garden-animation="wings" style={{ backgroundImage: `url("${assetBase}/bird-sprite.png")` }} />
+          <div className="jardin-bird-sprite" data-garden-animation="wings" style={{ backgroundImage: `url("${assetBase}/${ASSETS.bird}.png")` }} />
         </div>
       ))}
       </div>
@@ -179,7 +197,7 @@ function GardenLife({ assetBase, failed }: { assetBase: string; failed: () => vo
       {[false, true].map((alternate) => (
         <div key={String(alternate)} className={`jardin-flower-holder ${alternate ? "jardin-flower-holder-alt" : ""}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="jardin-flower" data-garden-animation="flower" src={`${assetBase}/flower.png`} width={1254} height={1254} alt="" draggable={false} onError={failed} />
+          <img className="jardin-flower" data-garden-animation="flower" src={`${assetBase}/${ASSETS.flower}.png`} width={1254} height={1254} alt="" draggable={false} onError={failed} />
         </div>
       ))}
       </div>
@@ -219,7 +237,7 @@ function SceneryLayer({
       <div className="jardin-drift" style={{ "--jardin-duration": layer.duration, "--jardin-delay": layer.delay } as React.CSSProperties}>
         {/* Transparent scenery must retain its alpha, so use the original PNG. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="jardin-art" src={`${assetBase}/${layer.name === "background" ? "background-nyc-sunny" : layer.name}.png`} alt="" draggable={false} width={1448} height={1086} decoding="async" onError={failed} />
+        <img className="jardin-art" src={`${assetBase}/${layer.file}.png`} alt="" draggable={false} width={1448} height={1086} decoding="async" onError={failed} />
       </div>
     </motion.div>
   );
@@ -243,7 +261,8 @@ export function JardinOpening({
   const [visible, setVisible] = React.useState(true);
   const [assetError, setAssetError] = React.useState(false);
   const assetFailed = React.useCallback(() => setAssetError(true), []);
-  const logoSrc = title === "City in Bloom" ? `${assetBase}/city-in-bloom-logo.png` : undefined;
+  const hasLogo = title === "City in Bloom";
+  const logoSrc = hasLogo ? `${assetBase}/${ASSETS.logo}.png` : undefined;
   const targetX = useMotionValue(0);
   const targetY = useMotionValue(0);
   const pointerX = useSpring(targetX, { stiffness: 32, damping: 22 });
@@ -253,7 +272,14 @@ export function JardinOpening({
 
   React.useEffect(() => {
     let active = true;
-    const files = ["background-nyc-sunny", "midground", "foreground", "garden-visitors", "flower", "bird-sprite", "city-in-bloom-logo"];
+    // The title logo is only used (and only worth preloading) for the default title.
+    const files = [
+      ...SCENERY.map((layer) => layer.file),
+      ASSETS.visitors,
+      ASSETS.flower,
+      ASSETS.bird,
+      ...(hasLogo ? [ASSETS.logo] : []),
+    ];
     const artwork = files.map((file) => new Promise<void>((resolve) => {
       const image = new Image();
       image.onload = () => resolve();
@@ -262,7 +288,7 @@ export function JardinOpening({
     }));
     Promise.all([...artwork, document.fonts.ready]).then(() => { if (active) setArtReady(true); });
     return () => { active = false; };
-  }, [assetBase, assetFailed]);
+  }, [assetBase, assetFailed, hasLogo]);
 
   React.useEffect(() => {
     if (entered) hostRef.current?.focus({ preventScroll: true });
@@ -273,7 +299,7 @@ export function JardinOpening({
     if (!host) return;
     const fit = () => {
       const availableHeight = Math.max(0, host.clientHeight - 56);
-      host.style.setProperty("--jardin-width", `${Math.max(0, Math.min(980, host.clientWidth, availableHeight * 2816 / 2155))}px`);
+      host.style.setProperty("--jardin-width", `${Math.max(0, Math.min(MAX_DEVICE_W, host.clientWidth, availableHeight * DEVICE_W / DEVICE_H))}px`);
     };
     fit();
     const observer = new ResizeObserver(fit);
@@ -295,7 +321,7 @@ export function JardinOpening({
   function resetPointer() { targetX.set(0); targetY.set(0); }
 
   return (
-    <div ref={hostRef} tabIndex={-1} className={`jardin-opening flex h-full min-h-0 w-full flex-col items-center justify-center py-7 ${className ?? ""}`} style={{ color: "#253d37", "--jardin-play": still ? "paused" : "running", "--jardin-invite-delay": logoSrc ? `${LOGO_DRAW_END + .25}s` : "7.6s" } as React.CSSProperties}>
+    <div ref={hostRef} tabIndex={-1} className={`jardin-opening flex h-full min-h-0 w-full flex-col items-center justify-center py-7 ${className ?? ""}`} style={{ "--jardin-play": still ? "paused" : "running", "--jardin-invite-delay": logoSrc ? `${LOGO_DRAW_END + .25}s` : `${INVITE_DELAY}s` } as React.CSSProperties}>
       <style>{STYLES}</style>
       <div className="jardin-device relative shrink-0" data-testid="jardin-device">
         <span className="jardin-camera" aria-hidden="true" />
@@ -318,7 +344,7 @@ export function JardinOpening({
           aria-label="A living New York garden with flying birds, swaying flowers, background visitors"
         >
           <div className="jardin-world">
-          {SCENERY.map((layer) => <SceneryLayer key={layer.name} layer={layer} pointerX={pointerX} pointerY={pointerY} assetBase={assetBase} entered={entered} reduced={!!reduced} failed={() => setAssetError(true)} />)}
+          {SCENERY.map((layer) => <SceneryLayer key={layer.name} layer={layer} pointerX={pointerX} pointerY={pointerY} assetBase={assetBase} entered={entered} reduced={!!reduced} failed={assetFailed} />)}
           <GardenLife assetBase={assetBase} failed={assetFailed} />
           </div>
 

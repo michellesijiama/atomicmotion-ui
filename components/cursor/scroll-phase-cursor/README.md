@@ -44,7 +44,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `loop` | `boolean` | `false` | Automatic preview mode. |
+| `loop` | `boolean` | `false` | Autoplay mode: the track scrolls itself down and back on a 16s loop and the ring is pinned in place instead of following the pointer. Defaults to false. |
 | `className` | `string` | — | Additional classes for the root container. |
 
 Named export: `ScrollPhaseCursor`. Public types: `ScrollPhaseCursorProps`.

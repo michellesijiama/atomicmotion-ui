@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ComponentStage } from "@/components/website/component-stage";
+import { ComponentStage, StageHeader } from "@/components/website/component-stage";
 import { ModelPreview } from "@/components/website/model-preview";
 import { ModelActions } from "@/components/website/model-actions";
 import { SiteHeader } from "@/components/website/site-header";
 import { getStudioModel, studioModels } from "@/lib/model-registry";
-import { pageMetadata } from "@/lib/site-metadata";
+import { SITE_NAME, pageMetadata } from "@/lib/site-metadata";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -15,10 +15,10 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const model = getStudioModel((await params).id);
-  if (!model) return { title: "Model not found — AtomicMotion" };
+  if (!model) return { title: `Model not found — ${SITE_NAME}` };
   return pageMetadata({
     path: `/3d-studio/${model.id}`,
-    title: `${model.title} — AtomicMotion`,
+    title: `${model.title} — ${SITE_NAME}`,
     description: model.description,
     image: model.image,
   });
@@ -30,9 +30,9 @@ export default async function ModelPage({ params }: Props) {
 
   return (
     <ComponentStage>
-      <div className="am-reveal relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
+      <StageHeader>
         <SiteHeader section="3d-studio" />
-      </div>
+      </StageHeader>
       <main className="am-reveal min-h-0 flex-1 overflow-y-auto px-6 py-10 sm:px-8 lg:px-12" style={{ animationDelay: "0.1s" }}>
         <div className="mx-auto grid min-h-full w-full max-w-6xl items-center gap-10 lg:w-fit lg:grid-cols-[auto_minmax(0,28rem)] lg:gap-16 xl:gap-24">
           <div className="flex min-w-0 justify-center lg:w-[min(30rem,calc((100dvh-12rem)*0.75))]">

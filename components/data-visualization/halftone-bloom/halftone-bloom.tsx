@@ -445,6 +445,9 @@ function paint(entry: Hsl, v: number) {
   });
 }
 
+/** Where a reduced-motion or unset card parks its fill: a lit moon, not new moon. */
+const REDUCED_FRACTION = 0.66;
+
 /** One fill-hold-drain-rest cycle, in milliseconds. */
 const GROW_MS = 4000;
 const HOLD_MS = 1000;
@@ -478,12 +481,6 @@ function cycleAt(ms: number) {
 }
 
 /**
- * Deterministic pseudo-random in [0, 1). Three jobs: deciding whether a cell
- * gets a mark at all, nudging marks off the lattice they were sampled on, and
- * setting the order they light in. `Math.random` would disagree between the
- * server render and the first client one; a pure function of its inputs cannot.
- */
-/**
  * One base36 digit out of a trace string: '0'-'9' then 'a'-'z'.
  *
  * The palette index has to fit in a single character. Writing it as a plain
@@ -496,6 +493,12 @@ function digit(s: string, i: number) {
   return c <= 57 ? c - 48 : c - 87;
 }
 
+/**
+ * Deterministic pseudo-random in [0, 1). Three jobs: deciding whether a cell
+ * gets a mark at all, nudging marks off the lattice they were sampled on, and
+ * setting the order they light in. `Math.random` would disagree between the
+ * server render and the first client one; a pure function of its inputs cannot.
+ */
 function hash01(a: number, b: number) {
   // An integer bit-mixer rather than the usual fract(sin(dot(…))) trick. That
   // one is fine for a handful of samples but its output is strongly correlated
@@ -522,23 +525,6 @@ type Mark = {
 };
 
 /**
- * The screened picture, laid down once at module load and shared by every card
- * on the page.
- *
- * Three channels carry the tone, in order of how much of the work they do.
- * Area is the first: a dot's diameter runs from a quarter of its cell to the
- * whole of it, which is a sixteen-fold range in ink and the only range a black
- * card cannot flatten. Value is the second, over a band floored well clear of
- * the background. Density — whether a cell is given a mark at all — is the
- * third and shallowest, and is there to keep the screen from reading as a grid
- * rather than to draw anything.
- *
- * The marks themselves sit on the lattice they were sampled on. Jittering them
- * is the obvious way to keep a screen from looking mechanical, but at this
- * pitch it costs every mare boundary and crater rim its edge, and those edges
- * are the picture.
- */
-/**
  * Where the subject's disc actually is, measured off the photograph by the
  * tracer rather than assumed to fill the grid.
  *
@@ -551,6 +537,13 @@ const DISC_CX = TRACE_DISC ? TRACE_DISC.x : (TRACE_COLS - 1) / 2;
 const DISC_CY = TRACE_DISC ? TRACE_DISC.y : (TRACE_ROWS - 1) / 2;
 const DISC_R =
   (TRACE_DISC ? TRACE_DISC.r : Math.min(TRACE_COLS, TRACE_ROWS) / 2) * DISC;
+
+/** A grid cell in units of the disc's radius from its centre, and how far out that is. */
+function discPos(x: number, y: number) {
+  const nx = (x - DISC_CX) / DISC_R;
+  const ny = (y - DISC_CY) / DISC_R;
+  return { nx, ny, r: Math.hypot(nx, ny) };
+}
 
 /**
  * How many rings the radial profile is measured in.
@@ -592,15 +585,13 @@ const TONE = (() => {
   // `r * r`, so the bins are equal in area rather than equal in width.
   const binOf = (r: number) =>
     Math.min(RING_BINS - 1, Math.floor(r * r * RING_BINS));
-  const radius = (x: number, y: number) =>
-    Math.hypot((x - DISC_CX) / DISC_R, (y - DISC_CY) / DISC_R);
 
   for (let y = 0; y < TRACE_ROWS; y++) {
     for (let x = 0; x < TRACE_COLS; x++) {
-      const r = radius(x, y);
+      const r = discPos(x, y).r;
       if (r > 1) continue;
       const i = y * TRACE_COLS + x;
-      const level = (TRACE_LEVELS.charCodeAt(i) - 48) / 9;
+      const level = digit(TRACE_LEVELS, i) / 9;
       raw[i] = level;
       const b = binOf(r);
       sum[b] += level;
@@ -637,7 +628,7 @@ const TONE = (() => {
     for (let x = 0; x < TRACE_COLS; x++) {
       const i = y * TRACE_COLS + x;
       if (raw[i] < 0) continue;
-      const v = raw[i] - smooth[binOf(radius(x, y))];
+      const v = raw[i] - smooth[binOf(discPos(x, y).r)];
       residual[i] = v;
       spread.push(v);
     }
@@ -724,6 +715,23 @@ const TINT = (() => {
   return out;
 })();
 
+/**
+ * The screened picture, laid down once at module load and shared by every card
+ * on the page.
+ *
+ * Three channels carry the tone, in order of how much of the work they do.
+ * Area is the first: a dot's diameter runs from `AREA_MIN` to `AREA_MAX` of its
+ * cell (0.45 to 1), which is about a five-fold range in ink and the only range
+ * a black card cannot flatten. Value is the second, over a band floored well clear of
+ * the background. Density — whether a cell is given a mark at all — is the
+ * third and shallowest, and is there to keep the screen from reading as a grid
+ * rather than to draw anything.
+ *
+ * The marks themselves sit on the lattice they were sampled on. Jittering them
+ * is the obvious way to keep a screen from looking mechanical, but at this
+ * pitch it costs every mare boundary and crater rim its edge, and those edges
+ * are the picture.
+ */
 function buildPlate(stride: number, cell: number): Mark[] {
   const marks: Mark[] = [];
   // The canvas is the disc's bounding square, not the trace's — so the moon
@@ -738,9 +746,7 @@ function buildPlate(stride: number, cell: number): Mark[] {
       // of stray light around the limb — is thrown away: a moon is a circle,
       // and a ragged edge of glow would leave the terminator sweeping across a
       // shape that has no edge to arrive at.
-      const nx = (x - DISC_CX) / DISC_R;
-      const ny = (y - DISC_CY) / DISC_R;
-      const r = Math.hypot(nx, ny);
+      const { nx, r } = discPos(x, y);
       if (r > 1) continue;
 
       const i = y * TRACE_COLS + x;
@@ -796,7 +802,7 @@ function setTurns(plate: Mark[]) {
 
 /** The moon at full size, and the same moon at glance size for the collapsed
  *  card — same trace, sampled every sixth cell so it stays a moon rather than
- *  turning to mud at 36 pixels. */
+ *  turning to mud at that size. */
 const PLATE = setTurns(buildPlate(1, CELL));
 const PLATE_W = Math.round(2 * DISC_R * CELL);
 
@@ -849,6 +855,14 @@ function draw(
   }
 }
 
+/** Pins a `size`-square canvas by its centre in a relatively positioned slot. */
+const centred = (size: number): React.CSSProperties => ({
+  width: size,
+  height: size,
+  marginLeft: -size / 2,
+  marginTop: -size / 2,
+});
+
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = React.useState(false);
   React.useEffect(() => {
@@ -883,17 +897,19 @@ export function HalftoneBloom({
   // new moon on every open — which, once opening is itself driven by the fill,
   // would hold the card below full forever.
   const startedRef = React.useRef<number | null>(null);
-  const uid = React.useId().replace(/:/g, "");
+  const uid = React.useId();
 
   // Only the animated card needs to store a reading. A controlled or
   // reduced-motion card sits at a value already known here, so deriving it
   // costs nothing and keeps the effect from setting state it need not.
   const [ticking, setTicking] = React.useState(0);
-  const percent = controlled
-    ? Math.round(clamp(value, 0, 100))
-    : reduced
-      ? 66
-      : ticking;
+  const level = controlled ? clamp(value, 0, 100) : null;
+  const percent =
+    level !== null
+      ? Math.round(level)
+      : reduced
+        ? Math.round(REDUCED_FRACTION * 100)
+        : ticking;
 
   React.useEffect(() => {
     // Both moons run off one clock and one pass. They are the same phase at two
@@ -925,7 +941,7 @@ export function HalftoneBloom({
     // Reduced motion still deserves a lit moon, so park it where it would hold
     // rather than at new moon.
     if (controlled || reduced) {
-      paint(controlled ? clamp(value, 0, 100) / 100 : 0.66);
+      paint(level !== null ? level / 100 : REDUCED_FRACTION);
       return;
     }
 
@@ -963,7 +979,7 @@ export function HalftoneBloom({
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [controlled, reduced, value, expanded, auto]);
+  }, [controlled, reduced, level, expanded, auto]);
 
   return (
     <div
@@ -1074,17 +1090,14 @@ export function HalftoneBloom({
                 different indicator. Swapping in a bar here would say the moon
                 was decoration; one object at two sizes says it is the reading.
                 It is drawn at its own resolution rather than scaled down from
-                the big one, because 21,000 dots shrunk to 36 pixels is grey
-                mush, not a moon. */}
+                the big one, because the full set of dots shrunk to this size is
+                grey mush, not a moon. */}
             <canvas
               ref={miniRef}
               aria-hidden
               className="absolute left-1/2 top-1/2 block transition-opacity duration-300 ease-out"
               style={{
-                width: MINI_W,
-                height: MINI_W,
-                marginLeft: -MINI_W / 2,
-                marginTop: -MINI_W / 2,
+                ...centred(MINI_W),
                 opacity: expanded ? 0 : 1,
               }}
             />
@@ -1093,10 +1106,7 @@ export function HalftoneBloom({
               aria-hidden
               className="absolute left-1/2 top-1/2 block transition-[opacity,transform] duration-500 ease-out"
               style={{
-                width: PLATE_W,
-                height: PLATE_W,
-                marginLeft: -PLATE_W / 2,
-                marginTop: -PLATE_W / 2,
+                ...centred(PLATE_W),
                 opacity: expanded ? 1 : 0,
                 transform: expanded ? undefined : `scale(${MINI_W / PLATE_W})`,
               }}

@@ -13,6 +13,7 @@ function cn(...inputs: ClassValue[]) {
 
 export type ShowreelSphereProps = {
   className?: string;
+  /** Gallery card: render a static CSS stand-in instead of WebGL. */
   loop?: boolean;
 };
 
@@ -50,7 +51,6 @@ const TEXTURE_HEIGHT = 1024;
 // so the ball and the text stay locked together however long it runs.
 const FACE_HOLD = 2.8; // seconds
 // A sweep needs longer than a dissolve — it has a whole circumference to cross.
-// The two still sum to exactly 4s, which the loop and the caption depend on.
 const FACE_FADE = 1.2; // seconds, taken out of the tail of the period
 // Width of the soft blend band, as a fraction of the wrap. Wide enough that no
 // hard edge is ever visible, narrow enough that the two paintings never sit on
@@ -229,6 +229,7 @@ export function ShowreelSphere({ className, loop }: ShowreelSphereProps) {
       // CPU would mean re-uploading an 8MB canvas every frame of every
       // transition; this costs one extra texture fetch.
       material.onBeforeCompile = (shader) => {
+        const edge = FACE_EDGE.toFixed(2);
         shader.uniforms.uNextMap = { value: textures[textures.length > 1 ? 1 : 0] };
         shader.uniforms.uMix = { value: 0 };
         shader.uniforms.uSweep = { value: 0 };
@@ -250,8 +251,8 @@ export function ShowreelSphere({ className, loop }: ShowreelSphereProps) {
               `  float sweepU = fract( vMapUv.x - uSweep );`,
               // Run the front past both ends so the first and last slivers are
               // covered too, instead of stalling a band short of each pole.
-              `  float front = uMix * ( 1.0 + 2.0 * ${FACE_EDGE.toFixed(2)} ) - ${FACE_EDGE.toFixed(2)};`,
-              `  float toNext = 1.0 - smoothstep( front - ${FACE_EDGE.toFixed(2)}, front + ${FACE_EDGE.toFixed(2)}, sweepU );`,
+              `  float front = uMix * ( 1.0 + 2.0 * ${edge} ) - ${edge};`,
+              `  float toNext = 1.0 - smoothstep( front - ${edge}, front + ${edge}, sweepU );`,
               "  diffuseColor *= mix( texture2D( map, vMapUv ), texture2D( uNextMap, vMapUv ), toNext );",
               "#endif",
             ].join("\n"),
@@ -437,7 +438,8 @@ export function ShowreelSphere({ className, loop }: ShowreelSphereProps) {
     });
     resizeObserver.observe(container);
 
-    // Stop rendering entirely while the canvas is off-screen.
+    // While the canvas is off-screen the frame loop keeps ticking but returns
+    // before drawing or advancing anything, so no GPU work is done.
     const visibilityObserver = new IntersectionObserver(
       (entries) => {
         visible = entries[0]?.isIntersecting ?? true;
@@ -459,6 +461,7 @@ export function ShowreelSphere({ className, loop }: ShowreelSphereProps) {
       geometry?.dispose();
       material?.dispose();
       textures.forEach((texture) => texture.dispose());
+      renderer.forceContextLoss();
       renderer.dispose();
     };
   }, [loop]);
@@ -554,7 +557,7 @@ export function ShowreelSphere({ className, loop }: ShowreelSphereProps) {
 
       <style>{`
         @keyframes showreel-sphere-tumble {
-          from { transform: rotateX(-22deg) rotateY(-32deg); }
+          from { transform: var(--box-rest); }
           to   { transform: rotateX(338deg) rotateY(328deg); }
         }
         @keyframes showreel-sphere-clip-in {
@@ -563,12 +566,15 @@ export function ShowreelSphere({ className, loop }: ShowreelSphereProps) {
         }
         .showreel-sphere-box-stage { perspective: 90px; }
         .showreel-sphere-box {
+          /* Half of the 28px box, and the resting 3/4 pose the tumble starts from. */
+          --box-half: 14px;
+          --box-rest: rotateX(-22deg) rotateY(-32deg);
           position: relative;
           display: block;
           height: 100%;
           width: 100%;
           transform-style: preserve-3d;
-          transform: rotateX(-22deg) rotateY(-32deg);
+          transform: var(--box-rest);
           animation: showreel-sphere-tumble 14s linear infinite;
         }
         .showreel-sphere-box > span {
@@ -576,13 +582,13 @@ export function ShowreelSphere({ className, loop }: ShowreelSphereProps) {
           inset: 0;
           border: 1.5px solid currentColor;
         }
-        /* Half of the 28px box, so each face sits on the cube's surface. */
-        .showreel-sphere-box > span:nth-child(1) { transform: translateZ(14px); }
-        .showreel-sphere-box > span:nth-child(2) { transform: rotateY(180deg) translateZ(14px); }
-        .showreel-sphere-box > span:nth-child(3) { transform: rotateY(90deg) translateZ(14px); }
-        .showreel-sphere-box > span:nth-child(4) { transform: rotateY(-90deg) translateZ(14px); }
-        .showreel-sphere-box > span:nth-child(5) { transform: rotateX(90deg) translateZ(14px); }
-        .showreel-sphere-box > span:nth-child(6) { transform: rotateX(-90deg) translateZ(14px); }
+        /* Each face sits on the cube's surface, half the box out from its centre. */
+        .showreel-sphere-box > span:nth-child(1) { transform: translateZ(var(--box-half)); }
+        .showreel-sphere-box > span:nth-child(2) { transform: rotateY(180deg) translateZ(var(--box-half)); }
+        .showreel-sphere-box > span:nth-child(3) { transform: rotateY(90deg) translateZ(var(--box-half)); }
+        .showreel-sphere-box > span:nth-child(4) { transform: rotateY(-90deg) translateZ(var(--box-half)); }
+        .showreel-sphere-box > span:nth-child(5) { transform: rotateX(90deg) translateZ(var(--box-half)); }
+        .showreel-sphere-box > span:nth-child(6) { transform: rotateX(-90deg) translateZ(var(--box-half)); }
         .showreel-sphere-line {
           animation: showreel-sphere-clip-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }

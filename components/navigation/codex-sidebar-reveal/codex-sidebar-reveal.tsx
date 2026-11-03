@@ -30,6 +30,7 @@ export type CodexSidebarRevealProps = {
 const ease = [0.45, 0, 0.55, 1] as const;
 const hiddenSidebarChrome = { opacity: 0, x: -8 };
 const visibleSidebarChrome = { opacity: 1, x: 0 };
+const layoutTransition = { duration: 0.52, ease };
 
 const navItems = [
   { label: "New chat", icon: MessageSquare },
@@ -58,8 +59,6 @@ function AnimatedSidebarIcon({ open }: { open: boolean }) {
       strokeLinejoin="round"
       strokeWidth="1.7"
       initial={false}
-      animate={{ rotate: open ? 0 : 0 }}
-      transition={{ duration: 0.28, ease }}
     >
       <motion.rect
         x="3.25"
@@ -164,7 +163,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
             }}
             transition={{ duration: 0.18, ease }}
             whileTap={{ scale: 0.9 }}
-            className="pointer-events-auto inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#4d4d4d] transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/15"
+            className="pointer-events-auto inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-[#4d4d4d] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/15"
           >
             <AnimatedSidebarIcon open={open} />
           </motion.button>
@@ -189,7 +188,7 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
         <motion.aside
           initial={false}
           animate={{ width: open ? sidebarWidth : collapsedWidth, borderRightWidth: open ? 1 : 0 }}
-          transition={{ duration: 0.52, ease }}
+          transition={layoutTransition}
           className="absolute inset-y-0 left-0 z-30 max-w-full overflow-hidden border-black/10 bg-[#f0f0f0]"
           aria-hidden={!open}
           inert={!open}
@@ -202,7 +201,6 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
               transition={{ duration: open ? 0.3 : 0.16, ease }}
               style={{ pointerEvents: open ? "auto" : "none" }}
               className="space-y-1"
-              aria-hidden={!open}
             >
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -210,7 +208,6 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
                   <button
                     key={item.label}
                     type="button"
-                    tabIndex={open ? 0 : -1}
                     className="flex h-9 w-full items-center gap-3 rounded-lg px-2 text-left text-[13px] text-[#333] transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/15"
                   >
                     <Icon className="size-4 shrink-0 text-[#5d5d5d]" aria-hidden="true" />
@@ -278,7 +275,6 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
               transition={{ duration: open ? 0.3 : 0.16, ease }}
               style={{ pointerEvents: open ? "auto" : "none" }}
               className="mt-auto flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-[13px] text-[#444]"
-              aria-hidden={!open}
             >
               <Settings className="size-4 shrink-0 text-[#5d5d5d]" aria-hidden="true" />
               <motion.span
@@ -296,19 +292,19 @@ export function CodexSidebarReveal({ className, loop = false }: CodexSidebarReve
         <motion.div
           initial={false}
           animate={{ paddingLeft: open ? sidebarWidth : collapsedWidth }}
-          transition={{ duration: 0.52, ease }}
+          transition={layoutTransition}
           className="relative h-full bg-transparent @max-[560px]:!pl-0"
         >
           <motion.div
             initial={false}
             animate={{ borderTopLeftRadius: open ? 24 : 0 }}
-            transition={{ duration: 0.52, ease }}
+            transition={layoutTransition}
             className="flex h-full flex-col overflow-hidden"
           >
             <motion.div
               initial={false}
               animate={{ paddingLeft: open ? 32 : 200, paddingRight: 32 }}
-              transition={{ duration: 0.52, ease }}
+              transition={layoutTransition}
               className="flex h-16 shrink-0 items-center border-b border-black/10 @max-[560px]:h-28 @max-[560px]:items-end @max-[560px]:!px-4 @max-[560px]:pb-4"
             >
               <motion.div

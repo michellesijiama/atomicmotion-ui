@@ -22,6 +22,11 @@ const panelSpring = {
   damping: 30,
   mass: 0.78,
 } as const;
+const PILL_W = 192;
+const PILL_H = 48;
+// Shared by both mic icons; each adds its own open/closed translate + opacity.
+const iconClass =
+  "absolute inset-0 size-6 transition-[opacity,transform] duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
 
 type RollingActionProps = {
   label: string;
@@ -172,6 +177,7 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
   const shouldAnimateListening = isListening && !reduceMotion;
   const response = responses[activeResponseIndex];
   const responseWords = response.split(" ");
+  const springOrInstant = reduceMotion ? { duration: 0 } : panelSpring;
 
   const copyResponse = React.useCallback(() => {
     clearCopiedTimer();
@@ -202,22 +208,27 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
         .join(" ")}
     >
       <div className="relative size-full" data-state={phase}>
+        {/* Persistent live region: the animated answer below mounts with the
+            panel, so on its own a screen reader would never announce it. */}
+        <p className="sr-only" aria-live="polite">
+          {isOpen ? response : ""}
+        </p>
         <motion.div
           aria-hidden={!isOpen}
           className="absolute left-1/2 top-1/2 max-h-full max-w-full overflow-hidden rounded-[24px] bg-[#d4d2d5]"
           initial={false}
           animate={{
-            width: isOpen ? 400 : 192,
-            height: isOpen ? 224 : 48,
-            marginLeft: isOpen ? -200 : -96,
-            marginTop: isOpen ? -76 : -24,
+            width: isOpen ? 400 : PILL_W,
+            height: isOpen ? 224 : PILL_H,
+            marginLeft: isOpen ? -200 : -PILL_W / 2,
+            marginTop: isOpen ? -76 : -PILL_H / 2,
             opacity: isOpen ? 1 : 0,
           }}
           transition={{
-            width: reduceMotion ? { duration: 0 } : panelSpring,
-            height: reduceMotion ? { duration: 0 } : panelSpring,
-            marginLeft: reduceMotion ? { duration: 0 } : panelSpring,
-            marginTop: reduceMotion ? { duration: 0 } : panelSpring,
+            width: springOrInstant,
+            height: springOrInstant,
+            marginLeft: springOrInstant,
+            marginTop: springOrInstant,
             opacity: {
               duration: reduceMotion ? 0 : 0.24,
               ease: bloomEase,
@@ -228,7 +239,6 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
             {isOpen ? (
               <motion.p
                 key={`answer-${responseKey}`}
-                aria-label={response}
                 aria-live="polite"
                 className="relative z-10 flex flex-wrap gap-x-[5px] gap-y-1 px-4 pb-6 pt-[76px] font-mono text-[17px] font-medium leading-[1.35] tracking-[-0.025em] text-black"
                 initial={reduceMotion ? false : { opacity: 0 }}
@@ -304,12 +314,12 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
           className="absolute left-1/2 top-1/2 z-10 flex w-48 items-center justify-center overflow-visible rounded-[200px] bg-[#020006] text-white focus-visible:bg-[#17151d] focus-visible:outline-none"
           initial={false}
           animate={{
-            height: 48,
-            marginLeft: -96,
-            marginTop: isOpen ? -68 : -24,
+            height: PILL_H,
+            marginLeft: -PILL_W / 2,
+            marginTop: isOpen ? -68 : -PILL_H / 2,
           }}
           transition={{
-            marginTop: reduceMotion ? { duration: 0 } : panelSpring,
+            marginTop: springOrInstant,
           }}
         >
           <motion.span
@@ -325,13 +335,13 @@ export function VoiceBloom({ className, loop = false }: VoiceBloomProps) {
 
           <span aria-hidden="true" className="relative z-10 block size-6 shrink-0">
             <Mic
-              className={`absolute inset-0 size-6 transition-[opacity,transform] duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              className={`${iconClass} ${
                 isOpen ? "-translate-y-0.5 opacity-0" : "translate-y-0 opacity-100"
               }`}
               strokeWidth={1}
             />
             <MicOff
-              className={`absolute inset-0 size-6 transition-[opacity,transform] duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              className={`${iconClass} ${
                 isOpen ? "translate-y-0 opacity-100" : "translate-y-0.5 opacity-0"
               }`}
               strokeWidth={1}

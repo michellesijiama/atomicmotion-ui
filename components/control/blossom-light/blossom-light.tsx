@@ -11,10 +11,10 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export type BlossomLightProps = {
-  /** 0–100. Where the light starts. Until the slider is touched it keeps
-   *  climbing and falling on its own; after that it stays where it is put. */
+  /** 0–100. Where the light starts. Adaptive mode (on at first) then eases it
+   *  to the outside level; touching the slider holds it wherever it is put. */
   defaultBrightness?: number;
-  /** The line under the number. */
+  /** Accessible name of the brightness slider. */
   label?: string;
   /** 0–100, cool daylight to candle amber. */
   defaultWarmth?: number;
@@ -30,6 +30,10 @@ export type BlossomLightProps = {
 
 const SKIN = {
   ink: "#1D1D1F",
+  /** The Adaptive card's ground, under its dusk wash. */
+  night: "#141416",
+  /** Hairline between the Adaptive card's rows. */
+  divider: "rgba(255,255,255,0.14)",
   /** Secondary text. Darker than Apple's own #86868B, which only reaches
    *  3.3:1 on this paper; this clears 4.5:1 at the card's 11px. */
   muted: "#636366",
@@ -57,7 +61,8 @@ const SKIN = {
 // falls back to an installed Manrope, then to the system stack.
 const FONT = "var(--font-manrope, Manrope), Manrope, ui-sans-serif, system-ui, sans-serif";
 
-
+/** The frosted-glass backdrop shared by the pill and the cards. */
+const FROST = "blur(14px) saturate(1.3)";
 
 /** Lines in the pill, over its 200px. The first is the pill's rounded foot
  *  itself, 30px deep, so the grid starts at the edge instead of above it;
@@ -81,17 +86,57 @@ const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 const OUTSIDE = 0.62;
 /** And the tone it picks: overcast daylight, on the cool side. */
 const OUTSIDE_TONE = 0.3;
+/** Below this brightness the wall goes dark under the pill, so the readout,
+ *  the sun and the cards switch to their light-on-dark look. */
+const DARK_BELOW = 0.35;
 /** How long the shown value takes to settle on where it has been sent, in
- *  ms. Every change goes through this — a drag, an arrow key, the cycle — so
- *  the light never jumps, it always glides. */
+ *  ms. Every change goes through this — a drag, an arrow key, the Adaptive
+ *  switch — so the light never jumps, it always glides. */
 const SETTLE_TAU = 150;
+
+/** The five CSS variables the stage derives from one brightness value (0–1).
+ *  Below DARK_BELOW the cards go dark too: the tone card to a dark frost with
+ *  white type, and the Adaptive card deeper, since against a wall that dark
+ *  its dusk tint had fallen to 1.8:1 — the card's edge was gone. Deeper black
+ *  clears 3:1; brighter would have meant white. */
+function lightVars(value: number): Record<string, string> {
+  const dark = value < DARK_BELOW;
+  return {
+    "--q-b": value.toFixed(4),
+    // The pill fills line by line: the level snaps to whole lines so the bars
+    // step rather than slide, while everything else stays smooth.
+    "--q-lines": (Math.round(value * LINE_COUNT) / LINE_COUNT).toFixed(4),
+    "--q-fg": dark ? "#FFFFFF" : SKIN.ink,
+    "--q-card": dark ? "rgba(28,28,32,0.78)" : "rgba(244,240,231,0.72)",
+    "--q-dusk": dark ? "0.22" : "1",
+  };
+}
+
+/** 2700K is candle, 6500K is daylight; the tone track runs from one to the other. */
+const kelvinOf = (warmth: number) => Math.round((6500 - warmth * 3800) / 100) * 100;
+
+/** Arrow keys nudge by 5%, Home and End go to either end; anything else is null. */
+function keyStep(key: string): number | null {
+  if (key === "ArrowUp" || key === "ArrowRight") return 0.05;
+  if (key === "ArrowDown" || key === "ArrowLeft") return -0.05;
+  if (key === "Home") return -1;
+  if (key === "End") return 1;
+  return null;
+}
+
+/** Lets go of the pointer a slider captured on press. */
+function release(event: React.PointerEvent<HTMLDivElement>) {
+  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+    event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+}
 
 /**
  * A brightness slider whose fill is a shadow rather than a bar: blossom
- * shadow on paper, revealed from the foot of the pill by a soft
- * line of light that climbs on its own — as if the sun were finding the pill
- * and the shadow growing up it. Drag or arrow it and the light stays where
- * you put it.
+ * shadow on paper, lit from the foot of the pill upward line by line. The
+ * level starts at `defaultBrightness`, and Adaptive mode (on at first) eases
+ * it to the outside level. Drag or arrow the slider and the light stays
+ * where you put it; every change glides rather than jumps.
  */
 export function BlossomLight({
   defaultBrightness = 72,
@@ -100,6 +145,8 @@ export function BlossomLight({
   src = "/textures/wall-shadow.jpg",
   className,
 }: BlossomLightProps) {
+  const b0 = clamp01(defaultBrightness / 100);
+  const w0 = clamp01(defaultWarmth / 100);
   const stageRef = React.useRef<HTMLDivElement>(null);
   const hostRef = React.useRef<HTMLDivElement>(null);
   const wallRef = React.useRef<HTMLDivElement>(null);
@@ -110,22 +157,20 @@ export function BlossomLight({
   const readoutRef = React.useRef<HTMLParagraphElement>(null);
 
   /** Where the light has been sent, and where it is right now. */
-  const target = React.useRef(clamp01(defaultBrightness / 100));
-  const shown = React.useRef(clamp01(defaultBrightness / 100));
-  /** Whether the light follows the day on its own. Off the moment the
-   *  brightness is touched, back on from the Daylight toggle. */
+  const target = React.useRef(b0);
+  const shown = React.useRef(b0);
+  /** Whether Adaptive mode picks the light. Off the moment the brightness is
+   *  touched, back on from the Adaptive switch. */
   const [daylight, setDaylight] = React.useState(true);
-  const daylightRef = React.useRef(true);
   const reduced = React.useRef(false);
 
-  const warmth = React.useRef(clamp01(defaultWarmth / 100));
+  const warmth = React.useRef(w0);
   const warmthRef = React.useRef<HTMLDivElement>(null);
 
   const writeWarmth = React.useCallback((value: number) => {
     const stage = stageRef.current;
     if (stage) stage.style.setProperty("--q-w", value.toFixed(4));
-    // 2700K is candle, 6500K is daylight; the track runs from one to the other.
-    const kelvin = Math.round((6500 - value * 3800) / 100) * 100;
+    const kelvin = kelvinOf(value);
     const track = warmthRef.current;
     if (track) {
       track.setAttribute("aria-valuenow", String(Math.round(value * 100)));
@@ -162,26 +207,12 @@ export function BlossomLight({
     touchRef.current?.style.setProperty("--q-press", down ? "0.8" : "1");
   };
 
-
-
   /** The number, the fill and the announced value all come off one write, so
    *  they cannot drift apart mid-drag. */
   const writeBrightness = React.useCallback((value: number) => {
     const stage = stageRef.current;
     if (stage) {
-      stage.style.setProperty("--q-b", value.toFixed(4));
-      // The pill fills line by line: the level snaps to whole lines here so
-      // the bars step rather than slide, while everything else stays smooth.
-      stage.style.setProperty("--q-lines", (Math.round(value * LINE_COUNT) / LINE_COUNT).toFixed(4));
-      // Below a third the wall goes dark under the pill and black type loses
-      // its ground, so the readout and the sun turn white there.
-      stage.style.setProperty("--q-fg", value < 0.35 ? "#FFFFFF" : SKIN.ink);
-      // Below the same third the cards go dark too: the tone card to a dark
-      // frost with white type, and the Adaptive card deeper, since against a
-      // wall that dark its dusk tint had fallen to 1.8:1 — the card's edge
-      // was gone. Deeper black clears 3:1; brighter would have meant white.
-      stage.style.setProperty("--q-card", value < 0.35 ? "rgba(28,28,32,0.78)" : "rgba(244,240,231,0.72)");
-      stage.style.setProperty("--q-dusk", value < 0.35 ? "0.22" : "1");
+      for (const [name, v] of Object.entries(lightVars(value))) stage.style.setProperty(name, v);
     }
     const percent = Math.round(value * 100);
     if (readoutRef.current) readoutRef.current.textContent = `${percent}%`;
@@ -222,7 +253,6 @@ export function BlossomLight({
 
   const setDaylightMode = React.useCallback(
     (on: boolean) => {
-      daylightRef.current = on;
       setDaylight(on);
       if (on) {
         send(OUTSIDE);
@@ -300,23 +330,8 @@ export function BlossomLight({
     setFromPointer(event.clientY);
   };
 
-  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  };
-
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const step =
-      event.key === "ArrowUp" || event.key === "ArrowRight"
-        ? 0.05
-        : event.key === "ArrowDown" || event.key === "ArrowLeft"
-          ? -0.05
-          : event.key === "Home"
-            ? -1
-            : event.key === "End"
-              ? 1
-              : null;
+    const step = keyStep(event.key);
     if (step === null) return;
     event.preventDefault();
     setDaylightMode(false);
@@ -345,39 +360,24 @@ export function BlossomLight({
     if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
     setWarmthFromPointer(event.clientX);
   };
-  const onWarmthUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  };
   const onWarmthKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const step =
-      event.key === "ArrowRight" || event.key === "ArrowUp"
-        ? 0.05
-        : event.key === "ArrowLeft" || event.key === "ArrowDown"
-          ? -0.05
-          : event.key === "Home"
-            ? -1
-            : event.key === "End"
-              ? 1
-              : null;
+    const step = keyStep(event.key);
     if (step === null) return;
     event.preventDefault();
     warmth.current = clamp01(warmth.current + step);
     writeWarmth(warmth.current);
   };
 
-  const startPercent = Math.round(clamp01(defaultBrightness / 100) * 100);
-  const startWarmth = Math.round(clamp01(defaultWarmth / 100) * 100);
-  const startKelvin = Math.round((6500 - clamp01(defaultWarmth / 100) * 3800) / 100) * 100;
-  const startLines = Math.round(clamp01(defaultBrightness / 100) * LINE_COUNT) / LINE_COUNT;
+  const startPercent = Math.round(b0 * 100);
+  const startWarmth = Math.round(w0 * 100);
+  const startKelvin = kelvinOf(w0);
 
   /** A frosted card: the wallpaper shows through it, faintly. */
   const card: React.CSSProperties = {
     backgroundColor: "var(--q-card)",
     transition: "background-color 200ms ease",
-    backdropFilter: "blur(14px) saturate(1.3)",
-    WebkitBackdropFilter: "blur(14px) saturate(1.3)",
+    backdropFilter: FROST,
+    WebkitBackdropFilter: FROST,
   };
 
   return (
@@ -406,12 +406,8 @@ export function BlossomLight({
             color: SKIN.ink,
             cursor: "none",
             backgroundColor: SKIN.paper,
-            "--q-b": clamp01(defaultBrightness / 100).toFixed(4),
-            "--q-lines": startLines.toFixed(4),
-            "--q-fg": clamp01(defaultBrightness / 100) < 0.35 ? "#FFFFFF" : SKIN.ink,
-            "--q-card": clamp01(defaultBrightness / 100) < 0.35 ? "rgba(28,28,32,0.78)" : "rgba(244,240,231,0.72)",
-            "--q-dusk": clamp01(defaultBrightness / 100) < 0.35 ? "0.22" : "1",
-            "--q-w": clamp01(defaultWarmth / 100).toFixed(4),
+            ...lightVars(b0),
+            "--q-w": w0.toFixed(4),
           } as React.CSSProperties
         }
       >
@@ -521,15 +517,15 @@ export function BlossomLight({
                 aria-orientation="vertical"
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
+                onPointerUp={release}
+                onPointerCancel={release}
                 onKeyDown={onKeyDown}
                 className="relative h-[200px] w-[72px] overflow-hidden rounded-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 style={
                   {
                     backgroundColor: "rgba(255,255,255,0.22)",
-                    backdropFilter: "blur(14px) saturate(1.3)",
-                    WebkitBackdropFilter: "blur(14px) saturate(1.3)",
+                    backdropFilter: FROST,
+                    WebkitBackdropFilter: FROST,
                     touchAction: "none",
                     "--tw-ring-color": SKIN.blue,
                     "--tw-ring-offset-color": SKIN.paper,
@@ -604,8 +600,8 @@ export function BlossomLight({
                   aria-orientation="horizontal"
                   onPointerDown={onWarmthDown}
                   onPointerMove={onWarmthMove}
-                  onPointerUp={onWarmthUp}
-                  onPointerCancel={onWarmthUp}
+                  onPointerUp={release}
+                  onPointerCancel={release}
                   onKeyDown={onWarmthKey}
                   className="absolute inset-x-3.5 bottom-3.5 h-[24px] rounded-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                   style={
@@ -633,7 +629,7 @@ export function BlossomLight({
                   carries the room's tone. White on it stays well past 4.5:1. */}
               <div
                 className="relative overflow-hidden rounded-[22px] p-3.5 transition-[height] duration-300 ease-out"
-                style={{ height: daylight ? 200 : 95, backgroundColor: "#141416" }}
+                style={{ height: daylight ? 200 : 95, backgroundColor: SKIN.night }}
               >
                 <div
                   className="pointer-events-none absolute inset-0 transition-opacity duration-200"
@@ -669,7 +665,7 @@ export function BlossomLight({
                   style={{ opacity: daylight ? 1 : 0 }}
                   aria-hidden={!daylight}
                 >
-                  <div className="-mx-3.5 h-px" style={{ backgroundColor: "rgba(255,255,255,0.14)" }} />
+                  <div className="-mx-3.5 h-px" style={{ backgroundColor: SKIN.divider }} />
                   {(
                     [
                       ["cloud", "18° Overcast"],
@@ -686,7 +682,7 @@ export function BlossomLight({
                       <span>{text}</span>
                     </div>
                   ))}
-                  <div className="-mx-3.5 h-px" style={{ backgroundColor: "rgba(255,255,255,0.14)" }} />
+                  <div className="-mx-3.5 h-px" style={{ backgroundColor: SKIN.divider }} />
                 </div>
                 <button
                   type="button"
@@ -699,7 +695,7 @@ export function BlossomLight({
                     {
                       backgroundColor: daylight ? SKIN.blue : "rgba(255,255,255,0.18)",
                       "--tw-ring-color": "#FFFFFF",
-                      "--tw-ring-offset-color": "#141416",
+                      "--tw-ring-offset-color": SKIN.night,
                     } as React.CSSProperties
                   }
                 >

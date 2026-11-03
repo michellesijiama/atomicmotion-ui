@@ -13,8 +13,18 @@ function cn(...inputs: ClassValue[]) {
 
 export type SoftMenuRevealProps = {
   className?: string;
+  /**
+   * Preview mode: the panel opens and closes on its own timer, ignores outside
+   * clicks and Escape, and shows the contact address as plain text instead of
+   * a link (the preview sits inside a card link, and anchors cannot nest).
+   */
   loop?: boolean;
 };
+
+const CONTACT_EMAIL = "hello@atomicmotion.dev";
+
+// Frosted surface shared by the closed Menu pill and the expanded panel.
+const FROSTED = "bg-[#f5f5f5]/85 backdrop-blur-[72px] backdrop-saturate-150";
 
 const MENU_ROWS = [
   { label: "Work", index: "01" },
@@ -31,9 +41,9 @@ const panelTransition = {
 
 // Frosted "mega menu" that expands over the page — the nav row sits inside the
 // panel (madewithjitter-style), and the surface blurs the content behind it.
-// Self-contained: scoped --expnav-* tokens, inline keyframes, no global CSS.
+// Self-contained: scoped --expnav-* tokens, no keyframes or global CSS.
 export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps) {
-  const uid = React.useId().replace(/[:]/g, "");
+  const uid = React.useId();
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement>(null);
 
@@ -71,7 +81,7 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [loop, open, uid]);
+  }, [loop, open]);
 
   const Logo = (
     <span className="text-[18px] font-medium tracking-[-0.02em] text-[var(--expnav-ink)]">
@@ -109,12 +119,12 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            aria-haspopup="true"
+            aria-controls={`expnav-panel-${uid}`}
             className={cn(
               "inline-flex h-7 w-[68px] shrink-0 items-center justify-center rounded-full text-[13px] text-[var(--expnav-ink)] transition-colors",
               open
-                ? "bg-transparent hover:text-[var(--jitter-gray-600,#666666)]"
-                : "bg-[#f5f5f5]/85 backdrop-blur-[72px] backdrop-saturate-150 hover:bg-[#eeeeee]/85",
+                ? "bg-transparent hover:text-[var(--expnav-muted)]"
+                : `${FROSTED} hover:bg-[#eeeeee]/85`,
             )}
           >
             Menu
@@ -130,7 +140,7 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
             opacity: open ? 1 : 0,
           }}
           transition={panelTransition}
-          className="absolute inset-x-0 top-0 z-30 overflow-hidden rounded-[28px] bg-[#f5f5f5]/85 backdrop-blur-[72px] backdrop-saturate-150"
+          className={cn("absolute inset-x-0 top-0 z-30 overflow-hidden rounded-[28px]", FROSTED)}
           aria-hidden={!open}
           inert={!open}
           style={{ pointerEvents: open ? "auto" : "none" }}
@@ -154,7 +164,7 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
                   key={row.index}
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="group flex h-12 w-full items-center justify-between border-b border-black/10 text-left text-[15px] text-[var(--expnav-ink)] transition-colors hover:text-[var(--jitter-gray-600,#666666)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10"
+                  className="group flex h-12 w-full items-center justify-between border-b border-black/10 text-left text-[15px] text-[var(--expnav-ink)] transition-colors hover:text-[var(--expnav-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10"
                 >
                   <span>{row.label}</span>
                   <span className="font-mono text-[13px] text-[var(--expnav-muted)]">
@@ -169,14 +179,14 @@ export function SoftMenuReveal({ className, loop = false }: SoftMenuRevealProps)
                   so avoid a nested <a> — show plain text there, real link elsewhere. */}
               {loop ? (
                 <span className="transition-colors hover:text-[var(--expnav-ink)]">
-                  hello@atomicmotion.dev
+                  {CONTACT_EMAIL}
                 </span>
               ) : (
                 <a
-                  href="mailto:hello@atomicmotion.dev"
+                  href={`mailto:${CONTACT_EMAIL}`}
                   className="transition-colors hover:text-[var(--expnav-ink)]"
                 >
-                  hello@atomicmotion.dev
+                  {CONTACT_EMAIL}
                 </a>
               )}
               <button

@@ -50,12 +50,8 @@ const TEXT_RGB = "36 36 36";
 const TODAY_BLUE = "#0041FF";
 const text = (a: number, rgb = TEXT_RGB) => `rgb(${rgb} / ${a})`;
 const PAPER = "#F0F0F0";
-
-type DayTheme = { paper: string; ink: string; inkRgb: string };
-/** One monochrome theme keeps the calendar visually continuous from day to day. */
-const DAY_THEMES: readonly DayTheme[] = [
-  ...Array.from({ length: 14 }, () => ({ paper: PAPER, ink: TEXT, inkRgb: TEXT_RGB })),
-];
+/** The paper's hover tint on the round buttons and filter chip. */
+const HOVER_PAPER = "#E8E8E8";
 const FONT_HANDWRITING = "var(--font-caveat, Caveat), 'Kaiti SC', STKaiti, cursive";
 
 /* ───────────────────────────── layout tokens ───────────────────────────── */
@@ -211,6 +207,10 @@ function DiaryArtwork({ image, compact = false, blue = false }: { image: DiaryIm
           maskSize: "contain",
           maskPosition: "center",
           maskRepeat: "no-repeat",
+          WebkitMaskImage: `url("${src}")`,
+          WebkitMaskSize: "contain",
+          WebkitMaskPosition: "center",
+          WebkitMaskRepeat: "no-repeat",
           pointerEvents: "none",
         }}
       />
@@ -253,9 +253,15 @@ function demoImageFor(note: string): DiaryImage | undefined {
 
 const HOLD_MS = 3800;
 const PAUSE_MS = 700;
+/** The loop's beats in ms: the saved diary (`persist`) plays brisker than the website preview, which also walks through the week. */
+const DEMO_TIMING = {
+  saved: { start: 900, open: 1300, write: 450, key: 48, submit: 650, press: 180, hold: HOLD_MS, close: 1300, pause: PAUSE_MS },
+  preview: { start: 1400, open: 2600, write: 650, key: 70, submit: 1100, press: 250, hold: 5500, close: 1700, pause: 1200 },
+} as const;
 const DEMO_NOTE = "It rained today. I walked home under my umbrella.";
 const HOMEPAGE_DEMO_NOTE = "Packed a bento for lunch before a busy afternoon at work.";
-const LAYOUT = { duration: 0.6, ease: [0.22, 1, 0.36, 1] } as const;
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+const LAYOUT = { duration: 0.6, ease: EASE_OUT } as const;
 const PAGE_SPRING = { type: "spring", stiffness: 320, damping: 34, mass: 1 } as const;
 const DEMO_PAGE_TWEEN = { type: "tween", ease: [0.45, 0, 0.55, 1] } as const;
 const PAGE_SCALE_EASE = cubicBezier(0.4, 0, 0.2, 1);
@@ -268,11 +274,18 @@ const REVEAL_MS = 2600;
 const GENERATE_TIMEOUT_MS = 8000;
 const PRELOAD_TIMEOUT_MS = 3000;
 const SKETCH_ERROR = "Couldn’t create the sketch. Please try again.";
+/** What an entry is called until a drawing gives it a title (the last scene starts blank with the same name). */
+const BLANK_TITLE = "Today’s Little Moment";
 const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
-const withTimeout = <T,>(promise: Promise<T>, ms: number) =>
-  Promise.race([promise, new Promise<"timeout">((resolve) => window.setTimeout(() => resolve("timeout"), ms))]);
+const withTimeout = <T,>(promise: Promise<T>, ms: number) => {
+  let timer = 0;
+  const timeout = new Promise<"timeout">((resolve) => {
+    timer = window.setTimeout(() => resolve("timeout"), ms);
+  });
+  // Drop the timer as soon as the race is settled so it doesn't linger.
+  return Promise.race([promise, timeout]).finally(() => window.clearTimeout(timer));
+};
 const MORPH = { type: "spring", duration: 0.56, bounce: 0.1 } as const;
-const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
 type DayState = "past" | "today" | "future";
 
@@ -400,7 +413,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
     try {
       const demo = demoImageFor(note);
       const generation: Promise<DiaryImage | undefined | "timeout"> = onGenerateImage
-        ? withTimeout(onGenerateImage(note, CALENDAR_DAYS[day - 1]).then((src): DiaryImage => ({ src, title: "Today’s Little Moment", note })), GENERATE_TIMEOUT_MS)
+        ? withTimeout(onGenerateImage(note, CALENDAR_DAYS[day - 1]).then((src): DiaryImage => ({ src, title: BLANK_TITLE, note })), GENERATE_TIMEOUT_MS)
         : Promise.resolve(demo);
       const [image] = await Promise.all([generation, wait(reduced ? 300 : SKETCH_MIN_MS)]);
       if (!mountedRef.current) return;
@@ -587,8 +600,9 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
     const pause = (ms: number) => new Promise<boolean>((resolve) => {
       timer = window.setTimeout(() => resolve(!cancelled), ms);
     });
+    const beat = persist ? DEMO_TIMING.saved : DEMO_TIMING.preview;
     const show = async () => {
-      if (!await pause(persist ? 900 : 1400)) return;
+      if (!await pause(beat.start)) return;
       demoActiveRef.current = true;
       const note = persist ? DEMO_NOTE : HOMEPAGE_DEMO_NOTE;
       const image = demoImageFor(note);
@@ -605,16 +619,16 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
           }
         }
         open(today);
-        if (!await pause(persist ? 1300 : 2600)) return;
+        if (!await pause(beat.open)) return;
         setComposing(true);
-        if (!await pause(persist ? 450 : 650)) return;
+        if (!await pause(beat.write)) return;
         for (let length = 1; length <= note.length; length++) {
           setDemoEntry({ note: note.slice(0, length) });
-          if (!await pause(persist ? 48 : 70)) return;
+          if (!await pause(beat.key)) return;
         }
-        if (!await pause(persist ? 650 : 1100)) return;
+        if (!await pause(beat.submit)) return;
         setDemoPressed(true);
-        if (!await pause(persist ? 180 : 250)) return;
+        if (!await pause(beat.press)) return;
         setDemoPressed(false);
         setComposing(false);
         sketchingRef.current = true;
@@ -625,11 +639,11 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
         if (!await pause(REVEAL_MS)) return;
         setSketchPhase("idle");
         sketchingRef.current = false;
-        if (!await pause(persist ? HOLD_MS : 5500)) return;
+        if (!await pause(beat.hold)) return;
         close();
-        if (!await pause(persist ? 1300 : 1700)) return;
+        if (!await pause(beat.close)) return;
         setDemoEntry(null);
-        if (!await pause(persist ? PAUSE_MS : 1200)) return;
+        if (!await pause(beat.pause)) return;
       }
     };
     void show();
@@ -688,13 +702,10 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
     cells.current[next]?.focus({ preventScroll: true });
   };
 
-  const scene = openDay === null ? undefined : sceneOf(openDay);
-  const info = openDay === null ? undefined : CALENDAR_DAYS[openDay - 1];
-  const activeTheme = openDay === null ? undefined : DAY_THEMES[openDay - 1];
-  const activePaper = activeTheme?.paper ?? PAPER;
-  const activeText = activeTheme?.ink ?? TEXT;
-  const activeTextRgb = activeTheme?.inkRgb ?? TEXT_RGB;
-  const activeBodyText = activeText;
+  // One monochrome theme keeps the calendar visually continuous from day to day.
+  const activePaper = PAPER;
+  const activeText = TEXT;
+  const activeTextRgb = TEXT_RGB;
   const titleId = `${uid}-title`;
   const canGoPrevious = openDay !== null && openDay > 1;
   const canGoNext = openDay !== null && openDay < today;
@@ -780,7 +791,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                   aria-label="Home — month view"
                   title="Back to all days"
                   onClick={() => { setFilterTopic("all"); setFilterOpen(false); byPersonRef.current = false; returnFocusRef.current = null; close(); }}
-                  whileHover={{ backgroundColor: "#E8E8E8" }}
+                  whileHover={{ backgroundColor: HOVER_PAPER }}
                   whileTap={reduced ? undefined : { scale: 0.94 }}
                   className="dc-sketch absolute flex size-11 items-center justify-center rounded-full border-0 bg-white p-0"
                   style={{ left: NAV_INSET, color: TEXT, cursor: "pointer" }}
@@ -797,7 +808,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                   aria-controls={filterId}
                   title="Filter by diary topic"
                   onClick={() => setFilterOpen((current) => !current)}
-                  whileHover={{ backgroundColor: filterTopic === "all" ? "#E8E8E8" : "#444444" }}
+                  whileHover={{ backgroundColor: filterTopic === "all" ? HOVER_PAPER : "#444444" }}
                   whileTap={reduced ? undefined : { scale: 0.94 }}
                   className="dc-sketch absolute flex size-11 items-center justify-center rounded-full border-0 p-0"
                   style={{ right: NAV_INSET, backgroundColor: filterTopic === "all" ? CARD_PAPER : TEXT, color: filterTopic === "all" ? TEXT : CARD_PAPER, cursor: "pointer" }}
@@ -904,10 +915,10 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
               </div>
 
               {/* Tap outside the card to put it away. */}
-              {scene ? <div className="absolute inset-0" style={{ zIndex: 3 }} onClick={composing ? cancelComposing : close} aria-hidden="true" /> : null}
+              {openDay !== null ? <div className="absolute inset-0" style={{ zIndex: 3 }} onClick={composing ? cancelComposing : close} aria-hidden="true" /> : null}
 
               <AnimatePresence initial={false}>
-                {scene && info && openDay !== null ? (
+                {openDay !== null ? (
                   <motion.div
                     key="diary-pages"
                     ref={dialogRef}
@@ -1042,7 +1053,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                                   className="m-0 min-w-0"
                                   style={{ fontFamily: FONT_HANDWRITING, fontWeight: 500, fontSize: 25, lineHeight: "28px", letterSpacing: "0", color: activeText }}
                                 >
-                                  {image?.title ?? "Today’s Little Moment"}
+                                  {image?.title ?? BLANK_TITLE}
                                 </h3>
                               </div>
                               {isActive ? <textarea
@@ -1061,7 +1072,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                                 placeholder="A coffee, a bento, a little exercise… what made today yours?"
                                 rows={error ? 2 : 3}
                                 className="dc-entry w-full resize-none outline-none"
-                                style={{ fontFamily: FONT_HANDWRITING, fontWeight: 400, fontSize: 19, lineHeight: "23px", color: activeBodyText, backgroundColor: "transparent", border: 0, borderRadius: 0, marginTop: 8, minHeight: error ? 62 : 85, padding: "4px 0 8px", cursor: "text" }}
+                                style={{ fontFamily: FONT_HANDWRITING, fontWeight: 400, fontSize: 19, lineHeight: "23px", color: activeText, backgroundColor: "transparent", border: 0, borderRadius: 0, marginTop: 8, minHeight: error ? 62 : 85, padding: "4px 0 8px", cursor: "text" }}
                               /> : <p className="m-0 mt-2" style={{ fontSize: 19, lineHeight: "23px", paddingTop: 4 }}>{note}</p>}
                               {isActive && error ? <p role="alert" className="m-0 mt-1" style={{ fontSize: 14, lineHeight: "16px" }}>{error}</p> : null}
                             </motion.div>
@@ -1090,8 +1101,8 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                     initial={{ opacity: 0, y: reduced ? 0 : 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: reduced ? 0 : 8 }}
-                    transition={{ duration: reduced ? 0.1 : 0.24, delay: reduced || openDay === null ? 0 : 0.22 }}
-                    style={{ left: (SCREEN_W - 192) / 2, bottom: 18, width: 192, height: 44, zIndex: 6, color: activeBodyText }}
+                    transition={{ duration: reduced ? 0.1 : 0.24, delay: reduced ? 0 : 0.22 }}
+                    style={{ left: (SCREEN_W - 192) / 2, bottom: 18, width: 192, height: 44, zIndex: 6, color: activeText }}
                   >
                     <svg aria-hidden="true" className="pointer-events-none absolute inset-0 size-full" viewBox="0 0 192 44">
                       <path d="M22 0 C30 0 36 5 40 11 C44 18 48 18 52 11 C56 4 64 0 74 0 H118 C128 0 136 4 140 11 C144 18 148 18 152 11 C156 4 162 0 170 0 A22 22 0 0 1 170 44 C162 44 156 40 152 33 C148 26 144 26 140 33 C136 40 128 44 118 44 H74 C64 44 56 40 52 33 C48 26 44 26 40 33 C36 40 30 44 22 44 A22 22 0 0 1 22 0 Z" fill={CARD_PAPER} />
@@ -1105,7 +1116,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                       whileHover={canGoPrevious ? "hover" : undefined}
                       whileTap={canGoPrevious && !reduced ? { scale: 0.94 } : undefined}
                       className="dc-sketch absolute left-0 top-0 flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 disabled:opacity-28"
-                      style={{ color: activeBodyText, cursor: canGoPrevious ? "pointer" : "default" }}
+                      style={{ color: activeText, cursor: canGoPrevious ? "pointer" : "default" }}
                     >
                       <motion.span
                         className="flex"
@@ -1120,13 +1131,12 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                       aria-label="Write a note"
                       title="Write a note, then sketch it"
                       onClick={startComposing}
-                      disabled={sketchPhase !== "idle"}
                       initial="rest"
-                      whileHover={sketchPhase === "idle" ? "hover" : undefined}
-                      whileTap={sketchPhase === "idle" && !reduced ? "pressed" : undefined}
+                      whileHover="hover"
+                      whileTap={reduced ? undefined : "pressed"}
                       transition={{ type: "spring", stiffness: 420, damping: 24 }}
-                      className="dc-sketch absolute top-0 flex items-center justify-center rounded-full border-0 bg-transparent p-0 disabled:opacity-35"
-                      style={{ left: 52, width: 88, height: 44, color: activeText, cursor: sketchPhase === "idle" ? "pointer" : "default" }}
+                      className="dc-sketch absolute top-0 flex items-center justify-center rounded-full border-0 bg-transparent p-0"
+                      style={{ left: 52, width: 88, height: 44, color: activeText, cursor: "pointer" }}
                     >
                       <motion.span
                         className="flex"
@@ -1145,7 +1155,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                       whileHover={canGoNext ? "hover" : undefined}
                       whileTap={canGoNext && !reduced ? { scale: 0.94 } : undefined}
                       className="dc-sketch absolute right-0 top-0 flex size-11 items-center justify-center rounded-full border-0 bg-transparent p-0 disabled:opacity-28"
-                      style={{ color: activeBodyText, cursor: canGoNext ? "pointer" : "default" }}
+                      style={{ color: activeText, cursor: canGoNext ? "pointer" : "default" }}
                     >
                       <motion.span
                         className="flex"
@@ -1173,7 +1183,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
                       type="button"
                       aria-label="Cancel writing"
                       onClick={cancelComposing}
-                      whileHover={{ backgroundColor: "#E8E8E8" }}
+                      whileHover={{ backgroundColor: HOVER_PAPER }}
                       whileTap={reduced ? undefined : { scale: 0.94 }}
                       className="dc-sketch flex size-11 shrink-0 items-center justify-center rounded-full border-0 p-0"
                       style={{ backgroundColor: CARD_PAPER, color: TEXT, cursor: "pointer" }}
@@ -1238,7 +1248,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
 
               <span
                 aria-hidden="true"
-                className="dc-app-outline pointer-events-none absolute inset-0"
+                className="pointer-events-none absolute inset-0"
                 style={{ border: "1.25px solid #BEBEBE", borderRadius: SCREEN_RADIUS, zIndex: 10 }}
               />
             </div>
@@ -1355,7 +1365,7 @@ function SketchInkReveal({ image, blue, reduced, active }: { image: DiaryImage; 
         <DiaryArtwork image={image} blue={blue} />
       </motion.div>
       {active && !reduced ? (
-        <span aria-hidden="true" className="dc-ink-bleed pointer-events-none absolute inset-0">
+        <span aria-hidden="true" className="pointer-events-none absolute inset-0">
           <motion.span
             className="absolute inset-0 block"
             style={inkMask}

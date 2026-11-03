@@ -12,12 +12,28 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export type ScrollPhaseCursorProps = {
+  /**
+   * Autoplay mode: the track scrolls itself down and back on a 16s loop and the
+   * ring is pinned in place instead of following the pointer. Defaults to false.
+   */
   loop?: boolean;
   className?: string;
 };
 
 const RADIUS = 50;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+// Ring viewBox side and its centre.
+const VIEW = 120;
+const C = VIEW / 2;
+
+// Autoplay loop: one full cycle, then the share spent scrolling down and the
+// share spent easing back up.
+const LOOP_MS = 16000;
+const SCROLL_SHARE = 0.82;
+const RETURN_SHARE = 0.18;
+
+const RATIO = "16 : 10";
+const DIMENSIONS = "1280 × 800";
 
 type Slide = {
   id: string;
@@ -27,11 +43,11 @@ type Slide = {
 };
 
 const SLIDES: Slide[] = [
-  { id: "Slide 2-01", movement: "Carousel", ratio: "16 : 10", dimensions: "1280 × 800" },
-  { id: "Slide 2-02", movement: "Dissolve", ratio: "16 : 10", dimensions: "1280 × 800" },
-  { id: "Slide 2-03", movement: "Push", ratio: "16 : 10", dimensions: "1280 × 800" },
-  { id: "Slide 2-04", movement: "Hold", ratio: "16 : 10", dimensions: "1280 × 800" },
-  { id: "Slide 2-05", movement: "Return", ratio: "16 : 10", dimensions: "1280 × 800" },
+  { id: "Slide 2-01", movement: "Carousel", ratio: RATIO, dimensions: DIMENSIONS },
+  { id: "Slide 2-02", movement: "Dissolve", ratio: RATIO, dimensions: DIMENSIONS },
+  { id: "Slide 2-03", movement: "Push", ratio: RATIO, dimensions: DIMENSIONS },
+  { id: "Slide 2-04", movement: "Hold", ratio: RATIO, dimensions: DIMENSIONS },
+  { id: "Slide 2-05", movement: "Return", ratio: RATIO, dimensions: DIMENSIONS },
 ];
 
 function SlidePlate({ slide }: { slide: Slide }) {
@@ -85,9 +101,9 @@ export function ScrollPhaseCursor({ loop = false, className }: ScrollPhaseCursor
     const start = performance.now();
 
     const animate = (now: number) => {
-      const duration = 16000;
-      const cycle = ((now - start) % duration) / duration;
-      const eased = cycle < 0.82 ? cycle / 0.82 : 1 - (cycle - 0.82) / 0.18;
+      const cycle = ((now - start) % LOOP_MS) / LOOP_MS;
+      const eased =
+        cycle < SCROLL_SHARE ? cycle / SCROLL_SHARE : 1 - (cycle - SCROLL_SHARE) / RETURN_SHARE;
       element.scrollTop = eased * (element.scrollHeight - element.clientHeight);
       syncProgress();
       frame = requestAnimationFrame(animate);
@@ -109,7 +125,7 @@ export function ScrollPhaseCursor({ loop = false, className }: ScrollPhaseCursor
         className={cn(
           "relative overflow-hidden [container-type:inline-size]",
           loop ? "h-[min(58vh,520px)] w-[min(76vw,620px)]" : "h-[min(72vh,720px)] w-[min(92vw,1040px)]",
-          !loop && "scroll-phase-surface",
+          !loop && "am-scroll-phase-surface",
         )}
         onPointerMove={loop ? undefined : updateCursor}
         onPointerEnter={loop ? undefined : updateCursor}
@@ -140,11 +156,11 @@ export function ScrollPhaseCursor({ loop = false, className }: ScrollPhaseCursor
           )}
           style={loop ? undefined : { left: cursor.x, top: cursor.y }}
         >
-          <svg viewBox="0 0 120 120" className="size-full -rotate-90">
-            <circle cx="60" cy="60" r={RADIUS} fill="none" stroke="rgba(0,0,0,.12)" strokeWidth="1.5" />
+          <svg viewBox={`0 0 ${VIEW} ${VIEW}`} className="size-full -rotate-90">
+            <circle cx={C} cy={C} r={RADIUS} fill="none" stroke="rgba(0,0,0,.12)" strokeWidth="1.5" />
             <circle
-              cx="60"
-              cy="60"
+              cx={C}
+              cy={C}
               r={RADIUS}
               fill="none"
               stroke="var(--jitter-ink,#0e1011)"
@@ -162,7 +178,7 @@ export function ScrollPhaseCursor({ loop = false, className }: ScrollPhaseCursor
 
       <style>{`
         .am-scroll-phase-track::-webkit-scrollbar { width: 0; height: 0; }
-        @media (pointer: fine) { .scroll-phase-surface, .scroll-phase-surface * { cursor: none; } }
+        @media (pointer: fine) { .am-scroll-phase-surface, .am-scroll-phase-surface * { cursor: none; } }
       `}</style>
     </div>
   );

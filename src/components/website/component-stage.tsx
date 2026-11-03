@@ -53,3 +53,12 @@ export function ComponentStage({ children }: ComponentStageProps) {
     </div>
   );
 }
+
+/** Fixed header band above a detail page's scrolling content. */
+export function StageHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="am-reveal relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
+      {children}
+    </div>
+  );
+}

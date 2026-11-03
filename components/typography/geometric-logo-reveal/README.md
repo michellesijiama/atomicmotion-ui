@@ -46,7 +46,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | --- | --- | --- | --- |
 | `className` | `string` | — | Additional classes for the root container. |
 | `loop` | `boolean` | `true` | Automatic preview mode. |
-| `text` | `string` | `"Atomic&Motion"` | The wordmark to assemble. Defaults to the Form&Fun homage. |
+| `text` | `string` | `"Atomic&Motion"` | The wordmark to assemble. Defaults to "Atomic&Motion". |
 | `mark` | `string` | `"™"` | Small superscript after the wordmark (e.g. a trademark). |
 
 Named export: `GeometricLogoReveal`. Public types: `GeometricLogoRevealProps`.

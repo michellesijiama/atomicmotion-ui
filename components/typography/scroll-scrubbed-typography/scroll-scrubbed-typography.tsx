@@ -23,6 +23,7 @@ export type ScrollScrubbedTypographyProps = {
 };
 
 const TITLE_LINES = ["Scroll-Scrubbed", "Compression"];
+const FRAME_H = "h-[min(64vh,620px)] max-h-[620px]";
 
 export function ScrollScrubbedTypography({
   className,
@@ -47,11 +48,12 @@ export function ScrollScrubbedTypography({
     mass: 0.7,
   });
 
-  // The title scales with `transform: scaleY` (origin-top), which doesn't change
-  // its layout box. So the description below would keep a fixed layout gap while
-  // the *visual* gap grows/shrinks. We measure the title's layout height and
-  // translate the description by titleHeight*(scale-1) so it tracks the
-  // compressed bottom edge with a constant 24px gap as scroll scrubs.
+  // The title scales with `transform: scaleY` (origin-center), which doesn't
+  // change its layout box. So the description below would keep a fixed layout
+  // gap while the *visual* gap grows/shrinks. We measure the title's layout
+  // height and translate the description by (titleHeight / 2) * (scale - 1) so
+  // it tracks the compressed bottom edge with a constant 24px gap as scroll
+  // scrubs.
   const descriptionShift = useTransform(
     springScale,
     // Title scales from its center (origin-center), so its visual bottom moves
@@ -102,12 +104,10 @@ export function ScrollScrubbedTypography({
     };
 
     window.addEventListener("pointermove", syncCursor, { passive: true });
-    window.addEventListener("pointerleave", hideCursor);
     window.addEventListener("blur", hideCursor);
 
     return () => {
       window.removeEventListener("pointermove", syncCursor);
-      window.removeEventListener("pointerleave", hideCursor);
       window.removeEventListener("blur", hideCursor);
     };
   }, [loop]);
@@ -138,7 +138,7 @@ export function ScrollScrubbedTypography({
           // container-type:inline-size → the title can size its type to THIS
           // box's width (cqw) instead of the viewport, so it always fits and is
           // never cropped, at any screen size.
-          "relative h-[min(64vh,620px)] max-h-[620px] overflow-hidden bg-[#16a147] [container-type:inline-size]",
+          `relative ${FRAME_H} overflow-hidden bg-[#16a147] [container-type:inline-size]`,
           loop
             ? "w-[min(68vw,620px)] max-w-[620px]"
             : "w-[min(86vw,760px)] max-w-[760px]",
@@ -152,10 +152,9 @@ export function ScrollScrubbedTypography({
           )}
         >
           <div ref={targetRef} className="relative h-[135vh] min-h-[700px]">
-            <div className="sticky top-0 flex h-[min(64vh,620px)] max-h-[620px] flex-col items-start justify-center overflow-hidden px-5 sm:px-7">
+            <div className={`sticky top-0 flex ${FRAME_H} flex-col items-start justify-center overflow-hidden px-5 sm:px-7`}>
               <motion.div
                 ref={titleRef}
-                aria-label="Scroll-Scrubbed Compression"
                 animate={titleAnimate}
                 className="origin-center [font-stretch:condensed] will-change-transform"
                 style={titleStyle}
@@ -183,7 +182,6 @@ export function ScrollScrubbedTypography({
               </motion.div>
               {!loop && (
                 <motion.p
-                  aria-label="Scroll-Scrubbed Typography description"
                   style={shouldReduceMotion ? undefined : { y: descriptionShift }}
                   className="mt-6 max-w-[520px] text-[clamp(16px,2.4vw,24px)] font-medium leading-[1.08] tracking-[-0.035em] text-black/75"
                 >

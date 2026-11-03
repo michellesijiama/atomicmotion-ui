@@ -51,7 +51,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `className` | `string` | — | Additional classes for the root container. |
-| `loop` | `boolean` | — | Automatic preview mode. |
+| `loop` | `boolean` | — | Gallery card: render a static CSS stand-in instead of WebGL. |
 
 Named export: `ShowreelSphere`. Public types: `ShowreelSphereProps`.
 - **Source access:** Free and open source.

@@ -65,10 +65,13 @@ const panelTransition = {
   ease: bellCurveEase,
 } as const;
 
+const PRESSED = { scale: 0.96, y: 1 } as const;
+
 export function FilterDropdownReveal({ className, loop = false }: FilterDropdownRevealProps) {
   const [activeGroup, setActiveGroup] = React.useState<FilterGroup | null>(null);
   const [loopPressedGroup, setLoopPressedGroup] = React.useState<FilterGroup | null>(null);
   const rootRef = React.useRef<HTMLDivElement>(null);
+  const panelIdBase = React.useId();
   // Below 760px of usable space, keep the panel in flow so every option can scroll.
   // The authored loop preview retains its original two-column composition.
   const panelClassName = cn(
@@ -106,7 +109,7 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
     const interval = setInterval(openPanel, 5000);
 
     return () => {
-      if (pressTimer) clearTimeout(pressTimer);
+      clearTimeout(pressTimer);
       if (openTimer) clearTimeout(openTimer);
       clearInterval(interval);
       if (closeTimer) clearTimeout(closeTimer);
@@ -138,18 +141,14 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
         !loop && "@container",
         className,
       )}
-      style={
-        {
-          "--filterdrop-ink": "var(--jitter-ink, #0e1011)",
-          "--filterdrop-muted": "var(--jitter-gray-600, #666)",
-        } as React.CSSProperties
-      }
+      style={{ "--filterdrop-ink": "var(--jitter-ink, #0e1011)" } as React.CSSProperties}
     >
       <div className={contentClassName}>
         <div className={filterRowClassName}>
           {FILTER_GROUPS.map((group) => {
             const isActive = activeGroup === group.label;
             const isLoopPressed = loopPressedGroup === group.label;
+            const panelId = `${panelIdBase}-${group.label}`;
 
             return (
               <div key={group.label} className={cn("relative", !loop && "@max-[760px]:contents")}>
@@ -157,16 +156,13 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                   type="button"
                   onClick={() => setActiveGroup(isActive ? null : group.label)}
                   aria-expanded={isActive}
-                  aria-haspopup="true"
-                  animate={{
-                    scale: isLoopPressed ? 0.96 : 1,
-                    y: isLoopPressed ? 1 : 0,
-                  }}
+                  aria-controls={panelId}
+                  animate={isLoopPressed ? PRESSED : { scale: 1, y: 0 }}
                   transition={{
                     duration: 0.18,
                     ease: bellCurveEase,
                   }}
-                  whileTap={{ scale: 0.96, y: 1 }}
+                  whileTap={PRESSED}
                   className={cn(
                     "group inline-flex h-[42px] min-w-[112px] items-center justify-between gap-5 rounded-xl px-5 font-mono text-[13px] font-semibold uppercase tracking-[0.14em] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10",
                     !loop && "@max-[760px]:order-1 @max-[760px]:h-11",
@@ -182,6 +178,7 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                 </motion.button>
 
                 <motion.div
+                  id={panelId}
                   initial={false}
                   animate={{
                     opacity: isActive ? 1 : 0,
@@ -198,7 +195,6 @@ export function FilterDropdownReveal({ className, loop = false }: FilterDropdown
                       <button
                         key={option}
                         type="button"
-                        tabIndex={isActive ? 0 : -1}
                         onClick={() => setActiveGroup(null)}
                         className={cn(
                           "relative z-10 flex min-h-[31px] items-center overflow-hidden py-1.5 text-left text-[16px] leading-[1.2] text-white/50 transition-all duration-150 ease-out hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30",
