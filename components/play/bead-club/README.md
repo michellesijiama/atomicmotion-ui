@@ -1,6 +1,6 @@
 # Bead Club
 
-Nine cake designs adapted from a supplied illustration sheet, each made of 166–177 fused beads with soft texture, fine glitter and natural depth. Browse a static two-column menu inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake for a larger view.
+Nine cake designs adapted from a supplied illustration sheet, each made of 500 fused beads with soft texture, fine glitter, natural depth and a softly blurred shadow. Browse a static single-column menu with one large cake per row inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake for a larger view.
 
 ![Bead Club preview](https://atomicmotion.dev/previews/bead-club.png)
 
