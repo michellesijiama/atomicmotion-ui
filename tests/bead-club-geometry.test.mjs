@@ -14,9 +14,9 @@ const code = ts.transpileModule(declarations, { compilerOptions: { target: ts.Sc
 const { cakePatterns, fusedShapes } = new Function('THREE', `${code}; return { cakePatterns, fusedShapes };`)(THREE);
 
 for (const [id, pattern] of Object.entries(cakePatterns)) {
-  test(`${id}: 500 beads, valid colors and no stretched outline`, () => {
+  test(`${id}: 700 beads, valid colors and no stretched outline`, () => {
     const beads = pattern.rows.flatMap((row, y) => [...row].flatMap((c, x) => c === '.' ? [] : [{ x, y, color: pattern.palette[parseInt(c, 24)] }]));
-    assert.equal(beads.length, 500);
+    assert.equal(beads.length, 700);
     assert.ok(beads.every(b => /^#[0-9a-f]{6}$/i.test(b.color)));
     assert.ok(beads.every(b => b.x >= 0 && b.x < 40 && b.y >= 0 && b.y < 42));
     const geometry = new THREE.ExtrudeGeometry(fusedShapes(beads), { depth: .34, bevelEnabled: true, bevelThickness: .13, bevelSize: .14, bevelSegments: 4, curveSegments: 3 });
