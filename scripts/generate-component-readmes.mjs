@@ -108,7 +108,7 @@ export function renderReadme(entry) {
   const usageNotes =
     entry.requiredAssets.length === 0
       ? [
-          `This component is self-contained — the entire component is \`${entry.id}.tsx\`.`,
+          `This component is self-contained, the entire component is \`${entry.id}.tsx\`.`,
           "Copy the source file or this folder into your project. No gallery imports or global theme file are required.",
         ]
       : [
@@ -118,7 +118,7 @@ export function renderReadme(entry) {
           "",
           ...entry.requiredAssets.map(
             (asset) =>
-              `- [${asset.path}](../../../${asset.path.replace(/ \(.*\)$/, "")}) — ${asset.license}. ${asset.credit}`
+              `- [${asset.path}](../../../${asset.path.replace(/ \(.*\)$/, "")}) (${asset.license}). ${asset.credit}`
           ),
           "",
           "Copy the component and every required asset, preserving the attribution above.",

@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 
 export const SITE_URL = "https://atomicmotion.dev";
 export const SITE_NAME = "AtomicMotion";
-export const LIBRARY_NAME = "AtomicMotion UI";
+export const TITLE_SEPARATOR = " | ";
 export const DEFAULT_SHARE_IMAGE = "/previews/gemini-live.png";
 export const DESIGNER = {
   name: "Sijia Ma",
   linkedIn: "https://www.linkedin.com/in/michellesijiama/",
 } as const;
+
+export function pageTitle(...parts: string[]): string {
+  return parts.join(TITLE_SEPARATOR);
+}
 
 export function pageMetadata({
   path,

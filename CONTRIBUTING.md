@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for considering a contribution to AtomicMotion UI.
+Thanks for considering a contribution to AtomicMotion.
 
 AtomicMotion is a free, open-source design library. Public component releases
 are prepared with `npm run export:free`; every registered component and its

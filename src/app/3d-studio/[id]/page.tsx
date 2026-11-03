@@ -5,7 +5,7 @@ import { ModelPreview } from "@/components/website/model-preview";
 import { ModelActions } from "@/components/website/model-actions";
 import { SiteHeader } from "@/components/website/site-header";
 import { getStudioModel, studioModels } from "@/lib/model-registry";
-import { SITE_NAME, pageMetadata } from "@/lib/site-metadata";
+import { SITE_NAME, pageMetadata, pageTitle } from "@/lib/site-metadata";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -15,10 +15,10 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const model = getStudioModel((await params).id);
-  if (!model) return { title: `Model not found — ${SITE_NAME}` };
+  if (!model) return { title: pageTitle("Model not found", SITE_NAME) };
   return pageMetadata({
     path: `/3d-studio/${model.id}`,
-    title: `${model.title} — ${SITE_NAME}`,
+    title: pageTitle(model.title, SITE_NAME),
     description: model.description,
     image: model.image,
   });

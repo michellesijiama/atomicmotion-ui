@@ -1,6 +1,6 @@
 # Jardin Opening
 
-A living hand-illustrated New York garden inside an accurately proportioned 13-inch iPad Pro. A wordless garden slowly draws closer, then the English City in Bloom logo is written one ink stroke at a time. Botanical details and a Manhattan silhouette finish the mark before the entry button appears. Birds fly and flowers sway around distant visitors. Layered scenery adds gentle pointer parallax; reduced motion is respected.
+A hand-illustrated New York garden on a 13-inch iPad Pro where birds fly, flowers sway and layered scenery drifts with your pointer, then a City in Bloom logo is written one ink stroke at a time before an entry button appears
 
 ![Jardin Opening preview](https://atomicmotion.dev/previews/jardin-opening.png)
 
@@ -57,13 +57,13 @@ Named export: `JardinOpening`. Public types: `JardinOpeningProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/components/jardin-living/background-nyc-sunny.png](../../../public/components/jardin-living/background-nyc-sunny.png) — MIT. AI-edited sunny New York garden illustration with a repainted blue sky and warm daylight for AtomicMotion UI.
-- [public/components/jardin-living/midground.png](../../../public/components/jardin-living/midground.png) — MIT. AI-generated transparent garden gate for AtomicMotion UI.
-- [public/components/jardin-living/foreground.png](../../../public/components/jardin-living/foreground.png) — MIT. AI-generated transparent botanical foreground for AtomicMotion UI.
-- [public/components/jardin-living/flower.png](../../../public/components/jardin-living/flower.png) — MIT. AI-generated transparent flower animated at its stem for AtomicMotion UI.
-- [public/components/jardin-living/bird-sprite.png](../../../public/components/jardin-living/bird-sprite.png) — MIT. AI-generated four-frame bird flight cycle for AtomicMotion UI.
-- [public/components/jardin-living/city-in-bloom-logo.png](../../../public/components/jardin-living/city-in-bloom-logo.png) — MIT. AI-generated hand-lettered City in Bloom title logo with botanical flourishes and a Manhattan skyline for AtomicMotion UI.
-- [public/components/jardin-living/garden-visitors.png](../../../public/components/jardin-living/garden-visitors.png) — MIT. AI-generated transparent groups of garden visitors for AtomicMotion UI.
+- [public/components/jardin-living/background-nyc-sunny.png](../../../public/components/jardin-living/background-nyc-sunny.png) (MIT). AI-edited sunny New York garden illustration with a repainted blue sky and warm daylight for AtomicMotion.
+- [public/components/jardin-living/midground.png](../../../public/components/jardin-living/midground.png) (MIT). AI-generated transparent garden gate for AtomicMotion.
+- [public/components/jardin-living/foreground.png](../../../public/components/jardin-living/foreground.png) (MIT). AI-generated transparent botanical foreground for AtomicMotion.
+- [public/components/jardin-living/flower.png](../../../public/components/jardin-living/flower.png) (MIT). AI-generated transparent flower animated at its stem for AtomicMotion.
+- [public/components/jardin-living/bird-sprite.png](../../../public/components/jardin-living/bird-sprite.png) (MIT). AI-generated four-frame bird flight cycle for AtomicMotion.
+- [public/components/jardin-living/city-in-bloom-logo.png](../../../public/components/jardin-living/city-in-bloom-logo.png) (MIT). AI-generated hand-lettered City in Bloom title logo with botanical flourishes and a Manhattan skyline for AtomicMotion.
+- [public/components/jardin-living/garden-visitors.png](../../../public/components/jardin-living/garden-visitors.png) (MIT). AI-generated transparent groups of garden visitors for AtomicMotion.
 
 Copy the component and every required asset, preserving the attribution above.
 

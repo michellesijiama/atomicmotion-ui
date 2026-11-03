@@ -61,7 +61,7 @@ Named export: `ShowreelSphere`. Public types: `ShowreelSphereProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/paintings/ (4 .jpg files)](../../../public/paintings/) — CC0 1.0 Universal (public domain dedication). Renaissance panels from The Metropolitan Museum of Art Open Access (metmuseum.org/art/collection), downscaled reproductions of public-domain works: Fra Carnevale, "The Birth of the Virgin" (1467, object 435848); Pieter Bruegel the Elder, "The Harvesters" (1565, object 435809); Joachim Patinir, "The Penitence of Saint Jerome" (ca. 1515, object 437261); Hieronymus Bosch, "The Adoration of the Magi" (ca. 1475, object 435724).
+- [public/paintings/ (4 .jpg files)](../../../public/paintings/) (CC0 1.0 Universal (public domain dedication)). Renaissance panels from The Metropolitan Museum of Art Open Access (metmuseum.org/art/collection), downscaled reproductions of public-domain works: Fra Carnevale, "The Birth of the Virgin" (1467, object 435848); Pieter Bruegel the Elder, "The Harvesters" (1565, object 435809); Joachim Patinir, "The Penitence of Saint Jerome" (ca. 1515, object 437261); Hieronymus Bosch, "The Adoration of the Magi" (ca. 1475, object 435724).
 
 Copy the component and every required asset, preserving the attribution above.
 

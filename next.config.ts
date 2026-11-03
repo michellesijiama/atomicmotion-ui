@@ -14,7 +14,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
-  allowedDevOrigins: ["127.0.0.1", "localhost"],
+  // Let phones on the same Wi-Fi open the dev server by its LAN address;
+  // Next blocks dev resources (HMR, chunks) for any other hostname.
+  allowedDevOrigins: ["127.0.0.1", "localhost", "192.168.*.*", "10.*.*.*", "*.local"],
   // Components were renamed to match their site titles. These keep the
   // old shared links working — the slugs are the only names that changed.
   async redirects() {

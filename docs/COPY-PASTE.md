@@ -1,6 +1,6 @@
 # Copy-paste integration
 
-AtomicMotion UI distributes source files, rather than an npm component library.
+AtomicMotion distributes source files, rather than an npm component library.
 Each supported folder contains one component source, its named exports, and a
 README generated from that source. Start with [the catalogue](../README.md#components).
 

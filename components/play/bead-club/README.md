@@ -1,6 +1,6 @@
 # Bead Club
 
-Nine cake designs adapted from a supplied illustration sheet, each made of 700 fused beads with soft texture, fine glitter, natural depth and a softly blurred shadow. Browse a single-column menu with centered scroll snapping, a gentle slide-in zoom and one large cake per row inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake to gently enlarge it in place while surrounding text fades into ingredient notes, with a persistent back icon and cake title above. Expanded cakes twinkle with reflective glints and respond to the pointer with a gentle 3D card tilt and forward lift. Cakes settle slightly above the screen center for a balanced composition.
+Nine cake and tart designs made of fused beads, shown in a one-column menu inside an iPhone that snaps each cake to the center with a gentle zoom, then tap one to enlarge it, swap its text for ingredient notes and tilt it with your pointer
 
 ![Bead Club preview](https://atomicmotion.dev/previews/bead-club.png)
 
@@ -61,9 +61,9 @@ Named export: `BeadClub`. Public types: `BeadClubProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/components/bead-club/iphone-16-pro-white.png](../../../public/components/bead-club/iphone-16-pro-white.png) — Apple Design Resources terms. Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/
-- [public/components/bead-club/iphone-screen-mask.svg](../../../public/components/bead-club/iphone-screen-mask.svg) — Apple Design Resources terms. Screen-opening mask derived from the product bezel alpha, for accurate UI placement.
-- [public/components/bead-club/TERMS.txt](../../../public/components/bead-club/TERMS.txt) — Apple Design Resources terms. Retain the device-image terms and supplied cake-art provenance; these visual references are separate from the MIT code license.
+- [public/components/bead-club/iphone-16-pro-white.png](../../../public/components/bead-club/iphone-16-pro-white.png) (Apple Design Resources terms). Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/
+- [public/components/bead-club/iphone-screen-mask.svg](../../../public/components/bead-club/iphone-screen-mask.svg) (Apple Design Resources terms). Screen-opening mask derived from the product bezel alpha, for accurate UI placement.
+- [public/components/bead-club/TERMS.txt](../../../public/components/bead-club/TERMS.txt) (Apple Design Resources terms). Retain the device-image terms and supplied cake-art provenance; these visual references are separate from the MIT code license.
 
 Copy the component and every required asset, preserving the attribution above.
 

@@ -788,7 +788,7 @@ export function DoodleCalendar({ today: todayProp = 13, loop = false, persist = 
               <nav aria-label="Diary navigation" className="absolute inset-x-0" style={{ top: NAV_TOP, height: 44, zIndex: 9 }}>
                 <motion.button
                   type="button"
-                  aria-label="Home — month view"
+                  aria-label="Home, month view"
                   title="Back to all days"
                   onClick={() => { setFilterTopic("all"); setFilterOpen(false); byPersonRef.current = false; returnFocusRef.current = null; close(); }}
                   whileHover={{ backgroundColor: HOVER_PAPER }}
@@ -1517,7 +1517,7 @@ const DayCell = React.memo(function DayCell({ day, info, isToday, image, hasNote
       aria-haspopup="dialog"
       aria-current={isToday ? "date" : undefined}
       style={{ color: isToday ? TODAY_BLUE : TEXT, opacity: dimmed ? 0.2 : 1 }}
-      aria-label={`${info.weekday}, ${MONTH_NAME} ${day} — ${image?.title ?? info.title}`}
+      aria-label={`${info.weekday}, ${MONTH_NAME} ${day}, ${image?.title ?? info.title}`}
       onFocus={onFocus}
       onClick={onOpen}
       whileTap={{ scale: 0.94 }}

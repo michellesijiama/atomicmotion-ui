@@ -70,13 +70,13 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
   // their licence comes with them.
   const selfContainment =
     requiredAssets.length === 0
-      ? ["This component is self-contained — the entire component is that one file."]
+      ? ["This component is self-contained, the entire component is that one file."]
       : [
           "The component code is that one file, but it is NOT fully self-contained:",
           "it loads these files at runtime, so copy them across as well and keep",
           "their attribution:",
           ...requiredAssets.map(
-            (asset) => `- ${asset.path} — ${asset.license}. ${asset.credit}`
+            (asset) => `- ${asset.path} (${asset.license}). ${asset.credit}`
           ),
         ];
 
@@ -88,7 +88,7 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
       ? `/previews/${meta.id}.mp4`
       : undefined,
     aiPrompt: [
-      `Use AtomicMotion UI's ${meta.title} component.`,
+      `Use AtomicMotion's ${meta.title} component.`,
       `Source: ${codeHref}`,
       `File: ${fileName}`,
       `Setup, tested dependencies, props and asset instructions: ${readmeHref}`,
@@ -107,7 +107,7 @@ export const componentRegistry = {
     index: "022",
     title: "Bead Club",
     description:
-      "Nine cake designs adapted from a supplied illustration sheet, each made of 700 fused beads with soft texture, fine glitter, natural depth and a softly blurred shadow. Browse a single-column menu with centered scroll snapping, a gentle slide-in zoom and one large cake per row inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake to gently enlarge it in place while surrounding text fades into ingredient notes, with a persistent back icon and cake title above. Expanded cakes twinkle with reflective glints and respond to the pointer with a gentle 3D card tilt and forward lift. Cakes settle slightly above the screen center for a balanced composition.",
+      "Nine cake and tart designs made of fused beads, shown in a one-column menu inside an iPhone that snaps each cake to the center with a gentle zoom, then tap one to enlarge it, swap its text for ingredient notes and tilt it with your pointer",
     category: "Play",
     createdAt: "2026-11-02",
     codePath: "components/play/bead-club/bead-club.tsx",
@@ -147,18 +147,18 @@ export const componentRegistry = {
     index: "020",
     title: "Jardin Opening",
     description:
-      "A living hand-illustrated New York garden inside an accurately proportioned 13-inch iPad Pro. A wordless garden slowly draws closer, then the English City in Bloom logo is written one ink stroke at a time. Botanical details and a Manhattan silhouette finish the mark before the entry button appears. Birds fly and flowers sway around distant visitors. Layered scenery adds gentle pointer parallax; reduced motion is respected.",
+      "A hand-illustrated New York garden on a 13-inch iPad Pro where birds fly, flowers sway and layered scenery drifts with your pointer, then a City in Bloom logo is written one ink stroke at a time before an entry button appears",
     category: "Immersive",
     createdAt: "2026-10-26",
     codePath: "components/immersive/jardin-opening/jardin-opening.tsx",
     requiredAssets: [
-      { path: "public/components/jardin-living/background-nyc-sunny.png", license: "MIT", credit: "AI-edited sunny New York garden illustration with a repainted blue sky and warm daylight for AtomicMotion UI." },
-      { path: "public/components/jardin-living/midground.png", license: "MIT", credit: "AI-generated transparent garden gate for AtomicMotion UI." },
-      { path: "public/components/jardin-living/foreground.png", license: "MIT", credit: "AI-generated transparent botanical foreground for AtomicMotion UI." },
-      { path: "public/components/jardin-living/flower.png", license: "MIT", credit: "AI-generated transparent flower animated at its stem for AtomicMotion UI." },
-      { path: "public/components/jardin-living/bird-sprite.png", license: "MIT", credit: "AI-generated four-frame bird flight cycle for AtomicMotion UI." },
-      { path: "public/components/jardin-living/city-in-bloom-logo.png", license: "MIT", credit: "AI-generated hand-lettered City in Bloom title logo with botanical flourishes and a Manhattan skyline for AtomicMotion UI." },
-      { path: "public/components/jardin-living/garden-visitors.png", license: "MIT", credit: "AI-generated transparent groups of garden visitors for AtomicMotion UI." },
+      { path: "public/components/jardin-living/background-nyc-sunny.png", license: "MIT", credit: "AI-edited sunny New York garden illustration with a repainted blue sky and warm daylight for AtomicMotion." },
+      { path: "public/components/jardin-living/midground.png", license: "MIT", credit: "AI-generated transparent garden gate for AtomicMotion." },
+      { path: "public/components/jardin-living/foreground.png", license: "MIT", credit: "AI-generated transparent botanical foreground for AtomicMotion." },
+      { path: "public/components/jardin-living/flower.png", license: "MIT", credit: "AI-generated transparent flower animated at its stem for AtomicMotion." },
+      { path: "public/components/jardin-living/bird-sprite.png", license: "MIT", credit: "AI-generated four-frame bird flight cycle for AtomicMotion." },
+      { path: "public/components/jardin-living/city-in-bloom-logo.png", license: "MIT", credit: "AI-generated hand-lettered City in Bloom title logo with botanical flourishes and a Manhattan skyline for AtomicMotion." },
+      { path: "public/components/jardin-living/garden-visitors.png", license: "MIT", credit: "AI-generated transparent groups of garden visitors for AtomicMotion." },
     ],
   }),
   emojiSketch: createComponentMeta({
@@ -166,7 +166,7 @@ export const componentRegistry = {
     index: "001",
     title: "Emoji Sketch",
     description:
-      "Pick an emoji and watch it drawn on, stroke by stroke, as a hand-sketched line animation — real OpenMoji vector paths self-drawing with a subtle pencil wobble.",
+      "A tiled grid of pastel OpenMoji stickers that draw themselves stroke by stroke in a wave, and redraw when you hover one",
     category: "Play",
     createdAt: "2026-06-20",
     codePath: "components/play/emoji-sketch/emoji-sketch.tsx",
@@ -245,7 +245,7 @@ export const componentRegistry = {
     index: "008",
     title: "Geometric Logo Reveal",
     description:
-      "A geometric wordmark assembles from a gray ghost — letters fill to ink in a staggered left-to-right cascade, settling into the solid logo",
+      "A geometric wordmark that assembles from a gray ghost, its letters filling to ink in a staggered left-to-right cascade that settles into the solid logo",
     category: "Typography",
     createdAt: "2026-07-08",
     codePath: "components/typography/geometric-logo-reveal/geometric-logo-reveal.tsx",
@@ -267,7 +267,7 @@ export const componentRegistry = {
         path: "public/models/gummy-bear.glb",
         license: "CC-BY 3.0",
         credit:
-          '"Gummy Bear" by Poly by Google, via Poly Pizza (https://poly.pizza/m/5zl16PPAItW) — attribution required.',
+          '"Gummy Bear" by Poly by Google, via Poly Pizza (https://poly.pizza/m/5zl16PPAItW), attribution required.',
       },
       {
         path: "public/gummy-bear-poster.png",
@@ -284,7 +284,7 @@ export const componentRegistry = {
     index: "010",
     title: "Scroll Phase Cursor",
     description:
-      "A circular pointer whose ring fills with page progress while a sculpted 3D form rotates with the scroll",
+      "A ring cursor that follows your pointer and fills with scroll progress as you scroll through a deck of slide plates",
     category: "Cursor",
     createdAt: "2026-08-06",
     codePath: "components/cursor/scroll-phase-cursor/scroll-phase-cursor.tsx",
@@ -333,7 +333,7 @@ export const componentRegistry = {
     index: "013",
     title: "Coffee Gauge",
     description:
-      "Three hand-drawn coffee cups on a periwinkle card, each a liquid gauge that pours and drains on its own rhythm — empty they read as outlines, full they read as the solid silhouette; open the card and you can log what you actually drank",
+      "Three hand-drawn coffee cups on a periwinkle card, each a liquid gauge that pours and drains on its own rhythm, empty as an outline and full as a solid silhouette, with plus and minus buttons to log what you drank",
     category: "Data Visualization",
     createdAt: "2026-08-23",
     codePath: "components/data-visualization/coffee-gauge/coffee-gauge.tsx",
@@ -343,7 +343,7 @@ export const componentRegistry = {
     index: "014",
     title: "Halftone Bloom",
     description:
-      "A progress indicator drawn as a stippled moon — a lunar photograph resampled into coloured dots that light left to right like a terminator crossing the disc, from new moon at nothing to full at a hundred; collapsed it sits as a glance-sized moon at the same phase",
+      "A progress indicator drawn as a stippled moon of coloured dots that light from left to right, from new moon to full, and shrinks to a small moon at the same phase when collapsed",
     category: "Data Visualization",
     createdAt: "2026-09-03",
     codePath: "components/data-visualization/halftone-bloom/halftone-bloom.tsx",
@@ -353,7 +353,7 @@ export const componentRegistry = {
     index: "015",
     title: "Blossom Light",
     description:
-      "A square of wall whose light is the controls in the middle of it: leaf shadow on white plaster, dimmed and lifted by a brightness pill that fills line by line, turned from cool to amber by a tone slider, and sent to follow the weather outside by an Adaptive toggle, while the leaf shadow on the wall stirs in a wind — all flat frosted glass, scaling itself to fit wherever it is put",
+      "A wall of blossom shadow where a brightness pill fills line by line, a tone slider shifts the light from cool to amber and an Adaptive toggle follows the weather outside, all in flat frosted glass",
     category: "Control",
     createdAt: "2026-09-09",
     codePath: "components/control/blossom-light/blossom-light.tsx",
@@ -370,7 +370,7 @@ export const componentRegistry = {
     index: "016",
     title: "Gradient Event Card",
     description:
-      "Eight event cards on a ring inside a phone lying on its side — swipe and they follow your finger and snap one page at a time, the neighbours turning away like cover flow. Each card is a heat-map field with circles, ellipses, arcs and coils painted onto it as heat, every shape its own halo-to-core gradient, in palettes borrowed from painters — Monet, Rothko, Hilma af Klint, O'Keeffe kept cohesive; Matisse and Delaunay loud — rippling, breathing, orbiting and swaying under printed grain",
+      "Eight event cards on a ring inside a phone on its side, swiped one page at a time like cover flow, each a glowing heat map of circles, arcs and coils in painter-inspired palettes that ripple and orbit under printed grain",
     category: "Gradient",
     createdAt: "2026-09-18",
     codePath: "components/gradient/gradient-event-card/gradient-event-card.tsx",
@@ -380,7 +380,7 @@ export const componentRegistry = {
     index: "017",
     title: "Stamp Tracker",
     description:
-      "Four habits as a deck of tall blocks of risograph colour on a bare black phone screen — sky, cocoa, pink and mint, each with its own pattern ink — fanned like a loose stack. Swipe through water, coffee, move and read with a silky, interruptible gesture that follows a finger or a two-finger trackpad swipe, flip between Day, Week and Month, and tap a day to press a rubber stamp onto it. The middle of each card holds a loose hand-inked line drawing in the style of a Japanese tabletop illustration, with a tiny person getting up to something among the objects",
+      "Four habits as a fanned deck of risograph-colored cards on a black phone screen, swipe through water, coffee, move and read, switch between Day, Week and Month, and tap a day to press a rubber stamp onto it",
     category: "Data Visualization",
     createdAt: "2026-09-30",
     codePath: "components/data-visualization/stamp-tracker/stamp-tracker.tsx",
@@ -390,25 +390,25 @@ export const componentRegistry = {
     index: "018",
     title: "Doodle Calendar",
     description:
-      "A sketchbook-style diary for everyday life in Japan. Tap today’s +, write a note, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and refreshing the preview starts a fresh diary.",
+      "A sketchbook-style diary for everyday life in Japan where you tap today's plus, write a note and tap Sketch it to preview a matching pencil illustration, with today highlighted in blue",
     category: "Data Visualization",
     createdAt: "2026-09-29",
     codePath: "components/data-visualization/doodle-calendar/doodle-calendar.tsx",
     requiredAssets: [
-      { path: "public/illustrations/doodle-calendar-diary/coffee.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/coffee-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/bento.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/bento-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/exercise.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/exercise-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/train.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/train-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/rain.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/rain-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/home.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/home-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/shrine.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
-      { path: "public/illustrations/doodle-calendar-diary/shrine-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion UI." },
+      { path: "public/illustrations/doodle-calendar-diary/coffee.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/coffee-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/bento.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/bento-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/exercise.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/exercise-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/train.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/train-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/rain.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/rain-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/home.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/home-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/shrine.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
+      { path: "public/illustrations/doodle-calendar-diary/shrine-thumb.webp", license: "MIT", credit: "Generated monochrome diary illustration for AtomicMotion." },
     ],
   }),
   pocketPiggy: createComponentMeta({

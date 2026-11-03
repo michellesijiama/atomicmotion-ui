@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { SitePage } from "@/components/website/site-page";
 import { StudioModelBrowser } from "@/components/website/studio-model-browser";
 import { studioModels } from "@/lib/model-registry";
-import { SITE_NAME, pageMetadata } from "@/lib/site-metadata";
+import { SITE_NAME, pageMetadata, pageTitle } from "@/lib/site-metadata";
 
 export const metadata: Metadata = pageMetadata({
   path: "/3d-studio",
-  title: `3D Studio — ${SITE_NAME}`,
+  title: pageTitle("3D Studio", SITE_NAME),
   description: "Explore creative AI-generated animations and download the editable Blender files.",
   image: studioModels[0]?.image,
 });

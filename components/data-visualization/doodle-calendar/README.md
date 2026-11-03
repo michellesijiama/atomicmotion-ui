@@ -1,6 +1,6 @@
 # Doodle Calendar
 
-A sketchbook-style diary for everyday life in Japan. Tap today’s +, write a note, and tap Sketch it to preview a matching pencil illustration. Today is highlighted in blue, and refreshing the preview starts a fresh diary.
+A sketchbook-style diary for everyday life in Japan where you tap today's plus, write a note and tap Sketch it to preview a matching pencil illustration, with today highlighted in blue
 
 ![Doodle Calendar preview](https://atomicmotion.dev/previews/doodle-calendar.png)
 
@@ -58,20 +58,20 @@ Named export: `DoodleCalendar`. Public types: `MomentKind`, `CalendarDay`, `Dood
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/illustrations/doodle-calendar-diary/coffee.webp](../../../public/illustrations/doodle-calendar-diary/coffee.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/coffee-thumb.webp](../../../public/illustrations/doodle-calendar-diary/coffee-thumb.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/bento.webp](../../../public/illustrations/doodle-calendar-diary/bento.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/bento-thumb.webp](../../../public/illustrations/doodle-calendar-diary/bento-thumb.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/exercise.webp](../../../public/illustrations/doodle-calendar-diary/exercise.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/exercise-thumb.webp](../../../public/illustrations/doodle-calendar-diary/exercise-thumb.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/train.webp](../../../public/illustrations/doodle-calendar-diary/train.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/train-thumb.webp](../../../public/illustrations/doodle-calendar-diary/train-thumb.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/rain.webp](../../../public/illustrations/doodle-calendar-diary/rain.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/rain-thumb.webp](../../../public/illustrations/doodle-calendar-diary/rain-thumb.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/home.webp](../../../public/illustrations/doodle-calendar-diary/home.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/home-thumb.webp](../../../public/illustrations/doodle-calendar-diary/home-thumb.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/shrine.webp](../../../public/illustrations/doodle-calendar-diary/shrine.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
-- [public/illustrations/doodle-calendar-diary/shrine-thumb.webp](../../../public/illustrations/doodle-calendar-diary/shrine-thumb.webp) — MIT. Generated monochrome diary illustration for AtomicMotion UI.
+- [public/illustrations/doodle-calendar-diary/coffee.webp](../../../public/illustrations/doodle-calendar-diary/coffee.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/coffee-thumb.webp](../../../public/illustrations/doodle-calendar-diary/coffee-thumb.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/bento.webp](../../../public/illustrations/doodle-calendar-diary/bento.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/bento-thumb.webp](../../../public/illustrations/doodle-calendar-diary/bento-thumb.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/exercise.webp](../../../public/illustrations/doodle-calendar-diary/exercise.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/exercise-thumb.webp](../../../public/illustrations/doodle-calendar-diary/exercise-thumb.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/train.webp](../../../public/illustrations/doodle-calendar-diary/train.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/train-thumb.webp](../../../public/illustrations/doodle-calendar-diary/train-thumb.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/rain.webp](../../../public/illustrations/doodle-calendar-diary/rain.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/rain-thumb.webp](../../../public/illustrations/doodle-calendar-diary/rain-thumb.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/home.webp](../../../public/illustrations/doodle-calendar-diary/home.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/home-thumb.webp](../../../public/illustrations/doodle-calendar-diary/home-thumb.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/shrine.webp](../../../public/illustrations/doodle-calendar-diary/shrine.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
+- [public/illustrations/doodle-calendar-diary/shrine-thumb.webp](../../../public/illustrations/doodle-calendar-diary/shrine-thumb.webp) (MIT). Generated monochrome diary illustration for AtomicMotion.
 
 Copy the component and every required asset, preserving the attribution above.
 

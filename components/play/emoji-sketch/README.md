@@ -1,6 +1,6 @@
 # Emoji Sketch
 
-Pick an emoji and watch it drawn on, stroke by stroke, as a hand-sketched line animation — real OpenMoji vector paths self-drawing with a subtle pencil wobble.
+A tiled grid of pastel OpenMoji stickers that draw themselves stroke by stroke in a wave, and redraw when you hover one
 
 ![Emoji Sketch preview](https://atomicmotion.dev/previews/emoji-sketch.png)
 
@@ -55,8 +55,8 @@ Named export: `EmojiSketch`. Public types: `EmojiSketchProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/emoji/ (40 .svg files)](../../../public/emoji/) — CC BY-SA 4.0. OpenMoji project and contributors, v15.0.0 black SVGs. Serve at /emoji/; preserve the share-alike notice.
-- [licenses/OpenMoji-CC-BY-SA-4.0.txt](../../../licenses/OpenMoji-CC-BY-SA-4.0.txt) — CC BY-SA 4.0. Copy the attribution and share-alike notice with the SVG assets.
+- [public/emoji/ (40 .svg files)](../../../public/emoji/) (CC BY-SA 4.0). OpenMoji project and contributors, v15.0.0 black SVGs. Serve at /emoji/; preserve the share-alike notice.
+- [licenses/OpenMoji-CC-BY-SA-4.0.txt](../../../licenses/OpenMoji-CC-BY-SA-4.0.txt) (CC BY-SA 4.0). Copy the attribution and share-alike notice with the SVG assets.
 
 Copy the component and every required asset, preserving the attribution above.
 

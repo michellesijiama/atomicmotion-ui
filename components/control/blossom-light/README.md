@@ -1,6 +1,6 @@
 # Blossom Light
 
-A square of wall whose light is the controls in the middle of it: leaf shadow on white plaster, dimmed and lifted by a brightness pill that fills line by line, turned from cool to amber by a tone slider, and sent to follow the weather outside by an Adaptive toggle, while the leaf shadow on the wall stirs in a wind — all flat frosted glass, scaling itself to fit wherever it is put
+A wall of blossom shadow where a brightness pill fills line by line, a tone slider shifts the light from cool to amber and an Adaptive toggle follows the weather outside, all in flat frosted glass
 
 ![Blossom Light preview](https://atomicmotion.dev/previews/blossom-light.png)
 
@@ -58,7 +58,7 @@ Named export: `BlossomLight`. Public types: `BlossomLightProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/textures/wall-shadow.jpg](../../../public/textures/wall-shadow.jpg) — Supplied by the component author; confirm terms before redistributing. Leaf-shadow photograph supplied by the AtomicMotion author.
+- [public/textures/wall-shadow.jpg](../../../public/textures/wall-shadow.jpg) (Supplied by the component author; confirm terms before redistributing). Leaf-shadow photograph supplied by the AtomicMotion author.
 
 Copy the component and every required asset, preserving the attribution above.
 

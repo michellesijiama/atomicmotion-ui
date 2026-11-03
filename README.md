@@ -1,8 +1,8 @@
-# AtomicMotion — Design Library
+# AtomicMotion | Design Library
 
 [![CI](https://github.com/michellesijiama/atomicmotion-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/michellesijiama/atomicmotion-ui/actions/workflows/ci.yml)
 
-![Four AtomicMotion UI components: Gemini Live, Gradient Gummy Bear, Emoji Sketch, and Scroll Phase Cursor](docs/images/hero.png)
+![Four AtomicMotion components: Gemini Live, Gradient Gummy Bear, Emoji Sketch, and Scroll Phase Cursor](docs/images/hero.png)
 
 A design library of expressive interfaces and interactions for designers and
 frontend developers. Explore every [live demo](https://atomicmotion.dev) for

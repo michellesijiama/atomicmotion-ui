@@ -5,7 +5,7 @@ import { ComponentStage, StageHeader } from "@/components/website/component-stag
 import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
 import { componentList, getComponentById } from "@/lib/component-registry";
-import { LIBRARY_NAME, pageMetadata } from "@/lib/site-metadata";
+import { SITE_NAME, pageMetadata, pageTitle } from "@/lib/site-metadata";
 
 type ComponentDetailPageProps = {
   params: Promise<{
@@ -27,13 +27,13 @@ export async function generateMetadata({
 
   if (!component) {
     return {
-      title: `Component not found — ${LIBRARY_NAME}`,
+      title: pageTitle("Component not found", SITE_NAME),
     };
   }
 
   return pageMetadata({
     path: `/components/${component.id}`,
-    title: `${component.title} — ${LIBRARY_NAME}`,
+    title: pageTitle(component.title, SITE_NAME),
     description: component.description,
     image: component.previewImage,
   });
