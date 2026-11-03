@@ -1,6 +1,6 @@
 # Bead Club
 
-A light cake menu made of fused bead art inside a silver iPhone that fits the screen height, with transparent progressive blur along the top and bottom. Browse eight static cream and jelly cakes in a compact two-column grid with category buttons, prices and descriptions. Tap any cake to see its complete artwork and details.
+Nine cake designs adapted from a supplied illustration sheet, each made of 166–177 fused beads with soft texture, fine glitter and natural depth. Browse a static two-column menu inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake for a larger view.
 
 ![Bead Club preview](https://atomicmotion.dev/previews/bead-club.png)
 
@@ -60,7 +60,7 @@ Named export: `BeadClub`. Public types: `BeadClubProps`.
 
 The component code is one file, but it also loads these files at runtime:
 
-- [public/components/bead-club/fused-pearl-grain.png](../../../public/components/bead-club/fused-pearl-grain.png) — MIT. Original pearlescent fused-plastic microtexture generated with built-in ImageGen for AtomicMotion UI.
+- [public/components/bead-club/fused-pearl-grain.png](../../../public/components/bead-club/fused-pearl-grain.png) — MIT. Original pearlescent fused-plastic microtexture generated with built-in ImageGen for AtomicMotion UI. Cake bead maps were adapted from a user-supplied illustration sheet; no separate license for the reference artwork was supplied.
 - [public/components/bead-club/iphone-16-pro-white.png](../../../public/components/bead-club/iphone-16-pro-white.png) — Apple Design Resources terms. Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/
 - [public/components/bead-club/iphone-screen-mask.svg](../../../public/components/bead-club/iphone-screen-mask.svg) — Apple Design Resources terms. Screen-opening mask derived from the product bezel alpha, for accurate UI placement.
 - [public/components/bead-club/TERMS.txt](../../../public/components/bead-club/TERMS.txt) — Apple Design Resources terms. Retain the source and product-bezel usage terms; this asset is not MIT-licensed.

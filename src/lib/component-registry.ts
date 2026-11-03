@@ -109,7 +109,7 @@ export const componentRegistry = {
     index: "022",
     title: "Bead Club",
     description:
-      "A light cake menu made of fused bead art inside a silver iPhone that fits the screen height, with transparent progressive blur along the top and bottom. Browse eight static cream and jelly cakes in a compact two-column grid with category buttons, prices and descriptions. Tap any cake to see its complete artwork and details.",
+      "Nine cake designs adapted from a supplied illustration sheet, each made of 166–177 fused beads with soft texture, fine glitter and natural depth. Browse a static two-column menu inside a silver iPhone, with category buttons, prices, descriptions and transparent progressive blur at the top and bottom. Tap a cake for a larger view.",
     category: "Play",
     status: "NEW",
     statusClassName: "bg-[var(--jitter-orange)]/12 text-[var(--jitter-orange)]",
@@ -117,7 +117,7 @@ export const componentRegistry = {
     codePath: "components/play/bead-club/bead-club.tsx",
     previewStatic: true,
     requiredAssets: [
-      { path: "public/components/bead-club/fused-pearl-grain.png", license: "MIT", credit: "Original pearlescent fused-plastic microtexture generated with built-in ImageGen for AtomicMotion UI." },
+      { path: "public/components/bead-club/fused-pearl-grain.png", license: "MIT", credit: "Original pearlescent fused-plastic microtexture generated with built-in ImageGen for AtomicMotion UI. Cake bead maps were adapted from a user-supplied illustration sheet; no separate license for the reference artwork was supplied." },
       { path: "public/components/bead-club/iphone-16-pro-white.png", license: "Apple Design Resources terms", credit: "Apple Inc. iPhone 16 Pro White Titanium product bezel, from Apple Design Resources, supplied via jamesjingyi/mockup-device-frames. https://developer.apple.com/design/resources/" },
       { path: "public/components/bead-club/iphone-screen-mask.svg", license: "Apple Design Resources terms", credit: "Screen-opening mask derived from the product bezel alpha, for accurate UI placement." },
       { path: "public/components/bead-club/TERMS.txt", license: "Apple Design Resources terms", credit: "Retain the source and product-bezel usage terms; this asset is not MIT-licensed." },

@@ -14,169 +14,444 @@ export type BeadClubProps = {
 
 type Bead = { x: number; y: number; color: string };
 type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry" | "jelly";
-type Artwork = { material: BeadMaterial; id: string; name: string; price: string; description: string; category: "Cream" | "Jelly"; background: string; beads: Bead[]; colors: string[]; translucentColors?: readonly string[] };
+type Artwork = { id: string; name: string; price: string; description: string; category: "Tarts" | "Cakes"; beads: Bead[]; material: BeadMaterial; translucentColors?: readonly string[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
-
 const APP_BACKGROUND = "#f2f2f2";
-const JELLY_COLORS: Record<string, readonly string[]> = {
-  "cake-peach": ["#ffad83", "#f18489", "#ffd1a3"],
-  "cake-violet": ["#c5a6f4", "#967bcf", "#e1cefa"],
+// Simplified from the user-supplied cake illustration sheet. Each occupied cell
+// represents one bead, with 166–177 beads per cake and a limited color palette.
+// The reference artwork retains its own rights, separate from the component code.
+const cakePatterns: Record<string, { palette: string[]; rows: string[] }> = {
+  "lavender-grape-tart": {
+    "palette": [
+      "#b0696e",
+      "#deba94",
+      "#f2c884",
+      "#d67e72",
+      "#e4a66a",
+      "#dea928",
+      "#eebe6b",
+      "#e6b145",
+      "#f7c5b8",
+      "#d2a696",
+      "#edbca6",
+      "#d79e7f",
+      "#e68987",
+      "#c86c37",
+      "#dc8b4d",
+      "#a24d31"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "..............bf........",
+      ".............520f.......",
+      ".........efe761eff0a....",
+      "......a27622245dffe68...",
+      "....83d7576667e64dd788..",
+      "...8bee5557757776ed68a..",
+      "...8ee446a166a42146a8a..",
+      "..884488a9a1a991a8888...",
+      "..0bba8ab0bb3b9bb1a99...",
+      "...3c3df3c3cc33c33cf....",
+      "...d4eddeeeeeeeeee3f....",
+      "...ffdddddddddddddf.....",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  },
+  "rose-lychee-tart": {
+    "palette": [
+      "#f6382a",
+      "#f31505",
+      "#e3a76a",
+      "#e6c393",
+      "#f5e0ca",
+      "#f6ebda",
+      "#f2d9bb",
+      "#f3d091",
+      "#f8daa7",
+      "#eecba1",
+      "#f89d76",
+      "#dcb981",
+      "#e18761",
+      "#f0b786",
+      "#e45f39",
+      "#d38538"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "...............00.......",
+      "...............000......",
+      "..........00e8c110c.....",
+      ".........a1002bf2e0e....",
+      "......784d01ed366dce....",
+      "....8884499346d9d656....",
+      "...88964dd66466569646...",
+      "...877d87799939646389...",
+      "...2787b33999739969a....",
+      "....23233bb3bb33993d....",
+      "....fffcccccccbbbb9dc...",
+      "....ffffffffeec2ccce....",
+      ".....fffffffffffffef....",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  },
+  "pistachio-roll": {
+    "palette": [
+      "#f2dcc4",
+      "#7b8623",
+      "#ceca99",
+      "#a5ae56",
+      "#b7bd6c",
+      "#c6be7d",
+      "#f7d1a1",
+      "#e8cc89",
+      "#efce97",
+      "#e5cea9",
+      "#e3a891",
+      "#d1ca70",
+      "#f4c99a",
+      "#e7bd93",
+      "#d27667",
+      "#eebaa6"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "..............99d.......",
+      "............15009d......",
+      "...........139009dd.....",
+      ".........34320999dd.....",
+      "......3434334009994.....",
+      ".....4444444459995b5....",
+      "...77777786c6888866f....",
+      "...77ccccc778c86886f....",
+      "...bbbb97bbbbbbbbb7f....",
+      "...bbbb8d77b8877bbcf....",
+      "...76cccdadcaddcdc6f....",
+      "...ffffafaaaeeeeaa0f....",
+      "...fadfdaaadd...........",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  },
+  "bayberry-lychee-cake": {
+    "palette": [
+      "#e8b832",
+      "#dbb666",
+      "#dba50f",
+      "#e2ce99",
+      "#ddc68c",
+      "#e4d7ab",
+      "#d7c7a7",
+      "#eae6d9",
+      "#cab7a2",
+      "#d2bd92",
+      "#dad1be",
+      "#caaf7e",
+      "#ecd79d",
+      "#c8a144",
+      "#e8d18d",
+      "#eacd79"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "..........fbbce.........",
+      ".........01d654f........",
+      "........200d1d1ef.......",
+      ".......2200fd2d003......",
+      "......222200220e3aa.....",
+      "......022015a569bb6.....",
+      ".....7e0f3699b9bbb6.....",
+      "....7769699b85f687a.....",
+      "....b9b98888022b36a.....",
+      "....157a8bd20b955b8.....",
+      ".....691140db434338.....",
+      ".....911f1b3e34333......",
+      ".....1333c4ccec496......",
+      ".....eccc4bbbb..........",
+      ".....bb.................",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  },
+  "blueberry-basque": {
+    "palette": [
+      "#d6a5b3",
+      "#b57d90",
+      "#d2b97a",
+      "#3c484e",
+      "#c592a2",
+      "#e5c0d1",
+      "#5f5a64",
+      "#9d6c74",
+      "#806a46",
+      "#93944b",
+      "#7a6d72",
+      "#b0774a",
+      "#8b8751",
+      "#7c816a",
+      "#876463",
+      "#6d7580"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "...............0........",
+      "..............045.......",
+      "..............4100......",
+      "............361114......",
+      ".........1476614105.....",
+      "......4100246364114.....",
+      "....e1414420a3a4445.....",
+      "....77777771a361405b....",
+      "....9999ce77e3e17148....",
+      "....88888ccc99ce777b....",
+      ".....ffffa888888668b....",
+      ".....fffd9cdccc9ff6b....",
+      ".....e7aaddfc999ffa.....",
+      "......eeeaaaddddffa.....",
+      "............eaaaac8.....",
+      ".................88.....",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  },
+  "mango-lychee-basque": {
+    "palette": [
+      "#d4c3a0",
+      "#e2d4bc",
+      "#cb917e",
+      "#c75e63",
+      "#b28d8b",
+      "#b3a580",
+      "#f1e2d4",
+      "#e5bec2",
+      "#969b59",
+      "#c3a59d",
+      "#dbb8b7",
+      "#d5adae",
+      "#c7b19d",
+      "#987a6a",
+      "#a79a6c",
+      "#878a4a"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "...........100..........",
+      "..........160001........",
+      "..........16100161......",
+      "..........1cc22216......",
+      ".......a77ff233e161.....",
+      "....a7677794023c666.....",
+      "....e5559a77aa01661.....",
+      "....888888e5caaab7......",
+      ".....ac9cc55e888eb......",
+      "....ba9c994ba9cefb......",
+      "....7aaaaabb99b7bb......",
+      "....74ddde9c9cc997b.....",
+      ".....59444dddde8fb7.....",
+      ".....f88e5544ddb59b.....",
+      "...........8e5cbbba.....",
+      "...............ffba.....",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  },
+  "guava-crepe-cake": {
+    "palette": [
+      "#e1da8d",
+      "#f7cecc",
+      "#f2c1c0",
+      "#cabb3e",
+      "#e89f9e",
+      "#a3a37b",
+      "#ef7a66",
+      "#b6b18f",
+      "#b0ba62",
+      "#839b63",
+      "#ce9182",
+      "#bdb270",
+      "#718f49",
+      "#c9b19e",
+      "#e0bab3",
+      "#fbe2e6"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "............036.........",
+      "..........600066........",
+      ".....21112b8886622......",
+      "....72221f03333ce1e.....",
+      "....5577ddebbd7ca12.....",
+      "....b8bd757d44ea42......",
+      "....888888dd77d41e......",
+      "....77bb888b877d4a......",
+      ".....9577bb888d2aa......",
+      ".....e599577b8b14a......",
+      "....5e44d9c995d1ea4.....",
+      ".....c9d142e599eee1.....",
+      "........997e44dee12.....",
+      "...........c997ff1......",
+      "...............a2.......",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  },
+  "yogurt-mille-feuille": {
+    "palette": [
+      "#edb886",
+      "#dea16c",
+      "#edd5af",
+      "#fae6c4",
+      "#fffcf3",
+      "#e89615",
+      "#eedcbc",
+      "#f3e0be",
+      "#957e22",
+      "#b8c4d2",
+      "#99b1d2",
+      "#96b2d6",
+      "#809bbf",
+      "#9db5d7",
+      "#92abcd",
+      "#a3bad9"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      ".................0......",
+      ".................0......",
+      "..............88.11.0...",
+      "..............81.1120...",
+      "..............8811101...",
+      "..........2732885101....",
+      "........27363055811.....",
+      "......6276666605555.....",
+      ".....23226666662555.....",
+      "...6322267777774155.....",
+      "...9999999999999999.....",
+      "...9faaaaeaeaaadebf.....",
+      "...aeedffaaeeeadeaf.....",
+      "...fdeaffeeffddaeaa.....",
+      "...fdeeeeddddbaeeda.....",
+      "......c........cc.......",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  },
+  "raspberry-basque": {
+    "palette": [
+      "#d1b494",
+      "#b65034",
+      "#f5ca6f",
+      "#f8f5ec",
+      "#c3925e",
+      "#f3ede1",
+      "#dec7a3",
+      "#eee6d8",
+      "#e0c9be",
+      "#e7d6c4",
+      "#d3aa71",
+      "#c8943d",
+      "#d0ba51",
+      "#dbd375",
+      "#d6c963",
+      "#e5df82"
+    ],
+    "rows": [
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "..............aa........",
+      "............42141.......",
+      "............12bb1.......",
+      "..........b011111.......",
+      "......662ce98411a9......",
+      ".....3337955959664c.....",
+      "....9577555597737693....",
+      "....8888888988999573....",
+      "....898888888889888.....",
+      "....899999988880ba8.....",
+      "....4aa00660686bccc.....",
+      "....edcceecccccedfe.....",
+      "....ffddddeeddfeced.....",
+      "....dddddffffffdcec.....",
+      ".............dddedc.....",
+      "........................",
+      "........................",
+      "........................",
+      "........................",
+      "........................"
+    ]
+  }
 };
 
-// Original cake patterns on a shared bead grid.
-function makePattern(id: string): Bead[] {
-  const cells = new Map<string, Bead>();
-  const dot = (x: number, y: number, color: string) => cells.set(`${x},${y}`, { x, y, color });
-  const oval = (cx: number, cy: number, rx: number, ry: number, color: string) => {
-    for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) {
-      if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1) dot(x, y, color);
-    }
-  };
-  const rect = (x: number, y: number, w: number, h: number, color: string) => {
-    for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) dot(x + dx, y + dy, color);
-  };
-  const line = (x1: number, y1: number, x2: number, y2: number, color: string) => {
-    const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
-    for (let i = 0; i <= steps; i++) dot(Math.round(x1 + (x2 - x1) * i / steps), Math.round(y1 + (y2 - y1) * i / steps), color);
-  };
-  const heart = (cx: number, cy: number, rx: number, ry: number, color: string) => {
-    for (let y = Math.floor(cy - ry * 1.3); y <= cy + ry; y++) for (let x = Math.floor(cx - rx * 1.2); x <= cx + rx * 1.2; x++) {
-      const nx = (x - cx) / rx, ny = (cy - y) / ry;
-      if ((nx * nx + ny * ny - 1) ** 3 - nx * nx * ny ** 3 <= 0) dot(x, y, color);
-    }
-  };
-  const polygon = (points: number[][], color: string) => {
-    for (let y = Math.min(...points.map(p => p[1])); y <= Math.max(...points.map(p => p[1])); y++) for (let x = Math.min(...points.map(p => p[0])); x <= Math.max(...points.map(p => p[0])); x++) {
-      let inside = false;
-      for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
-        const a = points[i], b = points[j];
-        if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
-      }
-      if (inside) dot(x, y, color);
-    }
-  };
-  const flower = (x: number, y: number, size: number, petals: string, center: string) => {
-    for (let i = 0; i < 5; i++) oval(x + Math.cos(i * Math.PI * 2 / 5) * size, y + Math.sin(i * Math.PI * 2 / 5) * size, size * .72, size * .6, petals);
-    oval(x, y, Math.max(1, size * .45), Math.max(1, size * .45), center);
-  };
-  const fruit = (x: number, y: number, color: string, leaf: string, cream: string) => {
-    line(x, y - 5, x + 1, y - 2, leaf);
-    oval(x, y, 2.6, 2.8, color); dot(x, y + 3, color);
-    line(x - 2, y - 2, x + 2, y - 2, leaf);
-    dot(x - 1, y - 1, cream); dot(x + 1, y + 1, cream);
-  };
-  if (id === "cake-heart") {
-    const pink = "#ff89ae", shade = "#de5688", cream = "#fff4d9", red = "#ef3d67", green = "#459f80";
-
-    for (let dy = 12; dy >= 1; dy--) heart(20, 15 + dy, 12, 6, dy > 8 ? shade : dy > 5 ? cream : pink);
-    heart(20, 15, 12, 6, "#f45c99"); heart(20, 14, 10.8, 5.2, cream);
-    for (const [x,y] of [[8,23],[12,26],[17,29],[23,29],[28,26],[32,23]]) oval(x,y,1.5,1,cream);
-    fruit(13, 11, red, green, cream); fruit(26, 11, red, green, cream); fruit(20, 18, "#ff6385", green, cream);
-    oval(18, 31, 3, 1.8, "#d1b1ed"); oval(23, 31, 3, 1.8, "#d1b1ed");
-    dot(20, 31, "#a57bcc"); line(20, 32, 17, 35, "#d1b1ed"); line(21, 32, 24, 35, "#d1b1ed");
-  } else if (id === "cake-cloud") {
-    const blue = "#81cfee", shade = "#579fcf", white = "#fff8e9", berry = "#5361a8";
-     oval(20, 33, 15, 4, shade);
-    rect(5, 24, 31, 10, blue); oval(20, 24, 15, 4, white);
-    for (let x = 6; x <= 34; x += 4) { oval(x,26,2,2,white); if(x%8===6)rect(x,26,1,4,white); }
-    oval(20, 22, 10, 3, "#b4a9e9"); rect(10, 13, 21, 10, "#d2e8f5");
-    oval(20, 13, 10, 4, blue);
-    for (let x = 11; x <= 29; x += 3) oval(x,15,2,2,white);
-    for (const [x,y] of [[13,11],[17,9],[21,10],[25,9],[28,12]]) oval(x,y,3,2,white);
-    for (const [x,y] of [[14,8],[22,7],[27,10]]) { oval(x,y,2,2,berry); dot(x-1,y-1,"#a2b7ef"); }
-    line(22,4,22,6,"#5ba392"); oval(24,4,2,1,"#7fc7b0");
-    for (const [x,y] of [[12,31],[27,30]]) { line(x-1,y,x+1,y,"#fff0b7");line(x,y-1,x,y+1,"#fff0b7"); }
-    oval(20, 32, 4, 2, white);
-  } else if (id === "cake-peach") {
-    const [gel, shade, glow] = JELLY_COLORS["cake-peach"];
-
-    oval(20,29,12,5,shade); rect(8,19,25,11,gel); oval(20,19,12,9,gel);
-    oval(20,17,10,6,glow);
-    for (const x of [10,15,25,30]) line(x,21,x,29, x<20?glow:shade);
-    oval(20,30,11,3,gel); line(11,31,28,31,glow);
-    oval(20,12,8,4,"#f28088"); oval(20,11,6,3,"#ffdfac");
-    line(18,9,23,12,"#ffc58c"); dot(23,12,"#f59d7e");
-    oval(13,9,3,1.6,"#69ad8e"); oval(16,7,1.5,3,"#96c9a4");
-    rect(10,31,21,1,"#fff4dc"); rect(10,32,21,2,"#d1a16c");
-    flower(29,30,2,"#fff7e4","#ffd27f");
-
-  } else if (id === "cake-matcha") {
-    const green = "#8fc480", dark = "#528b67", light = "#c5dfa4", cream = "#fff1d1";
-    rect(6,16,29,17,dark); oval(20,33,14,2,dark);
-    rect(6,20,29,5,green); rect(6,26,29,3,cream); rect(6,30,29,3,light);
-    oval(20,16,14,5,dark); oval(20,15,14,5,light); rect(9,11,23,8,light);
-    for(let x=7;x<=33;x+=4)oval(x,20,2,1.5,cream);
-    for(const [x,y]of [[11,12],[24,13],[29,16]])flower(x,y,2,cream,"#e5bc65");
-    flower(18,17,2.4,"#f8a9bc","#fff0b1");
-    oval(14,14,3,1,dark); oval(27,11,2.5,1,dark); oval(23,17,2,1,green);
-    for(const [x,y]of [[10,24],[20,24],[30,24]])dot(x,y,"#d7ebbb");
-
-  } else if (id === "cake-violet") {
-    const [gel, shade, glow] = JELLY_COLORS["cake-violet"];
-
-    polygon([[6,17],[15,23],[15,34],[6,27]],shade);
-    polygon([[15,23],[30,21],[30,32],[15,35]],gel);
-    polygon([[30,21],[33,16],[33,27],[30,32]],shade);
-    polygon([[20,9],[33,16],[30,22],[15,24],[6,17]],glow);
-    line(16,25,16,32,glow); line(29,23,29,30,glow);
-    for(const [x,y]of [[20,28],[25,31],[11,24]])dot(x,y,glow);
-    oval(20,14,5,2,"#fff5e6"); oval(20,12,3,2,"#fff9ed");
-    for(const [x,y]of [[12,15],[26,16]]){oval(x,y,2,2,"#7252ac");dot(x-1,y-1,"#b4a3df");}
-    flower(27,12,1.8,"#fff4dc","#f1cf79");
-    oval(16,11,2.5,1,"#7ebda3");
-    polygon([[15,32],[30,30],[30,32],[15,34]],"#fff1d4");
-    polygon([[15,34],[30,32],[30,33],[15,36]],"#c09a70");
-  } else if (id === "cake-strawberry") {
-     oval(20,31,14,5,"#e8c48d");
-    rect(6,18,29,14,"#f6dca9"); rect(6,23,29,3,"#f78b9f"); rect(6,26,29,2,"#fff5db");
-    oval(20,18,14,5,"#fff9e9");
-    for(const x of [8,14,25,31])oval(x,21,2,2,"#fff9e9");
-    oval(19,14,3,2,"#fff9e9"); fruit(12,14,"#ed4c68","#4f9873","#ffe1ad");
-    fruit(24,13,"#ed4c68","#4f9873","#ffe1ad"); fruit(30,18,"#f3657c","#4f9873","#ffe1ad");
-    for(const [x,y]of [[10,30],[19,32],[30,30]])dot(x,y,"#fff3cf");
-  } else if (id === "cake-chocolate") {
-
-    polygon([[6,18],[31,18],[31,34],[6,31]],"#95604a");
-    polygon([[31,18],[35,13],[35,29],[31,34]],"#634335");
-    polygon([[6,18],[19,6],[35,13],[31,18]],"#704936");
-    polygon([[7,23],[30,23],[30,26],[7,25]],"#edcba1");
-    polygon([[7,28],[30,29],[30,31],[7,30]],"#bf7f74");
-    line(8,20,29,20,"#b58768");
-    rect(22,10,8,3,"#493127"); line(23,10,28,10,"#b78968");
-    oval(20,14,3,2,"#e6c79f");fruit(13,15,"#dc526a","#618761","#ffe2b1");
-    for(const [x,y]of [[24,16],[28,15],[20,29],[11,27]])dot(x,y,"#dcb487");
-  } else if (id === "cake-lemon") {
-     oval(20,31,14,5,"#dfb75d");rect(6,18,29,14,"#efd07f");
-    rect(6,24,29,3,"#fff4d4");rect(7,30,27,2,"#fff1bd");
-    oval(20,18,14,5,"#fff8de");for(const x of [8,13,27,32])oval(x,21,2,2,"#fff8de");
-    oval(20,12,6,6,"#dcaf43");oval(20,12,5,5,"#f8dc72");
-    for(const [x,y]of [[20,7],[24,9],[25,12],[24,16],[20,17],[16,16],[15,12],[16,9]])line(20,12,x,y,"#fff4bf");
-    oval(27,11,4,1.5,"#74a57a");oval(25,9,1.5,3,"#98c194");
-    oval(10,17,3,1.5,"#fffdf0");oval(30,18,3,1.5,"#fffdf0");
-  }
-  // Finish one color before picking up the next. Within each color, scatter
-  // placements across the pattern instead of sweeping through horizontal rows.
-  const colorGroups = new Map<string, Bead[]>();
-  for (const bead of cells.values()) {
-    const group = colorGroups.get(bead.color);
-    if (group) group.push(bead);
-    else colorGroups.set(bead.color, [bead]);
-  }
-  const placementOrder = (bead: Bead) => ((bead.x * 73856093) ^ (bead.y * 19349663)) >>> 0;
-  return [...colorGroups.values()].flatMap(group =>
-    group.sort((a, b) => placementOrder(a) - placementOrder(b) || a.y - b.y || a.x - b.x)
-  );
-}
 const artworks: Artwork[] = [
-  { id:"cake-strawberry", name:"Strawberry cake", price:"$8.50", description:"Vanilla sponge, strawberry cream and fresh berries.", category:"Cream", background:"#efe5e3" },
-  { id:"cake-cloud", name:"Blueberry cloud", price:"$9.00", description:"Blueberry sponge layered with soft vanilla cream.", category:"Cream", background:"#e3eff5" },
-  { id:"cake-matcha", name:"Matcha cake", price:"$8.00", description:"Matcha sponge, vanilla cream and little sugar flowers.", category:"Cream", background:"#e8efdd" },
-  { id:"cake-chocolate", name:"Chocolate slice", price:"$9.50", description:"Chocolate sponge, ganache and a berry cream layer.", category:"Cream", background:"#eaded5" },
-  { id:"cake-lemon", name:"Lemon chiffon", price:"$8.00", description:"Light lemon sponge with citrus glaze and fresh cream.", category:"Cream", background:"#f3ecd8" },
-  { id:"cake-heart", name:"Berry heart", price:"$8.50", description:"Strawberry cream, vanilla sponge and a little sugar bow.", category:"Cream", background:"#efe5e3" },
-  { id:"cake-peach", name:"Peach cheesecake", price:"$7.50", description:"Peach jelly, vanilla cheesecake and a biscuit base.", category:"Jelly", background:"#f8e8dd" },
-  { id:"cake-violet", name:"Violet cheesecake", price:"$8.50", description:"Blackcurrant jelly, vanilla cheesecake and blueberries.", category:"Jelly", background:"#eee7f7" },
-].map(item=>{const beads=makePattern(item.id);return {...item, material:(JELLY_COLORS[item.id]?"jelly":"terry") as BeadMaterial, translucentColors:JELLY_COLORS[item.id], category:item.category as Artwork["category"], beads, colors:[...new Set(beads.map(bead=>bead.color))]};});
+  { id: "lavender-grape-tart", name: "Lavender grape tart", price: "$9.50", description: "Lavender cream, blackcurrant and grapes in a buttery tart shell.", category: "Tarts" },
+  { id: "rose-lychee-tart", name: "Rose lychee tart", price: "$9.00", description: "Rose cream, juicy lychee and berries on a crisp tart base.", category: "Tarts" },
+  { id: "pistachio-roll", name: "Pistachio roll cake", price: "$9.50", description: "Pistachio rolls layered with lychee cream and bayberry filling.", category: "Cakes" },
+  { id: "bayberry-lychee-cake", name: "Bayberry lychee cake", price: "$8.50", description: "Airy sponge, fresh cream and a bright fruit topping.", category: "Cakes" },
+  { id: "blueberry-basque", name: "Blueberry basque", price: "$9.50", description: "Blueberry cheesecake with pistachio cream and a flower finish.", category: "Cakes" },
+  { id: "mango-lychee-basque", name: "Mango lychee basque", price: "$9.00", description: "Soft fruit cream, lychee pieces and layers of pistachio cake.", category: "Cakes" },
+  { id: "guava-crepe-cake", name: "Guava crepe cake", price: "$9.50", description: "Pink guava cream, pistachio crepe rolls and fresh fruit.", category: "Cakes" },
+  { id: "yogurt-mille-feuille", name: "Yogurt mille feuille", price: "$10.00", description: "Delicate blue layers, yogurt cream and golden physalis.", category: "Cakes" },
+  { id: "raspberry-basque", name: "Raspberry basque", price: "$9.00", description: "Pistachio cheesecake, raspberry cream and a fresh berry.", category: "Cakes" },
+].map(art => {
+  const pattern = cakePatterns[art.id];
+  const beads = pattern.rows.flatMap((row, y) => [...row].flatMap((color, x) => color === "." ? [] : [{ x, y, color: pattern.palette[parseInt(color, 16)] }]));
+  return { ...art, category: art.category as Artwork["category"], material: "terry", beads };
+});
 
 function FlatBeadArt({ art, count = art.beads.length, }: { art: Artwork; count?: number }) {
   const id = React.useId().replace(/:/g, "");
@@ -201,13 +476,13 @@ function FlatBeadArt({ art, count = art.beads.length, }: { art: Artwork; count?:
     if (!occupied.has(`${bead.x + 1},${bead.y}`)) sides.push({ path: wall(bead.x + 1.06, bead.y - .06, bead.x + 1.06, bead.y + 1.06), color: shade(bead.color, .84) });
     if (!occupied.has(`${bead.x},${bead.y + 1}`)) sides.push({ path: wall(bead.x - .06, bead.y + 1.06, bead.x + 1.06, bead.y + 1.06), color: shade(bead.color, .9) });
   }
-  return <svg viewBox="0 0 40 42" role="img" aria-label={`${art.name} ${art.material} fused bead pattern`} className="bc-art" data-material={art.material} style={art.material === "jelly" ? { opacity: .8 } : undefined}>
+  return <svg viewBox="0 0 24 24" role="img" aria-label={`${art.name} ${art.material} fused bead pattern`} className="bc-art" data-material={art.material} style={art.material === "jelly" ? { opacity: .8 } : undefined}>
     <defs>
       <filter id={`${id}-edge`} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
         <feGaussianBlur stdDeviation=".14" />
         <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -5.5" />
       </filter>
-      <mask id={`${id}-shape`} maskUnits="userSpaceOnUse" x="-1" y="-1" width="42" height="44" style={{ maskType: "alpha" }}>
+      <mask id={`${id}-shape`} maskUnits="userSpaceOnUse" x="-1" y="-1" width="26" height="26" style={{ maskType: "alpha" }}>
         <path d={silhouette} fill="#fff" filter={`url(#${id}-edge)`} />
       </mask>
       <filter id={`${id}-surface`} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
@@ -291,15 +566,15 @@ function fusedShapes(beads: Bead[]) {
       const da = Math.hypot(a.x - p.x, a.y - p.y), db = Math.hypot(b.x - p.x, b.y - p.y), r = Math.min(.09, da / 3, db / 3);
       return { p, entry: { x: p.x + (a.x - p.x) * r / da, y: p.y + (a.y - p.y) * r / da }, exit: { x: p.x + (b.x - p.x) * r / db, y: p.y + (b.y - p.y) * r / db } };
     });
-    path.moveTo(corners[0].entry.x - 20, 21 - corners[0].entry.y);
+    path.moveTo(corners[0].entry.x - 12, 12 - corners[0].entry.y);
     for (let i = 0; i < corners.length; i++) {
       const { p, exit } = corners[i], next = corners[(i + 1) % corners.length];
-      path.quadraticCurveTo(p.x - 20, 21 - p.y, exit.x - 20, 21 - exit.y);
+      path.quadraticCurveTo(p.x - 12, 12 - p.y, exit.x - 12, 12 - exit.y);
       const dx = next.p.x - p.x, dy = next.p.y - p.y, length = Math.hypot(dx, dy);
       // A restrained scallop keeps each melted bead visible along the cut edge.
       const mx = (exit.x + next.entry.x) / 2 + dy / length * .04;
       const my = (exit.y + next.entry.y) / 2 - dx / length * .04;
-      path.quadraticCurveTo(mx - 20, 21 - my, next.entry.x - 20, 21 - next.entry.y);
+      path.quadraticCurveTo(mx - 12, 12 - my, next.entry.x - 12, 12 - next.entry.y);
     }
     path.closePath(); return path;
   };
@@ -453,7 +728,7 @@ function physicalMaterials(art: Artwork): BeadMaterials {
   const terry = art.material === "terry", jelly = art.material === "jelly";
   const resolution = 16, surface = terry ? terryGrainSurface() : fusedGrainSurface();
   const glints = terryGrainSurface();
-  const color = document.createElement("canvas"); color.width = 40 * resolution; color.height = 42 * resolution;
+  const color = document.createElement("canvas"); color.width = 24 * resolution; color.height = 24 * resolution;
   const ctx = color.getContext("2d")!;
   ctx.fillStyle = art.beads[0]?.color ?? "#f0eade"; ctx.fillRect(0, 0, color.width, color.height);
   for (const bead of art.beads) { ctx.fillStyle = bead.color; ctx.fillRect((bead.x - .2) * resolution, (bead.y - .2) * resolution, resolution * 1.4, resolution * 1.4); }
@@ -463,12 +738,24 @@ function physicalMaterials(art: Artwork): BeadMaterials {
   const image = fusedCtx.getImageData(0, 0, color.width, color.height);
   for (let pixel = 0; pixel < color.width * color.height; pixel++) {
     const i = pixel * 4;
-    const grainPixel = Math.floor(pixel / color.width) * 2 * 1280 + (pixel % color.width) * 2;
+    const grainPixel = Math.floor(Math.floor(pixel / color.width) / color.height * 1344) * 1280 + Math.floor((pixel % color.width) / color.width * 1280);
     const pearl = !terry && beadGrain ? beadGrain[grainPixel * 4] / 255 : .86;
     const tint = surface.pigment[grainPixel] * (1 + (pearl - .86) * .15);
     for (let c = 0; c < 3; c++) image.data[i + c] *= tint;
   }
   ctx.putImageData(image, 0, 0);
+  for (const bead of art.beads) {
+    const x = bead.x * resolution, y = bead.y * resolution;
+    const lip = ctx.createLinearGradient(x, y, x + resolution, y + resolution);
+    lip.addColorStop(0, "#ffffff32"); lip.addColorStop(.3, "#ffffff00"); lip.addColorStop(.72, "#ffffff00"); lip.addColorStop(1, "#4a382423");
+    ctx.fillStyle = lip; ctx.fillRect(x, y, resolution, resolution);
+    ctx.beginPath(); ctx.roundRect(x + .45, y + .45, resolution - .9, resolution - .9, 2.5);
+    ctx.strokeStyle = "#ffffff2b"; ctx.lineWidth = .7; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + resolution - .6, y + 3); ctx.lineTo(x + resolution - .6, y + resolution - 2); ctx.quadraticCurveTo(x + resolution - .6, y + resolution - .6, x + resolution - 2, y + resolution - .6); ctx.lineTo(x + 3, y + resolution - .6);
+    ctx.strokeStyle = "#5c493d18"; ctx.lineWidth = .65; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x + resolution * .5, y + resolution * .5, resolution * .11, resolution * .09, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "#574b3614"; ctx.fill();
+  }
   const map = new THREE.CanvasTexture(color); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4;
   let transmissionMap: THREE.CanvasTexture | undefined, opacityMap: THREE.CanvasTexture | undefined, jellyNormal: THREE.CanvasTexture | undefined;
   if (jelly) {
@@ -508,8 +795,8 @@ function physicalMaterials(art: Artwork): BeadMaterials {
     clearcoat: 1, clearcoatMap: glints.sparkle, clearcoatRoughness: .2,
     clearcoatNormalMap: glints.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
   }) : terry ? new THREE.MeshPhysicalMaterial({
-    map, normalMap: surface.normal, normalScale: new THREE.Vector2(.85, .85),
-    color: new THREE.Color(1.23, 1.23, 1.23), roughness: 1, metalness: 0, specularIntensity: .06,
+    map, normalMap: surface.normal, normalScale: new THREE.Vector2(.38, .38),
+    color: new THREE.Color(1.1, 1.1, 1.1), roughness: 1, metalness: 0, specularIntensity: .06,
     clearcoat: 1, clearcoatMap: glints.sparkle, clearcoatRoughness: .2,
     clearcoatNormalMap: glints.sparkleNormal, clearcoatNormalScale: new THREE.Vector2(1, 1),
     sheen: .02, sheenRoughness: 1, sheenColor: new THREE.Color("#fff6f4"),
@@ -562,7 +849,7 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
   if (!count) return true;
   let geometry = count === art.beads.length ? studio.completed.get(art.id) : undefined;
   if (!geometry) {
-    const uv = (vertices: number[], index: number) => new THREE.Vector2((vertices[index * 3] + 20) / 40, (vertices[index * 3 + 1] + 21) / 42);
+    const uv = (vertices: number[], index: number) => new THREE.Vector2((vertices[index * 3] + 12) / 24, (vertices[index * 3 + 1] + 12) / 24);
     geometry = new THREE.ExtrudeGeometry(fusedShapes(art.beads.slice(0, count)), {
       depth: .34, curveSegments: 3, bevelEnabled: true, bevelThickness: .13, bevelSize: .14, bevelSegments: 4, steps: 1,
       UVGenerator: { generateTopUV: (_g, vertices, ...indices) => indices.map(i => uv(vertices, i)), generateSideWallUV: (_g, vertices, ...indices) => indices.map(i => uv(vertices, i)) },
@@ -571,7 +858,7 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
   }
   const materials = studio.materials.get(art.id) ?? physicalMaterials(art); studio.materials.set(art.id, materials);
   studio.mesh.geometry = geometry; studio.mesh.material = materials.faces;
-  const aspect = width / height, viewHeight = Math.max(45, 43 / aspect);
+  const aspect = width / height, viewHeight = Math.max(26, 26 / aspect);
   Object.assign(studio.camera, { left: -viewHeight * aspect / 2, right: viewHeight * aspect / 2, top: viewHeight / 2, bottom: -viewHeight / 2 }); studio.camera.updateProjectionMatrix();
   studio.scene.background = materials.mask ? new THREE.Color(APP_BACKGROUND) : null;
   studio.renderer.setSize(width, height, false); studio.renderer.render(studio.scene, studio.camera);
@@ -616,8 +903,8 @@ function CakeDetail({ art, onBack }: { art: Artwork; onBack: () => void }) {
 
 const menuSections = [
   { id: "all", title: "All", items: artworks },
-  { id: "cream", title: "Cream", items: artworks.filter(art => art.category === "Cream") },
-  { id: "jelly", title: "Jelly", items: artworks.filter(art => art.category === "Jelly") },
+  { id: "tarts", title: "Tarts", items: artworks.filter(art => art.category === "Tarts") },
+  { id: "cakes", title: "Cakes", items: artworks.filter(art => art.category === "Cakes") },
 ];
 
 function MenuGrid({ items, onOpen }: { items: Artwork[]; onOpen: (art: Artwork, button: HTMLButtonElement) => void }) {
@@ -657,7 +944,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
         <div className="bc-collection" inert={!!selected}>
           <header className="bc-header"><span>Little Bead Club</span><CakeSlice className="bc-food-icon" size={21} strokeWidth={1.8} aria-hidden="true" /></header>
           <nav className="bc-menu-tabs" aria-label="Pattern categories">{menuSections.map((section, index) => <button key={section.id} aria-pressed={activeSection === index} onClick={() => { setActiveSection(index); menu.current?.scrollTo({ top: 0, behavior: "instant" }); }}>{section.title}</button>)}</nav>
-          <div ref={menu} className="bc-list" aria-label="Bead menu">
+          <div ref={menu} className="bc-list" aria-label="Cake menu">
             <section className="bc-menu-section" key={category.id} aria-labelledby={`${menuId}-${category.id}`}>
               <h2 className="bc-sr-only" id={`${menuId}-${category.id}`}>{category.title}</h2>
               <MenuGrid items={category.items} onOpen={open} />
