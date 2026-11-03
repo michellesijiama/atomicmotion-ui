@@ -17,6 +17,7 @@ type BeadMaterial = "pressed" | "frosted" | "glitter" | "terry" | "jelly";
 type Artwork = { id: string; name: string; price: string; description: string; detailDescription: string; category: "Tarts" | "Cakes"; beads: Bead[]; material: BeadMaterial; translucentColors?: readonly string[] };
 const PHONE_HEIGHT = 390 * 2822 / 1406;
 const APP_BACKGROUND = "#f2f2f2";
+const CAKE_FOCUS_OFFSET = 50;
 // Simplified from the user-supplied cake illustration sheet. Each occupied cell
 // represents one bead, with exactly 700 beads per cake and a limited color palette.
 // The reference artwork retains its own rights, separate from the component code.
@@ -1047,7 +1048,7 @@ function physicalMaterials(art: Artwork): BeadMaterials {
   return { faces: [face, side], mask: jelly ? new THREE.MeshBasicMaterial({ color: 0xffffff, alphaMap: opacityMap, transparent: true, depthWrite: true }) : undefined };
 }
 
-type BeadStudio = { renderer: THREE.WebGLRenderer; scene: THREE.Scene; camera: THREE.OrthographicCamera; mesh: THREE.Mesh; materials: Map<string, BeadMaterials>; completed: Map<string, THREE.BufferGeometry> };
+type BeadStudio = { renderer: THREE.WebGLRenderer; light: THREE.DirectionalLight; scene: THREE.Scene; camera: THREE.PerspectiveCamera; mesh: THREE.Mesh; materials: Map<string, BeadMaterials>; completed: Map<string, THREE.BufferGeometry> };
 let beadStudio: BeadStudio | undefined;
 let beadWebGLUnavailable = false;
 function getBeadStudio() {
@@ -1068,18 +1069,19 @@ function getBeadStudio() {
   light.shadow.mapSize.set(512, 512); light.shadow.bias = -.0002; light.shadow.normalBias = .03; light.shadow.radius = 3.5;
   scene.add(light);
   const mesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshPhysicalMaterial()); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh);
-  const camera = new THREE.OrthographicCamera(-23, 23, 23, -23, .1, 180); camera.position.set(0, 0, 95); camera.up.set(0, 1, 0); camera.lookAt(0, 0, 0);
-  beadStudio = { renderer, scene, camera, mesh, materials: new Map(), completed: new Map() };
+  const camera = new THREE.PerspectiveCamera(27, 1, .1, 180); camera.position.set(0, 0, 95); camera.up.set(0, 1, 0); camera.lookAt(0, 0, 0);
+  beadStudio = { renderer, light, scene, camera, mesh, materials: new Map(), completed: new Map() };
   return beadStudio;
 }
 
-function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: number) {
+type BeadPose = { rotationX: number; rotationY: number; rotationZ: number; lift: number; shimmer: number; time: number };
+function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: number, pose: BeadPose = { rotationX: 0, rotationY: 0, rotationZ: 0, lift: 0, shimmer: 0, time: 0 }) {
   const studio = getBeadStudio();
   if (!studio || studio.renderer.getContext().isContextLost()) return false;
   const rect = canvas.getBoundingClientRect(); if (!rect.width || !rect.height) return false;
   const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
   const width = Math.ceil(rect.width * pixelRatio), height = Math.ceil(rect.height * pixelRatio);
-  canvas.width = width; canvas.height = height;
+  if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
   const ctx = canvas.getContext("2d")!; ctx.clearRect(0, 0, width, height);
   if (!count) return true;
   let geometry = count === art.beads.length ? studio.completed.get(art.id) : undefined;
@@ -1093,20 +1095,49 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
   }
   const materials = studio.materials.get(art.id) ?? physicalMaterials(art); studio.materials.set(art.id, materials);
   studio.mesh.geometry = geometry; studio.mesh.material = materials.faces;
+  studio.mesh.rotation.set(pose.rotationX, pose.rotationY, pose.rotationZ);
+  studio.mesh.position.z = pose.lift;
+  studio.light.position.set(-28 + Math.sin(pose.time * .6) * 4 * pose.shimmer, 38 + Math.cos(pose.time * .45) * 3 * pose.shimmer, 32);
   const aspect = width / height, viewHeight = Math.max(45, 43 / aspect);
-  Object.assign(studio.camera, { left: -viewHeight * aspect / 2, right: viewHeight * aspect / 2, top: viewHeight / 2, bottom: -viewHeight / 2 }); studio.camera.updateProjectionMatrix();
+  studio.camera.aspect = aspect; studio.camera.fov = 2 * Math.atan(viewHeight / (2 * 95)) * 180 / Math.PI; studio.camera.updateProjectionMatrix();
   studio.scene.background = materials.mask ? new THREE.Color(APP_BACKGROUND) : null;
   studio.renderer.setSize(width, height, false); studio.renderer.render(studio.scene, studio.camera);
   // Blur only the alpha-derived cast shadow; keep the bead surface sharp.
   ctx.save();
   if (!materials.mask) {
     ctx.shadowColor = "rgba(73,61,48,.16)";
-    ctx.shadowBlur = 5 * pixelRatio;
-    ctx.shadowOffsetY = 3 * pixelRatio;
+    ctx.shadowBlur = (5 + pose.lift * .5) * pixelRatio;
+    ctx.shadowOffsetY = (3 + pose.lift * .5) * pixelRatio;
     ctx.shadowOffsetX = .5 * pixelRatio;
   }
   ctx.drawImage(studio.renderer.domElement, 0, 0);
   ctx.restore();
+  // A few reflective flakes brighten at different moments, anchored to actual
+  // bead centers and projected with the same rotation as the physical mesh.
+  let visibleGlints = 0;
+  if (pose.shimmer > 0) {
+    const point = new THREE.Vector3();
+    for (const bead of art.beads) {
+      const seed = ((bead.x * 73856093) ^ (bead.y * 19349663)) >>> 0;
+      if (seed % 19 !== 0) continue;
+      const pulse = Math.pow(Math.max(0, Math.sin(pose.time * (1.45 + seed % 7 * .11) + seed % 628 / 100)), 12) * pose.shimmer;
+      if (pulse < .12) continue;
+      const bx = bead.x + .5 - 20, by = 21 - bead.y - .5;
+      point.set(bx, by, .48).applyMatrix4(studio.mesh.matrixWorld).project(studio.camera);
+      const x = (point.x * .5 + .5) * width;
+      const y = (-point.y * .5 + .5) * height;
+      const radius = (seed % 3 === 0 ? 2.5 : 1.3) * pixelRatio;
+      ctx.save(); ctx.globalAlpha = pulse * .88;
+      ctx.fillStyle = "#fffdf4"; ctx.shadowColor = "#fff5d5"; ctx.shadowBlur = radius * 1.3;
+      ctx.beginPath(); ctx.moveTo(x, y - radius); ctx.quadraticCurveTo(x + radius * .16, y - radius * .16, x + radius, y); ctx.quadraticCurveTo(x + radius * .16, y + radius * .16, x, y + radius); ctx.quadraticCurveTo(x - radius * .16, y + radius * .16, x - radius, y); ctx.quadraticCurveTo(x - radius * .16, y - radius * .16, x, y - radius); ctx.fill(); ctx.restore();
+      visibleGlints++;
+    }
+  }
+  canvas.dataset.rotationX = pose.rotationX.toFixed(5);
+  canvas.dataset.rotationY = pose.rotationY.toFixed(5);
+  canvas.dataset.rotationZ = pose.rotationZ.toFixed(5);
+  canvas.dataset.lift = pose.lift.toFixed(3);
+  canvas.dataset.glints = String(visibleGlints);
   if (materials.mask) {
     studio.scene.background = null; studio.mesh.material = materials.mask;
     studio.renderer.render(studio.scene, studio.camera);
@@ -1117,18 +1148,54 @@ function drawPhysicalBeads(canvas: HTMLCanvasElement, art: Artwork, count: numbe
   return true;
 }
 
-function BeadArt({ art, count = art.beads.length, }: { art: Artwork; count?: number }) {
+function BeadArt({ art, count = art.beads.length, interactive = false }: { art: Artwork; count?: number; interactive?: boolean }) {
   const ref = React.useRef<HTMLCanvasElement>(null);
+  const rotation = React.useRef({ x: 0, y: 0, z: 0, lift: 0 });
+  const targetRotation = React.useRef({ x: 0, y: 0, z: 0, lift: 0 });
   const [ready, setReady] = React.useState(false);
   React.useEffect(() => {
     const canvas = ref.current; if (!canvas) return;
-    let frame = 0, disposed = false, textureReady = false;
-    const paint = () => { if (!textureReady || disposed) return; cancelAnimationFrame(frame); frame = requestAnimationFrame(() => { try { if (drawPhysicalBeads(canvas, art, count)) setReady(true); } catch { setReady(false); } }); };
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0, disposed = false, textureReady = false, lastPaint = 0, rendered = false;
+    const started = performance.now();
+    if (!interactive) targetRotation.current = { x: 0, y: 0, z: 0, lift: 0 };
+    const render = (now: number) => {
+      frame = 0;
+      if (disposed || document.hidden || !textureReady) return;
+      const moving = !reducedMotion.matches;
+      const target = interactive && moving ? targetRotation.current : { x: 0, y: 0, z: 0, lift: 0 };
+      let settling = false;
+      for (const axis of ["x", "y", "z", "lift"] as const) {
+        const difference = target[axis] - rotation.current[axis];
+        rotation.current[axis] = moving ? rotation.current[axis] + difference * .095 : 0;
+        if (Math.abs(difference) < .00005) rotation.current[axis] = target[axis];
+        else if (moving) settling = true;
+      }
+      if (!rendered || !moving || now - lastPaint >= 1000 / 30) {
+        lastPaint = now;
+        try {
+          const success = drawPhysicalBeads(canvas, art, count, { rotationX: rotation.current.x, rotationY: rotation.current.y, rotationZ: rotation.current.z, lift: rotation.current.lift, shimmer: interactive && moving ? Math.min((now - started) / 650, 1) : 0, time: now / 1000 });
+          if (!rendered || !success) setReady(success);
+          rendered = success;
+        } catch { setReady(false); }
+      }
+      if (interactive && moving || settling) frame = requestAnimationFrame(render);
+    };
+    const paint = () => { if (textureReady && !disposed && !document.hidden && !frame) frame = requestAnimationFrame(render); };
     const observer = new ResizeObserver(paint); observer.observe(canvas);
+    document.addEventListener("visibilitychange", paint);
+    reducedMotion.addEventListener("change", paint);
     void loadBeadGrain().then(() => { textureReady = true; paint(); });
-    return () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); };
-  }, [art, count]);
-  return <div className="bc-art bc-art-3d" role="img" aria-label={`${art.name}, ${art.material === "jelly" ? "translucent jelly" : art.material === "terry" ? "soft textured" : "pearlescent"} bead pattern`} data-material={art.material} data-render-mode={ready ? "physical" : "fallback"} data-placed={count} data-active-color={art.beads[Math.max(0, count - 1)]?.color}>
+    return () => { disposed = true; observer.disconnect(); cancelAnimationFrame(frame); document.removeEventListener("visibilitychange", paint); reducedMotion.removeEventListener("change", paint); };
+  }, [art, count, interactive]);
+  const tilt = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!interactive || event.pointerType === "touch" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - .5;
+    const y = (event.clientY - rect.top) / rect.height - .5;
+    targetRotation.current = { x: -y * .14, y: x * .18, z: x * .012, lift: 1.4 };
+  };
+  return <div className="bc-art bc-art-3d" role="img" aria-label={`${art.name}, ${art.material === "jelly" ? "translucent jelly" : art.material === "terry" ? "soft textured" : "pearlescent"} bead pattern`} data-material={art.material} data-render-mode={ready ? "physical" : "fallback"} data-interactive={interactive} data-placed={count} data-active-color={art.beads[Math.max(0, count - 1)]?.color} onPointerEnter={tilt} onPointerMove={tilt} onPointerLeave={() => { targetRotation.current = { x: 0, y: 0, z: 0, lift: 0 }; }}>
     <canvas ref={ref} aria-hidden="true" style={{ width: "100%", height: "100%", opacity: ready ? 1 : 0 }} />
     {!ready && <div aria-hidden="true" style={{ display: "contents" }}><FlatBeadArt art={art} count={count} /></div>}
   </div>;
@@ -1145,7 +1212,7 @@ function MenuGrid({ items, selectedId, detailShift, onOpen, onClose }: { items: 
     {items.map(art => {
       const expanded = art.id === selectedId;
       return <article className="bc-menu-card" key={art.id} data-expanded={expanded} data-dimmed={!!selectedId && !expanded} inert={!!selectedId && !expanded} aria-hidden={!!selectedId && !expanded} style={{ "--detail-shift": `${expanded ? detailShift : 0}px` } as React.CSSProperties}>
-        <button className="bc-menu-open" aria-label={`${expanded ? "Close" : "Open"} ${art.name}`} aria-expanded={expanded} onClick={event => expanded ? onClose() : onOpen(art, event.currentTarget)}><BeadArt art={art} /></button>
+        <button className="bc-menu-open" aria-label={`${expanded ? "Close" : "Open"} ${art.name}`} aria-expanded={expanded} onClick={event => expanded ? onClose() : onOpen(art, event.currentTarget)}><BeadArt art={art} interactive={expanded} /></button>
         <div className="bc-menu-caption">
           <div className="bc-caption-summary" aria-hidden={expanded} inert={expanded}><div className="bc-menu-heading"><h3>{art.name}</h3><p className="bc-menu-price">{art.price}</p></div><p className="bc-menu-description">{art.description}</p></div>
           <div className="bc-caption-detail" aria-hidden={!expanded} inert={!expanded}><div className="bc-menu-heading"><h3>About this cake</h3><p className="bc-menu-price">{art.price}</p></div><p className="bc-menu-description">{art.detailDescription}</p></div>
@@ -1161,6 +1228,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
   const back = React.useRef<HTMLButtonElement>(null);
   const menu = React.useRef<HTMLDivElement>(null);
   const scrollBeforeExpand = React.useRef(0);
+  const scrollZoomFrame = React.useRef(0);
   const [activeSection, setActiveSection] = React.useState(0);
   const menuId = React.useId();
   const [scale, setScale] = React.useState<number | null>(null);
@@ -1169,13 +1237,47 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
   const [detailTitle, setDetailTitle] = React.useState("");
   const selected = artworks.find(art => art.id === selectedId) ?? null;
   const category = menuSections[activeSection];
+  const syncScrollZoom = React.useCallback(() => {
+    const list = menu.current;
+    if (!list || list.dataset.expanded === "true") return;
+    const rect = list.getBoundingClientRect();
+    if (!rect.height) return;
+    const focusCenter = rect.top + rect.height / 2 - CAKE_FOCUS_OFFSET * rect.height / list.clientHeight;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Read every position first, then update transforms without React renders.
+    const updates = [...list.querySelectorAll<HTMLButtonElement>(".bc-menu-open")].map(button => {
+      const bounds = button.getBoundingClientRect();
+      const distance = Math.abs(bounds.top + bounds.height / 2 - focusCenter);
+      const proximity = Math.max(0, 1 - distance / (rect.height * .6));
+      const eased = proximity * proximity * (3 - 2 * proximity);
+      return { button, zoom: reduced ? 1 : .96 + .04 * eased };
+    });
+    updates.forEach(({ button, zoom }) => button.style.setProperty("--focus-scale", zoom.toFixed(4)));
+  }, []);
+  const queueScrollZoom = React.useCallback(() => {
+    if (scrollZoomFrame.current) return;
+    scrollZoomFrame.current = requestAnimationFrame(() => { scrollZoomFrame.current = 0; syncScrollZoom(); });
+  }, [syncScrollZoom]);
+  React.useEffect(() => {
+    queueScrollZoom();
+    return () => { cancelAnimationFrame(scrollZoomFrame.current); scrollZoomFrame.current = 0; };
+  }, [activeSection, queueScrollZoom]);
   React.useEffect(() => {
     const element = host.current;
     if (!element) return;
-    const observer = new ResizeObserver(([entry]) => setScale(Math.max(0, Math.min((entry.contentRect.width - (loop ? 34 : 16)) / 390, (entry.contentRect.height - (loop ? 42 : 24)) / PHONE_HEIGHT, 1))));
+    const observer = new ResizeObserver(([entry]) => {
+      const list = menu.current;
+      if (list) {
+        // Source-phone coordinates stay fixed while the whole device scales.
+        const artSize = list.clientWidth - 36;
+        list.style.setProperty("--cake-snap-inset", `${(list.clientHeight - artSize) / 2}px`);
+      }
+      setScale(Math.max(0, Math.min((entry.contentRect.width - (loop ? 34 : 16)) / 390, (entry.contentRect.height - (loop ? 42 : 24)) / PHONE_HEIGHT, 1)));
+      queueScrollZoom();
+    });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [loop]);
+  }, [loop, queueScrollZoom]);
   const open = (art: Artwork, button: HTMLButtonElement) => {
     lastCard.current = button;
     const list = menu.current;
@@ -1196,6 +1298,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
     requestAnimationFrame(() => {
       menu.current?.scrollTo({ top: scrollBeforeExpand.current, behavior: "instant" });
       lastCard.current?.focus({ preventScroll: true });
+      queueScrollZoom();
     });
   };
   return <div ref={host} className={`bc-stage ${className ?? ""}`} data-preview={loop ? "loop" : "interactive"} onKeyDown={event => { if (event.key === "Escape" && selectedId) close(); }}>
@@ -1210,7 +1313,7 @@ export function BeadClub({ loop = false, className }: BeadClubProps) {
             <CakeSlice className="bc-food-icon" size={21} strokeWidth={1.8} aria-hidden="true" />
           </header>
           <nav className="bc-menu-tabs" aria-label="Pattern categories" inert={!!selected} aria-hidden={!!selected}>{menuSections.map((section, index) => <button key={section.id} aria-pressed={activeSection === index} onClick={() => { setActiveSection(index); menu.current?.scrollTo({ top: 0, behavior: "instant" }); }}>{section.title}</button>)}</nav>
-          <div ref={menu} className="bc-list" aria-label={selected ? `${selected.name} details` : "Cake menu"} data-expanded={!!selected}>
+          <div ref={menu} className="bc-list" aria-label={selected ? `${selected.name} details` : "Cake menu"} data-expanded={!!selected} onScroll={queueScrollZoom}>
             <section className="bc-menu-section" key={category.id} aria-labelledby={`${menuId}-${category.id}`}>
               <h2 className="bc-sr-only" id={`${menuId}-${category.id}`}>{category.title}</h2>
               <MenuGrid items={category.items} selectedId={selectedId} detailShift={detailShift} onOpen={open} onClose={close} />
@@ -1239,13 +1342,13 @@ const styles = `
 .bc-header::before{content:'';position:absolute;left:0;right:0;top:-55px;bottom:-28px;z-index:-1;background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 68%,transparent 100%);pointer-events:none}
 .bc-collection{position:relative;height:calc(100% - 55px);display:flex;flex-direction:column}.bc-header{position:absolute;top:0;left:0;right:0;z-index:8;flex-shrink:0;min-height:48px;color:#242a26;padding:6px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:16px;font-weight:500;letter-spacing:-.25px}.bc-food-icon{flex-shrink:0;color:#171b18;filter:none;background:none;box-shadow:none}
 .bc-menu-tabs{position:absolute;top:48px;left:0;right:0;display:flex;align-items:center;gap:8px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;padding:4px 20px 8px;min-height:56px;z-index:8}.bc-menu-tabs button{flex-shrink:0;min-height:40px;border:1px solid #242a2614;border-radius:999px;background:#ffffff80;padding:0 16px;font-size:14px;font-weight:500;white-space:nowrap;color:#58635b}.bc-menu-tabs button[aria-pressed="true"]{color:#fff;background:#28332c;border-color:#28332c}
-.bc-list{position:absolute;inset:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:116px 18px 132px;scrollbar-width:none}.bc-list::-webkit-scrollbar{display:none}.bc-menu-section{padding:0}.bc-food-grid{display:grid;grid-template-columns:minmax(0,1fr);row-gap:36px;align-items:start}.bc-menu-card{min-width:0;position:relative;transform:translateY(var(--detail-shift,0px));transition:opacity .24s ease,transform .8s cubic-bezier(.22,.68,.2,1);will-change:auto}.bc-menu-card[data-dimmed="true"]{opacity:0;pointer-events:none}.bc-menu-card[data-expanded="true"]{z-index:4}.bc-menu-open{display:block;width:100%;height:auto;aspect-ratio:1;border:0;background:transparent;padding:0;transform:scale(1);transition:transform .85s cubic-bezier(.22,.68,.2,1)}.bc-menu-card[data-expanded="true"] .bc-menu-open{transform:scale(1.08)}.bc-menu-caption{position:relative;padding:8px 6px 0;text-align:left}.bc-caption-summary{opacity:1;filter:blur(0);transform:translateY(0);transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-caption-detail{position:absolute;top:8px;left:6px;right:6px;opacity:0;filter:blur(3px);transform:translateY(8px);pointer-events:none;transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-menu-card[data-expanded="true"] .bc-caption-summary{opacity:0;filter:blur(3px);transform:translateY(-5px)}.bc-menu-card[data-expanded="true"] .bc-caption-detail{opacity:1;filter:blur(0);transform:translateY(0);pointer-events:auto;transition:opacity .5s .18s ease,filter .5s .18s ease,transform .65s .18s ease}.bc-menu-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.bc-menu-heading>h2,.bc-menu-heading>h3{min-width:0}.bc-menu-caption h3{font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.2px;margin:0;overflow-wrap:anywhere}.bc-menu-price{flex-shrink:0;font-size:14px;line-height:1.4;font-weight:500;margin:0;color:#3b453e;white-space:nowrap;font-variant-numeric:tabular-nums}.bc-menu-description{font-size:13px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-stage svg{flex-shrink:0}
+.bc-list{position:absolute;inset:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y mandatory;scroll-padding:${114 - CAKE_FOCUS_OFFSET}px 0 ${114 + CAKE_FOCUS_OFFSET}px;padding:calc(var(--cake-snap-inset,188px) - ${CAKE_FOCUS_OFFSET}px) 18px calc(var(--cake-snap-inset,188px) + ${CAKE_FOCUS_OFFSET}px);scrollbar-width:none}.bc-list::-webkit-scrollbar{display:none}.bc-menu-section{padding:0}.bc-food-grid{display:grid;grid-template-columns:minmax(0,1fr);row-gap:36px;align-items:start}.bc-menu-card{min-width:0;position:relative;transform:translateY(var(--detail-shift,0px));transition:opacity .24s ease,transform .8s cubic-bezier(.22,.68,.2,1);will-change:auto}.bc-menu-card[data-dimmed="true"]{opacity:0;pointer-events:none}.bc-menu-card[data-expanded="true"]{z-index:4}.bc-menu-open{scroll-snap-align:center;scroll-snap-stop:always;display:block;width:100%;height:auto;aspect-ratio:1;border:0;background:transparent;padding:0;transform:scale(var(--focus-scale,1));transition:transform .7s cubic-bezier(.22,1,.36,1)}.bc-menu-card[data-expanded="true"] .bc-menu-open{transform:scale(1.04);transition-duration:1.05s}.bc-menu-caption{position:relative;padding:8px 6px 0;text-align:left}.bc-caption-summary{opacity:1;filter:blur(0);transform:translateY(0);transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-caption-detail{position:absolute;top:8px;left:6px;right:6px;opacity:0;filter:blur(3px);transform:translateY(8px);pointer-events:none;transition:opacity .22s ease,filter .22s ease,transform .35s ease}.bc-menu-card[data-expanded="true"] .bc-caption-summary{opacity:0;filter:blur(3px);transform:translateY(-5px)}.bc-menu-card[data-expanded="true"] .bc-caption-detail{opacity:1;filter:blur(0);transform:translateY(0);pointer-events:auto;transition:opacity .5s .18s ease,filter .5s .18s ease,transform .65s .18s ease}.bc-menu-heading{display:flex;align-items:baseline;justify-content:space-between;gap:16px}.bc-menu-heading>h2,.bc-menu-heading>h3{min-width:0}.bc-menu-caption h3{font-size:16px;line-height:1.35;font-weight:600;letter-spacing:-.2px;margin:0;overflow-wrap:anywhere}.bc-menu-price{flex-shrink:0;font-size:14px;line-height:1.4;font-weight:500;margin:0;color:#3b453e;white-space:nowrap;font-variant-numeric:tabular-nums}.bc-menu-description{font-size:13px;line-height:1.5;color:#58635b;margin:8px 0 0}.bc-stage svg{flex-shrink:0}
 .bc-art{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(.5px 3px 3.5px #493d3029)}.bc-art-3d{position:relative;filter:none}.bc-art-3d>canvas{position:absolute;inset:0;pointer-events:none}
 .bc-home{position:absolute;width:104px;height:4px;border-radius:4px;background:#424b45;bottom:9px;left:50%;transform:translateX(-50%);z-index:10}
 .bc-top-glass{position:absolute;top:0;left:0;right:0;height:176px;pointer-events:none;z-index:6;background:transparent}.bc-top-glass i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(#000 60%,transparent);-webkit-mask-image:linear-gradient(#000 60%,transparent)}.bc-top-glass i:nth-child(2){height:150px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bc-top-glass i:nth-child(3){height:128px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.bc-top-glass i:nth-child(4){height:106px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .bc-glass-edge{position:absolute;bottom:0;left:0;right:0;height:124px;pointer-events:none;z-index:9;background:transparent}.bc-glass-edge i{position:absolute;inset:0;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);mask-image:linear-gradient(transparent,#000 75%);-webkit-mask-image:linear-gradient(transparent,#000 75%)}.bc-glass-edge i:nth-child(2){top:20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}.bc-glass-edge i:nth-child(3){top:42px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.bc-glass-edge i:nth-child(4){top:64px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .bc-glass-reflection{position:absolute;inset:0;border-radius:inherit;z-index:7;pointer-events:none;box-shadow:inset 0 0 2px #fff4}
 /* The cake canvas stays in its original card throughout expansion. */
-.bc-header-copy{position:relative;flex:1;min-width:0;min-height:36px;display:flex;align-items:center}.bc-brand{opacity:1;filter:blur(0);transition:opacity .18s ease,filter .18s ease}.bc-detail-header{position:absolute;inset:0;display:flex;align-items:center;gap:9px;opacity:0;filter:blur(3px);pointer-events:none;transition:opacity .2s ease,filter .2s ease}.bc-detail-title{min-width:0;margin:0;font-size:15px;line-height:1.3;font-weight:600;letter-spacing:-.2px}.bc-icon{width:36px;height:36px;flex:0 0 36px;border:1px solid #242a2624;background:#ffffff50;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:none;display:grid;place-items:center;border-radius:50%}.bc-menu-tabs{opacity:1;filter:blur(0);transition:opacity .2s ease,filter .2s ease}.bc-screen[data-detail="true"] .bc-brand{opacity:0;filter:blur(3px)}.bc-screen[data-detail="true"] .bc-detail-header{opacity:1;filter:blur(0);pointer-events:auto;transition:opacity .45s .16s ease,filter .45s .16s ease}.bc-screen[data-detail="true"] .bc-menu-tabs{opacity:0;filter:blur(3px);pointer-events:none}.bc-list[data-expanded="true"]{overflow:hidden}
-@media(prefers-reduced-motion:reduce){.bc-stage *{transition-duration:.01ms!important;transition-delay:0ms!important}}
+.bc-header-copy{position:relative;flex:1;min-width:0;min-height:36px;display:flex;align-items:center}.bc-brand{opacity:1;filter:blur(0);transition:opacity .18s ease,filter .18s ease}.bc-detail-header{position:absolute;inset:0;display:flex;align-items:center;gap:9px;opacity:0;filter:blur(3px);pointer-events:none;transition:opacity .2s ease,filter .2s ease}.bc-detail-title{min-width:0;margin:0;font-size:15px;line-height:1.3;font-weight:600;letter-spacing:-.2px}.bc-icon{width:36px;height:36px;flex:0 0 36px;border:1px solid #242a2624;background:#ffffff50;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:none;display:grid;place-items:center;border-radius:50%}.bc-menu-tabs{opacity:1;filter:blur(0);transition:opacity .2s ease,filter .2s ease}.bc-screen[data-detail="true"] .bc-brand{opacity:0;filter:blur(3px)}.bc-screen[data-detail="true"] .bc-detail-header{opacity:1;filter:blur(0);pointer-events:auto;transition:opacity .45s .16s ease,filter .45s .16s ease}.bc-screen[data-detail="true"] .bc-menu-tabs{opacity:0;filter:blur(3px);pointer-events:none}.bc-list[data-expanded="true"]{overflow:hidden;scroll-snap-type:none}
+@media(prefers-reduced-motion:reduce){.bc-stage *{transition-duration:.01ms!important;transition-delay:0ms!important}.bc-menu-open{transform:scale(1)!important}}
 `;
