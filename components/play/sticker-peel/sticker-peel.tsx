@@ -53,7 +53,7 @@ export type StickerPeelProps = {
 /** Side of a sticker's square box, in scene units. */
 const S = 84;
 /** Scale of a sticker sitting in the panel's grid, in the hand, and stuck on the page. */
-const PANEL_S = 0.9;
+const PANEL_S = 1.05;
 const CARRY_S = 1.45;
 const PLACED_S = 1.3;
 
@@ -71,33 +71,41 @@ type Geometry = {
   paper: Rect;
   /** How much the 676 x 450 journal is scaled to fit. */
   jScale: number;
+  /** Height of the journal in its own units (it stretches to fill the glass). */
+  jH: number;
   /** The sticker panel, docked on the right of the glass. */
   panel: Rect;
   slots: { x: number; y: number }[];
 };
 
-/** The journal spread is drawn at this size, then scaled to the glass. */
+/** The journal spread is drawn 676 units wide; its height stretches to fill the glass. */
 const J_W = 676;
-const J_H = 450;
+const J_H_MIN = 450;
 const TOOLBAR = 26;
 const PANEL_W = 200;
+const MARGIN = 14;
 
 function geometry(open: boolean): Geometry {
   const ipad = { x: 10, y: 10, w: 900, h: 640 };
   const glass = { x: ipad.x + 22, y: ipad.y + 22, w: 856, h: 596 };
   const area = { x: glass.x, y: glass.y + TOOLBAR, w: glass.w - (open ? PANEL_W : 0), h: glass.h - TOOLBAR };
-  const jScale = Math.min(area.w / J_W, area.h / J_H) * 0.96;
-  const jw = J_W * jScale;
-  const jh = J_H * jScale;
-  const paper = { x: area.x + (area.w - jw) / 2, y: area.y + (area.h - jh) / 2, w: jw, h: jh };
+  // Fit the spread to the area's width, then give the pages as much height as the area has.
+  let jScale = (area.w - 2 * MARGIN) / J_W;
+  let jH = (area.h - 2 * MARGIN) / jScale;
+  if (jH < J_H_MIN) {
+    jH = J_H_MIN;
+    jScale = (area.h - 2 * MARGIN) / J_H_MIN;
+  }
+  const paper = { x: area.x + (area.w - J_W * jScale) / 2, y: area.y + MARGIN, w: J_W * jScale, h: jH * jScale };
   const panel = { x: glass.x + glass.w - PANEL_W, y: glass.y + TOOLBAR, w: PANEL_W, h: glass.h - TOOLBAR };
   // A closed panel slides off the glass; its stickers slide with it.
   const dx = open ? 0 : PANEL_W + 30;
+  const rowPitch = (panel.h - 64 - 52 - 16) / 4;
   const slots = Array.from({ length: 8 }, (_, i) => ({
     x: panel.x + (i % 2 === 0 ? 52 : 148) + dx,
-    y: panel.y + 114 + 98 * Math.floor(i / 2),
+    y: panel.y + 64 + 8 + rowPitch * (Math.floor(i / 2) + 0.5),
   }));
-  return { W: 920, H: 660, ipad, glass, area, paper, jScale, panel, slots };
+  return { W: 920, H: 660, ipad, glass, area, paper, jScale, jH, panel, slots };
 }
 
 /** Pleasant places to stick things, as fractions of the journal, with a rotation. */
@@ -467,12 +475,12 @@ const STICKERS: StickerDef[] = [
 /* Shared SVG filters                                                         */
 /* -------------------------------------------------------------------------- */
 
-const GLITTER = Array.from({ length: 22 }, (_, i) => ({
+const GLITTER = Array.from({ length: 34 }, (_, i) => ({
   x: (i * 17 + ((i * i) % 11) * 3) % 40,
   y: (i * 29 + ((i * 5) % 13) * 2) % 40,
-  r: 0.3 + (i % 4) * 0.16,
-  o: 0.45 + (i % 5) * 0.12,
-  pink: i % 3 === 0,
+  r: 0.36 + (i % 4) * 0.2,
+  o: 0.6 + (i % 5) * 0.1,
+  pink: i % 4 === 0,
 }));
 
 const WASHI_CSS =
@@ -504,8 +512,9 @@ function SharedFilters({ uid }: { uid: string }) {
       <style>{WASHI_CSS}</style>
       <defs>
         <linearGradient id={`${uid}-g-sea`} x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0" stopColor="#12386b" />
-          <stop offset="1" stopColor="#0a2447" />
+          <stop offset="0" stopColor="#33508f" />
+          <stop offset="0.55" stopColor="#7c7cbc" />
+          <stop offset="1" stopColor="#eaa6bd" />
         </linearGradient>
         <linearGradient id={`${uid}-g-sky`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#aebfd1" />
@@ -535,7 +544,7 @@ function SharedFilters({ uid }: { uid: string }) {
         {/* Fine glitter speckle */}
         <pattern id={`${uid}-p-glit`} width="40" height="40" patternUnits="userSpaceOnUse">
           {GLITTER.map((g, i) => (
-            <circle key={i} cx={g.x} cy={g.y} r={g.r} fill={g.pink ? "#ffd2e2" : "#ffffff"} opacity={g.o} />
+            <circle key={i} cx={g.x} cy={g.y} r={g.r} fill={g.pink ? "#fff1c2" : "#ffffff"} opacity={g.o} />
           ))}
         </pattern>
         <linearGradient id={`${uid}-g-shim`} x1="0" y1="0" x2="1" y2="0">
@@ -1136,7 +1145,7 @@ function Photo({ x, y, w, h, rot, children, pin }: { x: number; y: number; w: nu
       <svg viewBox="0 0 160 110" preserveAspectRatio="xMidYMid slice" width={w} height={h} style={{ display: "block", boxShadow: "0 1px 3px rgba(40,40,60,.3)" }} aria-hidden="true">
         {children}
       </svg>
-      {pinPos ? <span className="absolute size-[22px] rounded-full" style={{ ...pinPos, background: "rgba(128,128,134,.85)" }} /> : null}
+      {pinPos ? <span className="absolute size-[22px] rounded-full" style={{ ...pinPos, background: "rgba(176,152,170,.88)" }} /> : null}
     </div>
   );
 }
@@ -1182,20 +1191,21 @@ function PageHeader({ x, date, day, tone, topic, items }: { x: number; date: str
 
 function DoodleFlower({ x, y, size }: { x: number; y: number; size: number }) {
   return (
-    <svg className="absolute" style={{ left: x, top: y }} width={size} height={size} viewBox="0 0 60 60" fill="none" stroke="#EF5B4C" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg className="absolute" style={{ left: x, top: y }} width={size} height={size} viewBox="0 0 60 60" fill="none" stroke="#E8708F" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {Array.from({ length: 5 }, (_, k) => {
         const a = (k * 2 * Math.PI) / 5 - Math.PI / 2;
         return <ellipse key={k} cx={30 + 15 * Math.cos(a)} cy={30 + 15 * Math.sin(a)} rx={9} ry={10.5} transform={`rotate(${(k * 72) % 360} ${30 + 15 * Math.cos(a)} ${30 + 15 * Math.sin(a)})`} />;
       })}
-      <circle cx={30} cy={30} r={3} fill="#EF5B4C" />
+      <circle cx={30} cy={30} r={3} fill="#E8708F" />
     </svg>
   );
 }
 
-function Journal({ uid }: { uid: string }) {
-  const ruled = Array.from({ length: 15 }, (_, i) => 140 + i * 21);
+function Journal({ uid, h }: { uid: string; h: number }) {
+  const ruled = Array.from({ length: Math.floor((h - 34 - 140) / 21) + 1 }, (_, i) => 140 + i * 21);
+  const ruledLeft = Array.from({ length: Math.floor((h - 34 - 316) / 21) + 1 }, (_, i) => 316 + i * 21);
   return (
-    <div className="absolute left-0 top-0 overflow-hidden bg-white" style={{ width: J_W, height: J_H }}>
+    <div className="absolute left-0 top-0 overflow-hidden bg-white" style={{ width: J_W, height: h }}>
       {/* page edges and gutter */}
       <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 0 1px #d4d5dc" }} />
       <div className="absolute inset-y-0 w-px bg-[#c4c5cf]" style={{ left: J_W / 2 }} />
@@ -1213,15 +1223,19 @@ function Journal({ uid }: { uid: string }) {
       <DoodleFlower x={246} y={236} size={56} />
       <Hand x={26} y={268} size={13}>tiny wish: more days</Hand>
       <Hand x={26} y={286} size={13}>like this one ~</Hand>
-      <svg className="absolute" style={{ left: 176, top: 382 }} width={142} height={44} viewBox="0 0 142 44" aria-hidden="true">
+      {ruledLeft.map((y) => (
+        <div key={y} className="absolute h-px bg-[#e9e6ee]" style={{ left: 22, width: 294, top: y }} />
+      ))}
+      <svg className="absolute" style={{ left: 176, top: h - 68 }} width={142} height={44} viewBox="0 0 142 44" aria-hidden="true">
         <LoveHeart cx={22} cy={22} s={0.42} fill="#9DB5EE" stroke="#7b94d6" text />
         <LoveHeart cx={71} cy={22} s={0.42} fill="#9FE0C0" stroke="#74c4a0" text />
         <LoveHeart cx={120} cy={22} s={0.42} fill="#F7BFC6" stroke="#e89aa6" text={false} />
       </svg>
-      <div className="absolute h-px bg-[#c9cad3]" style={{ left: 22, width: 294, top: 436 }} />
+      <div className="absolute h-px bg-[#c9cad3]" style={{ left: 22, width: 294, top: h - 14 }} />
 
       {/* ---- right page ---- */}
       <PageHeader x={J_W / 2} date="24 . 11 . 5" day={3} tone="pink" topic="작은 행복 모으기" items={["water the plants", "swim on saturday!", ""]} />
+      <div className="absolute h-px bg-[#c9cad3]" style={{ left: J_W / 2 + 22, width: 294, top: h - 14 }} />
       {ruled.map((y) => (
         <div key={y} className="absolute h-px bg-[#e4e5ea]" style={{ left: J_W / 2 + 22, width: 294, top: y }} />
       ))}
@@ -1241,18 +1255,18 @@ function Journal({ uid }: { uid: string }) {
         <circle cx={40} cy={19} r={3.2} fill="#1f1f24" />
         <path d="M18 40 Q31 52 44 40" />
       </svg>
-      <Photo x={J_W / 2 + 182} y={322} w={130} h={96} rot={-4} pin="tr">
+      <Photo x={J_W / 2 + 182} y={h - 128} w={130} h={96} rot={-4} pin="tr">
         <BeachPhoto uid={uid} />
       </Photo>
       <div
         className="absolute"
         style={{
           left: J_W / 2 + 28,
-          top: 346,
+          top: h - 104,
           width: 118,
           height: 72,
           transform: "rotate(3deg)",
-          background: `conic-gradient(#f7bfce 25%, #c4ebd0 0 50%, #f7bfce 0 75%, #c4ebd0 0) 0 0 / 24px 24px`,
+          background: `conic-gradient(#f7bfce 25%, #cfe3f7 0 50%, #f7bfce 0 75%, #cfe3f7 0) 0 0 / 24px 24px`,
           boxShadow: "0 1px 3px rgba(40,40,60,.25)",
         }}
       >
@@ -1579,14 +1593,14 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
                 left: geo.paper.x - glass.x,
                 top: geo.paper.y - glass.y,
                 width: J_W,
-                height: J_H,
+                height: geo.jH,
                 transform: `scale(${geo.jScale})`,
                 transformOrigin: "0 0",
                 transition: slide,
                 boxShadow: "0 6px 20px rgba(40,40,70,.18)",
               }}
             >
-              <Journal uid={uid} />
+              <Journal uid={uid} h={geo.jH} />
             </div>
 
             {/* Sticker panel */}
