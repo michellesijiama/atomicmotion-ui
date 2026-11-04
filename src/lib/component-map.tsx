@@ -54,7 +54,7 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
-  "sticker-peel": StickerPeel, // scales itself to the tile and stacks the notebook over the phone when narrow
+  "sticker-peel": StickerPeel, // scales itself to the tile and stacks the iPad over the phone when narrow
   "bead-club": BeadClub,
   "ui-walkthrough": UIWalkthroughPreview,
   "jardin-opening": JardinOpeningPreview,

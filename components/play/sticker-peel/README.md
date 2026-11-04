@@ -1,6 +1,6 @@
 # Sticker Peel
 
-A phone holding a pack of die-cut stickers beside a spiral notebook, where pressing a sticker curls its paper corner and peels it off the glass, then you carry it over and slap it down with a squash and settle, or let go elsewhere and it springs back to its slot
+A phone holding a pack of die-cut stickers beside an iPad showing a two-page scrapbook journal, where pressing a sticker curls its paper corner and peels it off the glass, then you carry it over and slap it onto the page with a squash and settle, or let go elsewhere and it springs back to its slot
 
 ![Sticker Peel preview](https://atomicmotion.dev/previews/sticker-peel.png)
 
@@ -43,7 +43,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `loop` | `boolean` | `false` | Plays a hands-free demo for the gallery card: stickers peel off the phone one by one, get slapped onto the notebook, hold, then peel back and repeat. Pointer input is switched off while it plays. |
+| `loop` | `boolean` | `false` | Plays a hands-free demo for the gallery card: stickers peel off the phone one by one, get slapped onto the iPad journal, hold, then peel back and repeat. Pointer input is switched off while it plays. |
 | `onChange` | `(stickers: StickerPeelPlacement[]) => void` | — | Called after the set of stuck stickers or their positions change. |
 | `className` | `string` | — | Additional classes for the root container. |
 
