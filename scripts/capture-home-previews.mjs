@@ -85,11 +85,11 @@ try {
       await page.waitForTimeout(3200);
     } else if (id === "sticker-peel") {
       // The poster is the iPad journal with a few stickers stuck on, placed with the
-      // keyboard path (Enter on a phone sticker) once the page has hydrated.
+      // keyboard path (Enter on a panel sticker) once the page has hydrated.
       await page.waitForSelector('button[aria-label$="Press Enter to stick it on the journal, or drag it there."]');
       await page.waitForTimeout(800);
-      for (const name of ["Teddy bear", "Glitter star", "Love You hearts", "Doodle flower", "Smiley doodle"]) {
-        await page.getByRole("button", { name: new RegExp(`^${name} sticker on the phone`) }).press("Enter");
+      for (const name of ["Sleepy cat", "Latte cup", "Smiling laptop", "Potted plant", "Jam toast"]) {
+        await page.getByRole("button", { name: new RegExp(`^${name} sticker in the sticker panel`) }).press("Enter");
         await page.waitForTimeout(1300);
       }
       await page.evaluate(() => document.activeElement?.blur());

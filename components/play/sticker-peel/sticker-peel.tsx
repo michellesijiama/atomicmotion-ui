@@ -16,7 +16,7 @@ import {
   type ValueAnimationTransition,
   type MotionValue,
 } from "framer-motion";
-import { Battery, Heart, PenLine, RotateCcw, Smile, Star, Sticker, Undo2 } from "lucide-react";
+import { Heart, PenLine, RotateCcw, Smile, Star, Sticker, Undo2 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
 // Inlined so this folder is self-contained — copy it anywhere and it works.
@@ -37,8 +37,8 @@ export type StickerPeelPlacement = {
 };
 
 export type StickerPeelProps = {
-  /** Plays a hands-free demo for the gallery card: stickers peel off the phone one by one,
-   *  get slapped onto the iPad journal, hold, then peel back and repeat. Pointer input is
+  /** Plays a hands-free demo for the gallery card: stickers peel out of the in-app sticker panel one by one,
+   *  get slapped onto the journal, hold, then peel back and repeat. Pointer input is
    *  switched off while it plays. */
   loop?: boolean;
   /** Called after the set of stuck stickers or their positions change. */
@@ -52,12 +52,11 @@ export type StickerPeelProps = {
 
 /** Side of a sticker's square box, in scene units. */
 const S = 84;
-/** Scale of a sticker sitting in the phone's grid, in the hand, and stuck on the page. */
-const PHONE_S = 0.9;
-const CARRY_S = 1.3;
-const PLACED_S = 1.15;
+/** Scale of a sticker sitting in the panel's grid, in the hand, and stuck on the page. */
+const PANEL_S = 0.9;
+const CARRY_S = 1.45;
+const PLACED_S = 1.3;
 
-type LayoutName = "row" | "col";
 type Rect = { x: number; y: number; w: number; h: number };
 
 type Geometry = {
@@ -66,13 +65,14 @@ type Geometry = {
   ipad: Rect;
   /** The iPad's glass, toolbar included. */
   glass: Rect;
-  /** The journal pages: where stickers can be stuck. */
+  /** The part of the glass the journal lives in (everything but the toolbar and an open panel). */
+  area: Rect;
+  /** The journal pages themselves, scaled to fit the area: where stickers can be stuck. */
   paper: Rect;
-  /** How much the 676 x 450 journal is scaled down to fit the glass. */
+  /** How much the 676 x 450 journal is scaled to fit. */
   jScale: number;
-  phone: Rect;
-  /** Where the grid panel sits on the phone screen, relative to the screen. */
-  panel: { top: number; height: number };
+  /** The sticker panel, docked on the right of the glass. */
+  panel: Rect;
   slots: { x: number; y: number }[];
 };
 
@@ -80,30 +80,24 @@ type Geometry = {
 const J_W = 676;
 const J_H = 450;
 const TOOLBAR = 26;
+const PANEL_W = 200;
 
-function geometry(layout: LayoutName): Geometry {
-  if (layout === "row") {
-    const ipad = { x: 0, y: 10, w: 720, h: 520 };
-    const glass = { x: ipad.x + 22, y: ipad.y + 22, w: 676, h: 476 };
-    const phone = { x: 750, y: 30, w: 230, h: 480 };
-    const screen = { x: phone.x + 10, y: phone.y + 10 };
-    const slots = Array.from({ length: 8 }, (_, i) => ({
-      x: screen.x + (i % 2 === 0 ? 63 : 167),
-      y: screen.y + 122 + 82 * Math.floor(i / 2),
-    }));
-    const paper = { x: glass.x, y: glass.y + TOOLBAR, w: glass.w, h: glass.h - TOOLBAR };
-    return { W: 980, H: 540, ipad, glass, paper, jScale: 1, phone, panel: { top: 88, height: 340 }, slots };
-  }
-  const ipad = { x: 0, y: 0, w: 520, h: 388 };
-  const glass = { x: ipad.x + 22, y: ipad.y + 22, w: 476, h: 344 };
-  const phone = { x: 110, y: 408, w: 300, h: 410 };
-  const screen = { x: phone.x + 10, y: phone.y + 10 };
+function geometry(open: boolean): Geometry {
+  const ipad = { x: 10, y: 10, w: 900, h: 640 };
+  const glass = { x: ipad.x + 22, y: ipad.y + 22, w: 856, h: 596 };
+  const area = { x: glass.x, y: glass.y + TOOLBAR, w: glass.w - (open ? PANEL_W : 0), h: glass.h - TOOLBAR };
+  const jScale = Math.min(area.w / J_W, area.h / J_H) * 0.96;
+  const jw = J_W * jScale;
+  const jh = J_H * jScale;
+  const paper = { x: area.x + (area.w - jw) / 2, y: area.y + (area.h - jh) / 2, w: jw, h: jh };
+  const panel = { x: glass.x + glass.w - PANEL_W, y: glass.y + TOOLBAR, w: PANEL_W, h: glass.h - TOOLBAR };
+  // A closed panel slides off the glass; its stickers slide with it.
+  const dx = open ? 0 : PANEL_W + 30;
   const slots = Array.from({ length: 8 }, (_, i) => ({
-    x: screen.x + 55 + 85 * (i % 3),
-    y: screen.y + 125 + 82 * Math.floor(i / 3),
+    x: panel.x + (i % 2 === 0 ? 52 : 148) + dx,
+    y: panel.y + 114 + 98 * Math.floor(i / 2),
   }));
-  const paper = { x: glass.x, y: glass.y + TOOLBAR, w: glass.w, h: glass.h - TOOLBAR };
-  return { W: 520, H: 818, ipad, glass, paper, jScale: glass.w / J_W, phone, panel: { top: 84, height: 252 }, slots };
+  return { W: 920, H: 660, ipad, glass, area, paper, jScale, panel, slots };
 }
 
 /** Pleasant places to stick things, as fractions of the journal, with a rotation. */
@@ -138,14 +132,6 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
 /* -------------------------------------------------------------------------- */
 /* Sticker artwork (original, 100 x 100 viewBox)                              */
 /* -------------------------------------------------------------------------- */
-
-function starPoints(cx: number, cy: number, ro: number, ri: number) {
-  return Array.from({ length: 10 }, (_, i) => {
-    const a = -Math.PI / 2 + (i * Math.PI) / 5;
-    const r = i % 2 ? ri : ro;
-    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
-  }).join(" ");
-}
 
 type StickerDef = {
   id: string;
@@ -245,150 +231,233 @@ const sparkle = (x: number, y: number, r: number, key: number) => (
   <path key={key} d={`M${x} ${y - r} Q${x} ${y} ${x + r} ${y} Q${x} ${y} ${x} ${y + r} Q${x} ${y} ${x - r} ${y} Q${x} ${y} ${x} ${y - r} Z`} fill="#fff" />
 );
 
+const PLUM = "#5a3446";
+const SW = 1.5;
+
+/** A tiny drawn four-point sparkle with an ink outline. */
+const sp4 = (x: number, y: number, r: number, key: string, fill = "#fffaf0") => (
+  <path
+    key={key}
+    d={`M${x} ${y - r} Q${x + r * 0.18} ${y - r * 0.18} ${x + r} ${y} Q${x + r * 0.18} ${y + r * 0.18} ${x} ${y + r} Q${x - r * 0.18} ${y + r * 0.18} ${x - r} ${y} Q${x - r * 0.18} ${y - r * 0.18} ${x} ${y - r} Z`}
+    fill={fill}
+    stroke={PLUM}
+    strokeWidth={1}
+    strokeLinejoin="round"
+  />
+);
+
+const miniHeart = (x: number, y: number, s: number, fill: string, key: string) => (
+  <path
+    key={key}
+    transform={`translate(${x - 50 * s} ${y - 50 * s}) scale(${s})`}
+    d="M50 86 C20 64 9 46 9 32 C9 19 19 12 30 12 C39 12 46 17 50 25 C54 17 61 12 70 12 C81 12 91 19 91 32 C91 46 80 64 50 86 Z"
+    fill={fill}
+    stroke={PLUM}
+    strokeWidth={SW / s}
+    strokeLinejoin="round"
+  />
+);
+
+const monsteraLeaf = (x: number, y: number, rot: number, key: string, u: string) => (
+  <g key={key} transform={`translate(${x} ${y}) rotate(${rot})`}>
+    <path
+      d="M0 0 C-17 -4 -22 -24 -9 -35 C-3 -40 5 -38 11 -33 C22 -22 17 -5 0 0 Z"
+      fill={`url(#${u}-w-sage)`}
+      stroke={PLUM}
+      strokeWidth={SW}
+      strokeLinejoin="round"
+    />
+    <path d="M0 -1 C-1 -12 -1 -22 -1 -33" fill="none" stroke={PLUM} strokeWidth={1} strokeLinecap="round" />
+    <path d="M-9 -22 L-3 -20 M8 -24 L2 -22 M-12 -12 L-4 -12 M11 -13 L3 -13" fill="none" stroke={PLUM} strokeWidth={0.9} strokeLinecap="round" />
+  </g>
+);
+
 const STICKERS: StickerDef[] = [
   {
-    id: "star",
-    label: "Glitter star",
+    id: "latte",
+    label: "Latte cup",
     maxSum: 176,
     art: (u) => (
-      <g>
-        <polygon points={starPoints(50, 53, 41, 18)} fill={`url(#${u}-g-glitter)`} stroke="#E0407E" strokeWidth={3} strokeLinejoin="round" />
-        <polygon points={starPoints(50, 53, 41, 18)} fill={`url(#${u}-p-glitter)`} />
-        <polygon points={starPoints(46, 49, 20, 9)} fill="#ffc2dc" opacity={0.55} />
-        {sparkle(36, 40, 6, 0)}
-        {sparkle(64, 62, 4.5, 1)}
-        {sparkle(52, 76, 3.5, 2)}
+      <g strokeLinejoin="round" strokeLinecap="round">
+        <ellipse cx={50} cy={82} rx={36} ry={7} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
+        <path d="M76 50 Q93 49 91 62 Q89 74 72 70 L73 63 Q83 64 84 61 Q85 56 76 57 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
+        <path d="M22 46 H78 Q78 78 50 80 Q22 78 22 46 Z" fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
+        <path d="M24 60 Q50 68 77 60" fill="none" stroke="#f4a3bb" strokeWidth={5} opacity={0.8} />
+        <ellipse cx={50} cy={46} rx={28} ry={6.5} fill="#d7a07f" stroke={PLUM} strokeWidth={SW} />
+        {miniHeart(50, 46, 0.2, "#fff4e6", "lh")}
+        <path d="M40 36 Q35 30 40 25 Q45 20 40 15" fill="none" stroke={PLUM} strokeWidth={1.1} />
+        {miniHeart(58, 26, 0.24, "#f28aa8", "h1")}
+        {miniHeart(44, 12, 0.18, "#f7b6c8", "h2")}
+        {sp4(84, 28, 5.5, "s1")}
+        {sp4(16, 40, 4, "s2")}
       </g>
     ),
   },
   {
-    id: "hearts",
-    label: "Love You hearts",
+    id: "laptop",
+    label: "Smiling laptop",
+    maxSum: 172,
+    art: (u) => (
+      <g strokeLinejoin="round" strokeLinecap="round">
+        <rect x={18} y={20} width={64} height={46} rx={5} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
+        <rect x={23} y={25} width={54} height={36} rx={3} fill={`url(#${u}-w-blue)`} stroke={PLUM} strokeWidth={1.1} />
+        <circle cx={42} cy={40} r={2} fill={PLUM} />
+        <circle cx={58} cy={40} r={2} fill={PLUM} />
+        <path d="M44 48 Q50 54 56 48" fill="none" stroke={PLUM} strokeWidth={1.4} />
+        <circle cx={37} cy={46} r={2.6} fill="#f6a5bb" opacity={0.7} />
+        <circle cx={63} cy={46} r={2.6} fill="#f6a5bb" opacity={0.7} />
+        <rect x={25} y={27} width={11} height={11} rx={1} fill="#ffd3df" stroke={PLUM} strokeWidth={0.9} transform="rotate(-8 30 32)" />
+        <rect x={65} y={28} width={11} height={11} rx={1} fill="#fff1c4" stroke={PLUM} strokeWidth={0.9} transform="rotate(7 70 33)" />
+        <path d="M10 67 H90 L85 77 Q84 79 81 79 H19 Q16 79 15 77 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
+        <path d="M42 70 H58" stroke={PLUM} strokeWidth={1.1} />
+        {sp4(88, 18, 5.5, "s1")}
+        {sp4(12, 28, 4, "s2")}
+      </g>
+    ),
+  },
+  {
+    id: "cat",
+    label: "Sleepy cat",
     maxSum: 178,
-    art: () => (
-      <g>
-        <LoveHeart cx={30} cy={36} s={0.5} fill="#9DB5EE" stroke="#7b94d6" text />
-        <LoveHeart cx={70} cy={34} s={0.5} fill="#9FE0C0" stroke="#74c4a0" text />
-        <LoveHeart cx={50} cy={68} s={0.58} fill="#F7BFC6" stroke="#e89aa6" text={false} />
+    art: (u) => (
+      <g strokeLinejoin="round" strokeLinecap="round">
+        <path d="M12 74 Q14 62 50 62 Q86 62 88 74 Q90 88 50 90 Q10 88 12 74 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
+        <path d="M80 70 Q96 66 92 52 Q90 44 82 46" fill="none" stroke={PLUM} strokeWidth={9} />
+        <path d="M80 70 Q96 66 92 52 Q90 44 82 46" fill="none" stroke="#f5ebe6" strokeWidth={6.4} />
+        <ellipse cx={54} cy={60} rx={30} ry={19} fill="#f5ebe6" stroke={PLUM} strokeWidth={SW} />
+        <path d="M60 46 Q66 56 62 70 M72 48 Q77 57 75 68" fill="none" stroke="#e1c4b6" strokeWidth={3} />
+        <path d="M22 50 L19 34 L31 42 Z" fill="#f5ebe6" stroke={PLUM} strokeWidth={SW} />
+        <path d="M42 44 L46 30 L52 46 Z" fill="#f5ebe6" stroke={PLUM} strokeWidth={SW} />
+        <ellipse cx={34} cy={56} rx={15} ry={13} fill="#f5ebe6" stroke={PLUM} strokeWidth={SW} />
+        <path d="M22 54 Q26 58 30 54 M38 54 Q42 58 46 54" fill="none" stroke={PLUM} strokeWidth={1.3} />
+        <path d="M32 61 Q34 63 36 61" fill="none" stroke={PLUM} strokeWidth={1.1} />
+        <circle cx={22} cy={60} r={2.6} fill="#f6a5bb" opacity={0.75} />
+        <circle cx={46} cy={60} r={2.6} fill="#f6a5bb" opacity={0.75} />
+        <text x={58} y={30} fontSize={10} fontWeight={700} fill={PLUM} style={{ fontFamily: "Georgia, serif" }}>z</text>
+        <text x={68} y={20} fontSize={7} fontWeight={700} fill={PLUM} style={{ fontFamily: "Georgia, serif" }}>z</text>
+        {sp4(14, 22, 5, "s1")}
+        {sp4(86, 30, 4, "s2")}
       </g>
     ),
   },
   {
-    id: "flower",
-    label: "Doodle flower",
+    id: "clock",
+    label: "Alarm clock",
+    maxSum: 174,
+    art: (u) => (
+      <g strokeLinejoin="round" strokeLinecap="round">
+        <path d="M32 82 L26 92 M68 82 L74 92" fill="none" stroke={PLUM} strokeWidth={3} />
+        <circle cx={27} cy={24} r={11} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={SW} />
+        <circle cx={73} cy={24} r={11} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={SW} />
+        <path d="M40 18 Q50 10 60 18" fill="none" stroke={PLUM} strokeWidth={SW} />
+        <circle cx={50} cy={57} r={32} fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
+        <circle cx={50} cy={57} r={25} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={1.1} />
+        {[0, 90, 180, 270].map((a) => (
+          <circle key={a} cx={50 + 20 * Math.sin((a * Math.PI) / 180)} cy={57 - 20 * Math.cos((a * Math.PI) / 180)} r={1.6} fill={PLUM} />
+        ))}
+        <path d="M50 57 V42 M50 57 L60 63" fill="none" stroke={PLUM} strokeWidth={2.2} />
+        <circle cx={50} cy={57} r={2.4} fill="#e66e90" stroke={PLUM} strokeWidth={1} />
+        {miniHeart(50, 70, 0.14, "#f28aa8", "ch")}
+        {sp4(88, 50, 5, "s1")}
+        {sp4(12, 54, 4, "s2")}
+      </g>
+    ),
+  },
+  {
+    id: "plant",
+    label: "Potted plant",
     maxSum: 172,
-    art: () => (
-      <g>
-        {Array.from({ length: 5 }, (_, k) => {
-          const a = (k * 2 * Math.PI) / 5 - Math.PI / 2;
-          return (
-            <circle key={k} cx={50 + 21 * Math.cos(a)} cy={50 + 21 * Math.sin(a)} r={15} fill="#fff" stroke="#EF6A5B" strokeWidth={3.2} />
-          );
-        })}
-        <circle cx={50} cy={50} r={17} fill="#fff" />
-        <circle cx={50} cy={50} r={4.5} fill="#EF6A5B" />
-        <path d="M42 40 Q50 34 58 40" fill="none" stroke="#EF6A5B" strokeWidth={2} strokeLinecap="round" opacity={0.0} />
+    art: (u) => (
+      <g strokeLinejoin="round" strokeLinecap="round">
+        {monsteraLeaf(50, 60, -58, "l1", u)}
+        {monsteraLeaf(50, 60, 58, "l2", u)}
+        {monsteraLeaf(50, 60, -22, "l3", u)}
+        {monsteraLeaf(50, 60, 24, "l4", u)}
+        <path d="M32 68 H68 L63 91 Q62 93 60 93 H40 Q38 93 37 91 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
+        <rect x={29} y={61} width={42} height={9} rx={3} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={SW} />
+        {miniHeart(50, 80, 0.16, "#fff4e6", "ph")}
+        {sp4(86, 22, 5, "s1")}
+        {sp4(14, 30, 4, "s2")}
       </g>
     ),
   },
   {
-    id: "bear",
-    label: "Teddy bear",
+    id: "todo",
+    label: "To-do note pad",
+    maxSum: 184,
+    art: (u) => (
+      <g strokeLinejoin="round" strokeLinecap="round">
+        <g transform="rotate(-4 46 50)">
+          <rect x={16} y={14} width={58} height={72} rx={4} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
+          <rect x={16} y={14} width={58} height={11} rx={4} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={SW} />
+          {[28, 45, 62].map((x) => (
+            <circle key={x} cx={x} cy={19.5} r={1.8} fill="#fff4e6" stroke={PLUM} strokeWidth={0.9} />
+          ))}
+          {[36, 52, 68].map((y, i) => (
+            <g key={y}>
+              <rect x={22} y={y - 4.5} width={9} height={9} rx={2} fill="#fff" stroke={PLUM} strokeWidth={1.1} />
+              {i < 2 ? <path d={`M23.5 ${y} L26 ${y + 2.6} L30 ${y - 3.4}`} fill="none" stroke="#e66e90" strokeWidth={1.8} /> : null}
+              <path d={`M36 ${y} H67`} stroke={PLUM} strokeWidth={1.1} strokeDasharray={i < 2 ? "0" : "3 2.4"} opacity={0.75} />
+            </g>
+          ))}
+        </g>
+        <g transform="rotate(24 80 56)">
+          <rect x={76} y={26} width={9} height={44} fill="#ffe9a8" stroke={PLUM} strokeWidth={SW} />
+          <rect x={76} y={20} width={9} height={7} rx={2} fill="#f7a1b8" stroke={PLUM} strokeWidth={SW} />
+          <path d="M76 70 L80.5 82 L85 70 Z" fill="#f5dcc0" stroke={PLUM} strokeWidth={SW} />
+          <path d="M79.2 78 L80.5 82 L81.8 78 Z" fill={PLUM} />
+        </g>
+        {sp4(10, 24, 4, "s1")}
+        {sp4(90, 14, 4.5, "s2")}
+      </g>
+    ),
+  },
+  {
+    id: "toast",
+    label: "Jam toast",
     maxSum: 176,
-    art: () => (
-      <g>
-        <ellipse cx={50} cy={78} rx={24} ry={17} fill="#B8875A" stroke="#8e6240" strokeWidth={2.4} />
-        <circle cx={27} cy={72} r={8.5} fill="#B8875A" stroke="#8e6240" strokeWidth={2.4} />
-        <circle cx={73} cy={72} r={8.5} fill="#B8875A" stroke="#8e6240" strokeWidth={2.4} />
-        <ellipse cx={50} cy={80} rx={13} ry={10} fill="#E8CBA6" />
-        <circle cx={28} cy={20} r={11} fill="#B8875A" stroke="#8e6240" strokeWidth={2.4} />
-        <circle cx={72} cy={20} r={11} fill="#B8875A" stroke="#8e6240" strokeWidth={2.4} />
-        <circle cx={28} cy={20} r={5.5} fill="#E8CBA6" />
-        <circle cx={72} cy={20} r={5.5} fill="#E8CBA6" />
-        <circle cx={50} cy={42} r={27} fill="#C9976A" stroke="#8e6240" strokeWidth={2.4} />
-        <ellipse cx={50} cy={51} rx={12} ry={9} fill="#EBD3B4" />
-        <ellipse cx={50} cy={47} rx={4.4} ry={3.2} fill="#4a2f1f" />
-        <circle cx={38} cy={37} r={2.8} fill="#3a2418" />
-        <circle cx={62} cy={37} r={2.8} fill="#3a2418" />
-        <path d="M50 50 V54 M44 56 Q50 60 56 56" fill="none" stroke="#4a2f1f" strokeWidth={1.8} strokeLinecap="round" />
-        <path d="M40 66 L50 70 L60 66 L60 74 L50 70 L40 74 Z" fill="#F78FB3" stroke="#d9668f" strokeWidth={1.6} strokeLinejoin="round" />
-        <path d="M36 28 Q42 22 50 22" fill="none" stroke="#e6c19a" strokeWidth={3.5} strokeLinecap="round" opacity={0.7} />
-      </g>
-    ),
-  },
-  {
-    id: "smiley",
-    label: "Smiley doodle",
-    maxSum: 172,
-    art: () => (
-      <g>
+    art: (u) => (
+      <g strokeLinejoin="round" strokeLinecap="round">
         <path
-          d="M50 13 C72 12 88 28 87 50 C86 73 70 88 49 87 C27 86 12 71 13 49 C14 28 29 14 50 13 Z"
-          fill="#FFF4B0"
-          stroke="#1f1f24"
-          strokeWidth={3.4}
-          strokeLinejoin="round"
+          d="M22 86 V48 Q9 46 11 32 Q13 17 30 19 Q40 11 52 15 Q66 11 76 19 Q92 18 90 33 Q90 46 78 48 V86 Z"
+          fill={`url(#${u}-w-crust)`}
+          stroke={PLUM}
+          strokeWidth={SW}
         />
-        <ellipse cx={37} cy={42} rx={8} ry={10} fill="#fff" stroke="#1f1f24" strokeWidth={3} />
-        <ellipse cx={63} cy={42} rx={8} ry={10} fill="#fff" stroke="#1f1f24" strokeWidth={3} />
-        <circle cx={39} cy={44} r={3.6} fill="#1f1f24" />
-        <circle cx={61} cy={44} r={3.6} fill="#1f1f24" />
-        <path d="M32 64 Q50 80 68 64" fill="none" stroke="#1f1f24" strokeWidth={3.4} strokeLinecap="round" />
-        <circle cx={24} cy={60} r={4.5} fill="#FF9DB2" opacity={0.7} />
-        <circle cx={76} cy={60} r={4.5} fill="#FF9DB2" opacity={0.7} />
-      </g>
-    ),
-  },
-  {
-    id: "photo",
-    label: "Mini photo print",
-    maxSum: 192,
-    art: (u) => (
-      <g>
-        <rect x={13} y={11} width={74} height={78} rx={3} fill="#fff" stroke="#dcdce3" strokeWidth={1.5} />
-        <svg x={19} y={17} width={62} height={52} viewBox="0 0 160 110" preserveAspectRatio="xMidYMid slice">
-          <BeachPhoto uid={u} />
-        </svg>
-        <path d="M45 79 Q50 74 55 79 Q60 85 50 88 Q40 85 45 79 Z" fill="#F7BFC6" opacity={0.9} />
-      </g>
-    ),
-  },
-  {
-    id: "label",
-    label: "Put your day in here label",
-    maxSum: 186,
-    art: () => (
-      <g transform="rotate(-5 50 50)">
-        <polygon
-          points="8,30 12,27 16,31 21,27 26,31 31,27 36,31 41,27 46,31 51,27 56,31 61,27 66,31 71,27 76,31 81,27 86,31 92,28 94,36 90,44 94,52 90,60 93,68 88,72 84,69 79,73 74,69 69,73 64,69 59,73 54,69 49,73 44,69 39,73 34,69 29,73 24,69 19,73 14,70 8,72 11,62 7,54 11,46 7,38"
-          fill="#F4F2EF"
-          stroke="#cfcac4"
-          strokeWidth={1.6}
-          strokeLinejoin="round"
+        <path d="M28 82 V46 Q17 44 18 34 Q20 24 32 25 Q41 18 52 21 Q64 18 71 25 Q84 25 83 34 Q83 43 72 46 V82 Z" fill={`url(#${u}-w-cream)`} stroke="#d9a76d" strokeWidth={1} />
+        <path
+          d="M30 40 Q28 30 42 30 Q52 24 62 31 Q76 30 72 42 Q73 52 68 55 Q66 62 62 55 Q58 64 54 56 Q48 62 45 54 Q36 54 30 40 Z"
+          fill={`url(#${u}-w-jam)`}
+          stroke={PLUM}
+          strokeWidth={SW}
         />
-        <text
-          textAnchor="middle"
-          fontSize={14}
-          fontWeight={700}
-          fill="#2b2b33"
-          style={{ fontFamily: 'var(--font-instrument-serif, Georgia, "Times New Roman", serif)' }}
-        >
-          <tspan x={50} y={46}>Put your day</tspan>
-          <tspan x={50} y={62}>in here</tspan>
-        </text>
+        <path d="M38 36 Q42 33 48 34" fill="none" stroke="#fff" strokeWidth={2} opacity={0.7} />
+        <circle cx={44} cy={44} r={1.8} fill="#fff" opacity={0.7} />
+        <rect x={38} y={64} width={14} height={9} rx={2} fill="#fff1b8" stroke={PLUM} strokeWidth={1.1} transform="rotate(-6 45 68)" />
+        {sp4(84, 62, 5, "s1")}
+        {sp4(14, 70, 4, "s2")}
       </g>
     ),
   },
   {
-    id: "checker",
-    label: "Pastel checker note",
-    maxSum: 192,
+    id: "lamp",
+    label: "Ribbon desk lamp",
+    maxSum: 176,
     art: (u) => (
-      <g transform="rotate(5 50 50)">
-        <rect x={14} y={14} width={72} height={72} rx={3} fill={`url(#${u}-p-chk)`} stroke="#e9a8b8" strokeWidth={1.6} />
-        <rect x={24} y={30} width={52} height={40} rx={2} fill="#fff" opacity={0.82} />
-        <path d="M29 40 H70 M29 50 H64 M29 60 H58" fill="none" stroke="#7b7f96" strokeWidth={2} strokeLinecap="round" strokeDasharray="5 3" />
-        <rect x={34} y={8} width={32} height={11} rx={1.5} fill="#cfe3f7" opacity={0.9} transform="rotate(-3 50 14)" />
+      <g strokeLinejoin="round" strokeLinecap="round">
+        <ellipse cx={50} cy={87} rx={21} ry={6} fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
+        <rect x={46.5} y={52} width={7} height={34} rx={2} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
+        <ellipse cx={50} cy={70} rx={8} ry={5} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={1.1} />
+        <path d="M32 18 Q50 10 68 18 L83 52 Q79 56 74 52 Q70 58 64 52 Q58 58 52 52 Q46 58 40 52 Q34 58 28 52 Q22 56 17 52 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
+        <path d="M32 18 Q50 24 68 18 L72 26 Q50 32 28 26 Z" fill={`url(#${u}-w-blue)`} stroke={PLUM} strokeWidth={1.1} />
+        <path d="M36 36 Q38 44 34 50 M50 34 Q50 44 50 50 M64 36 Q62 44 66 50" fill="none" stroke={PLUM} strokeWidth={0.9} opacity={0.6} />
+        <path d="M50 66 L40 60 Q38 66 42 70 Z M50 66 L60 60 Q62 66 58 70 Z" fill={`url(#${u}-w-blue)`} stroke={PLUM} strokeWidth={1.1} />
+        <circle cx={50} cy={66} r={2.6} fill="#e66e90" stroke={PLUM} strokeWidth={1} />
+        {[[24, 56], [50, 58], [76, 56]].map(([x, y], i) => (
+          <path key={i} d={`M${x} ${y} Q${x - 3} ${y + 5} ${x} ${y + 8} Q${x + 3} ${y + 5} ${x} ${y} Z`} fill="#e66e90" stroke={PLUM} strokeWidth={1} />
+        ))}
+        {sp4(86, 24, 5.5, "s1")}
+        {sp4(12, 32, 4.5, "s2")}
       </g>
     ),
   },
@@ -398,12 +467,23 @@ const STICKERS: StickerDef[] = [
 /* Shared SVG filters                                                         */
 /* -------------------------------------------------------------------------- */
 
+const GLITTER = Array.from({ length: 22 }, (_, i) => ({
+  x: (i * 17 + ((i * i) % 11) * 3) % 40,
+  y: (i * 29 + ((i * 5) % 13) * 2) % 40,
+  r: 0.3 + (i % 4) * 0.16,
+  o: 0.45 + (i % 5) * 0.12,
+  pink: i % 3 === 0,
+}));
+
+const WASHI_CSS =
+  "@keyframes sp-shim{0%{transform:translateX(0) skewX(-20deg)}55%,100%{transform:translateX(190px) skewX(-20deg)}}@keyframes sp-tw{0%,100%{opacity:.15}50%{opacity:.95}}.sp-shim{animation:sp-shim 5.2s ease-in-out infinite}.sp-tw{animation:sp-tw 2.8s ease-in-out infinite}@media (prefers-reduced-motion:reduce){.sp-shim{animation:none}.sp-tw{animation:none;opacity:.6}}";
+
 const FILTER_BOX = { x: -15, y: -15, width: 130, height: 130, filterUnits: "userSpaceOnUse" } as const;
 
-/** Blur then threshold the artwork's alpha: a rounded silhouette a few units wider. */
+/** Blur then threshold the artwork's alpha: a rounded silhouette a couple of units wider. */
 const GROW = (
   <>
-    <feGaussianBlur in="SourceAlpha" stdDeviation="3.4" result="blur" />
+    <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur" />
     <feComponentTransfer in="blur" result="grown">
       <feFuncA type="linear" slope="16" intercept="-1.6" />
     </feComponentTransfer>
@@ -421,6 +501,7 @@ function SharedFilters({ uid }: { uid: string }) {
   );
   return (
     <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute", pointerEvents: "none" }}>
+      <style>{WASHI_CSS}</style>
       <defs>
         <linearGradient id={`${uid}-g-sea`} x1="0" y1="0" x2="0.4" y2="1">
           <stop offset="0" stopColor="#12386b" />
@@ -434,35 +515,57 @@ function SharedFilters({ uid }: { uid: string }) {
           <stop offset="0.2" stopColor="#1fb3c8" />
           <stop offset="0.7" stopColor="#8fe6d8" />
         </linearGradient>
-        <linearGradient id={`${uid}-g-glitter`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#ff9ccb" />
-          <stop offset="0.5" stopColor="#ff5fa8" />
-          <stop offset="1" stopColor="#ff86bd" />
+        {/* Watercolour fills for the washi stickers */}
+        {(
+          [
+            ["pink", "#ffd9e4", "#f19bb7"],
+            ["rose", "#f9aec3", "#e46b8e"],
+            ["blue", "#e4f0ff", "#a6cbf0"],
+            ["cream", "#fffaf0", "#f5e3c6"],
+            ["sage", "#e0efdc", "#9fc99d"],
+            ["crust", "#f7d9a4", "#e3a967"],
+            ["jam", "#ffa9bd", "#e8577f"],
+          ] as const
+        ).map(([name, from, to]) => (
+          <linearGradient key={name} id={`${uid}-w-${name}`} x1="0.1" y1="0" x2="0.7" y2="1">
+            <stop offset="0" stopColor={from} />
+            <stop offset="1" stopColor={to} />
+          </linearGradient>
+        ))}
+        {/* Fine glitter speckle */}
+        <pattern id={`${uid}-p-glit`} width="40" height="40" patternUnits="userSpaceOnUse">
+          {GLITTER.map((g, i) => (
+            <circle key={i} cx={g.x} cy={g.y} r={g.r} fill={g.pink ? "#ffd2e2" : "#ffffff"} opacity={g.o} />
+          ))}
+        </pattern>
+        <linearGradient id={`${uid}-g-shim`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.5" stopColor="#fff" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
-        <pattern id={`${uid}-p-glitter`} width="9" height="9" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1" fill="#fff" opacity="0.8" />
-          <circle cx="6.5" cy="5.5" r="0.8" fill="#ffe3f1" opacity="0.9" />
-          <circle cx="4" cy="8" r="0.6" fill="#fff" opacity="0.6" />
-        </pattern>
-        <pattern id={`${uid}-p-chk`} width="24" height="24" patternUnits="userSpaceOnUse">
-          <rect width="24" height="24" fill="#f7bfce" />
-          <rect width="12" height="12" fill="#c4ebd0" />
-          <rect x="12" y="12" width="12" height="12" fill="#c4ebd0" />
-        </pattern>
-        {/* The die-cut look: a thick white border behind the artwork. */}
+        {/* The washi look: a thin frosted margin with a faint rim and paper fibres */}
         <filter id={`${uid}-die`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
           {GROW}
-          <feFlood floodColor="#ffffff" result="white" />
-          <feComposite in="white" in2="grown" operator="in" result="border" />
+          <feFlood floodColor="#ffffff" floodOpacity="0.62" result="frostFill" />
+          <feComposite in="frostFill" in2="grown" operator="in" result="frost" />
+          <feMorphology in="grown" operator="erode" radius="0.6" result="inner" />
+          <feComposite in="grown" in2="inner" operator="out" result="edge" />
+          <feFlood floodColor="#ffffff" floodOpacity="0.95" result="rimFill" />
+          <feComposite in="rimFill" in2="edge" operator="in" result="rim" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="noise" />
+          <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.62  0 0 0 0 0.5  0 0 0 0 0.56  0.55 0 0 0 -0.17" result="fibreRaw" />
+          <feComposite in="fibreRaw" in2="grown" operator="in" result="fibre" />
           <feMerge>
-            <feMergeNode in="border" />
+            <feMergeNode in="frost" />
+            <feMergeNode in="rim" />
             <feMergeNode in="SourceGraphic" />
+            <feMergeNode in="fibre" />
           </feMerge>
         </filter>
         {tint("silh", "#ffffff", 1, 0)}
-        {tint("back", "#f6f2fc", 1, 0)}
-        {tint("tight", "#231946", 0.9, 1.3)}
-        {tint("soft", "#231946", 0.9, 5)}
+        {tint("back", "#fcf3f7", 0.7, 0)}
+        {tint("tight", "#3a2030", 0.9, 1.3)}
+        {tint("soft", "#3a2030", 0.9, 5)}
         <filter id={`${uid}-ghost`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
           {GROW}
           <feFlood floodColor="#6f7aa8" floodOpacity="0.13" result="tintFill" />
@@ -491,8 +594,8 @@ function Ghost({ def, uid, visible }: { def: StickerDef; uid: string; visible: b
   return (
     <svg
       viewBox="0 0 100 100"
-      width={S * PHONE_S}
-      height={S * PHONE_S}
+      width={S * PANEL_S}
+      height={S * PANEL_S}
       aria-hidden="true"
       className="pointer-events-none absolute overflow-visible transition-opacity duration-300"
       style={{ opacity: visible ? 1 : 0, left: 0, top: 0 }}
@@ -518,6 +621,7 @@ type StickerItemProps = {
   home: Home;
   z: number;
   interactive: boolean;
+  hidden: boolean;
   reduce: boolean;
   label: string;
   bounds: { W: number; H: number };
@@ -531,7 +635,7 @@ type StickerItemProps = {
 };
 
 function StickerItem(props: StickerItemProps) {
-  const { def, uid, home, z, interactive, reduce, label, bounds, apiRef, toLogical, onDrop, onHeld, onRaise, onKey, onDouble } = props;
+  const { def, uid, home, z, interactive, hidden, reduce, label, bounds, apiRef, toLogical, onDrop, onHeld, onRaise, onKey, onDouble } = props;
   const sid = `${uid}-${def.id}`;
 
   const rx = useMotionValue(home.x);
@@ -876,11 +980,18 @@ function StickerItem(props: StickerItemProps) {
     play(shO, 0, { duration: 0.2 });
   };
 
+  // A closed sticker panel takes its stickers with it.
+  React.useEffect(() => {
+    if (reduce) fade.jump(hidden ? 0 : 1);
+    else animate(fade, hidden ? 0 : 1, { duration: 0.25 });
+  }, [hidden, reduce, fade]);
+
   const art = def.art(uid);
   return (
     <motion.button
       type="button"
       aria-label={label}
+      aria-hidden={hidden || undefined}
       tabIndex={interactive ? 0 : -1}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -939,23 +1050,38 @@ function StickerItem(props: StickerItemProps) {
           </mask>
           <linearGradient id={`${sid}-holo`} gradientUnits="userSpaceOnUse" x1={-20} y1={-20} x2={120} y2={120}>
             <stop offset="0.28" stopColor="#fff" stopOpacity={0} />
-            <stop offset="0.4" stopColor="#7ff5e6" stopOpacity={0.5} />
-            <stop offset="0.48" stopColor="#fff" stopOpacity={0.8} />
-            <stop offset="0.56" stopColor="#ff8fe0" stopOpacity={0.5} />
-            <stop offset="0.66" stopColor="#ffe97a" stopOpacity={0.4} />
+            <stop offset="0.4" stopColor="#ffc9e0" stopOpacity={0.4} />
+            <stop offset="0.48" stopColor="#fff" stopOpacity={0.6} />
+            <stop offset="0.56" stopColor="#c9e2ff" stopOpacity={0.4} />
+            <stop offset="0.66" stopColor="#fff0d2" stopOpacity={0.3} />
             <stop offset="0.76" stopColor="#fff" stopOpacity={0} />
           </linearGradient>
           <linearGradient id={`${sid}-shade`} gradientUnits="userSpaceOnUse" x1={40} y1={40} x2={125} y2={125}>
-            <stop offset="0" stopColor="#5a508c" stopOpacity={0.42} />
+            <stop offset="0" stopColor="#7a5870" stopOpacity={0.3} />
             <stop offset="0.3" stopColor="#fff" stopOpacity={0} />
             <stop offset="0.7" stopColor="#fff" stopOpacity={0.1} />
-            <stop offset="1" stopColor="#786eaa" stopOpacity={0.38} />
+            <stop offset="1" stopColor="#8a6a80" stopOpacity={0.26} />
           </linearGradient>
         </defs>
         <g clipPath={`url(#${sid}-cm)`}>
           <g filter={`url(#${uid}-die)`}>{art}</g>
           <g mask={`url(#${sid}-mk)`}>
-            <g mask={undefined}>
+            <rect x={-15} y={-15} width={130} height={130} fill={`url(#${uid}-p-glit)`} />
+            {[
+              [30, 30, 3.6],
+              [72, 44, 3],
+              [54, 76, 3.2],
+            ].map(([x, y, r], i) => (
+              <path
+                key={i}
+                className="sp-tw"
+                style={{ animationDelay: `${(i * 0.9 + (def.id.length % 4) * 0.35).toFixed(2)}s` }}
+                d={`M${x} ${y - r} L${x + r * 0.28} ${y - r * 0.28} L${x + r} ${y} L${x + r * 0.28} ${y + r * 0.28} L${x} ${y + r} L${x - r * 0.28} ${y + r * 0.28} L${x - r} ${y} L${x - r * 0.28} ${y - r * 0.28} Z`}
+                fill="#fff"
+              />
+            ))}
+            <rect className="sp-shim" x={-70} y={-20} width={36} height={140} fill={`url(#${uid}-g-shim)`} style={{ animationDelay: `${((def.id.length * 0.7) % 3).toFixed(2)}s` }} />
+            <g>
               <motion.rect
                 ref={sheen}
                 x={-30}
@@ -1151,14 +1277,15 @@ type ItemState = { placed: boolean; u: number; v: number; rot: number; z: number
 const INITIAL_ITEMS: ItemState[] = STICKERS.map(() => ({ placed: false, u: 0.5, v: 0.5, rot: 0, z: 0 }));
 
 /**
- * A phone holds a pack of die-cut stickers, and an iPad shows a scrapbook journal spread beside it.
+ * A landscape iPad runs a scrapbook journal app: a two-page spread, and a docked sticker panel
+ * holding a pack of washi-paper stickers.
  * Press a sticker to curl its corner and peel it off the glass, carry it over
  * the journal and let go to slap it down. Drop it anywhere else and it springs
- * back to its slot on the phone.
+ * back to its slot in the panel.
  *
- * Keyboard: Enter or Space on a phone sticker sticks it at the next free spot.
+ * Keyboard: Enter or Space on a panel sticker sticks it at the next free spot.
  * On the journal, arrow keys nudge (Shift for bigger steps), `[` and `]`
- * rotate, and Delete or Backspace sends it back to the phone. Double-click does
+ * rotate, and Delete or Backspace sends it back to the panel. Double-click does
  * the same.
  */
 export function StickerPeel({ loop = false, onChange, className }: StickerPeelProps) {
@@ -1167,35 +1294,29 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
   const hostRef = React.useRef<HTMLDivElement>(null);
   const stageRef = React.useRef<HTMLDivElement>(null);
 
-  const [view, setView] = React.useState<{ layout: LayoutName; scale: number; ready: boolean }>({
-    layout: "row",
-    scale: 1,
-    ready: false,
-  });
+  const [view, setView] = React.useState({ scale: 1, ready: false });
+  const [open, setOpen] = React.useState(true);
+  const panelOpen = loop || open;
   const [items, setItems] = React.useState<ItemState[]>(INITIAL_ITEMS);
   const [held, setHeld] = React.useState<Set<number>>(() => new Set());
   const [status, setStatus] = React.useState("");
 
-  const geo = React.useMemo(() => geometry(view.layout), [view.layout]);
+  const geo = React.useMemo(() => geometry(panelOpen), [panelOpen]);
   const [rng] = React.useState(() => Math.random);
   const zRef = React.useRef(0);
   const apis = React.useRef<(ItemApi | null)[]>([]);
 
-  // Scale the whole scene to the space it has, and pick the layout that fits best.
+  // Scale the whole landscape iPad to the space it has.
   React.useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     const apply = () => {
+      const g = geometry(true);
       const w = Math.max(1, host.clientWidth - 16);
       const h = Math.max(1, host.clientHeight - 16);
-      const row = geometry("row");
-      const col = geometry("col");
-      const sRow = Math.min(w / row.W, h / row.H);
-      const sCol = Math.min(w / col.W, h / col.H);
-      const useCol = loop || sCol > sRow * 1.02;
-      const cap = loop ? 0.86 : 1.2;
-      const scale = clamp(useCol ? sCol : sRow, 0.2, cap);
-      setView((v) => (v.layout === (useCol ? "col" : "row") && Math.abs(v.scale - scale) < 0.002 && v.ready ? v : { layout: useCol ? "col" : "row", scale, ready: true }));
+      // The gallery card crops the sides of its stage, so the loop stays narrower.
+      const scale = clamp(Math.min(w / g.W, h / g.H), 0.2, loop ? 0.76 : 1.4);
+      setView((v) => (Math.abs(v.scale - scale) < 0.002 && v.ready ? v : { scale, ready: true }));
     };
     apply();
     const ro = new ResizeObserver(apply);
@@ -1210,20 +1331,20 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
     return { x: (cx - rect.left) / k, y: (cy - rect.top) / k };
   };
 
-  const { paper, ipad, glass, slots } = geo;
+  const { paper, area, slots } = geo;
   const marginU = (S * PLACED_S * 0.42) / paper.w;
   const marginV = (S * PLACED_S * 0.42) / paper.h;
   const toUV = (x: number, y: number) => ({
     u: clamp((x - paper.x) / paper.w, marginU, 1 - marginU),
     v: clamp((y - paper.y) / paper.h, marginV, 1 - marginV),
   });
-  const overNotebook = (x: number, y: number) =>
-    x > glass.x - 6 && x < glass.x + glass.w + 6 && y > glass.y - 6 && y < glass.y + glass.h + 6;
+  const overJournal = (x: number, y: number) =>
+    x > area.x - 6 && x < area.x + area.w + 6 && y > area.y - 6 && y < area.y + area.h + 6;
 
   const homeOf = (it: ItemState, i: number): Home =>
     it.placed
       ? { x: paper.x + it.u * paper.w, y: paper.y + it.v * paper.h, rot: it.rot, s: PLACED_S, placed: true }
-      : { x: slots[i].x, y: slots[i].y, rot: 0, s: PHONE_S, placed: false };
+      : { x: slots[i].x, y: slots[i].y, rot: 0, s: PANEL_S, placed: false };
 
   const place = (i: number, u: number, v: number, rot: number, opts?: FlyOpts) => {
     zRef.current += 1;
@@ -1256,12 +1377,12 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
       n += 1;
     });
     setItems((prev) => prev.map((it) => ({ ...it, placed: false })));
-    setStatus("All stickers are back on the phone");
+    setStatus("All stickers are back in the sticker panel");
   };
 
   const onDrop = (i: number, moved: boolean, x: number, y: number) => {
     const it = items[i];
-    if (overNotebook(x, y)) {
+    if (overJournal(x, y)) {
       if (it.placed && !moved) {
         place(i, it.u, it.v, it.rot);
         return;
@@ -1271,7 +1392,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
       setStatus(`${STICKERS[i].label} stuck on the journal`);
     } else {
       sendBack(i);
-      setStatus(`${STICKERS[i].label} is back on the phone`);
+      setStatus(`${STICKERS[i].label} is back in the sticker panel`);
     }
   };
 
@@ -1290,7 +1411,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
     if (k === "Delete" || k === "Backspace") {
       e.preventDefault();
       sendBack(i, { peel: true, flight: 520 });
-      setStatus(`${STICKERS[i].label} is back on the phone`);
+      setStatus(`${STICKERS[i].label} is back in the sticker panel`);
       return;
     }
     const step = e.shiftKey ? 36 : 8;
@@ -1366,17 +1487,18 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
       dead = true;
       for (const id of timers) window.clearTimeout(id);
     };
-  }, [loop, view.ready, view.layout]);
+  }, [loop, view.ready]);
 
   const anyPlaced = items.some((it) => it.placed);
-  const onPhone = items.filter((it) => !it.placed).length;
+  const onPanel = items.filter((it) => !it.placed).length;
   const interactive = !loop;
-  const { phone, panel } = geo;
+  const { ipad, glass, panel } = geo;
+  const slide = reduce ? undefined : "transform .35s cubic-bezier(.3,.8,.3,1), left .35s cubic-bezier(.3,.8,.3,1), top .35s cubic-bezier(.3,.8,.3,1)";
 
   return (
     <div
       ref={hostRef}
-      className={cn("relative flex h-full min-h-[520px] w-full select-none items-center justify-center overflow-hidden", className)}
+      className={cn("relative flex h-full min-h-[clamp(260px,62vw,640px)] w-full select-none items-center justify-center overflow-hidden", className)}
     >
       <SharedFilters uid={uid} />
       <div
@@ -1396,7 +1518,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
 
         {/* iPad */}
         <div
-          className="absolute rounded-[36px]"
+          className="absolute rounded-[40px]"
           style={{
             left: ipad.x,
             top: ipad.y,
@@ -1406,80 +1528,111 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
             boxShadow: "0 30px 50px -18px rgba(30,30,60,.5), 0 8px 16px rgba(30,30,60,.2), inset 0 1px 0 rgba(255,255,255,.9)",
           }}
         >
-          <span className="absolute -right-[2px] top-[70px] h-[44px] w-[3px] rounded-r-[2px] bg-[#b4b8c2]" />
-          <span className="absolute -top-[2px] right-[90px] h-[3px] w-[40px] rounded-t-[2px] bg-[#b4b8c2]" />
-          <div className="absolute inset-[3px] rounded-[33px] bg-[#0c0d11]" style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,.08)" }}>
+          <span className="absolute -right-[2px] top-[80px] h-[48px] w-[3px] rounded-r-[2px] bg-[#b4b8c2]" />
+          <span className="absolute -top-[2px] right-[100px] h-[3px] w-[44px] rounded-t-[2px] bg-[#b4b8c2]" />
+          <div className="absolute inset-[3px] rounded-[37px] bg-[#0c0d11]" style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,.08)" }}>
             <span className="absolute left-1/2 top-[8px] size-[6px] -translate-x-1/2 rounded-full bg-[#1d2230]" style={{ boxShadow: "inset 0 0 0 1px #2b3144" }} />
           </div>
           <div
-            className="absolute overflow-hidden rounded-[12px] bg-white"
-            style={{ left: glass.x - ipad.x, top: glass.y - ipad.y, width: glass.w, height: glass.h }}
+            className="absolute overflow-hidden rounded-[14px]"
+            style={{ left: glass.x - ipad.x, top: glass.y - ipad.y, width: glass.w, height: glass.h, background: "#e9eaf0" }}
           >
-            <div className="absolute inset-x-0 top-0 flex items-center gap-3 border-b border-[#e3e4ea] bg-[#f6f6f8] px-3" style={{ height: TOOLBAR }}>
+            {/* Toolbar */}
+            <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-3 border-b border-[#e3e4ea] bg-[#f6f6f8] px-3" style={{ height: TOOLBAR }}>
               <PenLine className="size-[13px] text-slate-400" strokeWidth={2} aria-hidden="true" />
-              <Sticker className="size-[13px] text-slate-500" strokeWidth={2} aria-hidden="true" />
+              <button
+                type="button"
+                aria-label="Sticker panel"
+                aria-expanded={panelOpen}
+                aria-controls={`${uid}-panel`}
+                disabled={loop}
+                onClick={() => {
+                  setOpen(!panelOpen);
+                  setStatus(panelOpen ? "Sticker panel closed" : "Sticker panel open");
+                }}
+                className={cn(
+                  "flex size-[20px] items-center justify-center rounded-[6px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sky-500",
+                  panelOpen ? "bg-violet-100 text-violet-600" : "text-slate-500 hover:bg-slate-200/70",
+                )}
+              >
+                <Sticker className="size-[13px]" strokeWidth={2.2} aria-hidden="true" />
+              </button>
               <Undo2 className="size-[13px] text-slate-400" strokeWidth={2} aria-hidden="true" />
-              <span className="absolute left-1/2 -translate-x-1/2 text-[10px] font-semibold tracking-wide text-slate-400">Daily Journal</span>
+              <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[10px] font-semibold tracking-wide text-slate-400">Daily Journal</span>
+              {!loop ? (
+                <button
+                  type="button"
+                  onClick={reset}
+                  disabled={!anyPlaced}
+                  className="ml-auto inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-[2px] text-[11px] font-semibold text-slate-700 shadow-[0_1px_4px_rgba(30,40,70,.2)] outline-none transition-opacity hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-500 disabled:opacity-40"
+                >
+                  <RotateCcw className="size-3" aria-hidden="true" />
+                  Reset
+                </button>
+              ) : null}
             </div>
-            <div className="absolute left-0" style={{ top: TOOLBAR, width: J_W, height: J_H, transform: `scale(${geo.jScale})`, transformOrigin: "0 0" }}>
+
+            {/* The journal, scaled to whatever room the panel leaves */}
+            <div
+              className="absolute"
+              style={{
+                left: geo.paper.x - glass.x,
+                top: geo.paper.y - glass.y,
+                width: J_W,
+                height: J_H,
+                transform: `scale(${geo.jScale})`,
+                transformOrigin: "0 0",
+                transition: slide,
+                boxShadow: "0 6px 20px rgba(40,40,70,.18)",
+              }}
+            >
               <Journal uid={uid} />
             </div>
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{ background: "linear-gradient(115deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 30%)" }}
-            />
-          </div>
-        </div>
 
-        {/* Phone */}
-        <div
-          className="absolute rounded-[46px]"
-          style={{
-            left: phone.x,
-            top: phone.y,
-            width: phone.w,
-            height: phone.h,
-            background: "linear-gradient(145deg,#4a4d5c 0%,#23252e 40%,#16171d 100%)",
-            boxShadow:
-              "0 28px 44px -16px rgba(20,18,50,.55), 0 6px 14px rgba(20,18,50,.25), inset 0 0 0 1.5px rgba(255,255,255,.18), inset 0 0 0 4px rgba(0,0,0,.5)",
-          }}
-        >
-          <span className="absolute -left-[3px] top-[96px] h-[30px] w-[4px] rounded-l-[3px] bg-[#2b2d37]" />
-          <span className="absolute -left-[3px] top-[138px] h-[52px] w-[4px] rounded-l-[3px] bg-[#2b2d37]" />
-          <span className="absolute -right-[3px] top-[130px] h-[70px] w-[4px] rounded-r-[3px] bg-[#2b2d37]" />
-          <div
-            className="absolute inset-[10px] overflow-hidden rounded-[36px]"
-            style={{ background: "linear-gradient(180deg,#f8f6ff 0%,#ebe7fb 100%)" }}
-          >
-            <span className="absolute left-[24px] top-[12px] text-[11px] font-semibold text-slate-800">9:41</span>
-            <span className="absolute left-1/2 top-[9px] h-[22px] w-[74px] -translate-x-1/2 rounded-full bg-black" />
-            <Battery className="absolute right-[22px] top-[11px] size-[15px] text-slate-800" strokeWidth={2} aria-hidden="true" />
-            <div className="absolute left-[20px] right-[20px] top-[40px] flex items-end justify-between">
-              <div>
-                <p className="text-[20px] font-extrabold leading-none tracking-tight text-slate-900">Stickers</p>
-                <p className="mt-1 text-[11px] font-medium text-violet-600">Journal Pack</p>
-              </div>
-              <span className="rounded-full bg-violet-600 px-2 py-[2px] text-[10px] font-bold text-white">{onPhone} left</span>
-            </div>
+            {/* Sticker panel */}
             <div
-              className="absolute left-[10px] right-[10px] rounded-[22px]"
+              id={`${uid}-panel`}
+              role="region"
+              aria-label="Sticker panel"
+              className="absolute border-l border-[#dcd9ee]"
               style={{
-                top: panel.top,
-                height: panel.height,
-                backgroundColor: "rgba(255,255,255,.78)",
-                backgroundImage: "radial-gradient(circle at 1px 1px, rgba(120,110,170,.22) 1px, transparent 1.4px)",
-                backgroundSize: "16px 16px",
-                boxShadow: "inset 0 0 0 1px rgba(120,110,170,.14), inset 0 2px 6px rgba(120,110,170,.12)",
+                left: panel.x - glass.x,
+                top: panel.y - glass.y,
+                width: panel.w,
+                height: panel.h,
+                background: "linear-gradient(180deg,#f8f6ff 0%,#ece8fb 100%)",
+                transform: panelOpen ? "translateX(0)" : `translateX(${PANEL_W + 4}px)`,
+                transition: slide,
               }}
-            />
-            <div className="absolute inset-x-0 bottom-0 flex h-[44px] items-center justify-around border-t border-violet-200/70 bg-white/85">
-              <Smile className="size-5 text-violet-600" strokeWidth={2.4} aria-hidden="true" />
-              <Heart className="size-5 text-slate-400" strokeWidth={2.2} aria-hidden="true" />
-              <Star className="size-5 text-slate-400" strokeWidth={2.2} aria-hidden="true" />
+            >
+              <div className="absolute left-4 right-4 top-[14px] flex items-end justify-between">
+                <div>
+                  <p className="text-[17px] font-extrabold leading-none tracking-tight text-slate-900">Stickers</p>
+                  <p className="mt-1 text-[10px] font-medium text-violet-600">Work &amp; Life pack</p>
+                </div>
+                <span className="rounded-full bg-violet-600 px-2 py-[2px] text-[10px] font-bold text-white">{onPanel} left</span>
+              </div>
+              <div
+                className="absolute left-[8px] right-[8px] rounded-[20px]"
+                style={{
+                  top: 64,
+                  height: panel.h - 64 - 52,
+                  backgroundColor: "rgba(255,255,255,.78)",
+                  backgroundImage: "radial-gradient(circle at 1px 1px, rgba(120,110,170,.22) 1px, transparent 1.4px)",
+                  backgroundSize: "16px 16px",
+                  boxShadow: "inset 0 0 0 1px rgba(120,110,170,.14), inset 0 2px 6px rgba(120,110,170,.12)",
+                }}
+              />
+              <div className="absolute inset-x-0 bottom-0 flex h-[40px] items-center justify-around border-t border-violet-200/70 bg-white/70">
+                <Smile className="size-[18px] text-violet-600" strokeWidth={2.4} aria-hidden="true" />
+                <Heart className="size-[18px] text-slate-400" strokeWidth={2.2} aria-hidden="true" />
+                <Star className="size-[18px] text-slate-400" strokeWidth={2.2} aria-hidden="true" />
+              </div>
             </div>
+
             <div
               className="pointer-events-none absolute inset-0"
-              style={{ background: "linear-gradient(115deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 32%)" }}
+              style={{ background: "linear-gradient(115deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,0) 28%)" }}
             />
           </div>
         </div>
@@ -1489,26 +1642,28 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
           <div
             key={`g-${def.id}`}
             className="pointer-events-none absolute"
-            style={{ left: slots[i].x - (S * PHONE_S) / 2, top: slots[i].y - (S * PHONE_S) / 2, width: S * PHONE_S, height: S * PHONE_S, zIndex: 1 }}
+            style={{ left: slots[i].x - (S * PANEL_S) / 2, top: slots[i].y - (S * PANEL_S) / 2, width: S * PANEL_S, height: S * PANEL_S, zIndex: 1 }}
           >
-            <Ghost def={def} uid={uid} visible={items[i].placed || held.has(i)} />
+            <Ghost def={def} uid={uid} visible={panelOpen && (items[i].placed || held.has(i))} />
           </div>
         ))}
 
-        {/* Stickers live in their own top layer, so they can leave the phone's glass */}
+        {/* Stickers live in their own top layer, so they can leave the panel's clipped glass */}
         {STICKERS.map((def, i) => {
           const it = items[i];
+          const hidden = !it.placed && !panelOpen;
           const label = it.placed
-            ? `${def.label} sticker on the journal. Arrow keys move it, brackets rotate it, Delete returns it to the phone.`
-            : `${def.label} sticker on the phone. Press Enter to stick it on the journal, or drag it there.`;
+            ? `${def.label} sticker on the journal. Arrow keys move it, brackets rotate it, Delete returns it to the sticker panel.`
+            : `${def.label} sticker in the sticker panel. Press Enter to stick it on the journal, or drag it there.`;
           return (
             <StickerItem
-              key={`${view.layout}-${def.id}`}
+              key={def.id}
               def={def}
               uid={uid}
               home={homeOf(it, i)}
               z={it.placed ? it.z : 2}
-              interactive={interactive}
+              interactive={interactive && !hidden}
+              hidden={hidden}
               reduce={reduce}
               label={label}
               bounds={{ W: geo.W, H: geo.H }}
@@ -1536,25 +1691,12 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
               onDouble={() => {
                 if (it.placed) {
                   sendBack(i, { peel: true, flight: 520 });
-                  setStatus(`${def.label} is back on the phone`);
+                  setStatus(`${def.label} is back in the sticker panel`);
                 }
               }}
             />
           );
         })}
-
-        {!loop ? (
-          <button
-            type="button"
-            onClick={reset}
-            disabled={!anyPlaced}
-            className="absolute inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-[2px] text-[11px] font-semibold text-slate-700 shadow-[0_2px_8px_rgba(30,40,70,.22)] outline-none transition-opacity hover:bg-white focus-visible:ring-4 focus-visible:ring-sky-500 disabled:opacity-40"
-            style={{ left: glass.x + glass.w - 78, top: glass.y + 3, zIndex: 3000 }}
-          >
-            <RotateCcw className="size-3" aria-hidden="true" />
-            Reset
-          </button>
-        ) : null}
       </div>
     </div>
   );

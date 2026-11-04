@@ -107,7 +107,7 @@ export const componentRegistry = {
     index: "023",
     title: "Sticker Peel",
     description:
-      "A phone holding a pack of die-cut stickers beside an iPad showing a two-page scrapbook journal, where pressing a sticker curls its paper corner and peels it off the glass, then you carry it over and slap it onto the page with a squash and settle, or let go elsewhere and it springs back to its slot",
+      "A landscape iPad running a scrapbook journal app, with a docked sticker panel of glittery washi-paper stickers about everyday life and work that you press to curl and peel off the glass, carry onto the two-page spread and slap down with a squash and settle, or let go elsewhere and it springs back to its slot",
     category: "Play",
     createdAt: "2026-11-04",
     codePath: "components/play/sticker-peel/sticker-peel.tsx",
