@@ -88,7 +88,7 @@ try {
       // keyboard path (Enter on a panel sticker) once the page has hydrated.
       await page.waitForSelector('button[aria-label$="Press Enter to stick it on the journal, or drag it there."]');
       await page.waitForTimeout(800);
-      for (const name of ["Sleepy cat", "Latte cup", "Smiling laptop", "Potted plant", "Jam toast"]) {
+      for (const name of ["Sleepy cat", "Rose teacup", "Lace laptop", "Potted rose", "Jam toast plate"]) {
         await page.getByRole("button", { name: new RegExp(`^${name} sticker in the sticker panel`) }).press("Enter");
         await page.waitForTimeout(1300);
       }

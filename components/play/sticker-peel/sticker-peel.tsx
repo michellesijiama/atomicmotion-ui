@@ -19,6 +19,9 @@ import {
 import { Heart, PenLine, RotateCcw, Smile, Star, Sticker, Undo2 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
+/** Rounded so server and browser print identical numbers. */
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
 // Inlined so this folder is self-contained — copy it anywhere and it works.
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -110,26 +113,23 @@ function geometry(open: boolean): Geometry {
 
 /** Pleasant places to stick things, as fractions of the journal, with a rotation. */
 const SPOTS: { u: number; v: number; rot: number }[] = [
-  { u: 0.163, v: 0.756, rot: -8 },
-  { u: 0.362, v: 0.744, rot: 6 },
-  { u: 0.237, v: 0.644, rot: -5 },
-  { u: 0.65, v: 0.644, rot: 7 },
-  { u: 0.885, v: 0.5, rot: -6 },
-  { u: 0.75, v: 0.89, rot: 9 },
-  { u: 0.94, v: 0.878, rot: -10 },
-  { u: 0.104, v: 0.878, rot: 4 },
+  { u: 0.17, v: 0.7, rot: -7 },
+  { u: 0.4, v: 0.76, rot: 5 },
+  { u: 0.64, v: 0.66, rot: -5 },
+  { u: 0.86, v: 0.62, rot: 7 },
+  { u: 0.78, v: 0.88, rot: -4 },
+  { u: 0.2, v: 0.9, rot: 4 },
+  { u: 0.52, v: 0.92, rot: -6 },
+  { u: 0.9, v: 0.84, rot: 8 },
 ];
 
-/** The autoplay order: [sticker index, spot index]. */
+/** The autoplay order: [sticker index, spot index]. Five stickers, well spaced, no overlaps. */
 const DEMO: [number, number][] = [
-  [3, 1],
-  [0, 0],
-  [1, 7],
-  [2, 2],
-  [4, 4],
-  [5, 3],
-  [6, 5],
-  [7, 6],
+  [0, 1],
+  [2, 0],
+  [1, 2],
+  [4, 3],
+  [6, 4],
 ];
 
 const POS_SPRING = { stiffness: 700, damping: 42, mass: 0.7 };
@@ -140,14 +140,6 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
 /* -------------------------------------------------------------------------- */
 /* Sticker artwork (original, 100 x 100 viewBox)                              */
 /* -------------------------------------------------------------------------- */
-
-type StickerDef = {
-  id: string;
-  label: string;
-  /** The largest x + y the artwork (and its white border) reaches. The paper curl starts here. */
-  maxSum: number;
-  art: (uid: string) => React.ReactNode;
-};
 
 /* ---- Painted "photos": no images, just gradients and shapes (viewBox 0 0 160 110) ---- */
 
@@ -183,55 +175,14 @@ function HillPhoto({ uid }: { uid: string }) {
       <ellipse cx={92} cy={34} rx={30} ry={8} fill="#fff" opacity={0.55} />
       <line x1={38} y1={32} x2={38} y2={72} stroke="#f7f7f7" strokeWidth={2.2} />
       {[-90, 30, 150].map((a) => (
-        <line key={a} x1={38} y1={32} x2={38 + 20 * Math.cos((a * Math.PI) / 180)} y2={32 + 20 * Math.sin((a * Math.PI) / 180)} stroke="#fafafa" strokeWidth={1.8} strokeLinecap="round" />
+        <line key={a} x1={38} y1={32} x2={r2(38 + 20 * Math.cos((a * Math.PI) / 180))} y2={r2(32 + 20 * Math.sin((a * Math.PI) / 180))} stroke="#fafafa" strokeWidth={1.8} strokeLinecap="round" />
       ))}
-      <path d="M0 70 Q40 52 90 64 T160 60 V110 H0 Z" fill="#5d8c45" />
-      <path d="M0 80 Q50 66 110 76 T160 74 V110 H0 Z" fill="#79a74f" />
-      <path d="M60 110 Q72 90 100 80 Q112 77 122 76 L138 78 Q108 88 100 110 Z" fill="#8d8f8b" />
+      <path d="M0 70 Q40 52 90 64 T160 60 V110 H0 Z" fill="#88a283" />
+      <path d="M0 80 Q50 66 110 76 T160 74 V110 H0 Z" fill="#a5b895" />
+      <path d="M60 110 Q72 90 100 80 Q112 77 122 76 L138 78 Q108 88 100 110 Z" fill="#b2aaa6" />
       <path d="M72 110 Q82 92 104 84" fill="none" stroke="#b9bab5" strokeWidth={1.4} />
       <path d="M10 100 L60 86" stroke="#6b5a3c" strokeWidth={1.2} strokeDasharray="1.5 4" />
     </>
-  );
-}
-
-/** A turquoise beach: sky, bright shallow water, foam and sand. */
-function BeachPhoto({ uid }: { uid: string }) {
-  return (
-    <>
-      <rect width={160} height={110} fill={`url(#${uid}-g-turq)`} />
-      <rect width={160} height={26} fill="#cfeaf7" />
-      <ellipse cx={110} cy={12} rx={30} ry={7} fill="#fff" opacity={0.8} />
-      <path d="M0 26 H160 V34 H0 Z" fill="#5aa7d8" opacity={0.7} />
-      <path d="M0 70 Q30 62 60 70 T120 68 T160 66 V110 H0 Z" fill="#ecd6aa" />
-      <path d="M0 68 Q30 60 60 68 T120 66 T160 64" fill="none" stroke="#fff" strokeWidth={3} opacity={0.9} />
-      <path d="M0 58 Q40 52 80 58 T160 54" fill="none" stroke="#fff" strokeWidth={1.4} opacity={0.6} />
-      {GLINTS.slice(0, 24).map((g, i) => (
-        <ellipse key={i} cx={g.x} cy={36 + (g.y % 22)} rx={g.rx} ry={0.6} fill="#fff" opacity={g.o * 0.7} />
-      ))}
-    </>
-  );
-}
-
-const heartPath =
-  "M50 86 C20 64 9 46 9 32 C9 19 19 12 30 12 C39 12 46 17 50 25 C54 17 61 12 70 12 C81 12 91 19 91 32 C91 46 80 64 50 86 Z";
-
-/** A small pastel heart stamped with LOVE YOU. */
-function LoveHeart({ cx, cy, s, fill, stroke, text }: { cx: number; cy: number; s: number; fill: string; stroke: string; text: boolean }) {
-  return (
-    <g transform={`translate(${cx - 50 * s} ${cy - 50 * s}) scale(${s})`}>
-      <path d={heartPath} fill={fill} stroke={stroke} strokeWidth={3 / s} strokeLinejoin="round" />
-      <path d="M22 30 Q23 22 31 20" fill="none" stroke="#fff" strokeWidth={5} strokeLinecap="round" opacity={0.6} />
-      {text ? (
-        <text textAnchor="middle" fontSize={15} fontWeight={800} fill="#fff" style={{ fontFamily: "system-ui, sans-serif", letterSpacing: 0.5 }}>
-          <tspan x={50} y={44}>LOVE</tspan>
-          <tspan x={50} y={61}>YOU</tspan>
-        </text>
-      ) : (
-        <text x={50} y={54} textAnchor="middle" fontSize={20} fontStyle="italic" fill="#fff" style={{ fontFamily: "Georgia, serif" }}>
-          Love
-        </text>
-      )}
-    </g>
   );
 }
 
@@ -239,249 +190,406 @@ const sparkle = (x: number, y: number, r: number, key: number) => (
   <path key={key} d={`M${x} ${y - r} Q${x} ${y} ${x + r} ${y} Q${x} ${y} ${x} ${y + r} Q${x} ${y} ${x - r} ${y} Q${x} ${y} ${x} ${y - r} Z`} fill="#fff" />
 );
 
-const PLUM = "#5a3446";
-const SW = 1.5;
+/** The restrained washi palette. */
+const C = {
+  blush: "#F5D5DE",
+  dusty: "#E3A1B5",
+  rose: "#C9607E",
+  wine: "#8C2F4E",
+  blue: "#BCD4EA",
+  sky: "#E2ECF6",
+  cream: "#F7F0E4",
+  porcelain: "#FBFAF7",
+  sage: "#B9C4B0",
+  ink: "#5B3A47",
+};
+const PLUM = C.ink;
+const SW = 1;
 
-/** A tiny drawn four-point sparkle with an ink outline. */
-const sp4 = (x: number, y: number, r: number, key: string, fill = "#fffaf0") => (
-  <path
-    key={key}
-    d={`M${x} ${y - r} Q${x + r * 0.18} ${y - r * 0.18} ${x + r} ${y} Q${x + r * 0.18} ${y + r * 0.18} ${x} ${y + r} Q${x - r * 0.18} ${y + r * 0.18} ${x - r} ${y} Q${x - r * 0.18} ${y - r * 0.18} ${x} ${y - r} Z`}
-    fill={fill}
-    stroke={PLUM}
-    strokeWidth={1}
-    strokeLinejoin="round"
-  />
-);
+/** One wash of watercolour: a filled shape, with an optional deeper glaze pooled on its lower side. */
+type Part = { d: string; c: string; g?: string; line?: boolean };
 
-const miniHeart = (x: number, y: number, s: number, fill: string, key: string) => (
-  <path
-    key={key}
-    transform={`translate(${x - 50 * s} ${y - 50 * s}) scale(${s})`}
-    d="M50 86 C20 64 9 46 9 32 C9 19 19 12 30 12 C39 12 46 17 50 25 C54 17 61 12 70 12 C81 12 91 19 91 32 C91 46 80 64 50 86 Z"
-    fill={fill}
-    stroke={PLUM}
-    strokeWidth={SW / s}
-    strokeLinejoin="round"
-  />
-);
+type StickerDef = {
+  id: string;
+  label: string;
+  /** The largest x + y the artwork (and its frosted margin) reaches. The paper curl starts here. */
+  maxSum: number;
+  /** Pigment layer: soft, bled, a little off-register. */
+  parts: Part[];
+  /** Extra pen work: details, hatching and sparkles. Each part also gets its own outline. */
+  ink: React.ReactNode;
+};
 
-const monsteraLeaf = (x: number, y: number, rot: number, key: string, u: string) => (
-  <g key={key} transform={`translate(${x} ${y}) rotate(${rot})`}>
-    <path
-      d="M0 0 C-17 -4 -22 -24 -9 -35 C-3 -40 5 -38 11 -33 C22 -22 17 -5 0 0 Z"
-      fill={`url(#${u}-w-sage)`}
-      stroke={PLUM}
-      strokeWidth={SW}
-      strokeLinejoin="round"
-    />
-    <path d="M0 -1 C-1 -12 -1 -22 -1 -33" fill="none" stroke={PLUM} strokeWidth={1} strokeLinecap="round" />
-    <path d="M-9 -22 L-3 -20 M8 -24 L2 -22 M-12 -12 L-4 -12 M11 -13 L3 -13" fill="none" stroke={PLUM} strokeWidth={0.9} strokeLinecap="round" />
+const circ = (cx: number, cy: number, r: number) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
+const ell = (cx: number, cy: number, rx: number, ry: number) => `M${cx - rx} ${cy}a${rx} ${ry} 0 1 0 ${2 * rx} 0a${rx} ${ry} 0 1 0 ${-2 * rx} 0Z`;
+const scallop = (x1: number, x2: number, y: number, n: number, depth: number) => {
+  const w = (x2 - x1) / n;
+  let d = `M${x1} ${y}`;
+  for (let i = 0; i < n; i += 1) d += `Q${(x1 + w * (i + 0.5)).toFixed(1)} ${y + depth * 2} ${(x1 + w * (i + 1)).toFixed(1)} ${y}`;
+  return d;
+};
+/** A closed ruffle band: straight top edge, scalloped bottom edge. */
+const ruffle = (x1: number, x2: number, top: number, n: number, depth: number, hem: number) =>
+  `M${x1} ${top}H${x2}V${hem}${scallop(x2, x1, hem, n, depth).replace(/^M\S+ \S+/, "")}Z`;
+
+const leaf = (x: number, y: number, deg: number, len: number) => {
+  const a = (deg * Math.PI) / 180;
+  const pt = (px: number, py: number) => `${(x + px * Math.cos(a) - py * Math.sin(a)).toFixed(1)} ${(y + px * Math.sin(a) + py * Math.cos(a)).toFixed(1)}`;
+  return {
+    part: { d: `M${pt(0, 0)}Q${pt(len * 0.5, -len * 0.32)} ${pt(len, 0)}Q${pt(len * 0.5, len * 0.32)} ${pt(0, 0)}Z`, c: C.sage } as Part,
+    vein: `M${pt(len * 0.08, 0)}L${pt(len * 0.85, 0)}`,
+  };
+};
+
+/** A bow as wash parts: two loops, two tails and a knot. */
+const bow = (x: number, y: number, s: number, c: string): Part[] => [
+  { d: `M${x} ${y}C${x - 10 * s} ${y - 14 * s} ${x - 24 * s} ${y - 8 * s} ${x - 22 * s} ${y + 4 * s}C${x - 20 * s} ${y + 14 * s} ${x - 8 * s} ${y + 8 * s} ${x} ${y}Z`, c },
+  { d: `M${x} ${y}C${x + 10 * s} ${y - 14 * s} ${x + 24 * s} ${y - 8 * s} ${x + 22 * s} ${y + 4 * s}C${x + 20 * s} ${y + 14 * s} ${x + 8 * s} ${y + 8 * s} ${x} ${y}Z`, c },
+  { d: `M${x - 1} ${y + 1}L${x - 9 * s} ${y + 17 * s}L${x - 4 * s} ${y + 14 * s}L${x + 1} ${y + 3}Z`, c },
+  { d: `M${x + 1} ${y + 1}L${x + 9 * s} ${y + 17 * s}L${x + 4 * s} ${y + 14 * s}L${x - 1} ${y + 3}Z`, c },
+  { d: circ(x, y, 2.6 * s), c },
+];
+
+/** Pen lines for a small rose seen from above. */
+const roseInk = (x: number, y: number, r: number, key: string) => (
+  <g key={key} fill="none" stroke={PLUM} strokeWidth={0.8} strokeLinecap="round" strokeLinejoin="round">
+    <path d={`M${x - r * 0.15} ${y + r * 0.05}Q${x - r * 0.1} ${y - r * 0.45} ${x + r * 0.4} ${y - r * 0.2}Q${x + r * 0.55} ${y + r * 0.3} ${x} ${y + r * 0.5}`} />
+    <path d={`M${x - r * 0.7} ${y - r * 0.1}Q${x - r * 0.6} ${y + r * 0.6} ${x + r * 0.1} ${y + r * 0.75}`} />
   </g>
 );
 
-const STICKERS: StickerDef[] = [
-  {
-    id: "latte",
-    label: "Latte cup",
-    maxSum: 176,
-    art: (u) => (
-      <g strokeLinejoin="round" strokeLinecap="round">
-        <ellipse cx={50} cy={82} rx={36} ry={7} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
-        <path d="M76 50 Q93 49 91 62 Q89 74 72 70 L73 63 Q83 64 84 61 Q85 56 76 57 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
-        <path d="M22 46 H78 Q78 78 50 80 Q22 78 22 46 Z" fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
-        <path d="M24 60 Q50 68 77 60" fill="none" stroke="#f4a3bb" strokeWidth={5} opacity={0.8} />
-        <ellipse cx={50} cy={46} rx={28} ry={6.5} fill="#d7a07f" stroke={PLUM} strokeWidth={SW} />
-        {miniHeart(50, 46, 0.2, "#fff4e6", "lh")}
-        <path d="M40 36 Q35 30 40 25 Q45 20 40 15" fill="none" stroke={PLUM} strokeWidth={1.1} />
-        {miniHeart(58, 26, 0.24, "#f28aa8", "h1")}
-        {miniHeart(44, 12, 0.18, "#f7b6c8", "h2")}
-        {sp4(84, 28, 5.5, "s1")}
-        {sp4(16, 40, 4, "s2")}
+/** A tiny drawn four-point sparkle. */
+const sp4 = (x: number, y: number, r: number, key: string) => (
+  <path
+    key={key}
+    d={`M${x} ${y - r}Q${x + r * 0.16} ${y - r * 0.16} ${x + r} ${y}Q${x + r * 0.16} ${y + r * 0.16} ${x} ${y + r}Q${x - r * 0.16} ${y + r * 0.16} ${x - r} ${y}Q${x - r * 0.16} ${y - r * 0.16} ${x} ${y - r}Z`}
+    fill="none"
+    stroke={PLUM}
+    strokeWidth={0.9}
+    strokeLinejoin="round"
+  />
+);
+
+const pen = { fill: "none", stroke: PLUM, strokeWidth: 0.9, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+const hatch = (x: number, y: number, n: number, dx: number, len: number) =>
+  Array.from({ length: n }, (_, i) => `M${x + i * dx} ${y}l${len * 0.5} ${len}`).join("");
+
+const roseLeaf = (x: number, y: number, deg: number, len: number) => leaf(x, y, deg, len);
+
+const STICKERS: StickerDef[] = (() => {
+  const l1 = roseLeaf(40, 66, 150, 9);
+  const l2 = roseLeaf(60, 70, 30, 9);
+  const teacup: StickerDef = {
+    id: "teacup",
+    label: "Rose teacup",
+    maxSum: 178,
+    parts: [
+      { d: ell(50, 82, 35, 7), c: C.cream, g: C.blush },
+      { d: "M76 48Q94 46 91 61Q88 74 72 70L73 64Q83 65 84 61Q85 56 76 57Z", c: C.blush },
+      { d: "M23 42H77Q77 72 50 78Q23 72 23 42Z", c: C.sky, g: C.blue },
+      { d: ell(50, 42, 27, 5.5), c: C.dusty },
+      { d: circ(34, 60, 5.6), c: C.dusty, g: C.rose },
+      { d: circ(53, 66, 5), c: C.rose },
+      { d: circ(66, 58, 4.6), c: C.dusty, g: C.rose },
+      l1.part,
+      l2.part,
+      { d: "M56 28q-5-4-2-8q3-4 8-1q5-3 8 1q3 4-2 8l-6 6z", c: C.blush },
+    ],
+    ink: (
+      <g {...pen}>
+        <path d={ell(50, 82, 24, 3.4)} strokeWidth={0.6} />
+        <path d="M26 46Q50 52 74 46" strokeWidth={0.7} />
+        <path d={hatch(62, 56, 4, 3, 7)} strokeWidth={0.6} />
+        <path d="M40 36q-5-6 0-11q5-5 0-10M50 34q-4-5 0-9" strokeWidth={0.8} />
+        <path d={l1.vein + l2.vein} strokeWidth={0.6} />
+        {roseInk(34, 60, 5.6, "r1")}
+        {roseInk(53, 66, 5, "r2")}
+        {roseInk(66, 58, 4.6, "r3")}
+        {[22, 78].map((x) => (
+          <circle key={x} cx={x} cy={82} r={0.9} fill={C.blue} />
+        ))}
+        {sp4(86, 26, 5, "s1")}
+        {sp4(14, 40, 4, "s2")}
       </g>
     ),
-  },
-  {
+  };
+
+  const laptop: StickerDef = {
     id: "laptop",
-    label: "Smiling laptop",
-    maxSum: 172,
-    art: (u) => (
-      <g strokeLinejoin="round" strokeLinecap="round">
-        <rect x={18} y={20} width={64} height={46} rx={5} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
-        <rect x={23} y={25} width={54} height={36} rx={3} fill={`url(#${u}-w-blue)`} stroke={PLUM} strokeWidth={1.1} />
-        <circle cx={42} cy={40} r={2} fill={PLUM} />
-        <circle cx={58} cy={40} r={2} fill={PLUM} />
-        <path d="M44 48 Q50 54 56 48" fill="none" stroke={PLUM} strokeWidth={1.4} />
-        <circle cx={37} cy={46} r={2.6} fill="#f6a5bb" opacity={0.7} />
-        <circle cx={63} cy={46} r={2.6} fill="#f6a5bb" opacity={0.7} />
-        <rect x={25} y={27} width={11} height={11} rx={1} fill="#ffd3df" stroke={PLUM} strokeWidth={0.9} transform="rotate(-8 30 32)" />
-        <rect x={65} y={28} width={11} height={11} rx={1} fill="#fff1c4" stroke={PLUM} strokeWidth={0.9} transform="rotate(7 70 33)" />
-        <path d="M10 67 H90 L85 77 Q84 79 81 79 H19 Q16 79 15 77 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
-        <path d="M42 70 H58" stroke={PLUM} strokeWidth={1.1} />
-        {sp4(88, 18, 5.5, "s1")}
-        {sp4(12, 28, 4, "s2")}
+    label: "Lace laptop",
+    maxSum: 176,
+    parts: [
+      { d: circ(74, 72, 19), c: C.cream, g: C.blush },
+      { d: "M16 18H80Q84 18 84 22V62Q84 66 80 66H20Q16 66 16 62V22Q16 18 20 18Z", c: C.cream },
+      { d: "M21 23H79V61H21Z", c: C.sky, g: C.blue },
+      { d: "M24 26h11v11H24z", c: C.blush },
+      { d: "M66 28h10v10H66z", c: C.cream },
+      { d: "M10 67H90L85 77Q84 79 81 79H19Q16 79 15 77Z", c: C.dusty, g: C.rose },
+      { d: circ(36, 47, 3), c: C.dusty },
+      { d: circ(64, 47, 3), c: C.dusty },
+      ...bow(17, 19, 0.5, C.rose),
+    ],
+    ink: (
+      <g {...pen}>
+        <path d={circ(74, 72, 15.5)} strokeDasharray="1.2 2" strokeWidth={0.6} />
+        {[0, 60, 120, 180, 240, 300].map((a) => (
+          <circle key={a} cx={r2(74 + 9 * Math.cos((a * Math.PI) / 180))} cy={r2(72 + 9 * Math.sin((a * Math.PI) / 180))} r={1.2} strokeWidth={0.6} />
+        ))}
+        <path d="M43 42q0-3 3-3M54 39q3 0 3 3" strokeWidth={1} />
+        <path d="M45 50Q50 55 55 50" strokeWidth={1} />
+        <path d="M24 70h60" strokeDasharray="0.1 3.2" strokeWidth={1.2} />
+        <path d="M42 74h16" strokeWidth={0.7} />
+        <path d="M26 33h8M26 30h6M68 33h6" strokeWidth={0.5} />
+        {sp4(90, 12, 5, "s1")}
+        {sp4(9, 34, 4, "s2")}
       </g>
     ),
-  },
-  {
+  };
+
+  const cat: StickerDef = {
     id: "cat",
     label: "Sleepy cat",
     maxSum: 178,
-    art: (u) => (
-      <g strokeLinejoin="round" strokeLinecap="round">
-        <path d="M12 74 Q14 62 50 62 Q86 62 88 74 Q90 88 50 90 Q10 88 12 74 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
-        <path d="M80 70 Q96 66 92 52 Q90 44 82 46" fill="none" stroke={PLUM} strokeWidth={9} />
-        <path d="M80 70 Q96 66 92 52 Q90 44 82 46" fill="none" stroke="#f5ebe6" strokeWidth={6.4} />
-        <ellipse cx={54} cy={60} rx={30} ry={19} fill="#f5ebe6" stroke={PLUM} strokeWidth={SW} />
-        <path d="M60 46 Q66 56 62 70 M72 48 Q77 57 75 68" fill="none" stroke="#e1c4b6" strokeWidth={3} />
-        <path d="M22 50 L19 34 L31 42 Z" fill="#f5ebe6" stroke={PLUM} strokeWidth={SW} />
-        <path d="M42 44 L46 30 L52 46 Z" fill="#f5ebe6" stroke={PLUM} strokeWidth={SW} />
-        <ellipse cx={34} cy={56} rx={15} ry={13} fill="#f5ebe6" stroke={PLUM} strokeWidth={SW} />
-        <path d="M22 54 Q26 58 30 54 M38 54 Q42 58 46 54" fill="none" stroke={PLUM} strokeWidth={1.3} />
-        <path d="M32 61 Q34 63 36 61" fill="none" stroke={PLUM} strokeWidth={1.1} />
-        <circle cx={22} cy={60} r={2.6} fill="#f6a5bb" opacity={0.75} />
-        <circle cx={46} cy={60} r={2.6} fill="#f6a5bb" opacity={0.75} />
-        <text x={58} y={30} fontSize={10} fontWeight={700} fill={PLUM} style={{ fontFamily: "Georgia, serif" }}>z</text>
-        <text x={68} y={20} fontSize={7} fontWeight={700} fill={PLUM} style={{ fontFamily: "Georgia, serif" }}>z</text>
-        {sp4(14, 22, 5, "s1")}
-        {sp4(86, 30, 4, "s2")}
+    parts: [
+      { d: "M10 72Q12 64 50 64Q88 64 90 72Q92 86 50 88Q8 86 10 72Z", c: C.dusty, g: C.rose },
+      { d: "M80 70Q98 66 93 50Q91 44 83 47Q88 52 88 58Q86 64 78 66Z", c: C.cream },
+      { d: ell(54, 60, 29, 18), c: C.cream, g: C.blush },
+      { d: ell(31, 55, 15, 13), c: C.cream, g: C.blush },
+      { d: "M20 48L18 33L30 41Z", c: C.blush },
+      { d: "M40 44L46 31L51 46Z", c: C.blush },
+      { d: circ(22, 60, 2.8), c: C.dusty },
+      { d: circ(41, 60, 2.8), c: C.dusty },
+      ...bow(38, 66, 0.45, C.rose),
+    ],
+    ink: (
+      <g {...pen}>
+        <path d={scallop(12, 88, 86, 8, 3)} strokeWidth={0.7} />
+        <path d="M60 46Q66 56 62 70M72 48Q77 57 75 68" strokeWidth={0.7} />
+        <path d="M24 54q3 3 6 0M37 54q3 3 6 0" strokeWidth={1} />
+        <path d="M32 59.5q1.5 1.5 3 0" strokeWidth={0.8} />
+        <path d="M14 57l-8-2M14 60l-8 2M48 57l8-2M48 60l8 2" strokeWidth={0.6} />
+        <text x={60} y={30} fontSize={9} fill={PLUM} stroke="none" style={{ fontFamily: "Georgia, serif", fontStyle: "italic" }}>z</text>
+        <text x={69} y={21} fontSize={6.5} fill={PLUM} stroke="none" style={{ fontFamily: "Georgia, serif", fontStyle: "italic" }}>z</text>
+        {sp4(14, 24, 5, "s1")}
+        {sp4(86, 32, 4, "s2")}
       </g>
     ),
-  },
-  {
+  };
+
+  const clock: StickerDef = {
     id: "clock",
-    label: "Alarm clock",
-    maxSum: 174,
-    art: (u) => (
-      <g strokeLinejoin="round" strokeLinecap="round">
-        <path d="M32 82 L26 92 M68 82 L74 92" fill="none" stroke={PLUM} strokeWidth={3} />
-        <circle cx={27} cy={24} r={11} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={SW} />
-        <circle cx={73} cy={24} r={11} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={SW} />
-        <path d="M40 18 Q50 10 60 18" fill="none" stroke={PLUM} strokeWidth={SW} />
-        <circle cx={50} cy={57} r={32} fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
-        <circle cx={50} cy={57} r={25} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={1.1} />
-        {[0, 90, 180, 270].map((a) => (
-          <circle key={a} cx={50 + 20 * Math.sin((a * Math.PI) / 180)} cy={57 - 20 * Math.cos((a * Math.PI) / 180)} r={1.6} fill={PLUM} />
+    label: "Ribbon alarm clock",
+    maxSum: 176,
+    parts: [
+      { d: circ(26, 25, 10), c: C.rose },
+      { d: circ(74, 25, 10), c: C.rose },
+      { d: circ(50, 57, 31), c: C.dusty, g: C.rose },
+      { d: circ(50, 57, 24), c: C.cream },
+      ...bow(50, 14, 0.55, C.blue),
+    ],
+    ink: (
+      <g {...pen}>
+        <path d="M32 84L27 93M68 84L73 93" strokeWidth={2.4} />
+        <path d="M18 22q8-6 16 0M66 22q8-6 16 0" strokeWidth={0.6} />
+        <path d={circ(50, 57, 27.5)} strokeDasharray="1 2.2" strokeWidth={0.6} />
+        {Array.from({ length: 12 }, (_, i) => {
+          const a = (i * 30 * Math.PI) / 180;
+          return <path key={i} d={`M${r2(50 + 20.5 * Math.sin(a))} ${r2(57 - 20.5 * Math.cos(a))}L${r2(50 + 22.5 * Math.sin(a))} ${r2(57 - 22.5 * Math.cos(a))}`} strokeWidth={0.8} />;
+        })}
+        <path d="M50 57V41M50 57L60 63" strokeWidth={1.3} />
+        <circle cx={50} cy={57} r={2} fill={C.rose} />
+        {sp4(90, 52, 5, "s1")}
+        {sp4(10, 56, 4, "s2")}
+      </g>
+    ),
+  };
+
+  const sl = [leaf(46, 62, -150, 11), leaf(54, 56, -30, 11), leaf(48, 76, 200, 9)];
+  const pottedRose: StickerDef = {
+    id: "rose",
+    label: "Potted rose",
+    maxSum: 176,
+    parts: [
+      { d: "M32 70H68L63 92Q62 94 60 94H40Q38 94 37 92Z", c: C.sky, g: C.blue },
+      { d: "M29 62H71Q73 62 72 66L71 71H29L28 66Q27 62 29 62Z", c: C.blush },
+      ...sl.map((s) => s.part),
+      { d: circ(36, 34, 9), c: C.dusty, g: C.rose },
+      { d: circ(62, 27, 10), c: C.rose },
+      { d: circ(78, 48, 5), c: C.blush },
+    ],
+    ink: (
+      <g {...pen}>
+        <path d="M48 62Q40 50 37 42M52 62Q58 46 62 36M54 62Q70 58 77 52" strokeWidth={0.9} />
+        <path d={sl.map((s) => s.vein).join("")} strokeWidth={0.6} />
+        {roseInk(36, 34, 9, "r1")}
+        {roseInk(62, 27, 10, "r2")}
+        <path d="M76 46q2 2 4 0" strokeWidth={0.6} />
+        {[40, 50, 60].map((x) => (
+          <circle key={x} cx={x} cy={82} r={1.1} fill={C.dusty} strokeWidth={0.5} />
         ))}
-        <path d="M50 57 V42 M50 57 L60 63" fill="none" stroke={PLUM} strokeWidth={2.2} />
-        <circle cx={50} cy={57} r={2.4} fill="#e66e90" stroke={PLUM} strokeWidth={1} />
-        {miniHeart(50, 70, 0.14, "#f28aa8", "ch")}
-        {sp4(88, 50, 5, "s1")}
-        {sp4(12, 54, 4, "s2")}
+        <path d="M31 66H69" strokeWidth={0.5} />
+        {sp4(88, 20, 5, "s1")}
+        {sp4(12, 28, 4, "s2")}
       </g>
     ),
-  },
-  {
-    id: "plant",
-    label: "Potted plant",
-    maxSum: 172,
-    art: (u) => (
-      <g strokeLinejoin="round" strokeLinecap="round">
-        {monsteraLeaf(50, 60, -58, "l1", u)}
-        {monsteraLeaf(50, 60, 58, "l2", u)}
-        {monsteraLeaf(50, 60, -22, "l3", u)}
-        {monsteraLeaf(50, 60, 24, "l4", u)}
-        <path d="M32 68 H68 L63 91 Q62 93 60 93 H40 Q38 93 37 91 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
-        <rect x={29} y={61} width={42} height={9} rx={3} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={SW} />
-        {miniHeart(50, 80, 0.16, "#fff4e6", "ph")}
-        {sp4(86, 22, 5, "s1")}
-        {sp4(14, 30, 4, "s2")}
-      </g>
-    ),
-  },
-  {
-    id: "todo",
-    label: "To-do note pad",
+  };
+
+  const planner: StickerDef = {
+    id: "planner",
+    label: "Rose planner",
     maxSum: 184,
-    art: (u) => (
-      <g strokeLinejoin="round" strokeLinecap="round">
-        <g transform="rotate(-4 46 50)">
-          <rect x={16} y={14} width={58} height={72} rx={4} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
-          <rect x={16} y={14} width={58} height={11} rx={4} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={SW} />
-          {[28, 45, 62].map((x) => (
-            <circle key={x} cx={x} cy={19.5} r={1.8} fill="#fff4e6" stroke={PLUM} strokeWidth={0.9} />
-          ))}
-          {[36, 52, 68].map((y, i) => (
-            <g key={y}>
-              <rect x={22} y={y - 4.5} width={9} height={9} rx={2} fill="#fff" stroke={PLUM} strokeWidth={1.1} />
-              {i < 2 ? <path d={`M23.5 ${y} L26 ${y + 2.6} L30 ${y - 3.4}`} fill="none" stroke="#e66e90" strokeWidth={1.8} /> : null}
-              <path d={`M36 ${y} H67`} stroke={PLUM} strokeWidth={1.1} strokeDasharray={i < 2 ? "0" : "3 2.4"} opacity={0.75} />
-            </g>
-          ))}
-        </g>
-        <g transform="rotate(24 80 56)">
-          <rect x={76} y={26} width={9} height={44} fill="#ffe9a8" stroke={PLUM} strokeWidth={SW} />
-          <rect x={76} y={20} width={9} height={7} rx={2} fill="#f7a1b8" stroke={PLUM} strokeWidth={SW} />
-          <path d="M76 70 L80.5 82 L85 70 Z" fill="#f5dcc0" stroke={PLUM} strokeWidth={SW} />
-          <path d="M79.2 78 L80.5 82 L81.8 78 Z" fill={PLUM} />
-        </g>
-        {sp4(10, 24, 4, "s1")}
-        {sp4(90, 14, 4.5, "s2")}
-      </g>
-    ),
-  },
-  {
-    id: "toast",
-    label: "Jam toast",
-    maxSum: 176,
-    art: (u) => (
-      <g strokeLinejoin="round" strokeLinecap="round">
-        <path
-          d="M22 86 V48 Q9 46 11 32 Q13 17 30 19 Q40 11 52 15 Q66 11 76 19 Q92 18 90 33 Q90 46 78 48 V86 Z"
-          fill={`url(#${u}-w-crust)`}
-          stroke={PLUM}
-          strokeWidth={SW}
-        />
-        <path d="M28 82 V46 Q17 44 18 34 Q20 24 32 25 Q41 18 52 21 Q64 18 71 25 Q84 25 83 34 Q83 43 72 46 V82 Z" fill={`url(#${u}-w-cream)`} stroke="#d9a76d" strokeWidth={1} />
-        <path
-          d="M30 40 Q28 30 42 30 Q52 24 62 31 Q76 30 72 42 Q73 52 68 55 Q66 62 62 55 Q58 64 54 56 Q48 62 45 54 Q36 54 30 40 Z"
-          fill={`url(#${u}-w-jam)`}
-          stroke={PLUM}
-          strokeWidth={SW}
-        />
-        <path d="M38 36 Q42 33 48 34" fill="none" stroke="#fff" strokeWidth={2} opacity={0.7} />
-        <circle cx={44} cy={44} r={1.8} fill="#fff" opacity={0.7} />
-        <rect x={38} y={64} width={14} height={9} rx={2} fill="#fff1b8" stroke={PLUM} strokeWidth={1.1} transform="rotate(-6 45 68)" />
-        {sp4(84, 62, 5, "s1")}
-        {sp4(14, 70, 4, "s2")}
-      </g>
-    ),
-  },
-  {
-    id: "lamp",
-    label: "Ribbon desk lamp",
-    maxSum: 176,
-    art: (u) => (
-      <g strokeLinejoin="round" strokeLinecap="round">
-        <ellipse cx={50} cy={87} rx={21} ry={6} fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
-        <rect x={46.5} y={52} width={7} height={34} rx={2} fill={`url(#${u}-w-cream)`} stroke={PLUM} strokeWidth={SW} />
-        <ellipse cx={50} cy={70} rx={8} ry={5} fill={`url(#${u}-w-rose)`} stroke={PLUM} strokeWidth={1.1} />
-        <path d="M32 18 Q50 10 68 18 L83 52 Q79 56 74 52 Q70 58 64 52 Q58 58 52 52 Q46 58 40 52 Q34 58 28 52 Q22 56 17 52 Z" fill={`url(#${u}-w-pink)`} stroke={PLUM} strokeWidth={SW} />
-        <path d="M32 18 Q50 24 68 18 L72 26 Q50 32 28 26 Z" fill={`url(#${u}-w-blue)`} stroke={PLUM} strokeWidth={1.1} />
-        <path d="M36 36 Q38 44 34 50 M50 34 Q50 44 50 50 M64 36 Q62 44 66 50" fill="none" stroke={PLUM} strokeWidth={0.9} opacity={0.6} />
-        <path d="M50 66 L40 60 Q38 66 42 70 Z M50 66 L60 60 Q62 66 58 70 Z" fill={`url(#${u}-w-blue)`} stroke={PLUM} strokeWidth={1.1} />
-        <circle cx={50} cy={66} r={2.6} fill="#e66e90" stroke={PLUM} strokeWidth={1} />
-        {[[24, 56], [50, 58], [76, 56]].map(([x, y], i) => (
-          <path key={i} d={`M${x} ${y} Q${x - 3} ${y + 5} ${x} ${y + 8} Q${x + 3} ${y + 5} ${x} ${y} Z`} fill="#e66e90" stroke={PLUM} strokeWidth={1} />
+    parts: [
+      { d: "M16 12H72Q75 12 75 15V84Q75 87 72 87H19Q16 87 16 84Z", c: C.cream },
+      { d: "M16 12H75V26H16Z", c: C.blush, g: C.dusty },
+      { d: "M80 26L88 24L93 70L85 72Z", c: C.sky },
+      { d: "M80 26L88 24L88.8 31L80.8 33Z", c: C.dusty },
+      { d: "M85 72L93 70L88 86Z", c: C.cream },
+      { d: "M52 86V97L56 93L60 97V86Z", c: C.rose },
+      { d: circ(56, 88, 5), c: C.dusty, g: C.rose },
+    ],
+    ink: (
+      <g {...pen}>
+        {[26, 38, 50, 62].map((x) => (
+          <ellipse key={x} cx={x} cy={12} rx={2.2} ry={3} strokeWidth={0.8} fill={C.porcelain} />
         ))}
-        {sp4(86, 24, 5.5, "s1")}
-        {sp4(12, 32, 4.5, "s2")}
+        <path d={scallop(16, 75, 26, 8, 2)} strokeWidth={0.7} />
+        {[38, 52, 66].map((y, i) => (
+          <g key={y}>
+            <rect x={22} y={y - 4} width={8} height={8} rx={1.5} strokeWidth={0.8} />
+            {i < 2 ? <path d={`M23.5 ${y}L26 ${y + 2.4}L29.5 ${y - 3}`} stroke={C.rose} strokeWidth={1.2} /> : null}
+            <path d={`M35 ${y}H68`} strokeWidth={0.6} strokeDasharray={i < 2 ? undefined : "3 2.4"} />
+          </g>
+        ))}
+        <path d="M86 86L88 90" strokeWidth={1.2} />
+        {roseInk(56, 88, 5, "r1")}
+        {sp4(10, 40, 4, "s1")}
+        {sp4(90, 10, 5, "s2")}
       </g>
     ),
-  },
-];
+  };
+
+  const toast: StickerDef = {
+    id: "toast",
+    label: "Jam toast plate",
+    maxSum: 178,
+    parts: [
+      { d: ell(50, 85, 38, 9), c: C.sky, g: C.blue },
+      { d: ell(50, 83, 29, 6), c: C.cream },
+      { d: "M24 78V44Q11 42 13 29Q15 15 31 17Q41 9 53 13Q66 9 76 17Q91 16 89 31Q89 44 76 46V78Z", c: C.cream, g: C.dusty },
+      { d: "M30 38Q28 28 42 28Q52 22 62 29Q76 28 72 40Q73 50 68 53Q66 60 62 53Q58 62 54 54Q48 60 45 52Q36 52 30 38Z", c: C.dusty, g: C.rose },
+      { d: "M60 62h13v8H60z", c: C.cream },
+      { d: circ(22, 86, 1.8), c: C.blue },
+      { d: circ(78, 86, 1.8), c: C.blue },
+    ],
+    ink: (
+      <g {...pen}>
+        <path d="M30 76V42Q20 40 20 32Q22 24 33 25Q42 18 53 21Q64 18 71 25Q82 25 82 33Q82 41 71 43V76" strokeWidth={0.6} />
+        {[[40, 62], [52, 68], [44, 72], [30, 56]].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={0.7} fill={PLUM} />
+        ))}
+        <path d="M38 34Q42 31 48 32" strokeWidth={0.6} stroke={C.porcelain} />
+        <path d={ell(50, 83, 29, 6)} strokeWidth={0.5} />
+        {[[34, 86], [66, 86], [50, 90]].map(([x, y], i) => (
+          <g key={i}>
+            <circle cx={x} cy={y} r={1.3} fill={C.blue} strokeWidth={0.5} />
+          </g>
+        ))}
+        {sp4(88, 62, 5, "s1")}
+        {sp4(12, 66, 4, "s2")}
+      </g>
+    ),
+  };
+
+  const lampStem = "M46 52Q42 60 46 66Q40 72 44 80L40 86H60L56 80Q60 72 54 66Q58 60 54 52Z";
+  const drops = [24, 40, 60, 76].map((x) => `M${x} 56q-3 5 0 9q3-4 0-9z`);
+  const lamp: StickerDef = {
+    id: "lamp",
+    label: "Ruffle lamp",
+    maxSum: 176,
+    parts: [
+      { d: ell(50, 89, 20, 5), c: C.sky },
+      { d: lampStem, c: C.sky, g: C.blue },
+      { d: "M30 16Q50 8 70 16L84 48H16Z", c: C.blush, g: C.dusty },
+      { d: ruffle(14, 86, 46, 7, 5, 50), c: C.dusty, g: C.rose },
+      { d: "M31 17Q50 24 69 17L72 26Q50 33 28 26Z", c: C.blue },
+      ...bow(50, 30, 0.5, C.blue),
+      ...drops.map((d) => ({ d, c: C.wine })),
+      { d: circ(50, 70, 3.6), c: C.dusty },
+    ],
+    ink: (
+      <g {...pen}>
+        <path d="M36 20L28 46M50 22V46M64 20L72 46" strokeWidth={0.6} />
+        {[24, 40, 60, 76].map((x) => (
+          <path key={x} d={`M${x} 53v3`} strokeWidth={0.6} />
+        ))}
+        {roseInk(50, 70, 3.6, "r1")}
+        {sp4(88, 22, 5.5, "s1")}
+        {sp4(11, 32, 4.5, "s2")}
+      </g>
+    ),
+  };
+  return [teacup, laptop, cat, clock, pottedRose, planner, toast, lamp];
+})();
+
+/** The sticker's pigment layer, as plain shapes. */
+const washShapes = (def: StickerDef) => def.parts.map((p, i) => <path key={i} d={p.d} fill={p.c} />);
+/** Deeper glazes, faded in from the top of each shape by the shared glaze mask. */
+const glazeShapes = (def: StickerDef, uid: string) =>
+  def.parts.flatMap((p, i) => (p.g ? [<path key={i} d={p.d} fill={p.g} mask={`url(#${uid}-glaze)`} />] : []));
+/** Pen outlines plus detail strokes. */
+const inkShapes = (def: StickerDef) => (
+  <>
+    <g fill="none" stroke={PLUM} strokeWidth={SW} strokeLinecap="round" strokeLinejoin="round">
+      {def.parts.map((p, i) => (p.line === false ? null : <path key={i} d={p.d} />))}
+    </g>
+    {def.ink}
+  </>
+);
+/** Everything, unfiltered: what silhouettes, masks and shadows are cut from. */
+const allShapes = (def: StickerDef) => (
+  <>
+    {washShapes(def)}
+    {inkShapes(def)}
+  </>
+);
+
+/** A CSS mask image in the shape of the sticker plus its margin, for the frosted-film layer. */
+const marginMask = (def: StickerDef) => {
+  const paths = def.parts.map((p) => `<path d='${p.d}'/>`).join("");
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><g fill='#000' stroke='#000' stroke-width='5' stroke-linejoin='round'>${paths}</g></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Shared SVG filters                                                         */
 /* -------------------------------------------------------------------------- */
 
-const GLITTER = Array.from({ length: 34 }, (_, i) => ({
-  x: (i * 17 + ((i * i) % 11) * 3) % 40,
-  y: (i * 29 + ((i * 5) % 13) * 2) % 40,
-  r: 0.36 + (i % 4) * 0.2,
-  o: 0.6 + (i % 5) * 0.1,
-  pink: i % 4 === 0,
-}));
+/** A deterministic scatter of fine grains: white, pale pink, pale blue and champagne. */
+const GLITTER = (() => {
+  let seed = 12345;
+  const rnd = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const colours = ["#ffffff", "#ffffff", "#ffd8e6", "#d4e8ff", "#fff1c9"];
+  return Array.from({ length: 190 }, () => ({
+    x: rnd() * 64,
+    y: rnd() * 64,
+    r: 0.28 + rnd() * 0.5,
+    o: 0.4 + rnd() * 0.6,
+    c: colours[Math.floor(rnd() * colours.length)],
+  }));
+})();
+
+const TWINKLES: [number, number, number][] = [
+  [28, 30, 3],
+  [70, 42, 2.6],
+  [52, 74, 2.8],
+  [82, 20, 2.2],
+  [20, 66, 2.2],
+];
+const twinkle = (x: number, y: number, r: number) =>
+  `M${x} ${y - r}L${x + r * 0.26} ${y - r * 0.26}L${x + r} ${y}L${x + r * 0.26} ${y + r * 0.26}L${x} ${y + r}L${x - r * 0.26} ${y + r * 0.26}L${x - r} ${y}L${x - r * 0.26} ${y - r * 0.26}Z`;
 
 const WASHI_CSS =
   "@keyframes sp-shim{0%{transform:translateX(0) skewX(-20deg)}55%,100%{transform:translateX(190px) skewX(-20deg)}}@keyframes sp-tw{0%,100%{opacity:.15}50%{opacity:.95}}.sp-shim{animation:sp-shim 5.2s ease-in-out infinite}.sp-tw{animation:sp-tw 2.8s ease-in-out infinite}@media (prefers-reduced-motion:reduce){.sp-shim{animation:none}.sp-tw{animation:none;opacity:.6}}";
@@ -512,87 +620,132 @@ function SharedFilters({ uid }: { uid: string }) {
       <style>{WASHI_CSS}</style>
       <defs>
         <linearGradient id={`${uid}-g-sea`} x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0" stopColor="#33508f" />
-          <stop offset="0.55" stopColor="#7c7cbc" />
-          <stop offset="1" stopColor="#eaa6bd" />
+          <stop offset="0" stopColor="#4a6492" />
+          <stop offset="0.55" stopColor="#8c92bd" />
+          <stop offset="1" stopColor={C.dusty} />
         </linearGradient>
         <linearGradient id={`${uid}-g-sky`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#aebfd1" />
-          <stop offset="1" stopColor="#e6ecf1" />
+          <stop offset="0" stopColor="#b9c9d8" />
+          <stop offset="1" stopColor={C.sky} />
         </linearGradient>
         <linearGradient id={`${uid}-g-turq`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0.2" stopColor="#1fb3c8" />
-          <stop offset="0.7" stopColor="#8fe6d8" />
+          <stop offset="0.2" stopColor="#7fb3cc" />
+          <stop offset="0.7" stopColor="#bfe0dd" />
         </linearGradient>
-        {/* Watercolour fills for the washi stickers */}
-        {(
-          [
-            ["pink", "#ffd9e4", "#f19bb7"],
-            ["rose", "#f9aec3", "#e46b8e"],
-            ["blue", "#e4f0ff", "#a6cbf0"],
-            ["cream", "#fffaf0", "#f5e3c6"],
-            ["sage", "#e0efdc", "#9fc99d"],
-            ["crust", "#f7d9a4", "#e3a967"],
-            ["jam", "#ffa9bd", "#e8577f"],
-          ] as const
-        ).map(([name, from, to]) => (
-          <linearGradient key={name} id={`${uid}-w-${name}`} x1="0.1" y1="0" x2="0.7" y2="1">
-            <stop offset="0" stopColor={from} />
-            <stop offset="1" stopColor={to} />
-          </linearGradient>
-        ))}
-        {/* Fine glitter speckle */}
-        <pattern id={`${uid}-p-glit`} width="40" height="40" patternUnits="userSpaceOnUse">
+        {/* Glazes fade in from the top of a shape, pooling pigment on its lower side. */}
+        <linearGradient id={`${uid}-glaze-g`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0.25" stopColor="#000" />
+          <stop offset="1" stopColor="#fff" />
+        </linearGradient>
+        <mask id={`${uid}-glaze`} maskContentUnits="objectBoundingBox">
+          <rect x={-0.1} y={-0.1} width={1.2} height={1.2} fill={`url(#${uid}-glaze-g)`} />
+        </mask>
+        {/* Fine iridescent glitter */}
+        <pattern id={`${uid}-p-glit`} width="64" height="64" patternUnits="userSpaceOnUse">
           {GLITTER.map((g, i) => (
-            <circle key={i} cx={g.x} cy={g.y} r={g.r} fill={g.pink ? "#fff1c2" : "#ffffff"} opacity={g.o} />
+            <circle key={i} cx={g.x} cy={g.y} r={g.r} fill={g.c} opacity={g.o} />
           ))}
         </pattern>
         <linearGradient id={`${uid}-g-shim`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#fff" stopOpacity="0" />
-          <stop offset="0.5" stopColor="#fff" stopOpacity="0.55" />
+          <stop offset="0.5" stopColor="#fff" stopOpacity="0.6" />
           <stop offset="1" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
-        {/* The washi look: a thin frosted margin with a faint rim and paper fibres */}
-        <filter id={`${uid}-die`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
+
+        {/* Watercolour: bled, wobbling edges, granulation, pooled rim, soft bloom */}
+        <filter id={`${uid}-wash`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" seed="6" result="bleedN" />
+          <feDisplacementMap in="SourceGraphic" in2="bleedN" scale="4" xChannelSelector="R" yChannelSelector="G" result="bled" />
+          <feGaussianBlur in="bled" stdDeviation="0.7" result="soft" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="3" result="grainN" />
+          <feColorMatrix in="grainN" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0 0 0 0.52" result="grainA" />
+          <feComposite in="soft" in2="grainA" operator="in" result="grainy" />
+          <feColorMatrix in="grainy" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.9 0" result="wash" />
+          <feMorphology in="soft" operator="erode" radius="1.1" result="core" />
+          <feComposite in="soft" in2="core" operator="out" result="rim" />
+          <feGaussianBlur in="rim" stdDeviation="0.8" result="rimSoft" />
+          <feFlood floodColor="#b25a76" floodOpacity="0.32" result="rimC" />
+          <feComposite in="rimC" in2="rimSoft" operator="in" result="pool" />
+          <feMerge>
+            <feMergeNode in="wash" />
+            <feMergeNode in="pool" />
+          </feMerge>
+        </filter>
+        {/* Glazes are wetter: blurred and bleeding further */}
+        <filter id={`${uid}-glazef`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="12" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G" result="d" />
+          <feGaussianBlur in="d" stdDeviation="1.4" result="b" />
+          <feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.62 0" />
+        </filter>
+        {/* Pen: crisp, with a slight hand wobble */}
+        <filter id={`${uid}-pen`} {...FILTER_BOX}>
+          <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        {/* The frosted film margin: pale, irregular, with a hairline rim */}
+        <filter id={`${uid}-film`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
           {GROW}
-          <feFlood floodColor="#ffffff" floodOpacity="0.62" result="frostFill" />
-          <feComposite in="frostFill" in2="grown" operator="in" result="frost" />
-          <feMorphology in="grown" operator="erode" radius="0.6" result="inner" />
-          <feComposite in="grown" in2="inner" operator="out" result="edge" />
-          <feFlood floodColor="#ffffff" floodOpacity="0.95" result="rimFill" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="2" result="edgeN" />
+          <feDisplacementMap in="grown" in2="edgeN" scale="2" xChannelSelector="R" yChannelSelector="G" result="wob" />
+          <feFlood floodColor="#efe7ee" floodOpacity="0.3" result="frostFill" />
+          <feComposite in="frostFill" in2="wob" operator="in" result="frost" />
+          <feMorphology in="wob" operator="erode" radius="0.6" result="inner" />
+          <feComposite in="wob" in2="inner" operator="out" result="edge" />
+          <feFlood floodColor="#ffffff" floodOpacity="0.8" result="rimFill" />
           <feComposite in="rimFill" in2="edge" operator="in" result="rim" />
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="noise" />
-          <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.62  0 0 0 0 0.5  0 0 0 0 0.56  0.55 0 0 0 -0.17" result="fibreRaw" />
-          <feComposite in="fibreRaw" in2="grown" operator="in" result="fibre" />
           <feMerge>
             <feMergeNode in="frost" />
             <feMergeNode in="rim" />
-            <feMergeNode in="SourceGraphic" />
-            <feMergeNode in="fibre" />
+          </feMerge>
+        </filter>
+        {/* Long washi fibres, plus a few short ones */}
+        <filter id={`${uid}-fibre`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9 0.05" numOctaves="2" seed="3" result="h" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.06 0.8" numOctaves="2" seed="8" result="v" />
+          <feColorMatrix in="h" type="matrix" values="0 0 0 0 1  0 0 0 0 0.98  0 0 0 0 0.97  1.7 0 0 0 -0.8" result="ha" />
+          <feColorMatrix in="v" type="matrix" values="0 0 0 0 0.6  0 0 0 0 0.46  0 0 0 0 0.52  1.4 0 0 0 -0.72" result="va" />
+          <feMerge>
+            <feMergeNode in="ha" />
+            <feMergeNode in="va" />
           </feMerge>
         </filter>
         {tint("silh", "#ffffff", 1, 0)}
-        {tint("back", "#fcf3f7", 0.7, 0)}
         {tint("tight", "#3a2030", 0.9, 1.3)}
         {tint("soft", "#3a2030", 0.9, 5)}
+        {/* The back of the paper: pale, fibrous, with the ink faintly visible through it */}
+        <filter id={`${uid}-back`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
+          {GROW}
+          <feFlood floodColor="#fbf3f6" floodOpacity="0.66" result="paperFill" />
+          <feComposite in="paperFill" in2="grown" operator="in" result="paper" />
+          <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.26 0" result="through" />
+          <feMerge>
+            <feMergeNode in="paper" />
+            <feMergeNode in="through" />
+          </feMerge>
+        </filter>
+        {/* The glossy imprint a sticker leaves on the release sheet */}
         <filter id={`${uid}-ghost`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
           {GROW}
-          <feFlood floodColor="#6f7aa8" floodOpacity="0.13" result="tintFill" />
+          <feFlood floodColor="#ffffff" floodOpacity="0.45" result="tintFill" />
           <feComposite in="tintFill" in2="grown" operator="in" result="fill" />
-          <feMorphology in="grown" operator="erode" radius="1.1" result="inner" />
+          <feMorphology in="grown" operator="erode" radius="1" result="inner" />
           <feComposite in="grown" in2="inner" operator="out" result="edge" />
-          <feFlood floodColor="#6f7aa8" floodOpacity="0.5" result="tintEdge" />
+          <feFlood floodColor="#a98fa6" floodOpacity="0.32" result="tintEdge" />
           <feComposite in="tintEdge" in2="edge" operator="in" result="line" />
           <feMerge>
             <feMergeNode in="fill" />
             <feMergeNode in="line" />
           </feMerge>
         </filter>
+        <filter id={`${uid}-bloom`} x="-30" y="-30" width="160" height="160" filterUnits="userSpaceOnUse">
+          <feGaussianBlur stdDeviation="1.3" />
+        </filter>
         <filter id={`${uid}-fold`} x="-60" y="-60" width="220" height="220" filterUnits="userSpaceOnUse">
           <feGaussianBlur stdDeviation="3" />
         </filter>
         <filter id={`${uid}-flap`} {...FILTER_BOX}>
-          <feDropShadow dx="-1" dy="-1.6" stdDeviation="2" floodColor="#1c1238" floodOpacity="0.38" />
+          <feDropShadow dx="-1" dy="-1.6" stdDeviation="2" floodColor="#3a2030" floodOpacity="0.3" />
         </filter>
       </defs>
     </svg>
@@ -609,7 +762,7 @@ function Ghost({ def, uid, visible }: { def: StickerDef; uid: string; visible: b
       className="pointer-events-none absolute overflow-visible transition-opacity duration-300"
       style={{ opacity: visible ? 1 : 0, left: 0, top: 0 }}
     >
-      <g filter={`url(#${uid}-ghost)`}>{def.art(uid)}</g>
+      <g filter={`url(#${uid}-ghost)`}>{allShapes(def)}</g>
     </svg>
   );
 }
@@ -631,6 +784,7 @@ type StickerItemProps = {
   z: number;
   interactive: boolean;
   hidden: boolean;
+  dof: boolean;
   reduce: boolean;
   label: string;
   bounds: { W: number; H: number };
@@ -644,7 +798,7 @@ type StickerItemProps = {
 };
 
 function StickerItem(props: StickerItemProps) {
-  const { def, uid, home, z, interactive, hidden, reduce, label, bounds, apiRef, toLogical, onDrop, onHeld, onRaise, onKey, onDouble } = props;
+  const { def, uid, home, z, interactive, hidden, dof, reduce, label, bounds, apiRef, toLogical, onDrop, onHeld, onRaise, onKey, onDouble } = props;
   const sid = `${uid}-${def.id}`;
 
   const rx = useMotionValue(home.x);
@@ -673,12 +827,16 @@ function StickerItem(props: StickerItemProps) {
   const scaleX = useTransform([sc, qx], (v: number[]) => v[0] * v[1]);
   const scaleY = useTransform([sc, qy], (v: number[]) => v[0] * v[1]);
   const negRotate = useTransform(rotate, (r) => -r);
-  const tightO = useTransform(lift, (l) => 0.45 - 0.32 * l);
+  const tightO = useTransform(lift, (l) => 0.14 + 0.1 * l);
   const castY = useTransform(lift, (l) => l * 20);
   const castS = useTransform(lift, (l) => 1 + l * 0.1);
   const castO = useTransform(lift, (l) => l * 0.42);
 
   const [lifted, setLifted] = React.useState(false);
+  const all = React.useMemo(() => allShapes(def), [def]);
+  const frostMask = React.useMemo(() => marginMask(def), [def]);
+  const paintG = React.useRef<SVGGElement>(null);
+  useMotionValueEvent(lift, "change", (v) => paintG.current?.setAttribute("opacity", (0.9 + 0.1 * v).toFixed(3)));
 
   const anims = React.useRef<AnimationPlaybackControls[]>([]);
   const timers = React.useRef<Set<number>>(new Set());
@@ -995,7 +1153,6 @@ function StickerItem(props: StickerItemProps) {
     else animate(fade, hidden ? 0 : 1, { duration: 0.25 });
   }, [hidden, reduce, fade]);
 
-  const art = def.art(uid);
   return (
     <motion.button
       type="button"
@@ -1011,7 +1168,7 @@ function StickerItem(props: StickerItemProps) {
       onKeyDown={onKey}
       onDoubleClick={interactive ? onDouble : undefined}
       onDragStart={(e) => e.preventDefault()}
-      className="absolute left-0 top-0 cursor-grab rounded-[26px] outline-none focus-visible:ring-4 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:cursor-grabbing"
+      className="absolute left-0 top-0 cursor-grab rounded-[26px] outline-none focus-visible:ring-4 focus-visible:ring-[#C9607E] focus-visible:ring-offset-2 focus-visible:ring-offset-white active:cursor-grabbing"
       style={{
         width: S,
         height: S,
@@ -1025,26 +1182,44 @@ function StickerItem(props: StickerItemProps) {
         touchAction: "none",
         pointerEvents: interactive ? "auto" : "none",
         willChange: "transform",
+        filter: dof && !lifted && !reduce ? "blur(2px) saturate(0.9)" : "none",
+        transition: reduce ? undefined : "filter .25s ease-out",
       }}
     >
       {/* Shadows stay in world axes: counter-rotate, offset, rotate back. */}
       <motion.span className="pointer-events-none absolute inset-0" style={{ rotate: negRotate, y: castY, scale: castS, opacity: castO }}>
         <motion.span className="absolute inset-0 block" style={{ rotate }}>
           <svg viewBox="0 0 100 100" width={S} height={S} className="overflow-visible" aria-hidden="true">
-            <g filter={`url(#${uid}-soft)`}>{art}</g>
+            <g filter={`url(#${uid}-soft)`}>{all}</g>
           </svg>
         </motion.span>
       </motion.span>
       <motion.span className="pointer-events-none absolute inset-0" style={{ opacity: tightO }}>
         <svg viewBox="0 0 100 100" width={S} height={S} className="overflow-visible" aria-hidden="true">
-          <g filter={`url(#${uid}-tight)`} transform="translate(0 1.2)">
-            {art}
+          <g filter={`url(#${uid}-tight)`} transform="translate(0 0.8)">
+            {all}
           </g>
         </svg>
       </motion.span>
       <motion.span
-        className="pointer-events-none absolute inset-[-6px] rounded-full border-2 border-white"
+        className="pointer-events-none absolute inset-[-6px] rounded-full border-2 border-white/70"
         style={{ opacity: ringO, scale: ringS }}
+      />
+      {/* The film margin frosts whatever is beneath it */}
+      <span
+        className="pointer-events-none absolute left-0 top-0"
+        style={{
+          width: 100,
+          height: 100,
+          transform: `scale(${S / 100})`,
+          transformOrigin: "0 0",
+          backdropFilter: "blur(1.8px)",
+          WebkitBackdropFilter: "blur(1.8px)",
+          WebkitMaskImage: frostMask,
+          maskImage: frostMask,
+          WebkitMaskSize: "100% 100%",
+          maskSize: "100% 100%",
+        }}
       />
       <svg viewBox="0 0 100 100" width={S} height={S} className="pointer-events-none relative overflow-visible" aria-hidden="true">
         <defs>
@@ -1055,63 +1230,76 @@ function StickerItem(props: StickerItemProps) {
             <path ref={flapClip} d="M0 0" />
           </clipPath>
           <mask id={`${sid}-mk`} maskUnits="userSpaceOnUse" x={-15} y={-15} width={130} height={130}>
-            <g filter={`url(#${uid}-silh)`}>{art}</g>
+            <g filter={`url(#${uid}-silh)`}>{all}</g>
           </mask>
           <linearGradient id={`${sid}-holo`} gradientUnits="userSpaceOnUse" x1={-20} y1={-20} x2={120} y2={120}>
             <stop offset="0.28" stopColor="#fff" stopOpacity={0} />
-            <stop offset="0.4" stopColor="#ffc9e0" stopOpacity={0.4} />
+            <stop offset="0.4" stopColor="#f5d5de" stopOpacity={0.45} />
             <stop offset="0.48" stopColor="#fff" stopOpacity={0.6} />
-            <stop offset="0.56" stopColor="#c9e2ff" stopOpacity={0.4} />
-            <stop offset="0.66" stopColor="#fff0d2" stopOpacity={0.3} />
+            <stop offset="0.56" stopColor="#bcd4ea" stopOpacity={0.45} />
+            <stop offset="0.66" stopColor="#fff1c9" stopOpacity={0.3} />
             <stop offset="0.76" stopColor="#fff" stopOpacity={0} />
           </linearGradient>
           <linearGradient id={`${sid}-shade`} gradientUnits="userSpaceOnUse" x1={40} y1={40} x2={125} y2={125}>
-            <stop offset="0" stopColor="#7a5870" stopOpacity={0.3} />
+            <stop offset="0" stopColor="#7a5870" stopOpacity={0.26} />
             <stop offset="0.3" stopColor="#fff" stopOpacity={0} />
             <stop offset="0.7" stopColor="#fff" stopOpacity={0.1} />
-            <stop offset="1" stopColor="#8a6a80" stopOpacity={0.26} />
+            <stop offset="1" stopColor="#8a6a80" stopOpacity={0.22} />
           </linearGradient>
         </defs>
         <g clipPath={`url(#${sid}-cm)`}>
-          <g filter={`url(#${uid}-die)`}>{art}</g>
+          <g filter={`url(#${uid}-film)`}>{all}</g>
+          <g ref={paintG} opacity={0.9}>
+            {/* The wash sits a hair off-register from the pen, as printed washi does */}
+            <g transform="translate(0.7 0.5)">
+              <g filter={`url(#${uid}-wash)`}>{washShapes(def)}</g>
+              <g filter={`url(#${uid}-glazef)`}>{glazeShapes(def, uid)}</g>
+            </g>
+            <g filter={`url(#${uid}-pen)`}>{inkShapes(def)}</g>
+          </g>
           <g mask={`url(#${sid}-mk)`}>
             <rect x={-15} y={-15} width={130} height={130} fill={`url(#${uid}-p-glit)`} />
-            {[
-              [30, 30, 3.6],
-              [72, 44, 3],
-              [54, 76, 3.2],
-            ].map(([x, y, r], i) => (
-              <path
-                key={i}
-                className="sp-tw"
-                style={{ animationDelay: `${(i * 0.9 + (def.id.length % 4) * 0.35).toFixed(2)}s` }}
-                d={`M${x} ${y - r} L${x + r * 0.28} ${y - r * 0.28} L${x + r} ${y} L${x + r * 0.28} ${y + r * 0.28} L${x} ${y + r} L${x - r * 0.28} ${y + r * 0.28} L${x - r} ${y} L${x - r * 0.28} ${y - r * 0.28} Z`}
-                fill="#fff"
-              />
-            ))}
-            <rect className="sp-shim" x={-70} y={-20} width={36} height={140} fill={`url(#${uid}-g-shim)`} style={{ animationDelay: `${((def.id.length * 0.7) % 3).toFixed(2)}s` }} />
-            <g>
-              <motion.rect
-                ref={sheen}
-                x={-30}
-                y={-30}
-                width={160}
-                height={160}
-                fill={`url(#${sid}-holo)`}
-                style={{ opacity: shO, mixBlendMode: "soft-light" }}
-              />
-            </g>
-            <path ref={foldLine} d="M0 0" stroke="#1c1238" strokeOpacity={0.4} strokeWidth={9} fill="none" filter={`url(#${uid}-fold)`} />
+            <rect x={-15} y={-15} width={130} height={130} filter={`url(#${uid}-fibre)`} opacity={0.32} />
+            <motion.rect
+              ref={sheen}
+              x={-30}
+              y={-30}
+              width={160}
+              height={160}
+              fill={`url(#${sid}-holo)`}
+              style={{ opacity: shO, mixBlendMode: "soft-light" }}
+            />
+            <path ref={foldLine} d="M0 0" stroke="#3a2030" strokeOpacity={0.35} strokeWidth={9} fill="none" filter={`url(#${uid}-fold)`} />
           </g>
         </g>
         <g ref={flapWrap} display="none" filter={`url(#${uid}-flap)`}>
           <g ref={flapG}>
             <g clipPath={`url(#${sid}-cf)`}>
-              <g filter={`url(#${uid}-back)`}>{art}</g>
+              <g filter={`url(#${uid}-back)`}>{all}</g>
               <g mask={`url(#${sid}-mk)`}>
+                <rect x={-15} y={-15} width={130} height={130} filter={`url(#${uid}-fibre)`} opacity={0.3} />
                 <rect x={-30} y={-30} width={170} height={170} fill={`url(#${sid}-shade)`} />
               </g>
             </g>
+          </g>
+        </g>
+      </svg>
+      {/* Moving shimmer and twinkles live in their own small layer, so the paper above is only painted once */}
+      <svg viewBox="0 0 100 100" width={S} height={S} className="pointer-events-none absolute left-0 top-0 overflow-visible" aria-hidden="true">
+        <defs>
+          <mask id={`${sid}-mk2`} maskUnits="userSpaceOnUse" x={-15} y={-15} width={130} height={130}>
+            <g filter={`url(#${uid}-silh)`}>{all}</g>
+          </mask>
+        </defs>
+        <g clipPath={`url(#${sid}-cm)`}>
+          <g mask={`url(#${sid}-mk2)`}>
+            <rect className="sp-shim" x={-70} y={-20} width={36} height={140} fill={`url(#${uid}-g-shim)`} style={{ animationDelay: `${((def.id.length * 0.7) % 3).toFixed(2)}s` }} />
+            {TWINKLES.map(([tx, ty, tr], i) => (
+              <g key={i} className="sp-tw" style={{ animationDelay: `${(i * 0.7 + (def.id.length % 4) * 0.35).toFixed(2)}s` }}>
+                <path d={twinkle(tx, ty, tr * 1.9)} fill="#fff" opacity={0.45} filter={`url(#${uid}-bloom)`} />
+                <path d={twinkle(tx, ty, tr)} fill="#fff" />
+              </g>
+            ))}
           </g>
         </g>
       </svg>
@@ -1125,7 +1313,7 @@ function StickerItem(props: StickerItemProps) {
 
 const HAND = 'var(--font-caveat, "Gaegu", "Nanum Pen Script", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive)';
 const SERIF = 'var(--font-instrument-serif, Georgia, "Times New Roman", serif)';
-const INK = "#4b5068";
+const INK = C.ink;
 
 function Hand({ x, y, size = 14, w, children, rotate = 0, className }: { x: number; y: number; size?: number; w?: number; children: React.ReactNode; rotate?: number; className?: string }) {
   return (
@@ -1142,7 +1330,7 @@ function Photo({ x, y, w, h, rot, children, pin }: { x: number; y: number; w: nu
   const pinPos = pin === "tl" ? { left: -11, top: -11 } : pin === "tr" ? { right: -11, top: -11 } : pin === "br" ? { right: -11, bottom: -11 } : null;
   return (
     <div className="absolute" style={{ left: x, top: y, width: w, height: h, transform: `rotate(${rot}deg)` }}>
-      <svg viewBox="0 0 160 110" preserveAspectRatio="xMidYMid slice" width={w} height={h} style={{ display: "block", boxShadow: "0 1px 3px rgba(40,40,60,.3)" }} aria-hidden="true">
+      <svg viewBox="0 0 160 110" preserveAspectRatio="xMidYMid slice" width={w} height={h} style={{ display: "block", boxShadow: "0 1px 3px rgba(91,58,71,.25)", filter: "saturate(.8) sepia(.08)" }} aria-hidden="true">
         {children}
       </svg>
       {pinPos ? <span className="absolute size-[22px] rounded-full" style={{ ...pinPos, background: "rgba(176,152,170,.88)" }} /> : null}
@@ -1152,7 +1340,7 @@ function Photo({ x, y, w, h, rot, children, pin }: { x: number; y: number; w: nu
 
 function PageHeader({ x, date, day, tone, topic, items }: { x: number; date: string; day: number; tone: "blue" | "pink"; topic: string; items: string[] }) {
   const letters = ["M", "T", "W", "T", "F", "S", "S"];
-  const ring = tone === "blue" ? "#c5d3f4" : "#f6b3bb";
+  const ring = tone === "blue" ? C.blue : C.dusty;
   return (
     <>
       <p className="absolute m-0" style={{ left: x + 24, top: 13, fontFamily: SERIF, fontSize: 10, color: "#8b8e9c", lineHeight: 1 }}>
@@ -1191,12 +1379,12 @@ function PageHeader({ x, date, day, tone, topic, items }: { x: number; date: str
 
 function DoodleFlower({ x, y, size }: { x: number; y: number; size: number }) {
   return (
-    <svg className="absolute" style={{ left: x, top: y }} width={size} height={size} viewBox="0 0 60 60" fill="none" stroke="#E8708F" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg className="absolute" style={{ left: x, top: y }} width={size} height={size} viewBox="0 0 60 60" fill="none" stroke={C.rose} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {Array.from({ length: 5 }, (_, k) => {
         const a = (k * 2 * Math.PI) / 5 - Math.PI / 2;
-        return <ellipse key={k} cx={30 + 15 * Math.cos(a)} cy={30 + 15 * Math.sin(a)} rx={9} ry={10.5} transform={`rotate(${(k * 72) % 360} ${30 + 15 * Math.cos(a)} ${30 + 15 * Math.sin(a)})`} />;
+        return <ellipse key={k} cx={r2(30 + 15 * Math.cos(a))} cy={r2(30 + 15 * Math.sin(a))} rx={9} ry={10.5} transform={`rotate(${(k * 72) % 360} ${r2(30 + 15 * Math.cos(a))} ${r2(30 + 15 * Math.sin(a))})`} />;
       })}
-      <circle cx={30} cy={30} r={3} fill="#E8708F" />
+      <circle cx={30} cy={30} r={3} fill={C.rose} />
     </svg>
   );
 }
@@ -1205,79 +1393,42 @@ function Journal({ uid, h }: { uid: string; h: number }) {
   const ruled = Array.from({ length: Math.floor((h - 34 - 140) / 21) + 1 }, (_, i) => 140 + i * 21);
   const ruledLeft = Array.from({ length: Math.floor((h - 34 - 316) / 21) + 1 }, (_, i) => 316 + i * 21);
   return (
-    <div className="absolute left-0 top-0 overflow-hidden bg-white" style={{ width: J_W, height: h }}>
+    <div className="absolute left-0 top-0 overflow-hidden" style={{ width: J_W, height: h, background: C.porcelain }}>
       {/* page edges and gutter */}
-      <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 0 1px #d4d5dc" }} />
-      <div className="absolute inset-y-0 w-px bg-[#c4c5cf]" style={{ left: J_W / 2 }} />
-      <div className="absolute inset-y-0" style={{ left: J_W / 2 - 16, width: 32, background: "linear-gradient(90deg, transparent, rgba(60,60,90,.07) 50%, transparent)" }} />
+      <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 0 1px #ddd6da" }} />
+      <div className="absolute inset-y-0 w-px bg-[#d3c9cf]" style={{ left: J_W / 2 }} />
+      <div className="absolute inset-y-0" style={{ left: J_W / 2 - 16, width: 32, background: "linear-gradient(90deg, transparent, rgba(91,58,71,.06) 50%, transparent)" }} />
 
       {/* ---- left page ---- */}
       <PageHeader x={0} date="24 . 11 . 4" day={2} tone="blue" topic="slow day, sea & small things" items={["buy a new film roll", "call halmeoni ~ 할머니", "finish the book (p.96)"]} />
-      <Photo x={26} y={148} w={146} h={104} rot={-3} pin="tl">
+      <Photo x={26} y={150} w={146} h={104} rot={-3} pin="tl">
         <SeaPhoto uid={uid} />
       </Photo>
-      <Hand x={190} y={150} size={14}>today felt like a long</Hand>
-      <Hand x={190} y={170} size={14}>walk by the sea. the water</Hand>
-      <Hand x={190} y={190} size={14}>sparkled all afternoon!</Hand>
-      <Hand x={190} y={210} size={14}>빛나는 바다 ~ ♡</Hand>
-      <DoodleFlower x={246} y={236} size={56} />
-      <Hand x={26} y={268} size={13}>tiny wish: more days</Hand>
-      <Hand x={26} y={286} size={13}>like this one ~</Hand>
+      <Hand x={190} y={152} size={14}>today felt like a long</Hand>
+      <Hand x={190} y={173} size={14}>walk by the sea. the water</Hand>
+      <Hand x={190} y={194} size={14}>sparkled all afternoon</Hand>
+      <DoodleFlower x={250} y={232} size={50} />
+      <Hand x={26} y={274} size={13}>tiny wish: more days</Hand>
+      <Hand x={26} y={292} size={13}>like this one ~</Hand>
       {ruledLeft.map((y) => (
-        <div key={y} className="absolute h-px bg-[#e9e6ee]" style={{ left: 22, width: 294, top: y }} />
+        <div key={y} className="absolute h-px" style={{ left: 22, width: 294, top: y, background: "#eee7ea" }} />
       ))}
-      <svg className="absolute" style={{ left: 176, top: h - 68 }} width={142} height={44} viewBox="0 0 142 44" aria-hidden="true">
-        <LoveHeart cx={22} cy={22} s={0.42} fill="#9DB5EE" stroke="#7b94d6" text />
-        <LoveHeart cx={71} cy={22} s={0.42} fill="#9FE0C0" stroke="#74c4a0" text />
-        <LoveHeart cx={120} cy={22} s={0.42} fill="#F7BFC6" stroke="#e89aa6" text={false} />
-      </svg>
-      <div className="absolute h-px bg-[#c9cad3]" style={{ left: 22, width: 294, top: h - 14 }} />
+      <div className="absolute h-px bg-[#d3c9cf]" style={{ left: 22, width: 294, top: h - 14 }} />
 
       {/* ---- right page ---- */}
       <PageHeader x={J_W / 2} date="24 . 11 . 5" day={3} tone="pink" topic="작은 행복 모으기" items={["water the plants", "swim on saturday!", ""]} />
-      <div className="absolute h-px bg-[#c9cad3]" style={{ left: J_W / 2 + 22, width: 294, top: h - 14 }} />
+      <div className="absolute h-px bg-[#d3c9cf]" style={{ left: J_W / 2 + 22, width: 294, top: h - 14 }} />
       {ruled.map((y) => (
-        <div key={y} className="absolute h-px bg-[#e4e5ea]" style={{ left: J_W / 2 + 22, width: 294, top: y }} />
+        <div key={y} className="absolute h-px" style={{ left: J_W / 2 + 22, width: 294, top: y, background: "#eee7ea" }} />
       ))}
-      <Photo x={J_W / 2 + 26} y={146} w={158} h={108} rot={1.5}>
+      <Photo x={J_W / 2 + 26} y={148} w={158} h={108} rot={1.5}>
         <HillPhoto uid={uid} />
       </Photo>
-      <Hand x={J_W / 2 + 202} y={150} size={14}>the road felt endless,</Hand>
-      <Hand x={J_W / 2 + 202} y={171} size={14}>green on both sides.</Hand>
-      <Hand x={J_W / 2 + 202} y={192} size={14}>i could have stayed</Hand>
-      <Hand x={J_W / 2 + 202} y={213} size={14}>for ever ~</Hand>
-      <Hand x={J_W / 2 + 26} y={276} size={14}>그래서 오늘도 좋았다</Hand>
-      <Hand x={J_W / 2 + 26} y={297} size={14}>next time, bring a hat!</Hand>
-      <svg className="absolute" style={{ left: J_W / 2 + 252, top: 262 }} width={54} height={50} viewBox="0 0 60 56" fill="none" stroke="#1f1f24" strokeWidth={2.4} strokeLinecap="round" aria-hidden="true">
-        <ellipse cx={20} cy={17} rx={9} ry={11} />
-        <ellipse cx={42} cy={17} rx={9} ry={11} />
-        <circle cx={22} cy={19} r={3.2} fill="#1f1f24" />
-        <circle cx={40} cy={19} r={3.2} fill="#1f1f24" />
-        <path d="M18 40 Q31 52 44 40" />
-      </svg>
-      <Photo x={J_W / 2 + 182} y={h - 128} w={130} h={96} rot={-4} pin="tr">
-        <BeachPhoto uid={uid} />
-      </Photo>
-      <div
-        className="absolute"
-        style={{
-          left: J_W / 2 + 28,
-          top: h - 104,
-          width: 118,
-          height: 72,
-          transform: "rotate(3deg)",
-          background: `conic-gradient(#f7bfce 25%, #cfe3f7 0 50%, #f7bfce 0 75%, #cfe3f7 0) 0 0 / 24px 24px`,
-          boxShadow: "0 1px 3px rgba(40,40,60,.25)",
-        }}
-      >
-        <div className="absolute inset-[9px] bg-white/80 px-2 pt-[6px]" style={{ fontFamily: HAND, fontSize: 12, lineHeight: 1.25, color: INK }}>
-          1. nap by the sea
-          <br />
-          2. buy postcards
-          <br />
-          3. call mom ~
-        </div>
-      </div>
+      <Hand x={J_W / 2 + 202} y={152} size={14}>the road felt endless,</Hand>
+      <Hand x={J_W / 2 + 202} y={173} size={14}>green on both sides.</Hand>
+      <Hand x={J_W / 2 + 202} y={194} size={14}>i could have stayed</Hand>
+      <Hand x={J_W / 2 + 26} y={278} size={14}>그래서 오늘도 좋았다</Hand>
+      <Hand x={J_W / 2 + 26} y={299} size={14}>next time, bring a hat!</Hand>
     </div>
   );
 }
@@ -1503,6 +1654,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
     };
   }, [loop, view.ready]);
 
+  const dof = !loop && held.size > 0;
   const anyPlaced = items.some((it) => it.placed);
   const onPanel = items.filter((it) => !it.placed).length;
   const interactive = !loop;
@@ -1549,11 +1701,21 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
           </div>
           <div
             className="absolute overflow-hidden rounded-[14px]"
-            style={{ left: glass.x - ipad.x, top: glass.y - ipad.y, width: glass.w, height: glass.h, background: "#e9eaf0" }}
+            style={{ left: glass.x - ipad.x, top: glass.y - ipad.y, width: glass.w, height: glass.h, background: "#efe8ec" }}
           >
+            {/* Everything on the glass shares one depth-of-field layer: it softens while a sticker is carried */}
+            <div
+              className="absolute"
+              style={{
+                inset: -10,
+                filter: dof && !reduce ? "blur(3px) saturate(0.9)" : "none",
+                transition: reduce ? undefined : "filter .25s ease-out",
+              }}
+            >
+              <div className="absolute" style={{ inset: 10 }}>
             {/* Toolbar */}
-            <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-3 border-b border-[#e3e4ea] bg-[#f6f6f8] px-3" style={{ height: TOOLBAR }}>
-              <PenLine className="size-[13px] text-slate-400" strokeWidth={2} aria-hidden="true" />
+            <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-3 border-b border-[#e6dde2] bg-[#f8f4f6] px-3" style={{ height: TOOLBAR }}>
+              <PenLine className="size-[13px] text-[#b49aa6]" strokeWidth={2} aria-hidden="true" />
               <button
                 type="button"
                 aria-label="Sticker panel"
@@ -1565,20 +1727,20 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
                   setStatus(panelOpen ? "Sticker panel closed" : "Sticker panel open");
                 }}
                 className={cn(
-                  "flex size-[20px] items-center justify-center rounded-[6px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-sky-500",
-                  panelOpen ? "bg-violet-100 text-violet-600" : "text-slate-500 hover:bg-slate-200/70",
+                  "flex size-[20px] items-center justify-center rounded-[6px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#C9607E]",
+                  panelOpen ? "bg-[#F5D5DE] text-[#8C2F4E]" : "text-[#8a6b78] hover:bg-[#f1e4ea]",
                 )}
               >
                 <Sticker className="size-[13px]" strokeWidth={2.2} aria-hidden="true" />
               </button>
               <Undo2 className="size-[13px] text-slate-400" strokeWidth={2} aria-hidden="true" />
-              <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[10px] font-semibold tracking-wide text-slate-400">Daily Journal</span>
+              <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 text-[10px] font-semibold tracking-wide text-[#b49aa6]">Daily Journal</span>
               {!loop ? (
                 <button
                   type="button"
                   onClick={reset}
                   disabled={!anyPlaced}
-                  className="ml-auto inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-[2px] text-[11px] font-semibold text-slate-700 shadow-[0_1px_4px_rgba(30,40,70,.2)] outline-none transition-opacity hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-500 disabled:opacity-40"
+                  className="ml-auto inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-[2px] text-[11px] font-semibold text-[#5B3A47] shadow-[0_1px_4px_rgba(91,58,71,.2)] outline-none transition-opacity hover:bg-[#fbf3f6] focus-visible:ring-2 focus-visible:ring-[#C9607E] disabled:opacity-40"
                 >
                   <RotateCcw className="size-3" aria-hidden="true" />
                   Reset
@@ -1608,45 +1770,54 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
               id={`${uid}-panel`}
               role="region"
               aria-label="Sticker panel"
-              className="absolute border-l border-[#dcd9ee]"
+              className="absolute border-l border-[#e6d6dd]"
               style={{
                 left: panel.x - glass.x,
                 top: panel.y - glass.y,
                 width: panel.w,
                 height: panel.h,
-                background: "linear-gradient(180deg,#f8f6ff 0%,#ece8fb 100%)",
+                background: "linear-gradient(180deg,#f8eff2 0%,#f1e3e9 100%)",
                 transform: panelOpen ? "translateX(0)" : `translateX(${PANEL_W + 4}px)`,
                 transition: slide,
               }}
             >
               <div className="absolute left-4 right-4 top-[14px] flex items-end justify-between">
                 <div>
-                  <p className="text-[17px] font-extrabold leading-none tracking-tight text-slate-900">Stickers</p>
-                  <p className="mt-1 text-[10px] font-medium text-violet-600">Work &amp; Life pack</p>
+                  <p className="text-[17px] font-extrabold leading-none tracking-tight text-[#5B3A47]">Stickers</p>
+                  <p className="mt-1 text-[10px] font-medium text-[#C9607E]">Work &amp; Life pack</p>
                 </div>
-                <span className="rounded-full bg-violet-600 px-2 py-[2px] text-[10px] font-bold text-white">{onPanel} left</span>
+                <span className="rounded-full bg-[#C9607E] px-2 py-[2px] text-[10px] font-bold text-white">{onPanel} left</span>
               </div>
               <div
                 className="absolute left-[8px] right-[8px] rounded-[20px]"
                 style={{
                   top: 64,
                   height: panel.h - 64 - 52,
-                  backgroundColor: "rgba(255,255,255,.78)",
-                  backgroundImage: "radial-gradient(circle at 1px 1px, rgba(120,110,170,.22) 1px, transparent 1.4px)",
-                  backgroundSize: "16px 16px",
-                  boxShadow: "inset 0 0 0 1px rgba(120,110,170,.14), inset 0 2px 6px rgba(120,110,170,.12)",
+                  backgroundColor: "rgba(236,222,230,.72)",
+                  backgroundImage:
+                    "linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 44%, transparent 56%), radial-gradient(circle at 1px 1px, rgba(140,110,130,.16) 1px, transparent 1.4px)",
+                  backgroundSize: "100% 100%, 16px 16px",
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,.7), inset 0 0 0 2px rgba(140,110,130,.1), inset 0 6px 14px rgba(255,255,255,.35)",
                 }}
               />
-              <div className="absolute inset-x-0 bottom-0 flex h-[40px] items-center justify-around border-t border-violet-200/70 bg-white/70">
-                <Smile className="size-[18px] text-violet-600" strokeWidth={2.4} aria-hidden="true" />
-                <Heart className="size-[18px] text-slate-400" strokeWidth={2.2} aria-hidden="true" />
-                <Star className="size-[18px] text-slate-400" strokeWidth={2.2} aria-hidden="true" />
+              <div className="absolute inset-x-0 bottom-0 flex h-[40px] items-center justify-around border-t border-[#ecd9e0] bg-white/60">
+                <Smile className="size-[18px] text-[#C9607E]" strokeWidth={2.4} aria-hidden="true" />
+                <Heart className="size-[18px] text-[#c9b3bd]" strokeWidth={2.2} aria-hidden="true" />
+                <Star className="size-[18px] text-[#c9b3bd]" strokeWidth={2.2} aria-hidden="true" />
               </div>
             </div>
 
+              </div>
+            </div>
             <div
               className="pointer-events-none absolute inset-0"
-              style={{ background: "linear-gradient(115deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,0) 28%)" }}
+              style={{
+                background: "linear-gradient(115deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,0) 28%)",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ background: "#fbf3f6", opacity: dof ? (reduce ? 0.18 : 0.26) : 0, transition: reduce ? undefined : "opacity .25s ease-out" }}
             />
           </div>
         </div>
@@ -1678,6 +1849,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
               z={it.placed ? it.z : 2}
               interactive={interactive && !hidden}
               hidden={hidden}
+              dof={dof}
               reduce={reduce}
               label={label}
               bounds={{ W: geo.W, H: geo.H }}
