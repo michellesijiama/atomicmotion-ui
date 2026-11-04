@@ -18,6 +18,7 @@ import { SoftMenuReveal } from "@components/navigation/soft-menu-reveal";
 import { BeadClub } from "@components/play/bead-club";
 import { EmojiSketch } from "@components/play/emoji-sketch";
 import { PocketPiggy } from "@components/play/pocket-piggy";
+import { StickerPeel } from "@components/play/sticker-peel";
 import { UIWalkthrough } from "@components/template/ui-walkthrough";
 import { GeometricLogoReveal } from "@components/typography/geometric-logo-reveal";
 import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
@@ -53,6 +54,7 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
+  "sticker-peel": StickerPeel, // scales itself to the tile and stacks the notebook over the phone when narrow
   "bead-club": BeadClub,
   "ui-walkthrough": UIWalkthroughPreview,
   "jardin-opening": JardinOpeningPreview,
