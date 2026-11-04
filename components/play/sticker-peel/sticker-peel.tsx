@@ -319,22 +319,18 @@ const STICKERS: StickerDef[] = (() => {
     label: "Lace laptop",
     maxSum: 176,
     parts: [
-      { d: circ(74, 72, 19), c: C.cream, g: C.blush },
       { d: "M16 18H80Q84 18 84 22V62Q84 66 80 66H20Q16 66 16 62V22Q16 18 20 18Z", c: C.cream },
       { d: "M21 23H79V61H21Z", c: C.sky, g: C.blue },
       { d: "M24 26h11v11H24z", c: C.blush },
       { d: "M66 28h10v10H66z", c: C.cream },
       { d: "M10 67H90L85 77Q84 79 81 79H19Q16 79 15 77Z", c: C.dusty, g: C.rose },
+      { d: ruffle(16, 84, 78, 9, 3, 80), c: C.cream },
       { d: circ(36, 47, 3), c: C.dusty },
       { d: circ(64, 47, 3), c: C.dusty },
       ...bow(17, 19, 0.5, C.rose),
     ],
     ink: (
       <g {...pen}>
-        <path d={circ(74, 72, 15.5)} strokeDasharray="1.2 2" strokeWidth={0.6} />
-        {[0, 60, 120, 180, 240, 300].map((a) => (
-          <circle key={a} cx={r2(74 + 9 * Math.cos((a * Math.PI) / 180))} cy={r2(72 + 9 * Math.sin((a * Math.PI) / 180))} r={1.2} strokeWidth={0.6} />
-        ))}
         <path d="M43 42q0-3 3-3M54 39q3 0 3 3" strokeWidth={1} />
         <path d="M45 50Q50 55 55 50" strokeWidth={1} />
         <path d="M24 70h60" strokeDasharray="0.1 3.2" strokeWidth={1.2} />
@@ -658,13 +654,13 @@ function SharedFilters({ uid }: { uid: string }) {
           <feDisplacementMap in="SourceGraphic" in2="bleedN" scale="4" xChannelSelector="R" yChannelSelector="G" result="bled" />
           <feGaussianBlur in="bled" stdDeviation="0.7" result="soft" />
           <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="3" result="grainN" />
-          <feColorMatrix in="grainN" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0 0 0 0.52" result="grainA" />
+          <feColorMatrix in="grainN" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0 0 0 0.64" result="grainA" />
           <feComposite in="soft" in2="grainA" operator="in" result="grainy" />
-          <feColorMatrix in="grainy" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.9 0" result="wash" />
+          <feColorMatrix in="grainy" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0" result="wash" />
           <feMorphology in="soft" operator="erode" radius="1.1" result="core" />
           <feComposite in="soft" in2="core" operator="out" result="rim" />
           <feGaussianBlur in="rim" stdDeviation="0.8" result="rimSoft" />
-          <feFlood floodColor="#b25a76" floodOpacity="0.32" result="rimC" />
+          <feFlood floodColor="#b25a76" floodOpacity="0.4" result="rimC" />
           <feComposite in="rimC" in2="rimSoft" operator="in" result="pool" />
           <feMerge>
             <feMergeNode in="wash" />
@@ -712,7 +708,7 @@ function SharedFilters({ uid }: { uid: string }) {
         </filter>
         {tint("silh", "#ffffff", 1, 0)}
         {tint("tight", "#3a2030", 0.9, 1.3)}
-        {tint("soft", "#3a2030", 0.9, 5)}
+        {tint("soft", "#7a5a68", 0.9, 6.5)}
         {/* The back of the paper: pale, fibrous, with the ink faintly visible through it */}
         <filter id={`${uid}-back`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
           {GROW}
@@ -727,11 +723,11 @@ function SharedFilters({ uid }: { uid: string }) {
         {/* The glossy imprint a sticker leaves on the release sheet */}
         <filter id={`${uid}-ghost`} {...FILTER_BOX} colorInterpolationFilters="sRGB">
           {GROW}
-          <feFlood floodColor="#ffffff" floodOpacity="0.45" result="tintFill" />
+          <feFlood floodColor="#ffffff" floodOpacity="0.2" result="tintFill" />
           <feComposite in="tintFill" in2="grown" operator="in" result="fill" />
-          <feMorphology in="grown" operator="erode" radius="1" result="inner" />
+          <feMorphology in="grown" operator="erode" radius="0.5" result="inner" />
           <feComposite in="grown" in2="inner" operator="out" result="edge" />
-          <feFlood floodColor="#a98fa6" floodOpacity="0.32" result="tintEdge" />
+          <feFlood floodColor="#a98fa6" floodOpacity="0.3" result="tintEdge" />
           <feComposite in="tintEdge" in2="edge" operator="in" result="line" />
           <feMerge>
             <feMergeNode in="fill" />
@@ -828,15 +824,15 @@ function StickerItem(props: StickerItemProps) {
   const scaleY = useTransform([sc, qy], (v: number[]) => v[0] * v[1]);
   const negRotate = useTransform(rotate, (r) => -r);
   const tightO = useTransform(lift, (l) => 0.14 + 0.1 * l);
-  const castY = useTransform(lift, (l) => l * 20);
-  const castS = useTransform(lift, (l) => 1 + l * 0.1);
-  const castO = useTransform(lift, (l) => l * 0.42);
+  const castY = useTransform(lift, (l) => l * 9);
+  const castS = useTransform(lift, (l) => 1 + l * 0.04);
+  const castO = useTransform(lift, (l) => l * 0.2);
 
   const [lifted, setLifted] = React.useState(false);
   const all = React.useMemo(() => allShapes(def), [def]);
   const frostMask = React.useMemo(() => marginMask(def), [def]);
   const paintG = React.useRef<SVGGElement>(null);
-  useMotionValueEvent(lift, "change", (v) => paintG.current?.setAttribute("opacity", (0.9 + 0.1 * v).toFixed(3)));
+  useMotionValueEvent(lift, "change", (v) => paintG.current?.setAttribute("opacity", (0.97 + 0.03 * v).toFixed(3)));
 
   const anims = React.useRef<AnimationPlaybackControls[]>([]);
   const timers = React.useRef<Set<number>>(new Set());
@@ -1249,7 +1245,7 @@ function StickerItem(props: StickerItemProps) {
         </defs>
         <g clipPath={`url(#${sid}-cm)`}>
           <g filter={`url(#${uid}-film)`}>{all}</g>
-          <g ref={paintG} opacity={0.9}>
+          <g ref={paintG} opacity={0.97}>
             {/* The wash sits a hair off-register from the pen, as printed washi does */}
             <g transform="translate(0.7 0.5)">
               <g filter={`url(#${uid}-wash)`}>{washShapes(def)}</g>
