@@ -102,6 +102,16 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
+  stickerPeel: createComponentMeta({
+    id: "sticker-peel",
+    index: "023",
+    title: "Sticker Peel",
+    description:
+      "A landscape iPad running a scrapbook journal app, with a docked sticker panel of glittery washi-paper stickers about everyday life and work that you press to curl and peel off the glass, carry onto the two-page spread and slap down with a squash and settle, or let go elsewhere and it springs back to its slot",
+    category: "Play",
+    createdAt: "2026-11-04",
+    codePath: "components/play/sticker-peel/sticker-peel.tsx",
+  }),
   beadClub: createComponentMeta({
     id: "bead-club",
     index: "022",

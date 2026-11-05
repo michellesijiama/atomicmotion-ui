@@ -83,6 +83,18 @@ try {
     if (id === "voice-bloom") {
       await page.getByRole("button", { name: "Start voice input" }).click();
       await page.waitForTimeout(3200);
+    } else if (id === "sticker-peel") {
+      // The poster is the iPad journal with a few stickers stuck on, placed with the
+      // keyboard path (Enter on a panel sticker) once the page has hydrated.
+      await page.waitForSelector('button[aria-label$="Press Enter to stick it on the journal, or drag it there."]');
+      await page.waitForTimeout(800);
+      for (const name of ["Sleepy cat", "Rose teacup", "Lace laptop", "Potted rose", "Jam toast plate"]) {
+        await page.getByRole("button", { name: new RegExp(`^${name} sticker in the sticker panel`) }).press("Enter");
+        await page.waitForTimeout(1300);
+      }
+      await page.evaluate(() => document.activeElement?.blur());
+      await page.mouse.move(2, 2);
+      await page.waitForTimeout(600);
     } else if (id === "stamp-tracker") {
       // The poster is the Week view at rest, once the cards have risen into place.
       await page.waitForSelector('[role="tab"]');
