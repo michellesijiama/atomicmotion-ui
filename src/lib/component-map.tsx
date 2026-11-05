@@ -54,7 +54,7 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
-  "sticker-peel": StickerPeel, // the landscape iPad scales itself to the tile
+  "sticker-peel": StickerPeel, // the notepad scales itself to the tile
   "bead-club": BeadClub,
   "ui-walkthrough": UIWalkthroughPreview,
   "jardin-opening": JardinOpeningPreview,

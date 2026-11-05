@@ -23,6 +23,13 @@ export type RequiredAsset = {
   credit: string;
 };
 
+/**
+ * The page colour behind a component on its detail page. White is the default.
+ * Set `stageBackground` on an entry to demo a component on another colour; to
+ * add a new colour, add it here and to STAGE_BACKGROUNDS in component-stage.tsx.
+ */
+export type StageBackground = "white" | "gray";
+
 export type ComponentMeta = {
   id: string;
   index: string;
@@ -52,6 +59,8 @@ export type ComponentMeta = {
   requiredAssets?: RequiredAsset[];
   /** Credit + link to the site/work that inspired this component. */
   inspiredBy?: { label: string; href: string };
+  /** The detail page colour behind this component. White when left out. */
+  stageBackground?: StageBackground;
 };
 
 type ComponentMetaInput = Omit<
@@ -107,10 +116,11 @@ export const componentRegistry = {
     index: "023",
     title: "Sticker Peel",
     description:
-      "A landscape iPad running a scrapbook journal app, with a docked sticker panel of glittery washi-paper stickers about everyday life and work that you press to curl and peel off the glass, carry onto the two-page spread and slap down with a squash and settle, or let go elsewhere and it springs back to its slot",
+      "One notepad above a tray of watercolour and oil-painted stickers that grow and show their name as you hover, with collections to switch between, then peel one off, carry it across and press it down",
     category: "Play",
     createdAt: "2026-11-04",
     codePath: "components/play/sticker-peel/sticker-peel.tsx",
+    stageBackground: "gray",
   }),
   beadClub: createComponentMeta({
     id: "bead-club",

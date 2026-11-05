@@ -84,12 +84,12 @@ try {
       await page.getByRole("button", { name: "Start voice input" }).click();
       await page.waitForTimeout(3200);
     } else if (id === "sticker-peel") {
-      // The poster is the iPad journal with a few stickers stuck on, placed with the
-      // keyboard path (Enter on a panel sticker) once the page has hydrated.
-      await page.waitForSelector('button[aria-label$="Press Enter to stick it on the journal, or drag it there."]');
-      await page.waitForTimeout(800);
-      for (const name of ["Sleepy cat", "Rose teacup", "Lace laptop", "Potted rose", "Jam toast plate"]) {
-        await page.getByRole("button", { name: new RegExp(`^${name} sticker in the sticker panel`) }).press("Enter");
+      // The poster is the notepad with a few stickers stuck on, placed with the
+      // keyboard path (Enter on a tray sticker) once the page has hydrated.
+      await page.waitForSelector('button[aria-label$="Press Enter to stick it on the notepad, or drag it there."]', { state: "attached" });
+      await page.waitForTimeout(1300);
+      for (const name of ["Tiny joys", "Tea first", "Read slowly"]) {
+        await page.getByRole("button", { name: new RegExp(`^${name} sticker in the tray`) }).press("Enter");
         await page.waitForTimeout(1300);
       }
       await page.evaluate(() => document.activeElement?.blur());
@@ -129,7 +129,8 @@ try {
       const settle = { "gradient-gummy-bear": 2400, "halftone-bloom": 4200 };
       await page.waitForTimeout(settle[id] ?? 1400);
     }
-    await setStageGray(page);
+    // Shift+G toggles, and Sticker Peel's stage already starts gray.
+    if (id !== "sticker-peel") await setStageGray(page);
     await page.waitForTimeout(400);
     await hideDevOverlay(page);
     await page.screenshot({

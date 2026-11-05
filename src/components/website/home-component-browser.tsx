@@ -54,7 +54,7 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.42, ease: [0.45, 0, 0.55, 1] }}
-        className="mx-auto mb-10 max-w-none border-t border-black/15 bg-transparent p-2 pt-6"
+        className="mx-auto mb-10 max-w-none bg-transparent p-2"
       >
         <div className="flex flex-wrap justify-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-nowrap sm:justify-center-safe">
           {filterOptions.map((option) => {

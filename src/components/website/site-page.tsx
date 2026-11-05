@@ -22,7 +22,7 @@ export function SitePage({
       <div className="grid grid-cols-1 min-h-[calc(100vh-4rem)] content-between gap-16">
         <div className="min-w-0">
           <Reveal>
-            <header className="relative z-50 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] pb-8">
+            <header className="relative z-50 bg-[var(--am-header-bg)] pb-8">
               <SiteHeader section={section} />
             </header>
           </Reveal>

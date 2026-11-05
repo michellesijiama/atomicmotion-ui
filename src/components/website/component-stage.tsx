@@ -2,19 +2,28 @@
 
 import * as React from "react";
 
+import type { StageBackground } from "@/lib/component-registry";
+
+const STAGE_BACKGROUNDS: Record<StageBackground, string> = {
+  white: "var(--jitter-bg)",
+  gray: "var(--jitter-card)",
+};
+
 type ComponentStageProps = {
   children: React.ReactNode;
+  /** The colour this component is demoed on, from its registry entry. */
+  background?: StageBackground;
 };
 
 /**
- * Full-screen container for a component detail page. Pressing Shift+G toggles
- * the stage background between white (`--jitter-bg`) and the design-system gray
- * (`--jitter-card`) so a component can be inspected on both surfaces. The state
- * is local, so it resets to white whenever you navigate to another component or
- * reload the page.
+ * Full-screen container for a component detail page. It starts on the colour
+ * the component asks for, white by default. Pressing Shift+G toggles the stage
+ * between white (`--jitter-bg`) and the design-system gray (`--jitter-card`) so a
+ * component can be inspected on both surfaces. The toggle is local, so it resets
+ * whenever you navigate to another component or reload the page.
  */
-export function ComponentStage({ children }: ComponentStageProps) {
-  const [isGray, setIsGray] = React.useState(false);
+export function ComponentStage({ children, background = "white" }: ComponentStageProps) {
+  const [tone, setTone] = React.useState(background);
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -35,7 +44,7 @@ export function ComponentStage({ children }: ComponentStageProps) {
       }
 
       event.preventDefault();
-      setIsGray((prev) => !prev);
+      setTone((prev) => (prev === "gray" ? "white" : "gray"));
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -46,7 +55,7 @@ export function ComponentStage({ children }: ComponentStageProps) {
     <div
       className="flex h-dvh flex-col overflow-hidden transition-colors duration-300 ease-out"
       style={{
-        backgroundColor: isGray ? "var(--jitter-card)" : "var(--jitter-bg)",
+        backgroundColor: STAGE_BACKGROUNDS[tone],
       }}
     >
       {children}
@@ -57,7 +66,7 @@ export function ComponentStage({ children }: ComponentStageProps) {
 /** Fixed header band above a detail page's scrolling content. */
 export function StageHeader({ children }: { children: React.ReactNode }) {
   return (
-    <div className="am-reveal relative z-50 shrink-0 border-b border-[var(--am-header-border)] bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
+    <div className="am-reveal relative z-50 shrink-0 bg-[var(--am-header-bg)] px-6 py-8 sm:px-8 lg:px-12">
       {children}
     </div>
   );

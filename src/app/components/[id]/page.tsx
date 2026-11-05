@@ -57,7 +57,7 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   // Same Jitter-style cascade as the home page so entering any component page
   // reveals the header then the preview.
   return (
-    <ComponentStage>
+    <ComponentStage key={component.id} background={component.stageBackground}>
       <StageHeader>
         <SiteHeader component={component} />
       </StageHeader>

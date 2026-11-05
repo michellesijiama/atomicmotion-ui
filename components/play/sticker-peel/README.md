@@ -1,6 +1,6 @@
 # Sticker Peel
 
-A landscape iPad running a scrapbook journal app, with a docked sticker panel of glittery washi-paper stickers about everyday life and work that you press to curl and peel off the glass, carry onto the two-page spread and slap down with a squash and settle, or let go elsewhere and it springs back to its slot
+One notepad above a tray of watercolour and oil-painted stickers that grow and show their name as you hover, with collections to switch between, then peel one off, carry it across and press it down
 
 ![Sticker Peel preview](https://atomicmotion.dev/previews/sticker-peel.png)
 
@@ -43,7 +43,7 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `loop` | `boolean` | `false` | Plays a hands-free demo for the gallery card: stickers peel out of the in-app sticker panel one by one, get slapped onto the journal, hold, then peel back and repeat. Pointer input is switched off while it plays. |
+| `loop` | `boolean` | `false` | Plays a hands-free demo for the gallery card: stickers peel out of the tray one by one, get slapped onto the notepad, hold, then peel back and repeat. Pointer input is switched off while it plays. |
 | `onChange` | `(stickers: StickerPeelPlacement[]) => void` | — | Called after the set of stuck stickers or their positions change. |
 | `className` | `string` | — | Additional classes for the root container. |
 
