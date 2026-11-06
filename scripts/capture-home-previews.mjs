@@ -79,6 +79,20 @@ const page = await browser.newPage({
 try {
   for (const id of ids) {
     await page.goto(`${baseUrl}/components/${id}`, { waitUntil: "domcontentloaded" });
+    if (id === "digital-stress-reliever") {
+      // The gallery and the WebGL fallback share this transparent still.
+      const bunny = page.getByRole("button", { name: "Squeeze the 3D bunny" });
+      await bunny.locator(":scope:enabled canvas").waitFor();
+      await hideDevOverlay(page);
+      await bunny.locator("canvas").screenshot({
+        path: previewPath(id),
+        omitBackground: true,
+        animations: "disabled",
+        style: "html, body, main, main > div { background: transparent !important; transition: none !important; }",
+      });
+      console.log(`captured ${id}`);
+      continue;
+    }
     await prepareCapturePage(page);
     if (id === "voice-bloom") {
       await page.getByRole("button", { name: "Start voice input" }).click();

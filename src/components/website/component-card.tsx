@@ -23,6 +23,9 @@ export function ComponentCard({ component }: ComponentCardProps) {
   // here guarantees a consistent gray across the whole gallery.
   const previewClassName =
     "relative aspect-[4/5] overflow-hidden rounded-[15px] bg-card";
+  const mediaClassName = component.previewInset
+    ? "size-full scale-[0.63] object-contain"
+    : "size-full object-cover";
 
   return (
     <Link href={componentHref} className={cardClassName}>
@@ -38,7 +41,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
               playsInline
               preload="metadata"
               aria-label={`${component.title} preview`}
-              className="size-full object-cover"
+              className={mediaClassName}
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
@@ -47,7 +50,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
               alt={`${component.title} preview`}
               loading="lazy"
               decoding="async"
-              className="size-full object-cover"
+              className={mediaClassName}
             />
           )
         ) : (

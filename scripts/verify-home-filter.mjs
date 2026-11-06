@@ -21,9 +21,7 @@ const checks = [
   ["home imports filter browser", files.home.includes("HomeComponentBrowser")],
   ["filter follows evenly padded intro text", rotatingWordIndex >= 0 && componentBrowserIndex > rotatingWordIndex && files.home.includes("<SitePage") && files.sitePage.includes('className="py-20 sm:py-28 lg:py-32"')],
   ["filter uses framer motion", files.filter.includes('from "framer-motion"') && files.filter.includes("<motion.span")],
-  // The filter bar lost its enclosing pill: it is now a rule-topped strip whose
-  // individual buttons carry the rounded border.
-  ["filter bar is a rule-topped strip", files.filter.includes("border-t border-black/15")],
+  ["filter bar is transparent and centers its buttons", files.filter.includes('className="mx-auto mb-10 max-w-none bg-transparent p-2"') && files.filter.includes("flex flex-wrap justify-center")],
   ["filter buttons keep the rico-style rounded border", files.filter.includes("rounded-full border border-black/15")],
   // The active pill uses the ink token, not a hard-coded blue, so it tracks
   // the design system instead of a literal.

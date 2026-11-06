@@ -51,6 +51,8 @@ export type ComponentMeta = {
    * gallery.
    */
   previewStatic?: boolean;
+  /** Inset a still or video inside its gallery card without changing its aspect ratio. */
+  previewInset?: boolean;
   aiPrompt: string;
   /**
    * Files outside this component's folder that it loads at runtime. Present
@@ -111,6 +113,30 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
+  digitalStressReliever: createComponentMeta({
+    id: "digital-stress-reliever",
+    index: "024",
+    title: "Digital Stress Reliever",
+    description:
+      "A plush 3D bunny you can grip with the mouse or press with several fingers. The dents follow your touch and slowly recover when you let go.",
+    category: "Play",
+    createdAt: "2026-11-05",
+    codePath: "components/play/digital-stress-reliever/digital-stress-reliever.tsx",
+    previewStatic: true,
+    previewInset: true,
+    requiredAssets: [
+      {
+        path: "public/models/silicone-bunny.glb",
+        license: "MIT",
+        credit: "Original AtomicMotion bunny mesh, baked and compressed for fast loading.",
+      },
+      {
+        path: "public/previews/digital-stress-reliever.png",
+        license: "MIT",
+        credit: "Transparent render of the original procedural bunny, used as a still when WebGL is unavailable.",
+      },
+    ],
+  }),
   stickerPeel: createComponentMeta({
     id: "sticker-peel",
     index: "023",

@@ -8,6 +8,7 @@ carry a different license than the code that ships them. Checked by
 
 | Path | Source | Author | License | Credited in |
 | --- | --- | --- | --- | --- |
+| `public/models/silicone-bunny.glb` | Original procedural model for Digital Stress Reliever | AtomicMotion | MIT (repo default) | Digital Stress Reliever README and registry `requiredAssets` |
 | `public/components/bead-club/iphone-16-pro-white.png`, `public/components/bead-club/iphone-screen-mask.svg`, `public/components/bead-club/TERMS.txt`, `public/previews/bead-club.png` | [Apple Design Resources](https://developer.apple.com/design/resources/), PNG supplied through [jamesjingyi/mockup-device-frames](https://github.com/jamesjingyi/mockup-device-frames) | Apple Inc. | Apple Design Resources product-bezel terms; not MIT | Bundled `TERMS.txt`, Bead Club README and registry `requiredAssets` |
 | Cake bead layouts embedded in `components/play/bead-club/bead-club.tsx` | Adapted from the cake illustration sheet supplied by the user on 2026-11-02 | Original artist not supplied | Reference artwork rights remain separate; no separate reuse license supplied | `public/components/bead-club/TERMS.txt` and source comments |
 | `public/emoji/*.svg` (40 files) | [OpenMoji](https://openmoji.org) v15.0.0 | OpenMoji project & contributors | CC BY-SA 4.0 | `licenses/OpenMoji-CC-BY-SA-4.0.txt`, `public/emoji/README.md`, root `README.md` |

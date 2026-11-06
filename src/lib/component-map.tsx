@@ -16,6 +16,7 @@ import { CodexSidebarReveal } from "@components/navigation/codex-sidebar-reveal"
 import { FilterDropdownReveal } from "@components/navigation/filter-dropdown-reveal";
 import { SoftMenuReveal } from "@components/navigation/soft-menu-reveal";
 import { BeadClub } from "@components/play/bead-club";
+import { DigitalStressReliever } from "@components/play/digital-stress-reliever";
 import { EmojiSketch } from "@components/play/emoji-sketch";
 import { PocketPiggy } from "@components/play/pocket-piggy";
 import { StickerPeel } from "@components/play/sticker-peel";
@@ -54,6 +55,7 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
+  "digital-stress-reliever": DigitalStressReliever,
   "sticker-peel": StickerPeel, // the notepad scales itself to the tile
   "bead-club": BeadClub,
   "ui-walkthrough": UIWalkthroughPreview,
