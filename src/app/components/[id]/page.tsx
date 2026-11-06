@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ComponentStage, StageHeader } from "@/components/website/component-stage";
-import { PlatformDemo } from "@/components/website/platform-demo";
 import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
 import { componentList, getComponentById } from "@/lib/component-registry";
@@ -60,23 +59,15 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   // reveals the header then the preview.
   return (
     <ComponentStage key={component.id} background={component.stageBackground}>
-      {hasSwiftUI(component.id) ? (
-        <PlatformDemo id={component.id} component={component}>
-          <Preview />
-        </PlatformDemo>
-      ) : (
-        <>
-          <StageHeader>
-            <SiteHeader component={component} />
-          </StageHeader>
-          <div
-            className="am-reveal @container grid min-h-0 flex-1 grid-cols-1 overflow-x-hidden overflow-y-auto px-6 pb-6 sm:px-8 lg:px-12"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <Preview />
-          </div>
-        </>
-      )}
+      <StageHeader>
+        <SiteHeader component={component} swiftUIId={hasSwiftUI(id) ? id : undefined} />
+      </StageHeader>
+      <div
+        className="am-reveal @container grid min-h-0 flex-1 grid-cols-1 overflow-x-hidden overflow-y-auto px-6 pb-6 sm:px-8 lg:px-12"
+        style={{ animationDelay: "0.1s" }}
+      >
+        <Preview />
+      </div>
     </ComponentStage>
   );
 }

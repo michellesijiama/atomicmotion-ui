@@ -99,9 +99,6 @@ try {
       await page.waitForTimeout(3200);
     } else if (id === "sticker-peel") {
       // Keep the landscape demo centered in the gallery card's portrait crop.
-      await page.getByRole("group", { name: "Implementation platform" }).evaluate((group) => {
-        group.parentElement.style.display = "none";
-      });
       const back = page.getByRole("button", { name: "Back to the homepage" });
       await back.evaluate((button) => {
         const host = button.parentElement.parentElement;

@@ -80,6 +80,11 @@ try {
     assert.equal(source.status, 200, id);
     assert.match(source.headers.get("content-type") ?? "", /^text\/plain/);
     assert.equal(await source.text(), readFileSync(`swiftui/Sources/AtomicMotionUI/${filename}`, "utf8"));
+    const react = await request(`/components/${id}/react`);
+    const reactPath = entries.find((entry) => entry.id === id).codePath;
+    assert.equal(react.status, 200, id);
+    assert.equal(react.headers.get("content-disposition"), `attachment; filename="${id}.tsx"`);
+    assert.equal(await react.text(), readFileSync(reactPath, "utf8"));
     for (const extension of ["mp4", "webp"]) {
       const preview = await request(`/previews/swiftui/${id}.${extension}`);
       assert.equal(preview.status, 200, id);
@@ -87,9 +92,11 @@ try {
     }
   }
   for (const id of ["digital-stress-reliever", "__proto__"]) {
-    const response = await request(`/components/${id}/swiftui`);
-    assert.equal(response.status, 404, id);
-    await response.arrayBuffer();
+    for (const platform of ["react", "swiftui"]) {
+      const response = await request(`/components/${id}/${platform}`);
+      assert.equal(response.status, 404, id);
+      await response.arrayBuffer();
+    }
   }
   for (const model of studioModels) {
     for (const path of new Set([model.image, model.gif, model.blend, model.still, model.license])) {

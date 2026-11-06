@@ -6,7 +6,7 @@ import { ArrowUpRight, Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { SITE_NAME } from "@/lib/site-metadata";
-import { swiftUIComponents, type SwiftUIComponentId } from "@/lib/swiftui-components";
+import type { SwiftUIComponentId } from "@/lib/swiftui-components";
 import { AnimatedLogoLink } from "@/components/website/animated-logo-link";
 import { ComponentActions } from "@/components/website/component-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
@@ -22,12 +22,10 @@ type ActivePanel = "about" | "component" | null;
 export function SiteHeader({
   component,
   swiftUIId,
-  native = false,
   section = "interfaces",
 }: {
   component?: ComponentMeta;
   swiftUIId?: SwiftUIComponentId;
-  native?: boolean;
   section?: "interfaces" | "3d-studio";
 }) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
@@ -65,10 +63,9 @@ export function SiteHeader({
         footer={
           activePanel === "component" && component ? (
             <ComponentActions
-              key={native ? `${component.id}-swiftui` : component.id}
+              key={component.id}
               component={component}
               swiftUIId={swiftUIId}
-              native={native}
             />
           ) : undefined
         }
@@ -76,9 +73,9 @@ export function SiteHeader({
         {activePanel === "component" && component ? (
           <div className="grid gap-3">
             <span className="font-mono text-body text-[var(--jitter-gray-600)]">
-              {component.title}{native && " · SwiftUI"}
+              {component.title}
             </span>
-            <p>{native && swiftUIId ? swiftUIComponents[swiftUIId].previewDescription : component.description}</p>
+            <p>{component.description}</p>
             {component.inspiredBy ? (
               <p className="text-body text-[var(--jitter-gray-600)]">
                 Inspired by{" "}
