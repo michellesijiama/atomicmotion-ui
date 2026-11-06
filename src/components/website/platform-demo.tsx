@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { actionGhostClass, actionPrimaryClass } from "@/components/website/styles";
-import { writeClipboardText } from "@/lib/clipboard";
+import { useState, type ReactNode } from "react";
+import { StageHeader } from "@/components/website/component-stage";
+import { SiteHeader } from "@/components/website/site-header";
+import type { ComponentMeta } from "@/lib/component-registry";
 import { swiftUIComponents, type SwiftUIComponentId } from "@/lib/swiftui-components";
-
-const SETUP_URL = "https://github.com/michellesijiama/atomicmotion-ui/tree/main/swiftui";
 
 export function PlatformDemo({
   id,
-  title,
+  component,
   children,
 }: {
   id: SwiftUIComponentId;
-  title: string;
+  component: ComponentMeta;
   children: ReactNode;
 }) {
   const [platform, setPlatform] = useState<"React" | "SwiftUI">("React");
@@ -21,6 +20,9 @@ export function PlatformDemo({
 
   return (
     <>
+      <StageHeader>
+        <SiteHeader component={component} swiftUIId={native ? id : undefined} />
+      </StageHeader>
       <div className="am-reveal flex shrink-0 justify-center px-6 pb-3">
         <div role="group" aria-label="Implementation platform" className="flex rounded-full border border-black/10 p-1">
           {(["React", "SwiftUI"] as const).map((option) => (
@@ -43,38 +45,14 @@ export function PlatformDemo({
       >
         {children}
       </div>
-      {native && <SwiftUIPreview id={id} title={title} />}
+      {native && <SwiftUIPreview id={id} title={component.title} />}
     </>
   );
 }
 
 function SwiftUIPreview({ id, title }: { id: SwiftUIComponentId; title: string }) {
-  const source = `/components/${id}/swiftui`;
   const preview = `/previews/swiftui/${id}`;
   const description = swiftUIComponents[id].previewDescription;
-  const [sourceText, setSourceText] = useState<string | null>(null);
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-
-  useEffect(() => {
-    const request = new AbortController();
-    async function loadSource() {
-      try {
-        const response = await fetch(source, { signal: request.signal });
-        if (!response.ok) throw new Error("Could not load Swift source");
-        const text = await response.text();
-        if (!request.signal.aborted) setSourceText(text);
-      } catch {
-        if (!request.signal.aborted) setCopyState("failed");
-      }
-    }
-    void loadSource();
-    return () => request.abort();
-  }, [source]);
-
-  async function copySource() {
-    if (!sourceText) return;
-    setCopyState(await writeClipboardText(sourceText) ? "copied" : "failed");
-  }
 
   return (
     <section aria-label={`${title} for SwiftUI`} className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-4">
@@ -83,17 +61,6 @@ function SwiftUIPreview({ id, title }: { id: SwiftUIComponentId; title: string }
           <p className="font-mono text-xs text-[var(--jitter-gray-600)]">SwiftUI · iOS 17+</p>
           <h1 className="text-2xl font-medium tracking-tight text-[var(--jitter-ink)]">{title}</h1>
           <p className="max-w-sm text-sm leading-relaxed text-[var(--jitter-gray-600)]">{description}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button type="button" disabled={sourceText === null} onClick={copySource} className={`${actionPrimaryClass} disabled:opacity-60`}>
-              {copyState === "copied" ? "Copied" : "Copy Swift source"}
-            </button>
-            <a href={SETUP_URL} className={actionGhostClass}>Swift Package setup</a>
-            <a href={source} target="_blank" rel="noreferrer" className={actionGhostClass}>View source</a>
-          </div>
-          <p role="status" className="text-xs text-[var(--jitter-gray-600)]">
-            {copyState === "failed" ? "Copy unavailable. Open View source to select the code." : ""}
-            {copyState === "copied" && <span className="sr-only">Swift source copied.</span>}
-          </p>
         </div>
         <figure className="mx-auto w-full max-w-[310px]">
           <video

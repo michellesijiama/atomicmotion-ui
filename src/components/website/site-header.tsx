@@ -6,6 +6,7 @@ import { ArrowUpRight, Expand } from "lucide-react";
 
 import type { ComponentMeta } from "@/lib/component-registry";
 import { SITE_NAME } from "@/lib/site-metadata";
+import { swiftUIComponents, type SwiftUIComponentId } from "@/lib/swiftui-components";
 import { AnimatedLogoLink } from "@/components/website/animated-logo-link";
 import { ComponentActions } from "@/components/website/component-actions";
 import { ExpandingAboutPanel } from "@/components/website/expanding-about-panel";
@@ -20,9 +21,11 @@ type ActivePanel = "about" | "component" | null;
 
 export function SiteHeader({
   component,
+  swiftUIId,
   section = "interfaces",
 }: {
   component?: ComponentMeta;
+  swiftUIId?: SwiftUIComponentId;
   section?: "interfaces" | "3d-studio";
 }) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
@@ -59,16 +62,16 @@ export function SiteHeader({
         onClose={() => setActivePanel(null)}
         footer={
           activePanel === "component" && component ? (
-            <ComponentActions key={component.id} component={component} />
+            <ComponentActions key={swiftUIId ? `${component.id}-swiftui` : component.id} component={component} swiftUIId={swiftUIId} />
           ) : undefined
         }
       >
         {activePanel === "component" && component ? (
           <div className="grid gap-3">
             <span className="font-mono text-body text-[var(--jitter-gray-600)]">
-              {component.title}
+              {component.title}{swiftUIId && " · SwiftUI"}
             </span>
-            <p>{component.description}</p>
+            <p>{swiftUIId ? swiftUIComponents[swiftUIId].previewDescription : component.description}</p>
             {component.inspiredBy ? (
               <p className="text-body text-[var(--jitter-gray-600)]">
                 Inspired by{" "}
