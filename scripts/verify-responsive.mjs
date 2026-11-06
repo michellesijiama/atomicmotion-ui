@@ -155,8 +155,10 @@ try {
       if (viewport.width === 320) {
         await page.getByRole("button", { name: `Details about ${title}`, exact: true }).click();
         await page.waitForTimeout(650);
-        const action = "Copy for AI";
-        await reachable(page.getByRole("button", { name: action, exact: true }), `${id}: source action`);
+        const actions = ["sticker-peel", "soft-menu-reveal"].includes(id) ? ["React", "Swift"] : ["Copy for AI"];
+        for (const action of actions) {
+          await reachable(page.getByRole("button", { name: action, exact: true }), `${id}: ${action} source action`);
+        }
         await reachable(page.getByRole("button", { name: "Close", exact: true }), `${id}: close details`, { click: true });
         await page.waitForTimeout(650);
       }
