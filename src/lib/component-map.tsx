@@ -1,5 +1,7 @@
 import type { ComponentType } from "react";
 
+import { StickerPeelDemo } from "@/components/website/sticker-peel-demo";
+
 import { GeminiLive } from "@components/ai/gemini-live";
 import { VoiceBloom } from "@components/ai/voice-bloom";
 import { GradientGummyBear } from "@components/3d/gradient-gummy-bear";
@@ -19,7 +21,6 @@ import { BeadClub } from "@components/play/bead-club";
 import { DigitalStressReliever } from "@components/play/digital-stress-reliever";
 import { EmojiSketch } from "@components/play/emoji-sketch";
 import { PocketPiggy } from "@components/play/pocket-piggy";
-import { StickerPeel } from "@components/play/sticker-peel";
 import { UIWalkthrough } from "@components/template/ui-walkthrough";
 import { GeometricLogoReveal } from "@components/typography/geometric-logo-reveal";
 import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
@@ -56,7 +57,7 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
   "digital-stress-reliever": DigitalStressReliever,
-  "sticker-peel": StickerPeel, // the notepad scales itself to the tile
+  "sticker-peel": StickerPeelDemo,
   "bead-club": BeadClub,
   "ui-walkthrough": UIWalkthroughPreview,
   "jardin-opening": JardinOpeningPreview,

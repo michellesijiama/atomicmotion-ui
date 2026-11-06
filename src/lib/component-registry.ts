@@ -147,6 +147,7 @@ export const componentRegistry = {
     createdAt: "2026-11-04",
     codePath: "components/play/sticker-peel/sticker-peel.tsx",
     stageBackground: "gray",
+    previewStatic: true,
   }),
   beadClub: createComponentMeta({
     id: "bead-club",

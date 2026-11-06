@@ -1167,8 +1167,6 @@ type StickerItemProps = {
   home: Home;
   z: number;
   interactive: boolean;
-  /** Hidden with the tray closed. */
-  hidden: boolean;
   /** Its place in the tray, which staggers the tray opening. */
   order: number;
   /** Where the tray is being looked at, and how strongly. */
@@ -1181,6 +1179,7 @@ type StickerItemProps = {
   apiRef: React.Ref<ItemApi>;
   toLogical: (clientX: number, clientY: number) => { x: number; y: number };
   onDrop: (moved: boolean, x: number, y: number) => void;
+  onTap: () => void;
   onCarry: (x: number, y: number) => void;
   onHeld: (held: boolean) => void;
   /** The sticker has left the tray and is being carried. */
@@ -1196,7 +1195,7 @@ type StickerItemProps = {
 };
 
 function StickerItem(props: StickerItemProps) {
-  const { def, uid, home, z, interactive, hidden, order, peekX, peek, reduce, label, bounds, placedScale, apiRef, toLogical, onDrop, onCarry, onHeld, onLift, onScrub, onScrubEnd, onKeyed, onRaise, onKey, onDouble } = props;
+  const { def, uid, home, z, interactive, order, peekX, peek, reduce, label, bounds, placedScale, apiRef, toLogical, onDrop, onTap, onCarry, onHeld, onLift, onScrub, onScrubEnd, onKeyed, onRaise, onKey, onDouble } = props;
   const sid = `${uid}-${def.id}`;
 
   const rx = useMotionValue(home.x);
@@ -1208,8 +1207,8 @@ function StickerItem(props: StickerItemProps) {
   const qx = useMotionValue(1);
   const qy = useMotionValue(1);
   const curl = useMotionValue(0);
-  const fade = useMotionValue(hidden ? 0 : 1);
-  const rise = useMotionValue(hidden ? 20 : 0);
+  const fade = useMotionValue(1);
+  const rise = useMotionValue(0);
   /** 1 while it sits in the tray and takes part in the magnifier. */
   const inDock = useMotionValue(home.placed ? 0 : 1);
   const zv = useMotionValue(z);
@@ -1393,11 +1392,11 @@ function StickerItem(props: StickerItemProps) {
     handled.current = homeKey(t);
     busy.current = true;
     setLifted(true);
+    onHeld(true);
     if (o.delay) {
       await wait(o.delay);
       if (!live()) return;
     }
-    onHeld(true);
     const finish = () => {
       busy.current = false;
       setLifted(false);
@@ -1486,7 +1485,7 @@ function StickerItem(props: StickerItemProps) {
     ry.set(d.last.y - d.off.y);
   };
 
-  const release = () => {
+  const release = (cancelled = false) => {
     const d = drag.current;
     if (!d) return;
     window.clearTimeout(d.timer);
@@ -1495,12 +1494,17 @@ function StickerItem(props: StickerItemProps) {
       onScrubEnd();
       return;
     }
+    if (!cancelled && !home.placed && d.moved <= 7) {
+      onTap();
+      return;
+    }
     if (d.phase === "curl") {
-      // A tap: the corner lifts a little and settles back.
+      // A stationary press on a placed sticker lets the corner settle back.
+      const tok = token.current;
       play(curl, 0, SMOOTH_SPRING);
       play(sc, home.s, { type: "spring", stiffness: 400, damping: 32 });
       void wait(240).then(() => {
-        if (drag.current) return;
+        if (tok !== token.current) return;
         busy.current = false;
         setLifted(false);
         onHeld(false);
@@ -1511,7 +1515,7 @@ function StickerItem(props: StickerItemProps) {
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!interactive || e.button !== 0) return;
+    if (!interactive || e.button !== 0 || drag.current) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     token.current += 1;
     stopAnims();
@@ -1540,14 +1544,13 @@ function StickerItem(props: StickerItemProps) {
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!interactive) return;
-    const p = toLogical(e.clientX, e.clientY);
     const d = drag.current;
-    if (!d || d.id !== e.pointerId) return;
+    if (!interactive || !d || d.id !== e.pointerId) return;
+    const p = toLogical(e.clientX, e.clientY);
     d.last = p;
     d.moved = Math.max(d.moved, Math.hypot(p.x - d.start.x, p.y - d.start.y));
     if (d.phase === "curl" && d.moved > 7) {
-      if (!home.placed && Math.abs(p.x - d.start.x) > Math.abs(p.y - d.start.y)) {
+      if (!home.placed && e.pointerType === "touch" && Math.abs(p.x - d.start.x) > Math.abs(p.y - d.start.y)) {
         window.clearTimeout(d.timer);
         d.phase = "scrub";
         stopAnims();
@@ -1568,18 +1571,18 @@ function StickerItem(props: StickerItemProps) {
 
   const onPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (drag.current?.id !== e.pointerId) return;
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    onPointerMove(e);
     release();
   };
 
-  const onPointerCancel = () => {
+  const onPointerCancel = (e: React.PointerEvent<HTMLButtonElement>) => {
     const d = drag.current;
-    if (!d) return;
+    if (!d || d.id !== e.pointerId) return;
     if (d.phase === "drag") {
       window.clearTimeout(d.timer);
       drag.current = null;
       onDrop(true, -999, -999);
-    } else release();
+    } else release(true);
   };
 
   const onEnter = (e: React.PointerEvent) => {
@@ -1594,20 +1597,22 @@ function StickerItem(props: StickerItemProps) {
   };
 
   // The tray opens as a quick ripple along its stickers.
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (reduce) {
-      fade.jump(hidden ? 0 : 1);
+      fade.jump(1);
       rise.jump(0);
       return;
     }
-    const delay = hidden ? 0 : order * 0.012;
-    const a = animate(fade, hidden ? 0 : 1, { duration: 0.2, delay });
-    const b = animate(rise, hidden ? 20 : 0, { type: "spring", stiffness: 320, damping: 30, delay });
+    fade.jump(0);
+    rise.jump(20);
+    const delay = order * 0.012;
+    const a = animate(fade, 1, { duration: 0.2, delay });
+    const b = animate(rise, 0, { type: "spring", stiffness: 320, damping: 30, delay });
     return () => {
       a.stop();
       b.stop();
     };
-  }, [hidden, order, reduce, fade, rise]);
+  }, [order, reduce, fade, rise]);
 
   React.useEffect(() => {
     zv.set(z);
@@ -1622,6 +1627,10 @@ function StickerItem(props: StickerItemProps) {
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
+      onLostPointerCapture={onPointerCancel}
+      onClick={(e) => {
+        if (interactive && !home.placed && e.detail === 0) onTap();
+      }}
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
       onKeyDown={onKey}
@@ -1644,7 +1653,7 @@ function StickerItem(props: StickerItemProps) {
         zIndex: lifted ? 5000 : zIndex,
         touchAction: "none",
         pointerEvents: interactive ? "auto" : "none",
-        willChange: "transform",
+        willChange: lifted ? "transform" : undefined,
       }}
     >
       <svg viewBox="0 0 100 100" width={S} height={S} className="pointer-events-none relative overflow-visible" aria-hidden="true">
@@ -1710,7 +1719,7 @@ const paperPattern = (paper: Paper, step = LINE) => {
 };
 
 const MONO = "ui-monospace,'SF Mono','Courier New',monospace";
-const NOTES = ["Hover the tray to see each sticker up close", "Peel one off and carry it over the page", "Press it down anywhere you like"];
+const NOTES = ["Hover the tray to see each sticker up close", "Tap a sticker to add it to the page", "Drag it wherever you like"];
 
 /** A page laid out like a printed journal, with room left for stickers. */
 function Notepad({ x, y, paper, scale }: { x: number; y: number; paper: Paper; scale: number }) {
@@ -1841,7 +1850,7 @@ const INITIAL_ITEMS: ItemState[] = PIECES.map(() => ({ placed: false, u: 0.5, v:
  * paper and switches between light and dark.
  * Hover along the tray, or slide a finger across it, and each sticker in turn grows
  * to full size and shows its name.
- * Press a sticker to curl its corner and peel it off, carry it over
+ * Click or tap a sticker to stick it at the next free spot, or drag it over
  * the notepad and let go to press it down. Drop it anywhere else and it springs
  * back to the tray.
  *
@@ -1869,6 +1878,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
   const [tip, setTip] = React.useState<number | null>(null);
   const [named, setNamed] = React.useState(0);
   const peekTimer = React.useRef(0);
+  const peekTarget = React.useRef(0);
   const [held, setHeld] = React.useState<Set<number>>(() => new Set());
   /** Whether a sticker is being carried, and whether it is over the bin. */
   const [carrying, setCarrying] = React.useState<"no" | "yes" | "over-bin">("no");
@@ -1877,6 +1887,8 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
   const [rng] = React.useState(() => Math.random);
   const zRef = React.useRef(0);
   const apis = React.useRef<(ItemApi | null)[]>([]);
+
+  React.useEffect(() => () => window.clearTimeout(peekTimer.current), []);
 
   // Scale the whole stage to the space it has.
   React.useEffect(() => {
@@ -1918,14 +1930,20 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
   });
 
   /** A sticker's place in the tray: the row closes up around the ones that have been taken. */
+  const trayOf = (list: ItemState[], group: number) =>
+    list.flatMap((it, n) => (it.placed || PIECES[n].collection !== group ? [] : [n]));
+  const dockX = (slot: number, count: number) => GEO.W / 2 + (slot - (count - 1) / 2) * GEO.dockStep;
+  const activeTray = trayOf(items, collection);
   const slotOf = (i: number, list: ItemState[]): Home => {
-    const left = list.flatMap((it, n) => (it.placed || PIECES[n].collection !== PIECES[i].collection ? [] : [n]));
-    return { x: GEO.W / 2 + (left.indexOf(i) - (left.length - 1) / 2) * GEO.dockStep, y: GEO.dockY, rot: PIECES[i].rot, s: DOCK_S, placed: false };
+    const left = trayOf(list, PIECES[i].collection);
+    return { x: dockX(left.indexOf(i), left.length), y: GEO.dockY, rot: PIECES[i].rot, s: DOCK_S, placed: false };
   };
   const homeOf = (it: ItemState, i: number): Home =>
     it.placed ? { x: paper.x + it.u * paper.w, y: paper.y + it.v * paper.h, rot: it.rot, s: placedScale, placed: true } : slotOf(i, items);
 
   const peekTo = (to: number) => {
+    if (peekTarget.current === to) return;
+    peekTarget.current = to;
     if (reduce) peek.jump(to);
     else void animate(peek, to, PEEK_SPRING);
   };
@@ -1936,9 +1954,8 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
     peekTo(1);
     let best = -1;
     let gap = Infinity;
-    items.forEach((it, i) => {
-      if (it.placed || PIECES[i].collection !== collection) return;
-      const d = Math.abs(slotOf(i, items).x - x);
+    activeTray.forEach((i, slot) => {
+      const d = Math.abs(dockX(slot, activeTray.length) - x);
       if (d < gap) {
         gap = d;
         best = i;
@@ -1981,14 +1998,17 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
     return { u: clamp(base.u + 0.04 * Math.floor(n / SPOTS.length), 0.1, 0.9), v: clamp(base.v + 0.04 * Math.floor(n / SPOTS.length), 0.1, 0.9), rot: -base.rot };
   };
 
-  /** Stick a random sticker from the open collection. */
-  const surprise = () => {
-    const left = items.flatMap((it, i) => (it.placed || PIECES[i].collection !== collection ? [] : [i]));
-    if (left.length === 0) return;
-    const i = left[Math.floor(rng() * left.length)];
+  const stickFromTray = (i: number) => {
+    setCarrying("no");
     const s = nextSpot();
     place(i, s.u, s.v, s.rot, { peel: true, flight: 560 });
     setStatus(`${PIECES[i].def.label} stuck on the notepad`);
+  };
+
+  /** Stick a random sticker from the open collection. */
+  const surprise = () => {
+    if (activeTray.length === 0) return;
+    stickFromTray(activeTray[Math.floor(rng() * activeTray.length)]);
   };
 
   const clear = () => {
@@ -2038,9 +2058,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
     if (!it.placed) {
       if (k === "Enter" || k === " ") {
         e.preventDefault();
-        const s = nextSpot();
-        place(i, s.u, s.v, s.rot, { peel: true, flight: 560 });
-        setStatus(`${PIECES[i].def.label} stuck on the notepad`);
+        stickFromTray(i);
       }
       return;
     }
@@ -2128,7 +2146,6 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
   const interactive = !loop;
   const { surface, navY, dockY, barY } = GEO;
   const anyPlaced = items.some((it) => it.placed);
-  const trayLeft = items.some((it, i) => !it.placed && PIECES[i].collection === collection);
 
   const onHover = (e: React.PointerEvent) => {
     if (!interactive || pop || e.pointerType === "touch" || held.size > 0) return;
@@ -2227,7 +2244,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
 
         {/* Bottom nav */}
         <div className="absolute inset-x-0 flex justify-center gap-2" style={{ top: navY, zIndex: 2000 }}>
-          <button type="button" aria-label="Stick a random sticker" onClick={surprise} disabled={loop || !trayLeft} className={cn(NAV_BUTTON, "w-11")}>
+          <button type="button" aria-label="Stick a random sticker" onClick={surprise} disabled={loop || activeTray.length === 0} className={cn(NAV_BUTTON, "w-11")}>
             <Dices className="size-[18px]" strokeWidth={2} aria-hidden="true" />
           </button>
           <button
@@ -2319,10 +2336,10 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
 
         {PIECES.map(({ def, id, collection: own, order }, i) => {
           const it = items[i];
-          const hidden = !it.placed && !held.has(i) && own !== collection;
+          if (!it.placed && !held.has(i) && own !== collection) return null;
           const label = it.placed
             ? `${def.label} sticker on the notepad. Arrow keys move it, brackets rotate it, Delete returns it to the tray, or drag it to the bin to throw it away.`
-            : `${def.label} sticker in the tray. Press Enter to stick it on the notepad, or drag it there.`;
+            : `${def.label} sticker in the tray. Click or press Enter to stick it on the notepad, or drag it there.`;
           return (
             <StickerItem
               key={id}
@@ -2330,8 +2347,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
               uid={uid}
               home={homeOf(it, i)}
               z={it.placed ? it.z : 1000}
-              interactive={interactive && !hidden}
-              hidden={hidden}
+              interactive={interactive}
               order={order}
               peekX={peekX}
               peek={peek}
@@ -2344,6 +2360,7 @@ export function StickerPeel({ loop = false, onChange, className }: StickerPeelPr
               }}
               toLogical={toLogical}
               onDrop={(moved, x, y) => onDrop(i, moved, x, y)}
+              onTap={() => stickFromTray(i)}
               onCarry={(x, y) => setCarrying(overBin(x, y) ? "over-bin" : "yes")}
               onLift={peekEnd}
               onScrub={peekAt}

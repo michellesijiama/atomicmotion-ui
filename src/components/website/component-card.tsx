@@ -13,7 +13,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
   const Preview = componentMap[component.id];
   // Light components render their live animation on the gray card (via
   // PreviewStage, which insets the preview so the `bg-card` gray frames it).
-  // Heavy Three.js/WebGL scenes (`previewStatic`) show a static poster instead
+  // Heavier demos (`previewStatic`) show a static poster instead
   // — a looping video when available, otherwise the still image — so mounting
   // many live GL scenes in the gallery doesn't regress load performance.
   const useStaticPoster = component.previewStatic || !Preview;
@@ -28,7 +28,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
     : "size-full object-cover";
 
   return (
-    <Link href={componentHref} className={cardClassName}>
+    <Link href={componentHref} prefetch={component.previewStatic ? false : undefined} className={cardClassName}>
       <div className={previewClassName}>
         {useStaticPoster ? (
           component.previewVideo ? (
