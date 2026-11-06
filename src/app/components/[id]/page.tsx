@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ComponentStage, StageHeader } from "@/components/website/component-stage";
+import { PlatformDemo } from "@/components/website/platform-demo";
 import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
 import { componentList, getComponentById } from "@/lib/component-registry";
 import { SITE_NAME, pageMetadata, pageTitle } from "@/lib/site-metadata";
+import { hasSwiftUI } from "@/lib/swiftui-components";
 
 type ComponentDetailPageProps = {
   params: Promise<{
@@ -62,12 +64,18 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
         <SiteHeader component={component} />
       </StageHeader>
 
-      <div
-        className="am-reveal @container grid min-h-0 flex-1 grid-cols-1 overflow-x-hidden overflow-y-auto px-6 pb-6 sm:px-8 lg:px-12"
-        style={{ animationDelay: "0.1s" }}
-      >
-        <Preview />
-      </div>
+      {hasSwiftUI(component.id) ? (
+        <PlatformDemo id={component.id} title={component.title}>
+          <Preview />
+        </PlatformDemo>
+      ) : (
+        <div
+          className="am-reveal @container grid min-h-0 flex-1 grid-cols-1 overflow-x-hidden overflow-y-auto px-6 pb-6 sm:px-8 lg:px-12"
+          style={{ animationDelay: "0.1s" }}
+        >
+          <Preview />
+        </div>
+      )}
     </ComponentStage>
   );
 }

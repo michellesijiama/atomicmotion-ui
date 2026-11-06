@@ -98,9 +98,19 @@ try {
       await page.getByRole("button", { name: "Start voice input" }).click();
       await page.waitForTimeout(3200);
     } else if (id === "sticker-peel") {
-      // The poster is the notepad with a few stickers stuck on, placed with the
-      // keyboard path (Enter on a tray sticker) once the page has hydrated.
-      await page.waitForSelector('button[aria-label$="Press Enter to stick it on the notepad, or drag it there."]', { state: "attached" });
+      // Keep the landscape demo centered in the gallery card's portrait crop.
+      await page.getByRole("group", { name: "Implementation platform" }).evaluate((group) => {
+        group.parentElement.style.display = "none";
+      });
+      const back = page.getByRole("button", { name: "Back to the homepage" });
+      await back.evaluate((button) => {
+        const host = button.parentElement.parentElement;
+        host.style.height = "680px";
+        host.parentElement.style.padding = "0 24px";
+        host.parentElement.style.alignItems = "center";
+        host.parentElement.style.animation = "none";
+      });
+      await page.getByRole("button", { name: /sticker in the tray/ }).first().waitFor();
       await page.waitForTimeout(1300);
       for (const name of ["Tiny joys", "Tea first", "Read slowly"]) {
         await page.getByRole("button", { name: new RegExp(`^${name} sticker in the tray`) }).press("Enter");

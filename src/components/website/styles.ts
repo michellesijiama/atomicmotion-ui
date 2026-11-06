@@ -19,7 +19,7 @@ const actionBase = `inline-flex h-11 sm:h-8 items-center gap-1.5 rounded-full px
 export const actionPrimaryClass = `${actionBase} bg-[var(--jitter-ink)] text-white hover:bg-[var(--jitter-gray-800)]`;
 
 // Secondary (Copy link): no fill, black stroke, grayish wash on hover.
-export const actionSecondaryClass = `inline-flex size-11 sm:size-8 items-center justify-center rounded-full bg-transparent text-[var(--jitter-ink)] ring-1 ring-[var(--jitter-ink)] transition-colors hover:bg-[var(--jitter-gray-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10`;
+export const actionSecondaryClass = `inline-flex size-11 shrink-0 sm:size-8 items-center justify-center rounded-full border border-[var(--jitter-ink)] bg-transparent text-[var(--jitter-ink)] transition-colors hover:bg-[var(--jitter-gray-100)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-black/20`;
 
 // Quiet text button (Close): grayish pill on hover.
 export const actionGhostClass = `${actionBase} text-[var(--jitter-gray-800)] hover:bg-[var(--jitter-gray-100)] hover:text-[var(--jitter-ink)]`;

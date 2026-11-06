@@ -75,6 +75,22 @@ try {
     assert.equal(response.status, 404, path);
     await response.arrayBuffer();
   }
+  for (const [id, filename] of [["soft-menu-reveal", "SoftMenuReveal.swift"], ["sticker-peel", "StickerPeel.swift"]]) {
+    const source = await request(`/components/${id}/swiftui`);
+    assert.equal(source.status, 200, id);
+    assert.match(source.headers.get("content-type") ?? "", /^text\/plain/);
+    assert.equal(await source.text(), readFileSync(`swiftui/Sources/AtomicMotionUI/${filename}`, "utf8"));
+    for (const extension of ["mp4", "webp"]) {
+      const preview = await request(`/previews/swiftui/${id}.${extension}`);
+      assert.equal(preview.status, 200, id);
+      assert.ok((await preview.arrayBuffer()).byteLength > 0, id);
+    }
+  }
+  for (const id of ["digital-stress-reliever", "__proto__"]) {
+    const response = await request(`/components/${id}/swiftui`);
+    assert.equal(response.status, 404, id);
+    await response.arrayBuffer();
+  }
   for (const model of studioModels) {
     for (const path of new Set([model.image, model.gif, model.blend, model.still, model.license])) {
       const response = await request(path);

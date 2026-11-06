@@ -1,0 +1,226 @@
+[
+  {
+    "name": "Cosy days",
+    "cover": "tea-first",
+    "stickers": [
+      {
+        "id": "tiny-joys",
+        "name": "Tiny joys",
+        "maxSum": 172
+      },
+      {
+        "id": "tea-first",
+        "name": "Tea first",
+        "maxSum": 168
+      },
+      {
+        "id": "read-slowly",
+        "name": "Read slowly",
+        "maxSum": 164
+      },
+      {
+        "id": "toast",
+        "name": "Warm toast",
+        "maxSum": 168
+      },
+      {
+        "id": "write-back",
+        "name": "Write back",
+        "maxSum": 170
+      },
+      {
+        "id": "candle",
+        "name": "Light a candle",
+        "maxSum": 172
+      },
+      {
+        "id": "pencil",
+        "name": "Write it down",
+        "maxSum": 146
+      },
+      {
+        "id": "one-more",
+        "name": "One more",
+        "maxSum": 156
+      },
+      {
+        "id": "come-home",
+        "name": "Come home",
+        "maxSum": 170
+      },
+      {
+        "id": "rest",
+        "name": "Rest is good",
+        "maxSum": 170
+      }
+    ]
+  },
+  {
+    "name": "Soft words",
+    "cover": "smile-cloud",
+    "stickers": [
+      {
+        "id": "go-slow",
+        "name": "Go slow",
+        "maxSum": 150
+      },
+      {
+        "id": "stay-soft",
+        "name": "Stay soft",
+        "maxSum": 150
+      },
+      {
+        "id": "be-kind",
+        "name": "Be kind",
+        "maxSum": 162
+      },
+      {
+        "id": "breathe",
+        "name": "Breathe",
+        "maxSum": 150
+      },
+      {
+        "id": "one-thing",
+        "name": "One thing at a time",
+        "maxSum": 150
+      },
+      {
+        "id": "got-this",
+        "name": "You got this",
+        "maxSum": 156
+      },
+      {
+        "id": "let-it-be",
+        "name": "Let it be easy",
+        "maxSum": 150
+      },
+      {
+        "id": "handle-gently",
+        "name": "Handle gently",
+        "maxSum": 150
+      },
+      {
+        "id": "good-day",
+        "name": "Good day",
+        "maxSum": 176
+      },
+      {
+        "id": "smile-cloud",
+        "name": "Smile cloud",
+        "maxSum": 158
+      }
+    ]
+  },
+  {
+    "name": "Outside",
+    "cover": "wander",
+    "stickers": [
+      {
+        "id": "wander",
+        "name": "Wander",
+        "maxSum": 172
+      },
+      {
+        "id": "sprig",
+        "name": "Little sprig",
+        "maxSum": 160
+      },
+      {
+        "id": "good-morning",
+        "name": "Good morning",
+        "maxSum": 158
+      },
+      {
+        "id": "mushroom",
+        "name": "Little mushroom",
+        "maxSum": 164
+      },
+      {
+        "id": "no-rush",
+        "name": "No rush",
+        "maxSum": 166
+      },
+      {
+        "id": "rainy-day",
+        "name": "Rainy day",
+        "maxSum": 160
+      },
+      {
+        "id": "small-wonders",
+        "name": "Small wonders",
+        "maxSum": 172
+      },
+      {
+        "id": "sea-shell",
+        "name": "Sea shell",
+        "maxSum": 158
+      },
+      {
+        "id": "say-hi",
+        "name": "Just say hi",
+        "maxSum": 172
+      },
+      {
+        "id": "bee-happy",
+        "name": "Bee happy",
+        "maxSum": 170
+      }
+    ]
+  },
+  {
+    "name": "Oil paintings",
+    "cover": "carousel",
+    "stickers": [
+      {
+        "id": "carousel",
+        "name": "Little carousel",
+        "maxSum": 166
+      },
+      {
+        "id": "star-pony",
+        "name": "Star pony",
+        "maxSum": 174
+      },
+      {
+        "id": "painted-crown",
+        "name": "Painted crown",
+        "maxSum": 150
+      },
+      {
+        "id": "swan",
+        "name": "Pale swan",
+        "maxSum": 170
+      },
+      {
+        "id": "dove",
+        "name": "White dove",
+        "maxSum": 170
+      },
+      {
+        "id": "bouquet",
+        "name": "Painted bouquet",
+        "maxSum": 166
+      },
+      {
+        "id": "moon-garden",
+        "name": "Moon garden",
+        "maxSum": 172
+      },
+      {
+        "id": "butterfly",
+        "name": "Pink butterfly",
+        "maxSum": 150
+      },
+      {
+        "id": "peony",
+        "name": "Oil peony",
+        "maxSum": 160
+      },
+      {
+        "id": "balloon",
+        "name": "Dream balloon",
+        "maxSum": 158
+      }
+    ]
+  }
+]

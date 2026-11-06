@@ -65,6 +65,12 @@ export function Demo() {
 **Copy link** copies the public source URL and **Copy for AI** provides
 integration instructions for every component.
 
+## SwiftUI for iOS
+
+Soft Menu Reveal and Sticker Peel also have native SwiftUI implementations.
+Install **AtomicMotionUI** as a Swift Package for iOS or iPadOS 17 and later.
+See the [SwiftUI setup and examples](swiftui/README.md).
+
 ## 3D Studio
 
 [Download Little Nap’s Blender file](https://raw.githubusercontent.com/michellesijiama/atomicmotion-ui/main/public/studio/little-nap/little-nap.blend)
