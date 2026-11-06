@@ -118,7 +118,7 @@ export const componentRegistry = {
     index: "024",
     title: "Digital Stress Reliever",
     description:
-      "A plush 3D bunny you can grip with the mouse or press with several fingers. The dents follow your touch and slowly recover when you let go.",
+      "A white plush bunny head you can grip with the mouse or press with several fingers. The dents follow your touch and slowly recover when you let go.",
     category: "Play",
     createdAt: "2026-11-05",
     codePath: "components/play/digital-stress-reliever/digital-stress-reliever.tsx",

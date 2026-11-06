@@ -8,6 +8,34 @@ const POSTER = "/previews/digital-stress-reliever.png";
 const PRESS_KEYS = new Set([" ", "Enter"]);
 const CONTACT_LIMIT = 3;
 
+const SQUEEZE_SHADER = `#define BUNNY_CONTACTS ${CONTACT_LIMIT}
+uniform vec3 contactPoints[BUNNY_CONTACTS];
+uniform vec3 contactAxes[BUNNY_CONTACTS];
+uniform float pressures[BUNNY_CONTACTS];
+
+vec3 squeeze(vec3 p) {
+  vec3 shift = vec3(0.0);
+  for (int i = 0; i < BUNNY_CONTACTS; i++) {
+    if (pressures[i] < 0.001) continue;
+    vec3 axis = contactAxes[i];
+    vec3 offset = p - contactPoints[i];
+    float axial = dot(offset, axis);
+    vec3 radial = offset - axial * axis;
+    float radiusSquared = dot(radial, radial);
+    if (radiusSquared + axial * axial > 3.0) continue;
+    // The thick cheeks take a deeper squeeze than the thin ear tips.
+    float cheek = 1.0 - smoothstep(0.84, 1.42, contactPoints[i].y);
+    float edge = sqrt(radiusSquared) - mix(0.31, 0.50, cheek);
+    float weight = pressures[i] * exp(-axial * axial / mix(0.22, 0.50, cheek));
+    float dent = mix(0.31, 0.72, cheek) * exp(-radiusSquared / mix(0.10, 0.18, cheek));
+    float bulge = mix(0.12, 0.22, cheek) * exp(-edge * edge / 0.066);
+    float spread = mix(0.22, 0.48, cheek) * exp(-radiusSquared / 0.52);
+    shift += weight * (axis * (bulge - dent) + radial * spread);
+  }
+  return p + shift / max(1.0, length(shift) / 0.76);
+}
+`;
+
 function bunnyPigment(THREE: typeof import("three")) {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 512;
@@ -27,9 +55,9 @@ function bunnyPigment(THREE: typeof import("three")) {
     ctx.translate(side * 0.445, 1.28);
     ctx.rotate(-side * 0.25);
     const ear = ctx.createLinearGradient(0, -0.58, 0, 0.56);
-    ear.addColorStop(0, "#ef8caf00");
-    ear.addColorStop(0.37, "#f081a7b8");
-    ear.addColorStop(1, "#f693b3c4");
+    ear.addColorStop(0, "#f3b3bf00");
+    ear.addColorStop(0.37, "#eda9b689");
+    ear.addColorStop(1, "#f0b0be9e");
     oval(0, 0, 0.119, 0.55, ear);
     ctx.restore();
 
@@ -37,8 +65,8 @@ function bunnyPigment(THREE: typeof import("three")) {
     ctx.translate(side * 0.47, 0.19);
     ctx.scale(1, 0.58);
     const blush = ctx.createRadialGradient(0, 0, 0, 0, 0, 0.23);
-    blush.addColorStop(0, "#f277a6bf");
-    blush.addColorStop(1, "#f277a600");
+    blush.addColorStop(0, "#ee9cb194");
+    blush.addColorStop(1, "#ee9cb100");
     oval(0, 0, 0.23, 0.23, blush);
     ctx.restore();
 
@@ -68,6 +96,85 @@ function bunnyPigment(THREE: typeof import("three")) {
   return texture;
 }
 
+function bunnyFur(THREE: typeof import("three"), surface: BufferGeometry) {
+  // Scatter a fixed set of fibers across the indexed mesh once, weighted by triangle area.
+  const faces = surface.getIndex()!;
+  const surfacePositions = surface.getAttribute("position");
+  const surfaceNormals = surface.getAttribute("normal");
+  const strands = 28000;
+  const areas = new Float32Array(faces.count / 3);
+  const positions = new Float32Array(strands * 6);
+  const normals = new Int8Array(strands * 6);
+  const fibers = new Uint8Array(strands * 4);
+  const a = new THREE.Vector3();
+  const b = new THREE.Vector3();
+  const c = new THREE.Vector3();
+  const root = new THREE.Vector3();
+  const normal = new THREE.Vector3();
+  const tangent = new THREE.Vector3();
+  const tip = new THREE.Vector3();
+  let seed = 74641;
+  function sample() {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 4294967296;
+  }
+
+  let totalArea = 0;
+  for (let triangle = 0; triangle < areas.length; triangle++) {
+    const offset = triangle * 3;
+    a.fromBufferAttribute(surfacePositions, faces.getX(offset));
+    b.fromBufferAttribute(surfacePositions, faces.getX(offset + 1)).sub(a);
+    c.fromBufferAttribute(surfacePositions, faces.getX(offset + 2)).sub(a);
+    totalArea += b.cross(c).length() * 0.5;
+    areas[triangle] = totalArea;
+  }
+
+  let triangle = 0;
+  for (let strand = 0; strand < strands; strand++) {
+    const area = (strand + sample()) / strands * totalArea;
+    while (triangle < areas.length - 1 && area > areas[triangle]) triangle++;
+    const ia = faces.getX(triangle * 3);
+    const ib = faces.getX(triangle * 3 + 1);
+    const ic = faces.getX(triangle * 3 + 2);
+    let u = sample();
+    let v = sample();
+    if (u + v > 1) {
+      u = 1 - u;
+      v = 1 - v;
+    }
+    const w = 1 - u - v;
+    a.fromBufferAttribute(surfacePositions, ia);
+    b.fromBufferAttribute(surfacePositions, ib);
+    c.fromBufferAttribute(surfacePositions, ic);
+    root.copy(a).multiplyScalar(w).addScaledVector(b, u).addScaledVector(c, v);
+    a.fromBufferAttribute(surfaceNormals, ia);
+    b.fromBufferAttribute(surfaceNormals, ib);
+    c.fromBufferAttribute(surfaceNormals, ic);
+    normal.copy(a).multiplyScalar(w).addScaledVector(b, u).addScaledVector(c, v).normalize();
+
+    const variation = sample();
+    const length = 0.021 + 0.041 * variation ** 2;
+    tangent.set(sample() - 0.5, -0.52, sample() - 0.5);
+    tangent.addScaledVector(normal, -tangent.dot(normal));
+    tip.copy(root).addScaledVector(normal, length).addScaledVector(tangent, length * 1.25);
+    root.toArray(positions, strand * 6);
+    tip.toArray(positions, strand * 6 + 3);
+    normal.multiplyScalar(127).toArray(normals, strand * 6);
+    normal.toArray(normals, strand * 6 + 3);
+    const tone = Math.round(sample() * 255);
+    const offset = strand * 4;
+    fibers[offset + 1] = tone;
+    fibers[offset + 2] = 255;
+    fibers[offset + 3] = tone;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3, true));
+  geometry.setAttribute("fiber", new THREE.BufferAttribute(fibers, 2, true));
+  return geometry;
+}
+
 function mountBunny(
   THREE: typeof import("three"),
   geometry: BufferGeometry,
@@ -83,26 +190,26 @@ function mountBunny(
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 25);
-  camera.position.set(0, 0.39, 7.4);
-  camera.lookAt(0, 0.22, 0);
+  camera.position.set(0, 0.83, 5.22);
+  camera.lookAt(0, 0.76, 0);
   camera.updateMatrixWorld();
 
-  scene.add(new THREE.HemisphereLight("#fff5fa", "#e4c6e0", 1.62));
-  const key = new THREE.DirectionalLight("#fff4f7", 1.83);
+  scene.add(new THREE.HemisphereLight("#fffdfa", "#b9b6ce", 1.48));
+  const key = new THREE.DirectionalLight("#fffbf5", 1.7);
   key.position.set(-3.6, 5, 4);
   scene.add(key);
-  const fill = new THREE.DirectionalLight("#fff3f8", 0.52);
+  const fill = new THREE.DirectionalLight("#f2f5ff", 0.48);
   fill.position.set(3, 1, 5);
   scene.add(fill);
-  const rim = new THREE.DirectionalLight("#f6d9ff", 1.22);
+  const rim = new THREE.DirectionalLight("#f5f2ff", 1.08);
   rim.position.set(3, 2, -4);
   scene.add(rim);
 
   const material = new THREE.MeshPhysicalMaterial({
-    color: "#f7b7cd",
-    roughness: 0.76,
-    sheen: 0.74,
-    sheenColor: new THREE.Color("#ffd8ee"),
+    color: "#fcf8f3",
+    roughness: 0.81,
+    sheen: 0.76,
+    sheenColor: new THREE.Color("#f9f5ff"),
     sheenRoughness: 0.72,
   });
   const pigment = bunnyPigment(THREE);
@@ -119,35 +226,15 @@ function mountBunny(
   }));
   type Contact = (typeof contacts)[number];
   const pressures = new Float32Array(CONTACT_LIMIT);
+  const squeezeUniforms = {
+    contactPoints: { value: contacts.map((contact) => contact.point) },
+    contactAxes: { value: contacts.map((contact) => contact.axis) },
+    pressures: { value: pressures },
+  };
   material.onBeforeCompile = (shader) => {
-    shader.uniforms.bunnyPigment = { value: pigment };
-    shader.uniforms.contactPoints = { value: contacts.map((contact) => contact.point) };
-    shader.uniforms.contactAxes = { value: contacts.map((contact) => contact.axis) };
-    shader.uniforms.pressures = { value: pressures };
-    shader.vertexShader = `#define BUNNY_CONTACTS ${CONTACT_LIMIT}
-      uniform vec3 contactPoints[BUNNY_CONTACTS];
-      uniform vec3 contactAxes[BUNNY_CONTACTS];
-      uniform float pressures[BUNNY_CONTACTS];
+    Object.assign(shader.uniforms, squeezeUniforms, { bunnyPigment: { value: pigment } });
+    shader.vertexShader = `${SQUEEZE_SHADER}
       varying vec3 vBunnyRest;
-
-      vec3 squeeze(vec3 p) {
-        vec3 shift = vec3(0.0);
-        for (int i = 0; i < BUNNY_CONTACTS; i++) {
-          if (pressures[i] < 0.001) continue;
-          vec3 axis = contactAxes[i];
-          vec3 offset = p - contactPoints[i];
-          float axial = dot(offset, axis);
-          vec3 radial = offset - axial * axis;
-          float radiusSquared = dot(radial, radial);
-          if (radiusSquared + axial * axial > 2.15) continue;
-          float edge = sqrt(radiusSquared) - 0.41;
-          float weight = pressures[i] * exp(-axial * axial / 0.23);
-          float dent = 0.46 * exp(-radiusSquared / 0.12);
-          float bulge = 0.15 * exp(-edge * edge / 0.052);
-          shift += weight * (axis * (bulge - dent) + radial * 0.25 * exp(-radiusSquared / 0.30));
-        }
-        return p + shift / max(1.0, length(shift) / 0.54);
-      }
       ${shader.vertexShader}`
       .replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
         vec3 bent = position;
@@ -175,6 +262,44 @@ function mountBunny(
   };
 
   const bunny = new THREE.Mesh(geometry, material);
+  const furGeometry = bunnyFur(THREE, geometry);
+  const furMaterial = new THREE.ShaderMaterial({
+    uniforms: { ...squeezeUniforms, bunnyPigment: { value: pigment } },
+    transparent: true,
+    depthWrite: false,
+    vertexShader: `${SQUEEZE_SHADER}
+      uniform sampler2D bunnyPigment;
+      attribute vec2 fiber;
+      varying vec2 vFiber;
+      varying vec3 vFiberColor;
+      varying float vFacing;
+
+      void main() {
+        vec3 point = position;
+        if (pressures[0] + pressures[1] + pressures[2] > 0.001) point = squeeze(point);
+        vec3 n = normalize(normalMatrix * normal);
+        float light = max(dot(n, normalize(vec3(-0.55, 0.78, 0.55))), 0.0);
+        vec3 color = mix(vec3(0.46, 0.44, 0.51), vec3(0.99, 0.97, 0.94), light);
+        vec4 paint = texture2D(bunnyPigment, position.xy * 0.25 + 0.5);
+        vFiberColor = mix(color, paint.rgb * (0.66 + light * 0.55), paint.a * smoothstep(0.02, 0.18, position.z));
+        vFacing = abs(n.z);
+        vFiber = fiber;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(point, 1.0);
+      }`,
+    fragmentShader: `
+      varying vec2 vFiber;
+      varying vec3 vFiberColor;
+      varying float vFacing;
+
+      void main() {
+        float opacity = mix(0.57, 0.29, vFacing) * smoothstep(0.02, 0.29, vFiber.x)
+          * (1.0 - smoothstep(0.48, 1.0, vFiber.x));
+        gl_FragColor = vec4(vFiberColor * mix(0.78, 1.20, vFiber.y), opacity);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  bunny.add(new THREE.LineSegments(furGeometry, furMaterial));
   scene.add(bunny);
 
   const ray = new THREE.Raycaster();
@@ -195,7 +320,7 @@ function mountBunny(
     ndc.set(((x - bounds.left) / bounds.width) * 2 - 1, 1 - ((y - bounds.top) / bounds.height) * 2);
     ray.setFromCamera(ndc, camera);
     bunny.updateMatrixWorld();
-    return ray.intersectObject(bunny)[0];
+    return ray.intersectObject(bunny, false)[0];
   }
 
   function placeContact(contact: Contact, intersection: Intersection) {
@@ -300,7 +425,7 @@ function mountBunny(
     if (!slot) return;
     slot.source = source;
     slot.support = support;
-    slot.goal = support ? 0.48 : 1;
+    slot.goal = support ? 0.60 : 1;
     slot.strength = 0;
     slot.speed = 0;
     frame.style.cursor = "grabbing";
@@ -336,6 +461,7 @@ function mountBunny(
       const side = event.clientX <= center ? 1 : -1;
       const supportY = event.clientY + bounds.height * 0.064;
       const opposite = hit(center + side * bounds.width * 0.17, supportY)
+        ?? hit(center + side * bounds.width * 0.17, event.clientY)
         ?? hit(center + side * bounds.width * 0.11, supportY);
       if (!opposite) return;
       const support = start(event.pointerId, true);
@@ -432,6 +558,8 @@ function mountBunny(
     window.clearTimeout(pulse);
     geometry.dispose();
     material.dispose();
+    furGeometry.dispose();
+    furMaterial.dispose();
     pigment.dispose();
     renderer.dispose();
   };
@@ -502,7 +630,7 @@ export function DigitalStressReliever({ loop = false }: DigitalStressRelieverPro
     <div className="grid min-h-full min-w-0 place-items-center">
       {!ready && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={POSTER} alt="Pink plush bunny" width={500} height={600} className="col-start-1 row-start-1 aspect-[5/6] w-full max-w-[500px] object-contain" />
+        <img src={POSTER} alt="White plush bunny head" width={500} height={600} className="col-start-1 row-start-1 aspect-[5/6] w-full max-w-[500px] object-contain" />
       )}
       {interactive && (
         <button
