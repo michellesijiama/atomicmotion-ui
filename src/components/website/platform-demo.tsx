@@ -21,7 +21,7 @@ export function PlatformDemo({
   return (
     <>
       <StageHeader>
-        <SiteHeader component={component} swiftUIId={native ? id : undefined} />
+        <SiteHeader component={component} swiftUIId={id} native={native} />
       </StageHeader>
       <div className="am-reveal flex shrink-0 justify-center px-6 pb-3">
         <div role="group" aria-label="Implementation platform" className="flex rounded-full border border-black/10 p-1">

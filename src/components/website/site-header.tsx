@@ -22,10 +22,12 @@ type ActivePanel = "about" | "component" | null;
 export function SiteHeader({
   component,
   swiftUIId,
+  native = false,
   section = "interfaces",
 }: {
   component?: ComponentMeta;
   swiftUIId?: SwiftUIComponentId;
+  native?: boolean;
   section?: "interfaces" | "3d-studio";
 }) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
@@ -62,16 +64,21 @@ export function SiteHeader({
         onClose={() => setActivePanel(null)}
         footer={
           activePanel === "component" && component ? (
-            <ComponentActions key={swiftUIId ? `${component.id}-swiftui` : component.id} component={component} swiftUIId={swiftUIId} />
+            <ComponentActions
+              key={native ? `${component.id}-swiftui` : component.id}
+              component={component}
+              swiftUIId={swiftUIId}
+              native={native}
+            />
           ) : undefined
         }
       >
         {activePanel === "component" && component ? (
           <div className="grid gap-3">
             <span className="font-mono text-body text-[var(--jitter-gray-600)]">
-              {component.title}{swiftUIId && " · SwiftUI"}
+              {component.title}{native && " · SwiftUI"}
             </span>
-            <p>{swiftUIId ? swiftUIComponents[swiftUIId].previewDescription : component.description}</p>
+            <p>{native && swiftUIId ? swiftUIComponents[swiftUIId].previewDescription : component.description}</p>
             {component.inspiredBy ? (
               <p className="text-body text-[var(--jitter-gray-600)]">
                 Inspired by{" "}

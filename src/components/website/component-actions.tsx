@@ -20,7 +20,15 @@ function useResetAfter<T>(state: T, from: T, to: T, setState: (value: T) => void
   }, [state, from, to, setState]);
 }
 
-export function ComponentActions({ component, swiftUIId }: { component: ComponentMeta; swiftUIId?: SwiftUIComponentId }) {
+export function ComponentActions({
+  component,
+  swiftUIId,
+  native = false,
+}: {
+  component: ComponentMeta;
+  swiftUIId?: SwiftUIComponentId;
+  native?: boolean;
+}) {
   const [failedText, setFailedText] = useState("");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [linkCopyState, setLinkCopyState] = useState<"idle" | "copied">("idle");
@@ -43,7 +51,7 @@ export function ComponentActions({ component, swiftUIId }: { component: Componen
   }
 
   async function copyForAi() {
-    const prompt = sourcePath
+    const prompt = native && sourcePath
       ? [
           `Integrate ${component.title} from AtomicMotionUI as a native SwiftUI component for iOS or iPadOS 17+.`,
           `In Xcode, add the Swift package ${SWIFT_PACKAGE_URL} using the main branch. Add the AtomicMotionUI product to the app target and import AtomicMotionUI.`,
@@ -66,14 +74,7 @@ export function ComponentActions({ component, swiftUIId }: { component: Componen
   return (
     <div className={`grid min-w-0 gap-3${swiftUIId ? " flex-1 basis-60" : ""}`}>
       <div className="flex flex-wrap gap-2">
-        {swiftUIId ? (
-          <button type="button" onClick={() => setExpanded(expanded === "source" ? null : "source")}
-            aria-label="View Swift source" title="View Swift source"
-            aria-expanded={expanded === "source"} aria-controls={detailsId}
-            className={actionSecondaryClass}>
-            <Code className="size-3.5" aria-hidden="true" />
-          </button>
-        ) : (
+        {!native && (
           <button type="button" onClick={copyLink}
             aria-label={linkCopyState === "copied" ? "Copied link" : "Copy link"}
             title={linkCopyState === "copied" ? "Copied" : "Copy link"}
@@ -86,10 +87,17 @@ export function ComponentActions({ component, swiftUIId }: { component: Componen
           {copyState === "copied" ? "Copied" : "Copy for AI"}
         </button>
         {swiftUIId && (
-          <button type="button" onClick={() => setExpanded(expanded === "setup" ? null : "setup")}
-            aria-expanded={expanded === "setup"} aria-controls={detailsId} className={actionGhostClass}>
-            Setup
-          </button>
+          <>
+            <button type="button" onClick={() => setExpanded(expanded === "source" ? null : "source")}
+              aria-expanded={expanded === "source"} aria-controls={detailsId} className={actionGhostClass}>
+              <Code className="size-3.5" aria-hidden="true" />
+              SwiftUI source
+            </button>
+            <button type="button" onClick={() => setExpanded(expanded === "setup" ? null : "setup")}
+              aria-expanded={expanded === "setup"} aria-controls={detailsId} className={actionGhostClass}>
+              SwiftUI setup
+            </button>
+          </>
         )}
       </div>
       {swiftUIId && sourcePath && expanded && (
