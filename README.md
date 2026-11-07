@@ -67,7 +67,7 @@ integration instructions for every component.
 
 ## SwiftUI for iOS
 
-Soft Menu Reveal and Sticker Peel also have native SwiftUI implementations.
+Soft Menu Reveal, Sticker Peel, and Bead Club also have native SwiftUI implementations.
 Install **AtomicMotionUI** as a Swift Package for iOS or iPadOS 17 and later.
 See the [SwiftUI setup and examples](swiftui/README.md).
 

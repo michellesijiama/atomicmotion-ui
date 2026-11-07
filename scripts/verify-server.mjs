@@ -75,7 +75,7 @@ try {
     assert.equal(response.status, 404, path);
     await response.arrayBuffer();
   }
-  for (const [id, filename] of [["soft-menu-reveal", "SoftMenuReveal.swift"], ["sticker-peel", "StickerPeel.swift"]]) {
+  for (const [id, filename] of [["soft-menu-reveal", "SoftMenuReveal.swift"], ["sticker-peel", "StickerPeel.swift"], ["bead-club", "BeadClub.swift"]]) {
     const source = await request(`/components/${id}/swiftui`);
     assert.equal(source.status, 200, id);
     assert.match(source.headers.get("content-type") ?? "", /^text\/plain/);

@@ -54,9 +54,7 @@ export function ComponentActions({
           `Integrate ${component.title} from AtomicMotionUI as a native SwiftUI component for iOS or iPadOS 17+.`,
           `In Xcode, add the Swift package ${SWIFT_PACKAGE_URL} using the main branch. Add the AtomicMotionUI product to the app target and import AtomicMotionUI.`,
           "Use the package so its bundled resources resolve correctly.",
-          swiftUIId === "sticker-peel"
-            ? "Declare @State private var stickers: [StickerPeel.Placement] = [] and render StickerPeel(placements: $stickers)."
-            : "Declare @State private var menuOpen = false and render SoftMenuReveal(isOpen: $menuOpen).",
+          swiftUIComponents[swiftUIId].usage,
           `Component source: ${SITE_URL}/components/${swiftUIId}/swiftui`,
           `iPhone simulator preview: ${SITE_URL}/previews/swiftui/${swiftUIId}.mp4\n${swiftUIComponents[swiftUIId].previewDescription}`,
         ].join("\n\n")

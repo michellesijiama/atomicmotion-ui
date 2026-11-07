@@ -51,4 +51,21 @@ struct JournalExample: View {
 
 To refresh the native stickers after editing the React artwork, run `node scripts/export-swiftui-stickers.mjs http://localhost:3100` against the local gallery. The PNGs preserve the printed faces of the original SVG stickers. The native component draws the peel during a drag.
 
+## Bead Club
+
+Browse the nine desserts, filter by category, and tap a cake to open its ingredient notes. Drag the artwork to tilt it. The SwiftUI view applies perspective and animated glints to the cake faces rendered from the web component. The app uses the device's own status bar and safe areas.
+
+```swift
+import AtomicMotionUI
+import SwiftUI
+
+struct BeadClubExample: View {
+    var body: some View {
+        BeadClub()
+    }
+}
+```
+
+The Swift package bundles the menu and artwork. See the [cake artwork terms](Sources/AtomicMotionUI/Beads/BeadArtwork-TERMS.txt) for reuse. To refresh them after editing the React menu or renderer, run `node scripts/export-swiftui-beads.mjs http://localhost:3100` against the local gallery.
+
 The native previews use Geist from the [Geist font project](https://github.com/vercel/geist-font) under [SIL OFL 1.1](Sources/AtomicMotionUI/Design/Geist-OFL.txt) and icons from [Lucide](https://lucide.dev/) under the [bundled Lucide license](Sources/AtomicMotionUI/Design/Lucide-LICENSE.txt).
