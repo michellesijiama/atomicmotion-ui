@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { StickerPeelDemo } from "@/components/website/sticker-peel-demo";
 
 import { GeminiLive } from "@components/ai/gemini-live";
+import { OrganicUI } from "@components/ai/organic-ui";
 import { VoiceBloom } from "@components/ai/voice-bloom";
 import { GradientGummyBear } from "@components/3d/gradient-gummy-bear";
 import { ShowreelSphere } from "@components/3d/showreel-sphere";
@@ -56,6 +57,7 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
+  "organic-ui": () => <OrganicUI />,
   "digital-stress-reliever": DigitalStressReliever,
   "sticker-peel": StickerPeelDemo,
   "bead-club": BeadClub,

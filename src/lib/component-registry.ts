@@ -113,6 +113,22 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
+  organicUI: createComponentMeta({
+    id: "organic-ui",
+    index: "025",
+    title: "Organic UI",
+    description:
+      "A frosted assistant demo that morphs between a transcript, place details, and sample images from typed prompts.",
+    category: "AI",
+    createdAt: "2026-11-09",
+    codePath: "components/ai/organic-ui/organic-ui.tsx",
+    previewStatic: true,
+    requiredAssets: [
+      { path: "public/components/organic-ui/kyoto-river.webp", license: "MIT", credit: "AI-generated concept image inspired by Kyoto’s Kamo River." },
+      { path: "public/components/organic-ui/kyoto-gallery.webp", license: "MIT", credit: "AI-generated concept image of a Japanese art gallery." },
+      { path: "public/components/organic-ui/kyoto-night.webp", license: "MIT", credit: "AI-generated concept image of a rainy Kyoto lane at dusk." },
+    ],
+  }),
   digitalStressReliever: createComponentMeta({
     id: "digital-stress-reliever",
     index: "024",
