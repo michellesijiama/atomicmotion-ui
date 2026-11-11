@@ -1,0 +1,7 @@
+Gummy Bear by Poly by Google (Google Poly)
+https://poly.pizza/m/5zl16PPAItW
+Creative Commons Attribution 3.0 Unported
+https://creativecommons.org/licenses/by/3.0/
+
+GummyMesh.bin adapts the original model by smoothing, centering and scaling it.
+The shader and room-light atlas are based on Three.js (see Three-LICENSE.txt).

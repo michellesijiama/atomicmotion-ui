@@ -41,6 +41,41 @@ export const swiftUIComponents = {
     usage: "Render JardinOpening() in a landscape iPad view. Use onEnter to continue to your next screen.",
     previewDescription: "Watch the illustrated title draw in, then tap Click to continue.",
   },
+  "halftone-bloom": {
+    sourceFile: "HalftoneBloom.swift",
+    usage: "Render HalftoneBloom() in a bounded view. Pass value, title, caption and unit to connect your own reading.",
+    previewDescription: "Watch the halftone plate reveal the lunar image, then expand its reading.",
+  },
+  "blossom-light": {
+    sourceFile: "BlossomLight.swift",
+    usage: "Render BlossomLight() in a bounded view. Pass a wallpaper URL to use your own image, or nil for the bundled procedural leaf shadows.",
+    previewDescription: "Adjust brightness and warmth, then restore Adaptive mode. The recording uses the built-in procedural wall.",
+  },
+  "coffee-gauge": {
+    sourceFile: "CoffeeGauge.swift",
+    usage: "Render CoffeeGauge(). Pass the latte, espresso and cappuccino values as a tuple.",
+    previewDescription: "Open a gauge, change the number of cups and close the log.",
+  },
+  "voice-bloom": {
+    sourceFile: "VoiceBloom.swift",
+    usage: "Render VoiceBloom() in a bounded view. Tap the microphone to run the scripted voice demo.",
+    previewDescription: "Tap the microphone, watch the reply reveal, and copy or regenerate the answer.",
+  },
+  "gradient-gummy-bear": {
+    sourceFile: "GradientGummyBear.swift",
+    usage: "Render GradientGummyBear() in a bounded view. The Swift package contains the original model adaptation, Metal shader, lighting and paragraph artwork.",
+    previewDescription: "Drag the translucent lens across the paragraph and watch it return to the center.",
+  },
+  "geometric-logo-reveal": {
+    sourceFile: "GeometricLogoReveal.swift",
+    usage: "Render GeometricLogoReveal(). Pass text or mark to use your own wordmark.",
+    previewDescription: "Watch the geometric wordmark assemble and replay.",
+  },
+  "gemini-live": {
+    sourceFile: "GeminiLive.swift",
+    usage: "Render GeminiLive() in a bounded view. Supply onAction to handle its controls in your app.",
+    previewDescription: "See the animated listening surface and its native controls.",
+  },
 } as const;
 
 export type SwiftUIComponentId = keyof typeof swiftUIComponents;

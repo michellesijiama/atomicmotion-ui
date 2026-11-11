@@ -88,6 +88,36 @@ Render `OrganicUI()` as a screen. Tap the microphone to run the podcast search d
 
 Render `JardinOpening()` in a landscape iPad view. The title draws over the layered garden before the invitation appears. Pass `onEnter` to continue into your app.
 
+## Halftone Bloom
+
+Render `HalftoneBloom()` in a bounded view and supply `value`, `title`, `caption` and `unit` for a custom reading. The lunar trace uses the same data as the React version. See the source note in [asset credits](../ASSETS.md) before redistributing that artwork.
+
+## Blossom Light
+
+Render `BlossomLight()` in a bounded view. The brightness, warmth and Adaptive controls update the wallpaper. The default uses the website’s existing image. Pass a wallpaper URL you own, or pass `nil` to use the procedural leaf shadows shown in the simulator recording.
+
+## Coffee Gauge
+
+Render `CoffeeGauge()` to show latte, espresso and cappuccino. Pass `values` in that order to drive the three gauges from your data.
+
+## Voice Bloom
+
+Render `VoiceBloom()` in a bounded view. The microphone starts the scripted listening and reply sequence. Use `loop: true` for an automatic preview.
+
+## Gradient Gummy Bear
+
+Render `GradientGummyBear()` in a bounded view. Drag or hover across the paragraph to move the lens. Metal renders the original smoothed mesh and samples the paragraph through the glass, using the same room lighting as the React demo. The renderer pauses once the lens settles.
+
+The package includes an adaptation of **Gummy Bear** by Poly by Google, under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). See the [model and shader credits](Sources/AtomicMotionUI/GradientGummy/GummyArtwork-TERMS.txt). Run `node scripts/export-swiftui-gummy.mjs` from the repository root to regenerate the packaged mesh, lighting atlas and paragraph.
+
+## Geometric Logo Reveal
+
+Render `GeometricLogoReveal()` for the Atomic&Motion animation. Supply `text` or `mark` for a custom wordmark.
+
+## Gemini Live
+
+Render `GeminiLive()` in a bounded view. It recreates the scripted listening screen. Use `onAction` to connect the mic, camera, screen sharing and close controls to your host app.
+
 The native previews use Geist from the [Geist font project](https://github.com/vercel/geist-font) under [SIL OFL 1.1](Sources/AtomicMotionUI/Design/Geist-OFL.txt) and icons from [Lucide](https://lucide.dev/) under the [bundled Lucide license](Sources/AtomicMotionUI/Design/Lucide-LICENSE.txt).
 
-The package also includes [Caveat](Sources/AtomicMotionUI/DoodleCalendar/Caveat-OFL.txt), [Instrument Serif](Sources/AtomicMotionUI/Design/InstrumentSerif-OFL.txt), [Manrope](Sources/AtomicMotionUI/Design/Manrope-OFL.txt) and [Poppins](Sources/AtomicMotionUI/Design/Poppins-OFL.txt), each under SIL OFL 1.1.
+The package also includes [Caveat](Sources/AtomicMotionUI/DoodleCalendar/Caveat-OFL.txt), [Instrument Serif](Sources/AtomicMotionUI/Design/InstrumentSerif-OFL.txt), [Manrope](Sources/AtomicMotionUI/Design/Manrope-OFL.txt), [Plus Jakarta Sans](Sources/AtomicMotionUI/Design/PlusJakartaSans-OFL.txt) and [Poppins](Sources/AtomicMotionUI/Design/Poppins-OFL.txt), each under SIL OFL 1.1.

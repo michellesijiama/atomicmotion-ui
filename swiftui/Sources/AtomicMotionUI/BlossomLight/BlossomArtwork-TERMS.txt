@@ -1,0 +1,13 @@
+Blossom Light
+
+The original wall-shadow photograph is served by the AtomicMotion web demo at
+https://atomicmotion.dev/textures/wall-shadow.jpg. The Swift component loads
+that existing URL and accepts a caller-provided image URL. The photographer,
+original source, and redistribution terms have not been confirmed. See the
+project's ASSETS.md before redistributing the reference photo.
+
+The bundled Metal shader's procedural leaf-shadow fallback and the SwiftUI
+preview recorded with that fallback are original AtomicMotion artwork.
+
+Manrope Regular and SemiBold are static instances of the Manrope variable font.
+See Manrope-OFL.txt in the package's Design resources.

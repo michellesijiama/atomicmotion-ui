@@ -66,7 +66,7 @@ The details panel includes the public source link and copyable integration instr
 
 ## SwiftUI for iOS
 
-Soft Menu Reveal, Sticker Peel, Bead Club, Stamp Tracker, Doodle Calendar, Gradient Event Card, Organic UI, and Jardin Opening also have native SwiftUI implementations. Open a component's details on the website to find its React and Swift actions.
+Components with native versions show React and Swift actions in their details. The SwiftUI collection includes calendars and journals, voice demos, lighting and data visualizations, the logo reveal, and the 3D gummy lens.
 Install **AtomicMotionUI** as a Swift Package for iOS or iPadOS 17 and later.
 See the [SwiftUI setup and examples](swiftui/README.md).
 

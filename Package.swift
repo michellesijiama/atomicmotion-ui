@@ -16,7 +16,9 @@ let package = Package(
                 .copy("DoodleCalendar"),
                 .copy("GradientEvent"),
                 .copy("OrganicUI"),
-                .process("JardinOpening")
+                .process("JardinOpening"),
+                .copy("GradientGummy"),
+                .copy("BlossomLight")
             ]
         )
     ]

@@ -18,7 +18,7 @@ enum DesignFont {
     private static let registered: [String: String] = {
         var fonts: [String: String] = [:]
         let resources = [
-            "Geist-Regular", "Geist-Medium", "GeistMono-Regular",
+            "Geist-Regular", "Geist-Medium", "Geist-Bold", "GeistMono-Regular", "GeistMono-Medium",
             "InstrumentSerif-Regular", "Manrope-Medium",
             "Poppins-Regular", "Poppins-Medium", "Poppins-SemiBold",
         ]
