@@ -1,4 +1,4 @@
-import { lazy, Suspense, useId, useRef } from "react";
+import { lazy, Suspense, useEffect, useId, useRef } from "react";
 import { useInView } from "framer-motion";
 import Link from "next/link";
 
@@ -20,8 +20,21 @@ export function ComponentCard({ component, animatePreview }: ComponentCardProps)
   const componentHref = `/components/${component.id}`;
   const titleId = useId();
   const artworkRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const canAnimate = animatePreview && (!component.previewStatic || Boolean(component.previewVideo));
   const inView = useInView(artworkRef, { amount: 0.15 });
+  // Keep the loaded video mounted so it can resume at the same frame.
+  const hasEnteredView = useInView(artworkRef, { amount: 0.15, once: true });
+  const videoSrc = animatePreview ? component.previewVideo : undefined;
+  const showVideo = Boolean(videoSrc && hasEnteredView);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!showVideo || !video) return;
+    if (inView) void video.play().catch(() => {});
+    else video.pause();
+  }, [inView, showVideo]);
+
   // `bg-card` is the design-system surface for gallery cards (see --color-card /
   // --jitter-card). Every card renders through this component, so setting it
   // here guarantees a consistent gray across the whole gallery.
@@ -49,23 +62,22 @@ export function ComponentCard({ component, animatePreview }: ComponentCardProps)
         aria-hidden="true"
         inert
       >
-        {canAnimate && inView ? (
-          component.previewVideo ? (
-            <video
-              src={component.previewVideo}
-              poster={component.previewImage}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="none"
-              className={mediaClassName}
-            />
-          ) : (
-            <Suspense fallback={poster}>
-              <LiveCardPreview componentId={component.id} fallback={poster} />
-            </Suspense>
-          )
+        {showVideo ? (
+          <video
+            ref={videoRef}
+            src={videoSrc}
+            poster={component.previewImage}
+            autoPlay={inView}
+            muted
+            loop
+            playsInline
+            preload="none"
+            className={mediaClassName}
+          />
+        ) : canAnimate && inView && !videoSrc ? (
+          <Suspense fallback={poster}>
+            <LiveCardPreview componentId={component.id} fallback={poster} />
+          </Suspense>
         ) : poster}
       </div>
       <Link
