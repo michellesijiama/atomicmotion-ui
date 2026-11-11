@@ -110,39 +110,23 @@ try {
   const { studioModels } = readComponentData("src/lib/model-registry.ts");
   const { hasSwiftUI } = readComponentData("src/lib/swiftui-components.ts");
   const homeWidths = [320, 375, 390, 430, 480, 639, 640, 641, 768, 960, 1007, 1008, 1023, 1024, 1280, 1366, 1920, 2560];
-  // Limit category/header queries to their controls, rather than repeatedly
-  // walking thousands of animated SVG nodes inside the gallery previews.
-  const categories = page.locator('section[aria-label="UI components"] > div').first();
+  const gallery = page.getByRole("region", { name: "UI components" });
   const homeAbout = page.locator('nav[aria-label="Primary"]').getByRole("button", { name: "About", exact: true });
   await visit(page, "/");
+  assert.equal(await gallery.locator('a[href^="/components/"]').count(), entries.length, "home shows the full gallery");
+  assert.equal(await gallery.getByRole("button", { name: "All", exact: true }).count(), 0, "home has no category filter");
   for (const width of homeWidths) {
     console.log(`Check home width ${width}`);
     await page.setViewportSize({ width, height: 844 });
     await page.waitForTimeout(200);
-    const all = categories.getByRole("button", { name: "All", exact: true });
-    const filterStrip = all.locator("..");
-    // These reads are independent. Queue them together so the animated page
-    // need not flush a fresh layout/paint for each separate browser round trip.
-    const [, filtersFit, aboutMeasurement, allMeasurement] = await Promise.all([
+    const [, aboutMeasurement] = await Promise.all([
       checkWidth(page, "home"),
-      filterStrip.evaluate((element) => element.scrollWidth <= element.clientWidth),
       measureReachability(homeAbout),
-      measureReachability(all),
     ]);
-    assert.ok(filtersFit, `home ${width}: category buttons fit without horizontal scrolling`);
     await reachable(homeAbout, `home ${width}: About`, { measurement: aboutMeasurement });
-    await reachable(all, `home ${width}: All`, { measurement: allMeasurement });
-    if ([768, 1280].includes(width)) {
-      await reachable(categories.getByRole("button").last(), `home ${width}: final category is clickable`, { click: true });
-      await all.click();
-    }
     if ([390, 1280].includes(width)) await capture(page, `home-${width}`);
   }
-  // Active filters survive changing between one and several card columns.
-  const navigation = categories.getByRole("button", { name: "Navigation", exact: true });
-  await navigation.click();
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await navigation.getAttribute("aria-pressed"), "true");
   const menuCard = page.getByRole("link", { name: "Soft Menu Reveal", exact: true });
   await menuCard.scrollIntoViewIfNeeded();
   const menuArtwork = menuCard.locator("xpath=preceding-sibling::*[1]");
@@ -152,7 +136,7 @@ try {
   await page.waitForURL("**/components/soft-menu-reveal");
 
   const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 430, height: 932 }, { width: 844, height: 390 }];
-  console.log("Home widths, preserved filter selection and live card navigation: OK");
+  console.log("Home widths, full gallery and live card navigation: OK");
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
     for (const { id, title } of entries) {
