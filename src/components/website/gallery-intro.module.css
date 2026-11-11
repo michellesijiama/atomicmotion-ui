@@ -20,11 +20,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25em;
-  padding-inline: 0.28em;
-  border-radius: 0.2em;
-  background: var(--jitter-gray-600);
-  color: var(--jitter-white);
-  line-height: 1.2;
+  font-weight: 700;
 }
 
 .emphasis svg {

@@ -78,6 +78,7 @@ function VoiceWave({ reducedMotion }: { reducedMotion: boolean }) {
 }
 
 type AgentState = "resting" | "listening" | "searching" | "reviewing" | "ready";
+type VoiceBeat = { focus: number; strength: number };
 
 function dotPoint(angle: number, radius: number) {
   return { x: 16 + radius * Math.cos(angle), y: 16 + radius * Math.sin(angle) };
@@ -95,7 +96,7 @@ const agentDots = Array.from({ length: 24 }, (_, index) => {
   };
 });
 
-function DotAgent({ state, reducedMotion }: { state: AgentState; reducedMotion: boolean }) {
+function DotAgent({ state, reducedMotion, voiceBeat }: { state: AgentState; reducedMotion: boolean; voiceBeat: VoiceBeat | null }) {
   const expanded = state !== "resting";
   const listening = !reducedMotion && state === "listening";
   const gathering = !reducedMotion && state === "searching";
@@ -120,6 +121,8 @@ function DotAgent({ state, reducedMotion }: { state: AgentState; reducedMotion: 
       >
         {agentDots.map(({ index, home, arc, sweep, blue }) => {
           const drift = { duration: 1.85, times: [0, 0.38, 0.66, 1], delay: -0.34 * (index % 6) / 5, repeat: Infinity, ease: "easeInOut" as const };
+          const distance = voiceBeat ? Math.abs(index - voiceBeat.focus) : 0;
+          const energy = listening && voiceBeat ? voiceBeat.strength * Math.max(0, 1 - Math.min(distance, agentDots.length - distance) / 7) : 0;
           return (
             <motion.circle
               key={index}
@@ -129,18 +132,18 @@ function DotAgent({ state, reducedMotion }: { state: AgentState; reducedMotion: 
               r={1.08}
               fill="white"
               animate={{
-                cx: gathering ? [home.x, arc.x, sweep.x, home.x] : home.x,
-                cy: gathering ? [home.y, arc.y, sweep.y, home.y] : home.y,
-                opacity: listening ? [1, 0.56, 1] : 1,
+                cx: gathering ? [home.x, arc.x, sweep.x, home.x] : home.x + (16 - home.x) * energy * 0.2,
+                cy: gathering ? [home.y, arc.y, sweep.y, home.y] : home.y + (16 - home.y) * energy * 0.2,
+                r: 1.08 + energy * 0.32,
+                opacity: listening ? 0.67 + energy * 0.33 : 1,
                 fill: active ? blue : "#fff",
               }}
               transition={{
                 cx: gathering ? drift : settle,
                 cy: gathering ? drift : settle,
+                r: settle,
                 fill: settle,
-                opacity: listening
-                  ? { duration: 2, delay: -2 * index / agentDots.length, repeat: Infinity, ease: "easeInOut" }
-                  : settle,
+                opacity: settle,
               }}
             />
           );
@@ -404,10 +407,14 @@ function EpisodeCarousel({ matches, reducedMotion, inactive, onOpen, trackRef }:
             key={episode.id}
             data-episode={episode.id}
             layout={reducedMotion ? false : "position"}
-            initial={reducedMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ layout: { duration: reducedMotion ? 0 : 0.5, ease }, opacity: { duration: reducedMotion ? 0 : 0.2 } }}
+            initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: reducedMotion ? 0 : 6 }}
+            transition={{
+              layout: reducedMotion ? { duration: 0 } : { type: "spring", duration: 0.58, bounce: 0.09 },
+              y: { duration: reducedMotion ? 0 : 0.36, ease },
+              opacity: { duration: reducedMotion ? 0 : 0.24 },
+            }}
             className={`min-w-0 shrink-0 snap-start ${matches.length === 1 ? "basis-full" : "basis-[calc(100%-42px)] last:mr-[42px]"}`}
           >
             <EpisodeCard episode={episode} index={index} position={position} reducedMotion={reducedMotion} onOpen={() => onOpen(episode)} />
@@ -433,7 +440,7 @@ const voicePace = {
 function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
   const [phase, setPhase] = useState<PodcastPhase>("idle");
   const [request, setRequest] = useState("");
-  const [transcript, setTranscript] = useState("");
+  const [voiceBeat, setVoiceBeat] = useState<VoiceBeat | null>(null);
   const [preferences, setPreferences] = useState(defaultPreferences);
   const [hasResults, setHasResults] = useState(false);
   const [opened, setOpened] = useState<Episode | null>(null);
@@ -446,7 +453,7 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
   const searching = phase === "searching" || phase === "reviewing";
   const busy = phase === "listening" || searching;
   const resting = phase === "idle";
-  const revealDuration = reducedMotion ? 0 : 0.5;
+  const revealDuration = reducedMotion ? 0 : 0.65;
 
   useEffect(() => {
     if (phase !== "searching") return;
@@ -473,17 +480,22 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
     }
 
     const words = request.split(/\s+/);
-    let revealed = 0;
-    let timeout = window.setTimeout(revealWord, voicePace.beforeSpeech);
+    let spoken = 0;
+    const pulseDuration = 205;
+    let timeout = window.setTimeout(playBeat, voicePace.beforeSpeech);
 
-    function revealWord() {
-      revealed += 1;
-      setTranscript(words.slice(0, revealed).join(" "));
-      if (revealed === words.length) {
-        timeout = window.setTimeout(() => setPhase("searching"), voicePace.afterSpeech);
-      } else {
-        timeout = window.setTimeout(revealWord, voicePace.betweenWords);
-      }
+    function playBeat() {
+      const word = words[spoken];
+      setVoiceBeat({ focus: (spoken * 7 + 4) % agentDots.length, strength: Math.min(1, 0.32 + word.length * 0.09) });
+      spoken += 1;
+      const last = spoken === words.length;
+      timeout = window.setTimeout(() => {
+        setVoiceBeat(null);
+        timeout = window.setTimeout(
+          last ? () => setPhase("searching") : playBeat,
+          (last ? voicePace.afterSpeech : voicePace.betweenWords) - pulseDuration,
+        );
+      }, pulseDuration);
     }
 
     return () => window.clearTimeout(timeout);
@@ -506,7 +518,7 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
       setOpened(null);
       setHasResults(false);
       setPreferences(defaultPreferences);
-      setTranscript("");
+      setVoiceBeat(null);
       setPhase("idle");
     }
     document.addEventListener("pointerdown", dismiss);
@@ -519,13 +531,13 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
       : preferences.maxMinutes === null ? "Keep it under 20 minutes."
       : preferences.topic ? "Any topic." : "Something about sound.";
     setRequest(example);
-    setTranscript("");
+    setVoiceBeat(null);
     setPhase("listening");
   }
 
   function cancelRequest() {
     flushSync(() => {
-      setTranscript("");
+      setVoiceBeat(null);
       setPhase(hasResults ? "results" : "idle");
     });
     micRef.current?.focus({ preventScroll: true });
@@ -552,6 +564,18 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
     : searching ? progressMessage : hasResults ? reply : "";
   const dotState = phase === "idle" ? "resting" : phase === "results" ? "ready" : phase;
 
+  const voiceControl = (
+    <button
+      ref={micRef}
+      type="button"
+      aria-label={resting ? "Start voice demo" : phase === "listening" ? "Stop listening" : searching ? "Stop searching" : "Refine with voice demo"}
+      onClick={busy ? cancelRequest : startVoice}
+      className={`ml-auto grid size-11 shrink-0 cursor-pointer place-items-center rounded-full text-white/90 hover:bg-white/10 ${focusStyle}`}
+    >
+      {busy ? <Square size={13} fill="currentColor" aria-hidden="true" /> : <Mic className={podcastMicSize} aria-hidden="true" />}
+    </button>
+  );
+
   return (
     <section aria-label="Organic UI podcast search" data-phase={phase} className={`relative isolate mx-auto flex h-full min-h-[460px] w-full flex-col justify-end overflow-clip bg-[#e8e6ea] text-white [color-scheme:dark] ${className ?? ""}`}>
       <PodcastBackdrop />
@@ -567,7 +591,7 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
             flushSync(() => {
               setHasResults(false);
               setPreferences(defaultPreferences);
-              setTranscript("");
+              setVoiceBeat(null);
               setPhase("idle");
             });
             micRef.current?.focus({ preventScroll: true });
@@ -593,16 +617,11 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
               className="relative flex min-h-11 items-center gap-2"
             >
               <div className="relative grid size-11 shrink-0 place-items-center">
-                <DotAgent state={dotState} reducedMotion={reducedMotion} />
+                <DotAgent state={dotState} reducedMotion={reducedMotion} voiceBeat={voiceBeat} />
                 {resting && (
                   <button type="button" aria-label="Activate voice search demo" onClick={startVoice} className={`absolute inset-0 cursor-pointer rounded-full ${focusStyle}`} />
                 )}
               </div>
-              {resting && (
-                <button ref={micRef} type="button" aria-label="Start voice demo" onClick={startVoice} className={`ml-auto grid size-11 cursor-pointer place-items-center rounded-full text-white/90 hover:bg-white/10 ${focusStyle}`}>
-                  <Mic className={podcastMicSize} aria-hidden="true" />
-                </button>
-              )}
               {(hasResults || searching) && (
                 <motion.div
                   key={searching ? progressMessage : reply}
@@ -614,6 +633,7 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
                   <p className={`${readableBody} leading-tight text-white`}>{searching ? progressMessage : reply}</p>
                 </motion.div>
               )}
+              {!hasResults && voiceControl}
             </motion.div>
           )}
 
@@ -621,19 +641,28 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
             {hasResults && matches.length > 0 && (
               <motion.div
                 key="podcast-results"
-                initial={reducedMotion ? false : { gridTemplateRows: "0fr", opacity: 0 }}
+                initial={reducedMotion ? false : { gridTemplateRows: "0fr" }}
                 animate={{ gridTemplateRows: "1fr", opacity: busy ? 0.72 : 1 }}
                 exit={{ gridTemplateRows: "0fr", opacity: 0, transition: { duration: reducedMotion ? 0 : 0.28, ease } }}
                 transition={{
-                  gridTemplateRows: { duration: revealDuration, delay: reducedMotion ? 0 : 0.18, ease: [0.32, 0.7, 0.28, 1] },
-                  opacity: { duration: reducedMotion ? 0 : 0.3, delay: reducedMotion ? 0 : 0.2 },
+                  gridTemplateRows: { duration: revealDuration, delay: reducedMotion ? 0 : 0.12, ease: [0.22, 1, 0.36, 1] },
+                  opacity: { duration: reducedMotion ? 0 : 0.24 },
                 }}
                 className={`grid min-w-0 ${opened ? "absolute inset-x-0 top-0" : "relative"}`}
               >
                 <div className="min-h-0 min-w-0 overflow-y-clip">
-                  <div className="pt-2.5" inert={busy}>
+                  <motion.div
+                    initial={reducedMotion ? false : { y: 14, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{
+                      y: reducedMotion ? { duration: 0 } : { type: "spring", duration: 0.68, bounce: 0.12, delay: 0.17 },
+                      opacity: { duration: reducedMotion ? 0 : 0.36, delay: reducedMotion ? 0 : 0.2 },
+                    }}
+                    className="pt-2.5"
+                    inert={busy}
+                  >
                     <EpisodeCarousel matches={matches} reducedMotion={reducedMotion} inactive={Boolean(opened)} onOpen={setOpened} trackRef={trackRef} />
-                  </div>
+                  </motion.div>
                 </div>
               </motion.div>
             )}
@@ -673,23 +702,8 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
             )}
           </AnimatePresence>
 
-          {!opened && !resting && (
-            <div className="mt-2 flex min-h-11 items-center justify-end gap-2">
-              {busy && (
-                <p className={`min-w-0 flex-1 pl-2 ${readableBody} leading-tight break-words text-white/90`}>
-                  {phase === "listening" && !reducedMotion ? transcript || "Listening…" : request}
-                </p>
-              )}
-              <button
-                ref={micRef}
-                type="button"
-                aria-label={phase === "listening" ? "Stop listening" : searching ? "Stop searching" : "Refine with voice demo"}
-                onClick={busy ? cancelRequest : startVoice}
-                className={`grid size-11 shrink-0 cursor-pointer place-items-center rounded-full text-white/90 hover:bg-white/10 ${focusStyle}`}
-              >
-                {busy ? <Square size={13} fill="currentColor" aria-hidden="true" /> : <Mic className={podcastMicSize} aria-hidden="true" />}
-              </button>
-            </div>
+          {!opened && hasResults && (
+            <div className="mt-2 flex min-h-11">{voiceControl}</div>
           )}
         </div>
       </div>
