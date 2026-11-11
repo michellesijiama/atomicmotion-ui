@@ -82,7 +82,7 @@ Render `GradientEventCard()` to show the eight sample events. Supply your own `[
 
 ## Organic UI
 
-Render `OrganicUI()` as a screen. Tap the microphone to run the podcast search demo, swipe the results and open an episode. The example runs a scripted transcript and links to the publisher's episode page. The package bundles the editorial images.
+Render `OrganicUI()` as a screen. Tap the dot to start the simulated voice search, swipe the results and tap the microphone to refine them. Tap an episode to see its details and open the publisher’s page. The package bundles fallback illustrations for the episode artwork.
 
 ## Jardin Opening
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { FormEvent, RefObject } from "react";
 import { flushSync } from "react-dom";
 import type { MotionValue } from "framer-motion";
-import { animate, AnimatePresence, motion, useIsPresent, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
+import { animate, AnimatePresence, motion, useIsPresent, useMotionValue, usePresence, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import { ArrowLeft, ArrowUp, ArrowUpRight, ChevronLeft, ChevronRight, Mic, Play, Square } from "lucide-react";
 
 export type OrganicUIProps = {
@@ -78,7 +78,8 @@ function VoiceWave({ reducedMotion }: { reducedMotion: boolean }) {
 }
 
 type AgentState = "resting" | "listening" | "searching" | "reviewing" | "ready";
-type VoiceBeat = { focus: number; strength: number };
+const podcastEase = [0.42, 0, 0.3, 1] as const;
+const smoothProgress = (value: number) => value * value * (3 - 2 * value);
 
 function dotPoint(angle: number, radius: number) {
   return { x: 16 + radius * Math.cos(angle), y: 16 + radius * Math.sin(angle) };
@@ -89,66 +90,88 @@ const agentDots = Array.from({ length: 24 }, (_, index) => {
   const inner = index % 2 === 0;
   return {
     index,
-    home: dotPoint(angle, 13.5),
+    angle,
     arc: dotPoint(angle + (inner ? 0.48 : -0.23), inner ? 8.2 : 13.6),
     sweep: dotPoint(angle + (inner ? 0.7 : -0.34), inner ? 9.1 : 13.5),
-    blue: `hsl(${215 - Math.sin(angle) * 9} 94% ${72 + Math.cos(angle) * 12}%)`,
   };
 });
 
-function DotAgent({ state, reducedMotion, voiceBeat }: { state: AgentState; reducedMotion: boolean; voiceBeat: VoiceBeat | null }) {
+function AgentParticle({ dot, expansion, gather, orbit, radius, voiceEnergy }: {
+  dot: (typeof agentDots)[number];
+  expansion: MotionValue<number>;
+  gather: MotionValue<number>;
+  orbit: MotionValue<number>;
+  radius: MotionValue<number>;
+  voiceEnergy: MotionValue<number>;
+}) {
+  function coordinate(axis: "x" | "y") {
+    const wave = (1 - Math.cos(2 * Math.PI * (orbit.get() - dot.index / agentDots.length))) / 2;
+    const curve = mix(dot.arc[axis], dot.sweep[axis], wave);
+    const breath = voiceEnergy.get();
+    const ripple = breath * Math.sin(2 * dot.angle - Math.PI * breath);
+    const listening = dotPoint(dot.angle + 0.064 * breath, 13.5 + 0.85 * ripple);
+    const offset = mix(listening[axis], curve, gather.get() * (0.54 + 0.46 * wave));
+    return mix(16, offset, expansion.get());
+  }
+  const cx = useTransform(() => coordinate("x"));
+  const cy = useTransform(() => coordinate("y"));
+
+  return (
+    <motion.circle
+      cx={cx}
+      cy={cy}
+      r={radius}
+      fill="#c4ddfa"
+    />
+  );
+}
+
+function DotAgent({ state, reducedMotion, voiceEnergy }: { state: AgentState; reducedMotion: boolean; voiceEnergy: MotionValue<number> }) {
+  const gradient = useId();
   const expanded = state !== "resting";
-  const listening = !reducedMotion && state === "listening";
-  const gathering = !reducedMotion && state === "searching";
-  const active = state === "listening" || state === "searching" || state === "reviewing";
-  const settle = { duration: reducedMotion ? 0 : state === "reviewing" ? 0.76 : 0.28, ease };
+  const gathering = state === "searching";
+  const inSearch = gathering || state === "reviewing";
+  const expansion = useMotionValue(expanded ? 1 : 0);
+  const gather = useSpring(0, { stiffness: 112, damping: 22, mass: 1 });
+  const orbit = useMotionValue(0);
+  const ringOpacity = useTransform(expansion, [0.15, 0.7], [0, 1], { ease: smoothProgress });
+  const radius = useTransform(voiceEnergy, [0, 1], [1.08, 1.34]);
+  const coreOpacity = useTransform(expansion, [0.17, 0.57], [1, 0], { ease: smoothProgress });
+  const coreRadius = useTransform(expansion, [0, 0.5], [4, 2]);
+
+  useEffect(() => {
+    if (reducedMotion) { expansion.set(expanded ? 1 : 0); return; }
+    const animation = animate(expansion, expanded ? 1 : 0, { duration: expanded ? 0.7 : 0.5, ease: podcastEase });
+    return () => animation.stop();
+  }, [expanded, expansion, reducedMotion]);
+
+  useEffect(() => {
+    if (reducedMotion) gather.jump(0);
+    else gather.set(gathering ? 1 : 0);
+  }, [gather, gathering, reducedMotion]);
+
+  useEffect(() => {
+    if (!inSearch || reducedMotion) return;
+    const animation = animate(orbit, [0, 1], { duration: 2.05, repeat: Infinity, ease: "linear" });
+    return () => animation.stop();
+  }, [inSearch, orbit, reducedMotion]);
 
   return (
     <span aria-hidden="true" data-agent-state={state} className="relative grid size-8 shrink-0 place-items-center">
-      <motion.span
-        initial={false}
-        animate={{ opacity: expanded ? 0 : 1 }}
-        transition={{ duration: reducedMotion ? 0 : 0.18 }}
-        className="size-2 rounded-full"
-        style={{ backgroundImage: "radial-gradient(circle at 25% 22%, #f3fbff, #a8dcff 42%, #698cf0)" }}
-      />
-      <motion.svg
-        initial={false}
-        animate={{ opacity: expanded ? 1 : 0, scale: expanded || reducedMotion ? 1 : 0.22 }}
-        transition={{ duration: reducedMotion ? 0 : 0.34, ease }}
-        className="absolute inset-0 size-full"
-        viewBox="0 0 32 32"
-      >
-        {agentDots.map(({ index, home, arc, sweep, blue }) => {
-          const drift = { duration: 1.85, times: [0, 0.38, 0.66, 1], delay: -0.34 * (index % 6) / 5, repeat: Infinity, ease: "easeInOut" as const };
-          const distance = voiceBeat ? Math.abs(index - voiceBeat.focus) : 0;
-          const energy = listening && voiceBeat ? voiceBeat.strength * Math.max(0, 1 - Math.min(distance, agentDots.length - distance) / 7) : 0;
-          return (
-            <motion.circle
-              key={index}
-              initial={false}
-              cx={home.x}
-              cy={home.y}
-              r={1.08}
-              fill="white"
-              animate={{
-                cx: gathering ? [home.x, arc.x, sweep.x, home.x] : home.x + (16 - home.x) * energy * 0.2,
-                cy: gathering ? [home.y, arc.y, sweep.y, home.y] : home.y + (16 - home.y) * energy * 0.2,
-                r: 1.08 + energy * 0.32,
-                opacity: listening ? 0.67 + energy * 0.33 : 1,
-                fill: active ? blue : "#fff",
-              }}
-              transition={{
-                cx: gathering ? drift : settle,
-                cy: gathering ? drift : settle,
-                r: settle,
-                fill: settle,
-                opacity: settle,
-              }}
-            />
-          );
-        })}
-      </motion.svg>
+      <svg className="absolute inset-0 size-full" viewBox="0 0 32 32">
+        <defs>
+          <radialGradient id={gradient} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#a8c8f1" />
+            <stop offset="100%" stopColor="#749bce" />
+          </radialGradient>
+        </defs>
+        <motion.circle data-agent-core cx={16} cy={16} r={coreRadius} fill={`url(#${gradient})`} style={{ opacity: coreOpacity }} />
+        <motion.g style={{ opacity: ringOpacity }}>
+          {agentDots.map((dot) => (
+            <AgentParticle key={dot.index} {...{ dot, expansion, gather, orbit, radius, voiceEnergy }} />
+          ))}
+        </motion.g>
+      </svg>
     </span>
   );
 }
@@ -161,6 +184,7 @@ const podcastEpisodes = [
     seconds: 1576,
     topic: "sound",
     photo: "podcast-windows.webp",
+    cover: "https://images.squarespace-cdn.com/content/v1/580fbaac440243d8731ffc57/322ef7e8-a834-429e-9384-4c237adc0150/20K_WindowsStartup_Part1.jpg?format=750w",
     description: "How Microsoft used a few seconds of sound to give each version of Windows its own personality.",
     url: "https://www.20k.org/episodes/tadaitswindows",
   },
@@ -171,6 +195,7 @@ const podcastEpisodes = [
     seconds: 2063,
     topic: "architecture",
     photo: "podcast-kitchen.webp",
+    cover: "https://99percentinvisible.org/wp-content/uploads/2023/05/frankfurt-main.jpg",
     description: "How a compact kitchen in 1920s Frankfurt helped shape the way we design kitchens today.",
     url: "https://99percentinvisible.org/episode/541-the-frankfurt-kitchen/",
   },
@@ -181,6 +206,7 @@ const podcastEpisodes = [
     seconds: 1194,
     topic: "technology",
     photo: "podcast-screens.webp",
+    cover: "https://99percentinvisible.org/wp-content/uploads/2013/11/7801464974_4fbd765dd9_o.jpg",
     description: "Why sci-fi interfaces keep turning blue, and what their designers imagine screens will do next.",
     url: "https://99percentinvisible.org/episode/future-screens-are-mostly-blue/",
   },
@@ -191,6 +217,7 @@ const podcastEpisodes = [
     seconds: 319,
     topic: "sound",
     photo: "podcast-artificial-sound.webp",
+    cover: "https://99percentinvisible.org/wp-content/uploads/2011/02/3341668133_f0a11049a1_b.jpg",
     description: "Sound designer Jim McKee explains how a digital button gets the feel of a physical click.",
     url: "https://99percentinvisible.org/episode/episode-15-the-sound-of-the-artificial-world/",
   },
@@ -201,12 +228,8 @@ type PodcastPreferences = { maxMinutes: number | null; topic: Episode["topic"] |
 const defaultPreferences: PodcastPreferences = { maxMinutes: null, topic: null };
 const readableBody = "text-[max(1.0625rem,calc(12px/var(--phone-preview-scale,1)))]";
 const readableTitle = "text-[max(1.25rem,calc(14px/var(--phone-preview-scale,1)))]";
-const episodeGlass = "bg-white/[0.12] backdrop-blur-[4px]";
+const episodeGlass = "bg-[#171424]/[0.15]";
 const episodePhoto = (file: string) => `/components/organic-ui/${file}`;
-const showCovers: Record<Episode["show"], string> = {
-  "99% Invisible": "https://image.simplecastcdn.com/images/8436e3c1-2479-4466-ac48-fa58259960bb/a6d5b177-ab5d-430d-b3f2-b393a09d8101/480x480/sxm-cover-99percentinvisible-r2025-3000x3000-final.jpg?aid=rss_feed",
-  "Twenty Thousand Hertz": "https://f.prxu.org/18144/images/24983ab6-e43f-4b49-8c21-f3b4d461c758/Twenty_Thousand_Hertz_-_Key_Icon_-_3000x3000.jpeg",
-};
 
 function episodeDuration(seconds: number) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
@@ -234,9 +257,9 @@ function matchEpisodes(preferences: PodcastPreferences) {
 function PodcastCover({ episode, className }: { episode: Episode; className: string }) {
   const fallback = episodePhoto(episode.photo);
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- use the show's feed artwork directly so the component can run outside Next.js.
+    // eslint-disable-next-line @next/next/no-img-element -- publisher artwork with a local fallback for the standalone component.
     <img
-      src={showCovers[episode.show]}
+      src={episode.cover}
       alt=""
       draggable={false}
       referrerPolicy="no-referrer"
@@ -248,25 +271,24 @@ function PodcastCover({ episode, className }: { episode: Episode; className: str
   );
 }
 
-function PodcastBackdrop() {
+function PodcastBackdrop({ className = "" }: { className?: string }) {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden bg-[#eeecef] text-[#211d28]">
-      <div className="absolute inset-x-0 bottom-0 h-[min(100%,505px)] px-6 pt-14">
+    <div aria-hidden="true" className={`pointer-events-none absolute inset-0 overflow-hidden bg-[#eeecef] text-[#211d28] ${className}`}>
+      <div className="absolute inset-x-0 bottom-0 h-[min(100%,519px)] px-6 pt-14">
         <h2 className="text-[32px] leading-none font-semibold tracking-tight">Podcasts</h2>
         <div className="mt-4 grid grid-cols-2 gap-3">
           {podcastEpisodes.slice(0, 2).map(episode => (
             <div key={episode.id} className="min-w-0">
-              <PodcastCover episode={episode} className="aspect-square w-full rounded-[17px] bg-black/10 object-contain" />
+              <PodcastCover episode={episode} className="aspect-square w-full rounded-[17px] bg-black/10 object-cover" />
               <p className="mt-2 truncate text-[15px] leading-tight font-semibold">{episode.show}</p>
             </div>
           ))}
         </div>
-        <h3 className="mt-5 text-[20px] leading-tight font-semibold tracking-tight">Up Next</h3>
+        <h3 className="mt-4 text-[20px] leading-tight font-semibold tracking-tight">Up Next</h3>
         <div className="mt-1">
           {podcastEpisodes.slice(2).map(episode => (
-            <div key={episode.id} className="flex items-center gap-3 border-b border-black/8 py-2.5">
-              {/* eslint-disable-next-line @next/next/no-img-element -- local episode artwork behind the assistant. */}
-              <img src={episodePhoto(episode.photo)} alt="" className="size-11 shrink-0 rounded-[9px] object-cover" />
+            <div key={episode.id} className="flex items-center gap-3 border-b border-black/8 py-1.5 last:border-0">
+              <PodcastCover episode={episode} className="size-9 shrink-0 rounded-[9px] object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[15px] leading-tight font-semibold">{episode.name}</p>
                 <p className="mt-0.5 text-[13px] text-[#655e6a]">{episode.show} · {episodeDuration(episode.seconds)}</p>
@@ -282,6 +304,48 @@ function PodcastBackdrop() {
   );
 }
 
+function PodcastFog({ expanded, opacity }: { expanded?: boolean; opacity?: MotionValue<number> }) {
+  const extent = expanded ? 420 : 210;
+  return (
+    <motion.div
+      aria-hidden="true"
+      data-podcast-fog
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+      style={{
+        opacity,
+        maskImage: `linear-gradient(to top, #000 ${extent - 140}px, rgb(0 0 0 / .78) ${extent - 96}px, rgb(0 0 0 / .27) ${extent - 43}px, transparent ${extent}px)`,
+      }}
+    >
+      <PodcastBackdrop className="blur-[14px]" />
+      <div className="absolute inset-0 bg-[rgb(29_25_43_/_0.57)]" />
+    </motion.div>
+  );
+}
+
+function PodcastScene({ origin, opening, resultTravel }: {
+  origin: { x: number; y: number };
+  opening: MotionValue<number>;
+  resultTravel: MotionValue<number>;
+}) {
+  const fogOpacity = useTransform(opening, [0, 0.2, 0.58, 1], [0, 0.37, 0.89, 1]);
+  const resultFogOpacity = useTransform(resultTravel, [0.12, 1], [0, 1]);
+  const fogMask = useTransform(opening, (progress) => {
+    const width = 0.1 + 205 * progress;
+    const height = 0.1 + 125 * progress;
+    return `radial-gradient(ellipse ${width}% ${height}% at ${origin.x * 100}% ${origin.y * 100}%, #000 54%, rgb(0 0 0 / .75) 68%, rgb(0 0 0 / .2) 88%, transparent 100%)`;
+  });
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      <PodcastBackdrop />
+      <motion.div data-podcast-scene className="absolute inset-0" style={{ maskImage: fogMask, opacity: fogOpacity }}>
+        <PodcastFog />
+        <PodcastFog expanded opacity={resultFogOpacity} />
+      </motion.div>
+    </div>
+  );
+}
+
 function EpisodeCard({ episode, index, position, reducedMotion, onOpen }: {
   episode: Episode;
   index: number;
@@ -290,7 +354,7 @@ function EpisodeCard({ episode, index, position, reducedMotion, onOpen }: {
   onOpen: () => void;
 }) {
   const swipeScale = useTransform(position, (value) => 1 - Math.min(1, Math.abs(value - index)) * 0.08);
-  const scale = useSpring(swipeScale, { stiffness: 360, damping: 35 });
+  const scale = useSpring(swipeScale, { stiffness: 300, damping: 34 });
 
   return (
     <motion.button
@@ -301,7 +365,7 @@ function EpisodeCard({ episode, index, position, reducedMotion, onOpen }: {
       className={`flex min-h-[152px] w-full cursor-grab select-none items-stretch gap-3 rounded-[25px] ${episodeGlass} p-2.5 text-left text-white active:cursor-grabbing ${focusStyle}`}
     >
       <span className="relative aspect-square w-[38%] shrink-0 self-center overflow-hidden rounded-[15px] bg-white/10">
-        <PodcastCover episode={episode} className="absolute inset-0 size-full object-contain" />
+        <PodcastCover episode={episode} className="absolute inset-0 size-full object-cover" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col py-1 pr-1">
         <span className={`${readableTitle} leading-[1.1] font-semibold tracking-tight`}>{episode.name}</span>
@@ -314,8 +378,14 @@ function EpisodeCard({ episode, index, position, reducedMotion, onOpen }: {
   );
 }
 
-function EpisodeCarousel({ matches, reducedMotion, inactive, onOpen, trackRef }: {
+function episodeSpacing(track: HTMLDivElement) {
+  const first = track.firstElementChild as HTMLElement | null;
+  return first ? first.offsetWidth + 12 : track.clientWidth || 1;
+}
+
+function EpisodeCarousel({ matches, anchorId, reducedMotion, inactive, onOpen, trackRef }: {
   matches: Episode[];
+  anchorId: string | null;
   reducedMotion: boolean;
   inactive: boolean;
   onOpen: (episode: Episode) => void;
@@ -326,14 +396,18 @@ function EpisodeCarousel({ matches, reducedMotion, inactive, onOpen, trackRef }:
   const position = useMotionValue(0);
   const isPresent = useIsPresent();
 
-  function slideSpacing(track: HTMLDivElement) {
-    const first = track.firstElementChild as HTMLElement | null;
-    return first ? first.offsetWidth + 12 : track.clientWidth || 1;
-  }
+  const anchorIndex = matches.findIndex(episode => episode.id === anchorId);
+  const firstEpisodeId = matches[0]?.id;
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track || anchorIndex < 0) return;
+    track.scrollTo({ left: anchorIndex * episodeSpacing(track), behavior: "instant" });
+    position.jump(anchorIndex);
+  }, [anchorIndex, anchorId, firstEpisodeId, position, trackRef]);
 
   function goTo(track: HTMLDivElement, index: number) {
     const target = Math.max(0, Math.min(matches.length - 1, index));
-    track.scrollTo({ left: target * slideSpacing(track), behavior: reducedMotion ? "instant" : "smooth" });
+    track.scrollTo({ left: target * episodeSpacing(track), behavior: reducedMotion ? "instant" : "smooth" });
     return target;
   }
 
@@ -342,7 +416,7 @@ function EpisodeCarousel({ matches, reducedMotion, inactive, onOpen, trackRef }:
     if (start?.id !== pointerId) return;
     pointer.current = null;
     if (!dragged.current) return;
-    const spacing = slideSpacing(track);
+    const spacing = episodeSpacing(track);
     const startIndex = Math.round(start.scrollLeft / spacing);
     const nearest = Math.round(track.scrollLeft / spacing);
     const distance = track.scrollLeft - start.scrollLeft;
@@ -362,7 +436,7 @@ function EpisodeCarousel({ matches, reducedMotion, inactive, onOpen, trackRef }:
       tabIndex={0}
       onScroll={(event) => {
         const track = event.currentTarget;
-        position.set(track.scrollLeft / slideSpacing(track));
+        position.set(track.scrollLeft / episodeSpacing(track));
       }}
       onKeyDown={(event) => {
         if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
@@ -371,7 +445,7 @@ function EpisodeCarousel({ matches, reducedMotion, inactive, onOpen, trackRef }:
         const button = event.target instanceof HTMLButtonElement ? event.target : null;
         const current = button
           ? matches.findIndex(episode => episode.id === button.parentElement?.dataset.episode)
-          : Math.round(track.scrollLeft / slideSpacing(track));
+          : Math.round(track.scrollLeft / episodeSpacing(track));
         const next = goTo(track, current + (event.key === "ArrowRight" ? 1 : -1));
         if (button) track.querySelector<HTMLButtonElement>(`[data-episode="${matches[next]?.id}"] button`)?.focus({ preventScroll: true });
       }}
@@ -401,59 +475,167 @@ function EpisodeCarousel({ matches, reducedMotion, inactive, onOpen, trackRef }:
       }}
       className={`relative -mx-6 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-6 py-1 [scrollbar-width:none] scroll-px-6 ${inactive ? "invisible" : ""} ${focusStyle}`}
     >
-      <AnimatePresence initial={false} mode="popLayout">
-        {matches.map((episode, index) => (
-          <motion.div
-            key={episode.id}
-            data-episode={episode.id}
-            layout={reducedMotion ? false : "position"}
-            initial={reducedMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: reducedMotion ? 0 : 6 }}
-            transition={{
-              layout: reducedMotion ? { duration: 0 } : { type: "spring", duration: 0.58, bounce: 0.09 },
-              y: { duration: reducedMotion ? 0 : 0.36, ease },
-              opacity: { duration: reducedMotion ? 0 : 0.24 },
-            }}
-            className={`min-w-0 shrink-0 snap-start ${matches.length === 1 ? "basis-full" : "basis-[calc(100%-42px)] last:mr-[42px]"}`}
-          >
-            <EpisodeCard episode={episode} index={index} position={position} reducedMotion={reducedMotion} onOpen={() => onOpen(episode)} />
-          </motion.div>
-        ))}
-      </AnimatePresence>
+      {matches.map((episode, index) => (
+        <div
+          key={episode.id}
+          data-episode={episode.id}
+          className={`min-w-0 shrink-0 snap-start ${matches.length === 1 ? "basis-full" : "basis-[calc(100%-42px)] last:mr-[42px]"}`}
+        >
+          <EpisodeCard episode={episode} index={index} position={position} reducedMotion={reducedMotion} onOpen={() => onOpen(episode)} />
+        </div>
+      ))}
     </motion.div>
   );
 }
 
-type PodcastPhase = "idle" | "listening" | "searching" | "reviewing" | "results";
+function PodcastResultShelf({ matches, anchorId, travel, reducedMotion, busy, detailOpen, onOpen, trackRef }: {
+  matches: Episode[];
+  anchorId: string | null;
+  travel: MotionValue<number>;
+  reducedMotion: boolean;
+  busy: boolean;
+  detailOpen: boolean;
+  onOpen: (episode: Episode) => void;
+  trackRef: RefObject<HTMLDivElement | null>;
+}) {
+  const [isPresent, safeToRemove] = usePresence();
+  const shelfRef = useRef<HTMLDivElement>(null);
+  const naturalHeight = useMotionValue(0);
+  const height = useTransform(() => naturalHeight.get() * travel.get());
+  const opacity = useTransform(travel, [0.31, 1], [0, 1], { ease: smoothProgress });
+  const lift = useTransform(travel, [0.31, 1], [10, 0], { ease: smoothProgress });
+
+  useLayoutEffect(() => {
+    const shelf = shelfRef.current;
+    if (!shelf) return;
+    const measure = () => naturalHeight.set(shelf.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(shelf);
+    return () => observer.disconnect();
+  }, [naturalHeight]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      travel.jump(isPresent ? 1 : 0);
+      if (!isPresent) safeToRemove?.();
+      return;
+    }
+    const target = isPresent ? 1 : 0;
+    const distance = Math.abs(target - travel.get());
+    if (distance < 0.001) {
+      travel.set(target);
+      if (!isPresent) safeToRemove?.();
+      return;
+    }
+    const animation = animate(travel, target, {
+      duration: (isPresent ? 0.88 : 0.46) * Math.max(0.4, distance),
+      ease: podcastEase,
+      onComplete: isPresent ? undefined : safeToRemove,
+    });
+    return () => animation.stop();
+  }, [isPresent, reducedMotion, safeToRemove, travel]);
+
+  return (
+    <motion.div
+      data-podcast-shelf
+      className={detailOpen ? "invisible absolute inset-x-0 bottom-0" : "relative"}
+      style={reducedMotion ? undefined : { height }}
+      inert={!isPresent || busy || detailOpen}
+    >
+      <div ref={shelfRef} className={reducedMotion ? "pb-[52px]" : "absolute inset-x-0 bottom-0 pb-[52px]"}>
+        {matches.length > 0 && (
+          <motion.div data-podcast-reveal className="pt-2.5" style={reducedMotion ? undefined : { opacity, y: lift }}>
+            <EpisodeCarousel matches={matches} anchorId={anchorId} reducedMotion={reducedMotion} inactive={detailOpen} onOpen={onOpen} trackRef={trackRef} />
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+type PodcastPhase = "idle" | "opening" | "listening" | "searching" | "reviewing" | "results";
 
 const podcastMicSize = "size-[max(1.25rem,calc(18px/var(--phone-preview-scale,1)))]";
 
 const voicePace = {
-  beforeSpeech: 600,
-  betweenWords: 360,
-  afterSpeech: 650,
-  searching: 1350,
-  reviewing: 1250,
+  listening: 3100,
+  searching: 1410,
+  reviewing: 1320,
 };
+
+function PodcastStatus({ text, reply, reducedMotion }: { text: string; reply: boolean; reducedMotion: boolean }) {
+  return (
+    <div aria-hidden="true" className={`relative min-w-0 ${readableBody} leading-tight text-white`}>
+      <span className="invisible block">{text || "\u00a0"}</span>
+      <AnimatePresence initial={false}>
+        {text && (
+          <motion.p
+            key={text}
+            className="absolute inset-x-0 bottom-0"
+            initial={reducedMotion ? false : { opacity: 0, y: 2 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: reducedMotion ? 0 : -1.5, transition: { duration: reducedMotion ? 0 : 0.14, ease: podcastEase } }}
+            transition={{ duration: reducedMotion ? 0 : 0.3, delay: reducedMotion ? 0 : 0.06, ease: podcastEase }}
+          >
+            {reply && !reducedMotion ? text.split(" ").map((word, index) => (
+              <motion.span
+                key={index}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.24, delay: index * 0.042, ease: podcastEase }}
+              >
+                {index > 0 ? " " : ""}{word}
+              </motion.span>
+            )) : text}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
   const [phase, setPhase] = useState<PodcastPhase>("idle");
   const [request, setRequest] = useState("");
-  const [voiceBeat, setVoiceBeat] = useState<VoiceBeat | null>(null);
   const [preferences, setPreferences] = useState(defaultPreferences);
   const [hasResults, setHasResults] = useState(false);
+  const [anchorId, setAnchorId] = useState<string | null>(null);
   const [opened, setOpened] = useState<Episode | null>(null);
+  const [openingOrigin, setOpeningOrigin] = useState({ x: 0.12, y: 0.94 });
+  const screenRef = useRef<HTMLElement>(null);
+  const activateRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLButtonElement>(null);
   const micRef = useRef<HTMLButtonElement>(null);
   const reducedMotion = Boolean(useReducedMotion());
+  const resultTravel = useMotionValue(0);
+  const voiceEnergy = useMotionValue(0);
+  const sceneOpening = useMotionValue(0);
   const matches = hasResults ? matchEpisodes(preferences) : [];
   const searching = phase === "searching" || phase === "reviewing";
-  const busy = phase === "listening" || searching;
+  const opening = phase === "opening";
+  const busy = opening || phase === "listening" || searching;
   const resting = phase === "idle";
-  const revealDuration = reducedMotion ? 0 : 0.65;
+
+  useEffect(() => {
+    if (opening) {
+      const animation = animate(sceneOpening, 1, {
+        duration: 1.02,
+        ease: podcastEase,
+        onComplete: () => setPhase("listening"),
+      });
+      return () => animation.stop();
+    }
+    if (!resting || sceneOpening.get() === 0) return;
+    if (reducedMotion) {
+      sceneOpening.set(0);
+      return;
+    }
+    const animation = animate(sceneOpening, 0, { duration: 0.52, ease: podcastEase });
+    return () => animation.stop();
+  }, [opening, reducedMotion, resting, sceneOpening]);
 
   useEffect(() => {
     if (phase !== "searching") return;
@@ -463,14 +645,30 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
 
   useEffect(() => {
     if (phase !== "reviewing") return;
+    const next = refinePodcastSearch(preferences, request);
+    const previousEpisodes = hasResults ? matchEpisodes(preferences) : [];
+    const nextEpisodes = matchEpisodes(next);
+    const track = trackRef.current;
+    const spacing = track ? episodeSpacing(track) : 1;
+    const currentIndex = track ? Math.round(track.scrollLeft / spacing) : 0;
+    const retained = previousEpisodes
+      .map((episode, index) => ({ episode, index }))
+      .filter(({ episode }) => nextEpisodes.includes(episode))
+      .sort((a, b) => Math.abs(a.index - currentIndex) - Math.abs(b.index - currentIndex))[0];
+    const align = !reducedMotion && track && retained && retained.index !== currentIndex
+      ? window.setTimeout(() => track.scrollTo({ left: retained.index * spacing, behavior: "smooth" }), 550)
+      : undefined;
     const timeout = window.setTimeout(() => {
-      trackRef.current?.scrollTo({ left: 0, behavior: "instant" });
-      setPreferences(previous => refinePodcastSearch(previous, request));
+      setAnchorId(retained?.episode.id ?? nextEpisodes[0]?.id ?? null);
+      setPreferences(next);
       setHasResults(true);
       setPhase("results");
     }, reducedMotion ? 600 : voicePace.reviewing);
-    return () => window.clearTimeout(timeout);
-  }, [phase, reducedMotion, request]);
+    return () => {
+      window.clearTimeout(align);
+      window.clearTimeout(timeout);
+    };
+  }, [hasResults, phase, preferences, reducedMotion, request]);
 
   useEffect(() => {
     if (phase !== "listening") return;
@@ -479,27 +677,18 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
       return () => window.clearTimeout(timeout);
     }
 
-    const words = request.split(/\s+/);
-    let spoken = 0;
-    const pulseDuration = 205;
-    let timeout = window.setTimeout(playBeat, voicePace.beforeSpeech);
+    const animation = animate(voiceEnergy, [0, 0, 1, 0, 0], {
+      duration: voicePace.listening / 1000,
+      times: [0, 0.18, 0.52, 0.9, 1],
+      ease: podcastEase,
+      onComplete: () => setPhase("searching"),
+    });
 
-    function playBeat() {
-      const word = words[spoken];
-      setVoiceBeat({ focus: (spoken * 7 + 4) % agentDots.length, strength: Math.min(1, 0.32 + word.length * 0.09) });
-      spoken += 1;
-      const last = spoken === words.length;
-      timeout = window.setTimeout(() => {
-        setVoiceBeat(null);
-        timeout = window.setTimeout(
-          last ? () => setPhase("searching") : playBeat,
-          (last ? voicePace.afterSpeech : voicePace.betweenWords) - pulseDuration,
-        );
-      }, pulseDuration);
-    }
-
-    return () => window.clearTimeout(timeout);
-  }, [phase, reducedMotion, request]);
+    return () => {
+      animation.stop();
+      voiceEnergy.set(0);
+    };
+  }, [phase, reducedMotion, voiceEnergy]);
 
   useEffect(() => {
     if (opened) backRef.current?.focus({ preventScroll: true });
@@ -518,7 +707,6 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
       setOpened(null);
       setHasResults(false);
       setPreferences(defaultPreferences);
-      setVoiceBeat(null);
       setPhase("idle");
     }
     document.addEventListener("pointerdown", dismiss);
@@ -531,16 +719,29 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
       : preferences.maxMinutes === null ? "Keep it under 20 minutes."
       : preferences.topic ? "Any topic." : "Something about sound.";
     setRequest(example);
-    setVoiceBeat(null);
+    if (resting) {
+      const screen = screenRef.current?.getBoundingClientRect();
+      const button = activateRef.current?.getBoundingClientRect();
+      if (screen && button && screen.width && screen.height) {
+        setOpeningOrigin({
+          x: (button.x + button.width / 2 - screen.x) / screen.width,
+          y: (button.y + button.height / 2 - screen.y) / screen.height,
+        });
+      }
+      if (!reducedMotion) {
+        setPhase("opening");
+        return;
+      }
+      sceneOpening.set(1);
+    }
     setPhase("listening");
   }
 
   function cancelRequest() {
     flushSync(() => {
-      setVoiceBeat(null);
       setPhase(hasResults ? "results" : "idle");
     });
-    micRef.current?.focus({ preventScroll: true });
+    (hasResults ? micRef : activateRef).current?.focus({ preventScroll: true });
   }
 
   function closeEpisode() {
@@ -562,23 +763,34 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
   const progressMessage = phase === "reviewing" ? reviewMessage : "Looking for episodes…";
   const status = phase === "listening" ? "Listening…"
     : searching ? progressMessage : hasResults ? reply : "";
-  const dotState = phase === "idle" ? "resting" : phase === "results" ? "ready" : phase;
+  const dotState = resting || opening ? "resting" : phase === "results" ? "ready" : phase;
 
   const voiceControl = (
     <button
       ref={micRef}
       type="button"
-      aria-label={resting ? "Start voice demo" : phase === "listening" ? "Stop listening" : searching ? "Stop searching" : "Refine with voice demo"}
+      aria-label={phase === "listening" ? "Stop listening" : searching ? "Stop searching" : "Refine with voice demo"}
       onClick={busy ? cancelRequest : startVoice}
-      className={`ml-auto grid size-11 shrink-0 cursor-pointer place-items-center rounded-full text-white/90 hover:bg-white/10 ${focusStyle}`}
+      className={`absolute right-0 bottom-0 z-20 grid size-11 cursor-pointer place-items-center rounded-full text-white/90 transition-colors hover:bg-white/10 motion-reduce:transition-none ${focusStyle}`}
     >
-      {busy ? <Square size={13} fill="currentColor" aria-hidden="true" /> : <Mic className={podcastMicSize} aria-hidden="true" />}
+      {[false, true].map((stopIcon) => (
+        <motion.span
+          key={stopIcon ? "stop" : "mic"}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 grid place-items-center"
+          initial={false}
+          animate={{ opacity: busy === stopIcon ? 1 : 0 }}
+          transition={{ duration: reducedMotion ? 0 : 0.26, ease: podcastEase }}
+        >
+          {stopIcon ? <Square size={13} fill="currentColor" /> : <Mic className={podcastMicSize} />}
+        </motion.span>
+      ))}
     </button>
   );
 
   return (
-    <section aria-label="Organic UI podcast search" data-phase={phase} className={`relative isolate mx-auto flex h-full min-h-[460px] w-full flex-col justify-end overflow-clip bg-[#e8e6ea] text-white [color-scheme:dark] ${className ?? ""}`}>
-      <PodcastBackdrop />
+    <section ref={screenRef} aria-label="Organic UI podcast search" data-phase={phase} className={`relative isolate mx-auto flex h-full min-h-[460px] w-full flex-col justify-end overflow-clip bg-[#eeecef] text-white [color-scheme:dark] ${className ?? ""}`}>
+      <PodcastScene origin={openingOrigin} opening={sceneOpening} resultTravel={resultTravel} />
       <div
         ref={cardRef}
         onKeyDown={(event) => {
@@ -591,96 +803,66 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
             flushSync(() => {
               setHasResults(false);
               setPreferences(defaultPreferences);
-              setVoiceBeat(null);
               setPhase("idle");
             });
-            micRef.current?.focus({ preventScroll: true });
+            activateRef.current?.focus({ preventScroll: true });
           }
         }}
         className="relative px-6 pt-6 pb-7"
       >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 -top-40 bottom-0"
-          style={{
-            backdropFilter: "blur(14px)",
-            background: "linear-gradient(to bottom, rgb(35 34 54 / .22), rgb(26 24 42 / .58) 63%, rgb(24 21 37 / .64))",
-            maskImage: "linear-gradient(to bottom, transparent, rgb(0 0 0 / .3) 15%, rgb(0 0 0 / .83) 32%, #000 53%)",
-          }}
-        />
         <span role="status" className="sr-only">{status}</span>
         <div className="relative">
           {!opened && (
-            <motion.div
-              layout={reducedMotion ? false : "position"}
-              transition={{ layout: { duration: reducedMotion ? 0 : 0.34, ease } }}
-              className="relative flex min-h-11 items-center gap-2"
-            >
+            <div data-podcast-reply className="relative z-10 flex min-h-11 items-end gap-2 pr-12">
               <div className="relative grid size-11 shrink-0 place-items-center">
-                <DotAgent state={dotState} reducedMotion={reducedMotion} voiceBeat={voiceBeat} />
-                {resting && (
-                  <button type="button" aria-label="Activate voice search demo" onClick={startVoice} className={`absolute inset-0 cursor-pointer rounded-full ${focusStyle}`} />
+                <motion.span
+                  aria-hidden="true"
+                  data-agent-button-surface
+                  className="pointer-events-none absolute size-9 rounded-full bg-[rgb(204_204_208_/_0.76)] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.44)] backdrop-blur-[8px]"
+                  initial={false}
+                  animate={{ opacity: resting || opening ? 1 : 0, scale: opening ? 0.92 : resting ? 1 : 1.08 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.46, ease: podcastEase }}
+                />
+                <DotAgent state={dotState} reducedMotion={reducedMotion} voiceEnergy={voiceEnergy} />
+                {(resting || opening) && (
+                  <button ref={activateRef} type="button" aria-label="Activate voice search demo" aria-disabled={opening} onClick={startVoice} className="absolute inset-0 cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5076a8]" />
                 )}
               </div>
-              {(hasResults || searching) && (
-                <motion.div
-                  key={searching ? progressMessage : reply}
-                  initial={reducedMotion ? false : { opacity: 0 }}
-                  animate={{ opacity: phase === "listening" ? 0.6 : 1 }}
-                  transition={{ duration: reducedMotion ? 0 : 0.22 }}
-                  className="relative min-w-0"
-                >
-                  <p className={`${readableBody} leading-tight text-white`}>{searching ? progressMessage : reply}</p>
-                </motion.div>
-              )}
-              {!hasResults && voiceControl}
-            </motion.div>
+              <div className="grid min-h-11 min-w-0 flex-1 items-center">
+                <PodcastStatus text={status} reply={phase === "results"} reducedMotion={reducedMotion} />
+              </div>
+            </div>
           )}
 
           <AnimatePresence initial={false}>
-            {hasResults && matches.length > 0 && (
-              <motion.div
+            {hasResults && (
+              <PodcastResultShelf
                 key="podcast-results"
-                initial={reducedMotion ? false : { gridTemplateRows: "0fr" }}
-                animate={{ gridTemplateRows: "1fr", opacity: busy ? 0.72 : 1 }}
-                exit={{ gridTemplateRows: "0fr", opacity: 0, transition: { duration: reducedMotion ? 0 : 0.28, ease } }}
-                transition={{
-                  gridTemplateRows: { duration: revealDuration, delay: reducedMotion ? 0 : 0.12, ease: [0.22, 1, 0.36, 1] },
-                  opacity: { duration: reducedMotion ? 0 : 0.24 },
-                }}
-                className={`grid min-w-0 ${opened ? "absolute inset-x-0 top-0" : "relative"}`}
-              >
-                <div className="min-h-0 min-w-0 overflow-y-clip">
-                  <motion.div
-                    initial={reducedMotion ? false : { y: 14, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{
-                      y: reducedMotion ? { duration: 0 } : { type: "spring", duration: 0.68, bounce: 0.12, delay: 0.17 },
-                      opacity: { duration: reducedMotion ? 0 : 0.36, delay: reducedMotion ? 0 : 0.2 },
-                    }}
-                    className="pt-2.5"
-                    inert={busy}
-                  >
-                    <EpisodeCarousel matches={matches} reducedMotion={reducedMotion} inactive={Boolean(opened)} onOpen={setOpened} trackRef={trackRef} />
-                  </motion.div>
-                </div>
-              </motion.div>
+                matches={matches}
+                anchorId={anchorId}
+                travel={resultTravel}
+                reducedMotion={reducedMotion}
+                busy={busy}
+                detailOpen={Boolean(opened)}
+                onOpen={setOpened}
+                trackRef={trackRef}
+              />
             )}
           </AnimatePresence>
 
-          <AnimatePresence initial={false}>
+          <AnimatePresence initial={false} mode="popLayout">
             {opened && (
               <motion.div
                 key={opened.id}
                 initial={reducedMotion ? false : { opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0 } }}
-                transition={{ duration: reducedMotion ? 0 : 0.24, ease }}
+                exit={{ opacity: 0, scale: reducedMotion ? 1 : 0.99, pointerEvents: "none" }}
+                transition={{ duration: reducedMotion ? 0 : 0.3, ease: podcastEase }}
                 className={`relative rounded-[25px] ${episodeGlass} p-3`}
               >
                 <div className="flex gap-3">
                   <div className="relative aspect-square w-[38%] shrink-0 self-start overflow-hidden rounded-[17px] bg-white/10">
-                    <PodcastCover episode={opened} className="absolute inset-0 size-full object-contain" />
+                    <PodcastCover episode={opened} className="absolute inset-0 size-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <button ref={backRef} type="button" onClick={closeEpisode} aria-label="Back to podcast episodes" className={`mb-1 grid size-10 cursor-pointer place-items-center rounded-full hover:bg-white/10 ${focusStyle}`}><ChevronLeft size={19} aria-hidden="true" /></button>
@@ -702,9 +884,7 @@ function PodcastAssistant({ className }: Pick<OrganicUIProps, "className">) {
             )}
           </AnimatePresence>
 
-          {!opened && hasResults && (
-            <div className="mt-2 flex min-h-11">{voiceControl}</div>
-          )}
+          {!opened && !resting && !opening && voiceControl}
         </div>
       </div>
     </section>

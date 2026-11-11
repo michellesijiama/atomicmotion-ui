@@ -9,11 +9,14 @@ public struct OrganicUI: View {
     @State private var phaseStarted = Date.now
     @State private var request = VoiceRequest.everydayDesign
     @State private var preferences = Preferences()
-    @State private var beat: VoiceBeat?
+    @State private var searchStarted = Date.now
+    @State private var sceneProgress = 0.0
+    @State private var resultProgress = 0.0
     @State private var hasResults = false
     @State private var selectedEpisode: Episode?
     @State private var centeredEpisode: String?
-    @State private var showCovers: [Show: UIImage] = [:]
+    @State private var resultAnchor: String?
+    @State private var covers: [String: UIImage] = [:]
 
     public init() {}
 
@@ -25,40 +28,24 @@ public struct OrganicUI: View {
                     .onTapGesture(perform: reset)
                     .accessibilityHidden(true)
 
+                backdrop(size: geometry.size)
+                    .blur(radius: 14)
+                    .overlay(Self.color(0x1D192B).opacity(0.57))
+                    .mask(alignment: .bottom) {
+                        FogMask(progress: resultProgress)
+                            .frame(height: 420)
+                    }
+                    .mask {
+                        OpeningMask(progress: sceneProgress, size: geometry.size)
+                    }
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+
                 assistant(width: geometry.size.width)
                     .padding(.top, 24)
                     .padding(.bottom, 28)
-                    .contentShape(Rectangle())
                     .background {
                         Color.clear.contentShape(Rectangle()).onTapGesture {}
-                    }
-                    .background(alignment: .bottom) {
-                        GeometryReader { panel in
-                            let hazeHeight = panel.size.height + 160
-                            ZStack(alignment: .bottom) {
-                                backdrop(size: geometry.size)
-                                    .blur(radius: 14)
-                                    .frame(height: hazeHeight, alignment: .bottom)
-                                    .clipped()
-                                LinearGradient(stops: [
-                                    .init(color: Self.color(0x232236).opacity(0.22), location: 0),
-                                    .init(color: Self.color(0x1A182A).opacity(0.58), location: 0.63),
-                                    .init(color: Self.color(0x181525).opacity(0.64), location: 1)
-                                ], startPoint: .top, endPoint: .bottom)
-                            }
-                            .frame(height: hazeHeight)
-                            .mask {
-                                LinearGradient(stops: [
-                                    .init(color: .clear, location: 0),
-                                    .init(color: .black.opacity(0.30), location: 0.15),
-                                    .init(color: .black.opacity(0.83), location: 0.32),
-                                    .init(color: .black, location: 0.53)
-                                ], startPoint: .top, endPoint: .bottom)
-                            }
-                            .frame(height: panel.size.height, alignment: .bottom)
-                        }
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
                     }
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
@@ -72,16 +59,13 @@ public struct OrganicUI: View {
     }
 
     private var matches: [Episode] {
-        guard hasResults else { return [] }
-        return Episode.all.filter { episode in
-            (preferences.maxMinutes.map { episode.seconds <= $0 * 60 } ?? true)
-                && (preferences.soundOnly ? episode.topic == .sound : true)
-        }
+        preferences.episodes
     }
 
     private var status: String? {
         switch phase {
-        case .idle: return nil
+        case .idle, .opening: return nil
+        case .listening: return "Listening…"
         case .searching: return "Looking for episodes…"
         case .reviewing:
             switch request {
@@ -89,8 +73,7 @@ public struct OrganicUI: View {
             case .underTwenty: return "Checking episode lengths…"
             case .sound, .anyTopic: return "Checking which episodes match the topic…"
             }
-        case .listening, .results:
-            guard hasResults else { return nil }
+        case .results:
             let subject = matches.count == 1 ? "an episode" : matches.count == 2 ? "two episodes" : "a few episodes"
             if preferences.soundOnly { return "I found \(subject) about sound design." }
             if let maxMinutes = preferences.maxMinutes { return "I found \(subject) under \(maxMinutes) minutes." }
@@ -98,63 +81,77 @@ public struct OrganicUI: View {
         }
     }
 
-    private var morph: Animation? {
-        reduceMotion ? nil : .timingCurve(0.22, 1, 0.36, 1, duration: 0.65)
+    private func motion(_ duration: Double) -> Animation? {
+        reduceMotion ? nil : .timingCurve(0.42, 0, 0.30, 1, duration: duration)
     }
 
-    @ViewBuilder private func assistant(width: CGFloat) -> some View {
-        if let episode = selectedEpisode {
-            episodeDetail(episode, width: max(1, width - 48))
-                .padding(.horizontal, 24)
-                .transition(.opacity.combined(with: .scale(scale: 0.98)))
-        } else {
-            VStack(spacing: 0) {
-                HStack(spacing: 8) {
-                    if phase == .idle {
-                        Button(action: startVoice) { agent }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Activate voice search demo")
-                    } else {
-                        agent.accessibilityHidden(true)
-                    }
-                    if let status {
-                        Paragraph(status, width: max(1, width - (hasResults ? 100 : 152)), size: 17, lineHeight: 21.25)
-                            .foregroundStyle(.white.opacity(phase == .listening ? 0.6 : 1))
-                            .accessibilityAddTraits(.updatesFrequently)
-                    } else {
-                        Spacer(minLength: 0)
-                    }
-                    if !hasResults { voiceControl }
-                }
-                .frame(minHeight: 44)
-                .padding(.horizontal, 24)
+    private func assistant(width: CGFloat) -> some View {
+        ZStack(alignment: .bottom) {
+            assistantPanel(width: width)
+                .opacity(selectedEpisode == nil ? 1 : 0)
+                .allowsHitTesting(selectedEpisode == nil)
+                .accessibilityHidden(selectedEpisode != nil)
 
-                if !matches.isEmpty {
-                    episodeCarousel(width: width)
-                        .padding(.top, 10)
-                        .opacity(phase.busy ? 0.72 : 1)
-                        .allowsHitTesting(!phase.busy)
-                        .accessibilityHidden(phase.busy)
-                        .transition(.offset(y: 14).combined(with: .opacity))
-                }
-                if hasResults {
-                    HStack {
-                        Spacer()
-                        voiceControl
-                    }
-                    .padding(.top, 8)
+            if let episode = selectedEpisode {
+                episodeDetail(episode, width: max(1, width - 48))
                     .padding(.horizontal, 24)
-                }
+                    .transition(reduceMotion ? .identity : .opacity.combined(with: .scale(scale: 0.98)))
+            }
+        }
+    }
+
+    private func assistantPanel(width: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .bottom, spacing: 8) {
+                agent
+                let textWidth = max(1, width - 148)
+                Paragraph(status ?? " ", width: textWidth, size: 17, lineHeight: 21.25)
+                    .hidden()
+                    .accessibilityHidden(true)
+                    .overlay(alignment: .bottomLeading) {
+                        if let status {
+                            StatusLine(text: status, width: textWidth,
+                                       revealWords: phase == .results && !reduceMotion)
+                                .id(status)
+                                .transition(reduceMotion ? .identity : .asymmetric(
+                                    insertion: .opacity.combined(with: .offset(y: 2)).animation(motion(0.30)?.delay(0.06)),
+                                    removal: .opacity.combined(with: .offset(y: -1.5)).animation(motion(0.14))
+                                ))
+                        }
+                    }
+                    .frame(minHeight: 44)
+            }
+            .padding(.leading, 24)
+            .padding(.trailing, 72)
+
+            ShelfLayout(progress: resultProgress) {
+                episodeCarousel(width: width)
+                    .padding(.top, 10)
+                    .modifier(ShelfAppearance(progress: resultProgress))
+                    .padding(.bottom, 52)
+            }
+            .allowsHitTesting(hasResults && !phase.busy)
+            .accessibilityHidden(!hasResults || phase.busy)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if !phase.compact {
+                voiceControl
+                    .padding(.trailing, 24)
+                    .transition(reduceMotion ? .identity : .opacity)
             }
         }
     }
 
     private var voiceControl: some View {
         Button(action: phase.busy ? cancelVoice : startVoice) {
-            Glyph(phase.busy ? .stop : .mic, size: phase.busy ? 13 : 20)
-                .foregroundStyle(.white.opacity(0.9))
-                .frame(width: 44, height: 44)
-                .contentShape(Circle())
+            ZStack {
+                Glyph(.mic, size: 20).opacity(phase.busy ? 0 : 1)
+                Glyph(.stop, size: 13).opacity(phase.busy ? 1 : 0)
+            }
+            .foregroundStyle(.white.opacity(0.9))
+            .frame(width: 44, height: 44)
+            .contentShape(Circle())
+            .animation(motion(0.26), value: phase.busy)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(phase.controlLabel)
@@ -162,79 +159,41 @@ public struct OrganicUI: View {
 
     private var agent: some View {
         ZStack {
-            if phase == .idle {
-                Circle()
-                    .fill(RadialGradient(colors: [Self.color(0xF3FBFF), Self.color(0xA8DCFF), Self.color(0x698CF0)],
-                                         center: UnitPoint(x: 0.25, y: 0.22), startRadius: 0, endRadius: 7))
-                    .frame(width: 8, height: 8)
-                    .transition(.opacity)
-            } else {
-                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || phase != .searching)) { context in
-                    ZStack(alignment: .topLeading) {
-                        ForEach(0..<24) { index in
-                            let dot = agentDot(index: index, date: context.date)
-                            Circle()
-                                .fill(dot.color.opacity(dot.opacity))
-                                .frame(width: dot.radius * 2, height: dot.radius * 2)
-                                .position(dot.center)
-                        }
-                    }
-                    .frame(width: 32, height: 32)
+            Circle()
+                .fill(.thinMaterial)
+                .environment(\.colorScheme, .light)
+                .overlay(Self.color(0xCCCCD0).opacity(0.76), in: Circle())
+                .overlay(alignment: .top) {
+                    Circle().strokeBorder(.white.opacity(0.24), lineWidth: 1)
                 }
-                .transition(.scale(scale: 0.22).combined(with: .opacity))
-            }
+                .frame(width: 36, height: 36)
+                .scaleEffect(phase == .opening ? 0.92 : phase.compact ? 1 : 1.08)
+                .opacity(phase.compact ? 1 : 0)
+                .animation(motion(0.46), value: phase)
+            AgentMark(expansion: phase.compact ? 0 : 1,
+                      gather: phase == .searching && !reduceMotion ? 1 : 0,
+                      listeningSince: phase == .listening && !reduceMotion ? phaseStarted : nil,
+                      searchingSince: (phase == .searching || phase == .reviewing) && !reduceMotion ? searchStarted : nil)
+                .frame(width: 32, height: 32)
+                .animation(motion(phase.compact ? 0.50 : 0.70), value: phase.compact)
+                .animation(reduceMotion ? nil : .interpolatingSpring(mass: 1, stiffness: 112, damping: 22), value: phase == .searching)
         }
         .frame(width: 44, height: 44)
-        .contentShape(Circle())
-    }
-
-    private func agentDot(index: Int, date: Date) -> AgentDot {
-        let angle = Double(index) * .pi / 12
-        func point(offset: Double, radius: Double) -> CGPoint {
-            CGPoint(x: 16 + cos(angle + offset) * radius, y: 16 + sin(angle + offset) * radius)
-        }
-        let home = point(offset: 0, radius: 13.5)
-        var center = home
-        var energy = 0.0
-        if phase == .listening, let beat, !reduceMotion {
-            let delta = abs(index - beat.focus)
-            energy = beat.strength * max(0, 1 - Double(min(delta, 24 - delta)) / 7)
-            center = point(offset: 0, radius: 13.5 * (1 - energy * 0.2))
-        } else if phase == .searching && !reduceMotion {
-            let inner = index.isMultiple(of: 2)
-            let elapsed = max(0, date.timeIntervalSince(phaseStarted)) + 0.34 * Double(index % 6) / 5
-            let cycle = (elapsed / 1.85).truncatingRemainder(dividingBy: 1)
-            let from: (time: Double, position: CGPoint)
-            let to: (time: Double, position: CGPoint)
-            let arc = (0.38, point(offset: inner ? 0.48 : -0.23, radius: inner ? 8.2 : 13.6))
-            let sweep = (0.66, point(offset: inner ? 0.70 : -0.34, radius: inner ? 9.1 : 13.5))
-            if cycle < 0.38 {
-                from = (0, home)
-                to = arc
-            } else if cycle < 0.66 {
-                from = arc
-                to = sweep
-            } else {
-                from = sweep
-                to = (1, home)
+        .accessibilityHidden(true)
+        .overlay {
+            if phase.compact {
+                Button(action: startVoice) {
+                    Color.clear.contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .disabled(phase == .opening)
+                .accessibilityLabel("Activate voice search demo")
             }
-            let progress = (cycle - from.time) / (to.time - from.time)
-            let eased = progress * progress * (3 - 2 * progress)
-            center = CGPoint(x: from.position.x + (to.position.x - from.position.x) * eased,
-                             y: from.position.y + (to.position.y - from.position.y) * eased)
         }
-        let lightness = (72 + cos(angle) * 12) / 100
-        let brightness = lightness + 0.94 * min(lightness, 1 - lightness)
-        let color = phase == .results ? Color.white : Color(
-            hue: (215 - sin(angle) * 9) / 360, saturation: 2 * (1 - lightness / brightness), brightness: brightness
-        )
-        return AgentDot(center: center,
-                        radius: 1.08 + energy * 0.32, color: color,
-                        opacity: phase == .listening && !reduceMotion ? 0.67 + energy * 0.33 : 1)
     }
 
     private func backdrop(size: CGSize) -> some View {
-        let backdropHeight = min(size.height, 505)
+        let backdropHeight = min(size.height, 519)
         let coverSize = max(1, (size.width - 60) / 2)
         return ZStack(alignment: .bottomLeading) {
             Self.color(0xEEECEF)
@@ -259,14 +218,11 @@ public struct OrganicUI: View {
                     .font(Self.semibold(20))
                     .tracking(-0.5)
                     .frame(height: 25, alignment: .leading)
-                    .padding(.top, 20)
+                    .padding(.top, 16)
                     .padding(.bottom, 4)
                 ForEach(Episode.all.suffix(2)) { episode in
                     HStack(spacing: 12) {
-                        episodePhoto(episode)
-                            .resizable().scaledToFill()
-                            .frame(width: 44, height: 44)
-                            .clipShape(.rect(cornerRadius: 9))
+                        cover(episode, size: 36, radius: 9, tint: .black.opacity(0.10))
                         VStack(alignment: .leading, spacing: 2) {
                             Text(episode.title).font(Self.semibold(15)).lineLimit(1)
                             Text("\(episode.show.title) · \(episode.duration)")
@@ -279,8 +235,12 @@ public struct OrganicUI: View {
                             .frame(width: 32, height: 32)
                             .background(.black.opacity(0.06), in: Circle())
                     }
-                    .padding(.vertical, 10)
-                    .overlay(alignment: .bottom) { Rectangle().fill(.black.opacity(0.08)).frame(height: 1) }
+                    .padding(.vertical, 6)
+                    .overlay(alignment: .bottom) {
+                        if episode.id != Episode.all.last?.id {
+                            Rectangle().fill(.black.opacity(0.08)).frame(height: 1)
+                        }
+                    }
                 }
                 Spacer(minLength: 0)
             }
@@ -297,33 +257,46 @@ public struct OrganicUI: View {
         let hasPeek = matches.count > 1
         let cardWidth = max(1, width - (hasPeek ? 90 : 48))
         let animateCards = !reduceMotion
-        return ScrollView(.horizontal) {
-            HStack(spacing: 12) {
-                ForEach(matches) { episode in
-                    Button {
-                        centeredEpisode = episode.id
-                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.24)) { selectedEpisode = episode }
-                    } label: {
-                        episodeCard(episode, width: cardWidth)
+        return ScrollViewReader { proxy in
+            ScrollView(.horizontal) {
+                HStack(spacing: 12) {
+                    ForEach(matches) { episode in
+                        Button {
+                            centeredEpisode = episode.id
+                            withAnimation(motion(0.30)) { selectedEpisode = episode }
+                        } label: {
+                            episodeCard(episode, width: cardWidth)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("View \(episode.title), \(episode.show.title)")
+                        .scrollTransition(.interactive, axis: .horizontal) { content, phase in
+                            content.scaleEffect(animateCards ? 1 - 0.08 * abs(phase.value) : 1)
+                        }
+                        .id(episode.id)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("View \(episode.title), \(episode.show.title)")
-                    .scrollTransition(.interactive, axis: .horizontal) { content, phase in
-                        content.scaleEffect(animateCards ? 1 - 0.08 * abs(phase.value) : 1)
-                    }
-                    .id(episode.id)
                 }
+                .scrollTargetLayout()
+                .padding(.trailing, hasPeek ? 42 : 0)
+                .padding(.vertical, 4)
             }
-            .scrollTargetLayout()
-            .padding(.trailing, hasPeek ? 42 : 0)
-            .padding(.vertical, 4)
+            .contentMargins(.horizontal, 24, for: .scrollContent)
+            .scrollIndicators(.hidden)
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $centeredEpisode, anchor: .leading)
+            .onChange(of: matches.map(\.id)) { _, _ in alignResults(using: proxy) }
+            .onChange(of: hasResults) { _, _ in alignResults(using: proxy) }
         }
-        .contentMargins(.horizontal, 24, for: .scrollContent)
-        .scrollIndicators(.hidden)
-        .scrollTargetBehavior(.viewAligned)
-        .scrollPosition(id: $centeredEpisode, anchor: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityLabel("Matching podcast episodes. Swipe left or right.")
+    }
+
+    private func alignResults(using proxy: ScrollViewProxy) {
+        guard hasResults, let resultAnchor else { return }
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            proxy.scrollTo(resultAnchor, anchor: .leading)
+        }
     }
 
     private func episodeCard(_ episode: Episode, width: CGFloat) -> some View {
@@ -349,7 +322,7 @@ public struct OrganicUI: View {
         .padding(10)
         .frame(width: width)
         .frame(minHeight: 152)
-        .background(.white.opacity(0.12), in: .rect(cornerRadius: 25))
+        .background(Self.color(0x171424).opacity(0.15), in: .rect(cornerRadius: 25))
         .contentShape(.rect(cornerRadius: 25))
     }
 
@@ -361,7 +334,7 @@ public struct OrganicUI: View {
                 cover(episode, size: coverSize, radius: 17, tint: .white.opacity(0.10))
                 VStack(alignment: .leading, spacing: 0) {
                     Button {
-                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.24)) { selectedEpisode = nil }
+                        withAnimation(motion(0.30)) { selectedEpisode = nil }
                     } label: {
                         Glyph(.back, size: 19)
                             .frame(width: 40, height: 40)
@@ -391,18 +364,19 @@ public struct OrganicUI: View {
                 .background(.white.opacity(0.12), in: Capsule())
             }
             .buttonStyle(.plain)
+            .accessibilityAddTraits(.isLink)
             .accessibilityLabel("Listen to \(episode.title) on \(episode.show.title)")
         }
         .padding(12)
-        .background(.white.opacity(0.12), in: .rect(cornerRadius: 25))
+        .background(Self.color(0x171424).opacity(0.15), in: .rect(cornerRadius: 25))
     }
 
     private func cover(_ episode: Episode, size: CGFloat, radius: CGFloat, tint: Color) -> some View {
         Group {
-            if let cover = showCovers[episode.show] { Image(uiImage: cover).resizable() }
+            if let cover = covers[episode.id] { Image(uiImage: cover).resizable() }
             else { episodePhoto(episode).resizable() }
         }
-        .scaledToFit()
+        .scaledToFill()
         .frame(width: size, height: size)
         .background(tint)
         .clipShape(.rect(cornerRadius: radius))
@@ -415,92 +389,102 @@ public struct OrganicUI: View {
     }
 
     private func loadCovers() async {
-        await withTaskGroup(of: (Show, Data?).self) { group in
-            for show in Show.allCases {
+        await withTaskGroup(of: (String, Data?).self) { group in
+            for episode in Episode.all {
+                let id = episode.id
+                let url = episode.artworkURL
                 group.addTask {
-                    let data = try? await URLSession.shared.data(from: show.artworkURL).0
-                    return (show, data)
+                    let data = try? await URLSession.shared.data(from: url).0
+                    return (id, data)
                 }
             }
-            for await (show, data) in group {
+            for await (id, data) in group {
                 guard !Task.isCancelled, let data,
                       let source = CGImageSourceCreateWithData(data as CFData, nil),
                       let preview = CGImageSourceCreateThumbnailAtIndex(source, 0, [
                         kCGImageSourceCreateThumbnailFromImageAlways: true,
+                        kCGImageSourceCreateThumbnailWithTransform: true,
                         kCGImageSourceThumbnailMaxPixelSize: 600
                       ] as CFDictionary) else { continue }
-                showCovers[show] = UIImage(cgImage: preview)
+                covers[id] = UIImage(cgImage: preview)
             }
         }
     }
 
     private func startVoice() {
         guard !phase.busy else { return }
-        request = !hasResults ? .everydayDesign : preferences.maxMinutes == nil ? .underTwenty : preferences.soundOnly ? .anyTopic : .sound
-        beat = nil
-        changePhase(to: .listening)
+        if phase == .idle {
+            preferences = Preferences()
+            request = .everydayDesign
+            withAnimation(motion(1.02)) { sceneProgress = 1 }
+            changePhase(to: reduceMotion ? .listening : .opening)
+        } else {
+            request = preferences.maxMinutes == nil ? .underTwenty : preferences.soundOnly ? .anyTopic : .sound
+            changePhase(to: .listening)
+        }
     }
 
     private func cancelVoice() {
-        beat = nil
-        changePhase(to: hasResults ? .results : .idle)
+        if hasResults { changePhase(to: .results) }
+        else { reset() }
     }
 
     private func reset() {
         guard phase != .idle else { return }
-        withAnimation(morph) {
-            selectedEpisode = nil
-            hasResults = false
-            preferences = Preferences()
-            beat = nil
-            phase = .idle
-        }
+        withAnimation(motion(0.30)) { selectedEpisode = nil }
+        hasResults = false
+        withAnimation(motion(0.46)) { resultProgress = 0 }
+        withAnimation(motion(0.52)) { sceneProgress = 0 }
+        changePhase(to: .idle)
     }
 
     private func changePhase(to next: Phase) {
         phaseStarted = .now
-        withAnimation(reduceMotion ? nil : .easeOut(duration: next == .reviewing ? 0.76 : 0.28)) { phase = next }
+        if next == .searching { searchStarted = phaseStarted }
+        withAnimation(motion(0.30)) { phase = next }
     }
 
     private func advancePhase(_ current: Phase) async {
         do {
             switch current {
             case .idle, .results: return
+            case .opening:
+                try await Task.sleep(for: .milliseconds(1020))
+                try Task.checkCancellation()
+                changePhase(to: .listening)
             case .listening:
-                if reduceMotion {
-                    try await Task.sleep(for: .milliseconds(500))
-                } else {
-                    let words = request.prompt.split(separator: " ")
-                    try await Task.sleep(for: .milliseconds(600))
-                    for (index, word) in words.enumerated() {
-                        withAnimation(.easeOut(duration: 0.28)) {
-                            beat = VoiceBeat(focus: (index * 7 + 4) % 24, strength: min(1, 0.32 + Double(word.count) * 0.09))
-                        }
-                        try await Task.sleep(for: .milliseconds(205))
-                        withAnimation(.easeOut(duration: 0.28)) { beat = nil }
-                        try await Task.sleep(for: .milliseconds(index == words.count - 1 ? 445 : 155))
-                    }
-                }
+                try await Task.sleep(for: .milliseconds(reduceMotion ? 500 : Self.listeningDuration))
                 try Task.checkCancellation()
                 changePhase(to: .searching)
             case .searching:
-                try await Task.sleep(for: .milliseconds(reduceMotion ? 600 : 1350))
+                try await Task.sleep(for: .milliseconds(reduceMotion ? 600 : 1410))
                 try Task.checkCancellation()
                 changePhase(to: .reviewing)
             case .reviewing:
-                try await Task.sleep(for: .milliseconds(reduceMotion ? 600 : 1250))
-                try Task.checkCancellation()
-                withAnimation(morph) {
-                    switch request {
-                    case .everydayDesign: break
-                    case .underTwenty: preferences.maxMinutes = 20
-                    case .sound: preferences.soundOnly = true
-                    case .anyTopic: preferences.soundOnly = false
-                    }
-                    hasResults = true
-                    centeredEpisode = matches.first?.id
-                    phase = .results
+                let next = request.applying(to: preferences)
+                let nextEpisodes = next.episodes
+                let currentIndex = matches.firstIndex { $0.id == centeredEpisode } ?? 0
+                let retained = hasResults ? matches.enumerated().filter { match in
+                    nextEpisodes.contains { $0.id == match.element.id }
+                }.min { abs($0.offset - currentIndex) < abs($1.offset - currentIndex) } : nil
+                let anchor = retained?.element.id ?? nextEpisodes.first?.id
+                if !reduceMotion, let retained, retained.offset != currentIndex {
+                    try await Task.sleep(for: .milliseconds(550))
+                    try Task.checkCancellation()
+                    withAnimation(motion(0.55)) { centeredEpisode = retained.element.id }
+                    try await Task.sleep(for: .milliseconds(770))
+                } else {
+                    try await Task.sleep(for: .milliseconds(reduceMotion ? 600 : 1320))
                 }
+                try Task.checkCancellation()
+                withAnimation(motion(0.48)) {
+                    preferences = next
+                    hasResults = true
+                    resultAnchor = anchor
+                    centeredEpisode = anchor
+                }
+                changePhase(to: .results)
+                withAnimation(motion(0.88)) { resultProgress = 1 }
             }
         } catch is CancellationError {
             // A new phase or a disappearing view has already replaced this task.
@@ -532,14 +516,209 @@ public struct OrganicUI: View {
 }
 
 private extension OrganicUI {
-    enum Phase: Equatable {
-        case idle, listening, searching, reviewing, results
+    static let easing = UnitCurve.bezier(startControlPoint: UnitPoint(x: 0.42, y: 0),
+                                         endControlPoint: UnitPoint(x: 0.30, y: 1))
+    static let listeningDuration = 3100
 
-        var busy: Bool { self == .listening || self == .searching || self == .reviewing }
+    static func progress(_ value: Double, from start: Double, to end: Double) -> Double {
+        min(1, max(0, (value - start) / (end - start)))
+    }
+
+    static func smooth(_ value: Double) -> Double {
+        value * value * (3 - 2 * value)
+    }
+
+    struct OpeningMask: View, Animatable {
+        var progress: Double
+        let size: CGSize
+
+        var animatableData: Double {
+            get { progress }
+            set { progress = newValue }
+        }
+
+        private var opacity: Double {
+            if progress < 0.2 {
+                return 0.37 * OrganicUI.progress(progress, from: 0, to: 0.2)
+            } else if progress < 0.58 {
+                return 0.37 + 0.52 * OrganicUI.progress(progress, from: 0.2, to: 0.58)
+            }
+            return 0.89 + 0.11 * OrganicUI.progress(progress, from: 0.58, to: 1)
+        }
+
+        var body: some View {
+            let radius = 0.001 + 2.05 * progress
+            RadialGradient(stops: [
+                .init(color: .black, location: 0.54),
+                .init(color: .black.opacity(0.75), location: 0.68),
+                .init(color: .black.opacity(0.20), location: 0.88),
+                .init(color: .clear, location: 1)
+            ], center: .center, startRadius: 0, endRadius: 1)
+            .frame(width: 2, height: 2)
+            .scaleEffect(x: size.width * radius, y: size.height * (0.001 + 1.25 * progress))
+            .position(x: 46, y: size.height - 50)
+            .opacity(opacity)
+        }
+    }
+
+    struct FogMask: View, Animatable {
+        var progress: Double
+
+        var animatableData: Double {
+            get { progress }
+            set { progress = newValue }
+        }
+
+        var body: some View {
+            ZStack(alignment: .bottom) {
+                fade(height: 210)
+                fade(height: 420)
+                    .opacity(OrganicUI.progress(progress, from: 0.12, to: 1))
+            }
+        }
+
+        private func fade(height: CGFloat) -> some View {
+            LinearGradient(stops: [
+                .init(color: .clear, location: 0),
+                .init(color: .black.opacity(0.27), location: 43 / height),
+                .init(color: .black.opacity(0.78), location: 96 / height),
+                .init(color: .black, location: 140 / height)
+            ], startPoint: .top, endPoint: .bottom)
+            .frame(height: height)
+        }
+    }
+
+    struct AgentMark: View, Animatable {
+        var expansion: Double
+        var gather: Double
+        let listeningSince: Date?
+        let searchingSince: Date?
+
+        var animatableData: AnimatablePair<Double, Double> {
+            get { AnimatablePair(expansion, gather) }
+            set { (expansion, gather) = (newValue.first, newValue.second) }
+        }
+
+        var body: some View {
+            TimelineView(.animation(paused: listeningSince == nil && searchingSince == nil)) { timeline in
+                Canvas { context, _ in
+                    let center = CGPoint(x: 16, y: 16)
+                    let breath = listeningSince.map { voiceEnergy(timeline.date.timeIntervalSince($0)) } ?? 0
+                    let orbit = searchingSince.map { timeline.date.timeIntervalSince($0) / 2.05 } ?? 0
+                    let coreRadius = 4 - 2 * OrganicUI.progress(expansion, from: 0, to: 0.5)
+                    var core = context
+                    core.opacity = 1 - OrganicUI.smooth(OrganicUI.progress(expansion, from: 0.17, to: 0.57))
+                    core.fill(circle(center: center, radius: coreRadius), with: .radialGradient(
+                        Gradient(colors: [OrganicUI.color(0xA8C8F1), OrganicUI.color(0x749BCE)]),
+                        center: center, startRadius: 0, endRadius: coreRadius
+                    ))
+
+                    var ring = context
+                    ring.opacity = OrganicUI.smooth(OrganicUI.progress(expansion, from: 0.15, to: 0.7))
+                    let radius = 1.08 + 0.26 * breath
+                    for index in 0..<24 {
+                        let position = particle(index, breath: breath, orbit: orbit)
+                        ring.fill(circle(center: position, radius: radius), with: .color(OrganicUI.color(0xC4DDFA)))
+                    }
+                }
+            }
+        }
+
+        private func voiceEnergy(_ elapsed: Double) -> Double {
+            let time = elapsed / (Double(OrganicUI.listeningDuration) / 1000)
+            if time < 0.52 {
+                return OrganicUI.easing.value(at: OrganicUI.progress(time, from: 0.18, to: 0.52))
+            }
+            return 1 - OrganicUI.easing.value(at: OrganicUI.progress(time, from: 0.52, to: 0.90))
+        }
+
+        private func particle(_ index: Int, breath: Double, orbit: Double) -> CGPoint {
+            let angle = Double(index) * .pi / 12
+            let inner = index.isMultiple(of: 2)
+            let wave = (1 - cos(2 * .pi * (orbit - Double(index) / 24))) / 2
+            let arc = point(angle + (inner ? 0.48 : -0.23), radius: inner ? 8.2 : 13.6)
+            let sweep = point(angle + (inner ? 0.70 : -0.34), radius: inner ? 9.1 : 13.5)
+            let curve = mix(arc, sweep, wave)
+            let ripple = breath * sin(2 * angle - .pi * breath)
+            let listening = point(angle + 0.064 * breath, radius: 13.5 + 0.85 * ripple)
+            let offset = mix(listening, curve, gather * (0.54 + 0.46 * wave))
+            return mix(CGPoint(x: 16, y: 16), offset, expansion)
+        }
+
+        private func point(_ angle: Double, radius: Double) -> CGPoint {
+            CGPoint(x: 16 + cos(angle) * radius, y: 16 + sin(angle) * radius)
+        }
+
+        private func mix(_ from: CGPoint, _ to: CGPoint, _ progress: Double) -> CGPoint {
+            CGPoint(x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress)
+        }
+
+        private func circle(center: CGPoint, radius: Double) -> Path {
+            Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
+        }
+    }
+
+    /// Keep the result row anchored to the bottom while it makes room above.
+    struct ShelfLayout: Layout {
+        var progress: Double
+
+        var animatableData: Double {
+            get { progress }
+            set { progress = newValue }
+        }
+
+        func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+            guard let shelf = subviews.first else { return .zero }
+            let natural = shelf.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+            return CGSize(width: natural.width, height: natural.height * progress)
+        }
+
+        func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+            subviews.first?.place(at: CGPoint(x: bounds.minX, y: bounds.maxY), anchor: .bottomLeading,
+                                  proposal: ProposedViewSize(width: bounds.width, height: nil))
+        }
+    }
+
+    struct ShelfAppearance: ViewModifier, Animatable {
+        var progress: Double
+
+        var animatableData: Double {
+            get { progress }
+            set { progress = newValue }
+        }
+
+        func body(content: Content) -> some View {
+            let reveal = OrganicUI.smooth(OrganicUI.progress(progress, from: 0.31, to: 1))
+            content.opacity(reveal).offset(y: (1 - reveal) * 10)
+        }
+    }
+
+    struct StatusLine: View {
+        let text: String
+        let width: CGFloat
+        let revealWords: Bool
+        @State private var wordTime = 0.0
+
+        var body: some View {
+            Paragraph(text, width: width, size: 17, lineHeight: 21.25, wordTime: revealWords ? wordTime : -1)
+                .accessibilityAddTraits(.updatesFrequently)
+                .onAppear {
+                    guard revealWords else { return }
+                    let duration = 0.24 + 0.042 * Double(max(0, text.split(separator: " ").count - 1))
+                    withAnimation(.linear(duration: duration)) { wordTime = duration }
+                }
+        }
+    }
+
+    enum Phase: Equatable {
+        case idle, opening, listening, searching, reviewing, results
+
+        var compact: Bool { self == .idle || self == .opening }
+        var busy: Bool { self != .idle && self != .results }
 
         var controlLabel: String {
             switch self {
-            case .idle: "Start voice demo"
+            case .idle, .opening: "Start voice demo"
             case .listening: "Stop listening"
             case .searching, .reviewing: "Stop searching"
             case .results: "Refine with voice demo"
@@ -550,58 +729,64 @@ private extension OrganicUI {
     enum VoiceRequest {
         case everydayDesign, underTwenty, sound, anyTopic
 
-        var prompt: String {
+        func applying(to preferences: Preferences) -> Preferences {
+            var next = preferences
             switch self {
-            case .everydayDesign: "Find a podcast about everyday design."
-            case .underTwenty: "Keep it under 20 minutes."
-            case .sound: "Something about sound."
-            case .anyTopic: "Any topic."
+            case .everydayDesign: break
+            case .underTwenty: next.maxMinutes = 20
+            case .sound: next.soundOnly = true
+            case .anyTopic: next.soundOnly = false
             }
+            return next
         }
     }
 
     struct Preferences {
         var maxMinutes: Int?
         var soundOnly = false
-    }
 
-    struct VoiceBeat {
-        let focus: Int
-        let strength: Double
-    }
-
-    struct AgentDot {
-        let center: CGPoint
-        let radius: CGFloat
-        let color: Color
-        let opacity: Double
+        var episodes: [Episode] {
+            Episode.all.filter { episode in
+                (maxMinutes.map { episode.seconds <= $0 * 60 } ?? true)
+                    && (!soundOnly || episode.topic == .sound)
+            }
+        }
     }
 
     /// SwiftUI balances wrapped lines. Pack words from the leading edge as the web layout does.
-    struct Paragraph: View {
+    struct Paragraph: View, Animatable {
         let text: String
         let width: CGFloat
         let size: CGFloat
         let lineHeight: CGFloat
         let semibold: Bool
         let tracking: CGFloat
+        var wordTime: Double
 
-        init(_ text: String, width: CGFloat, size: CGFloat, lineHeight: CGFloat, semibold: Bool = false, tracking: CGFloat = 0) {
+        var animatableData: Double {
+            get { wordTime }
+            set { wordTime = newValue }
+        }
+
+        init(_ text: String, width: CGFloat, size: CGFloat, lineHeight: CGFloat, semibold: Bool = false, tracking: CGFloat = 0, wordTime: Double = -1) {
             self.text = text
             self.width = width
             self.size = size
             self.lineHeight = lineHeight
             self.semibold = semibold
             self.tracking = tracking
+            self.wordTime = wordTime
         }
 
         var body: some View {
             let font = semibold ? OrganicUI.semibold(size) : DesignFont.sans(size)
             let uiFont = UIFont(name: semibold ? (OrganicUI.semiboldName ?? "") : "Geist-Regular", size: size)
                 ?? .systemFont(ofSize: size, weight: semibold ? .semibold : .regular)
+            let wrapped = lines(font: uiFont)
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(lines(font: uiFont).enumerated()), id: \.offset) { _, line in
-                    Text(verbatim: line)
+                ForEach(Array(wrapped.enumerated()), id: \.offset) { index, line in
+                    let firstWord = wrapped.prefix(index).reduce(0) { $0 + $1.split(separator: " ").count }
+                    lineText(line, firstWord: firstWord)
                         .font(font)
                         .tracking(tracking)
                         .lineLimit(1)
@@ -613,6 +798,19 @@ private extension OrganicUI {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(text)
             .accessibilityAddTraits(.isStaticText)
+        }
+
+        private func lineText(_ line: String, firstWord: Int) -> Text {
+            guard wordTime >= 0 else { return Text(verbatim: line) }
+            var styled = AttributedString()
+            for (index, word) in line.split(separator: " ").enumerated() {
+                let delay = Double(firstWord + index) * 0.042
+                let opacity = OrganicUI.easing.value(at: OrganicUI.progress(wordTime, from: delay, to: delay + 0.24))
+                var piece = AttributedString(index == 0 ? String(word) : " " + word)
+                piece.foregroundColor = .white.opacity(opacity)
+                styled.append(piece)
+            }
+            return Text(styled)
         }
 
         private func lines(font: UIFont) -> [String] {
@@ -633,7 +831,7 @@ private extension OrganicUI {
         }
     }
 
-    enum Show: CaseIterable, Hashable, Sendable {
+    enum Show {
         case twentyThousandHertz, ninetyNinePercentInvisible
 
         var title: String {
@@ -643,14 +841,6 @@ private extension OrganicUI {
             }
         }
 
-        var artworkURL: URL {
-            switch self {
-            case .twentyThousandHertz:
-                URL(string: "https://f.prxu.org/18144/images/24983ab6-e43f-4b49-8c21-f3b4d461c758/Twenty_Thousand_Hertz_-_Key_Icon_-_3000x3000.jpeg")!
-            case .ninetyNinePercentInvisible:
-                URL(string: "https://image.simplecastcdn.com/images/8436e3c1-2479-4466-ac48-fa58259960bb/a6d5b177-ab5d-430d-b3f2-b393a09d8101/480x480/sxm-cover-99percentinvisible-r2025-3000x3000-final.jpg?aid=rss_feed")!
-            }
-        }
     }
 
     struct Episode: Identifiable {
@@ -663,22 +853,27 @@ private extension OrganicUI {
         let topic: Topic
         let description: String
         let link: URL
+        let artworkURL: URL
 
         var duration: String { String(format: "%d:%02d", seconds / 60, seconds % 60) }
 
         static let all = [
             Episode(id: "windows", title: "Windows startup sounds", show: .twentyThousandHertz, seconds: 1576, topic: .sound,
                     description: "How Microsoft used a few seconds of sound to give each version of Windows its own personality.",
-                    link: URL(string: "https://www.20k.org/episodes/tadaitswindows")!),
+                    link: URL(string: "https://www.20k.org/episodes/tadaitswindows")!,
+                    artworkURL: URL(string: "https://images.squarespace-cdn.com/content/v1/580fbaac440243d8731ffc57/322ef7e8-a834-429e-9384-4c237adc0150/20K_WindowsStartup_Part1.jpg?format=750w")!),
             Episode(id: "kitchen", title: "The Frankfurt Kitchen", show: .ninetyNinePercentInvisible, seconds: 2063, topic: .architecture,
                     description: "How a compact kitchen in 1920s Frankfurt helped shape the way we design kitchens today.",
-                    link: URL(string: "https://99percentinvisible.org/episode/541-the-frankfurt-kitchen/")!),
+                    link: URL(string: "https://99percentinvisible.org/episode/541-the-frankfurt-kitchen/")!,
+                    artworkURL: URL(string: "https://99percentinvisible.org/wp-content/uploads/2023/05/frankfurt-main.jpg")!),
             Episode(id: "screens", title: "Future Screens Are Mostly Blue", show: .ninetyNinePercentInvisible, seconds: 1194, topic: .technology,
                     description: "Why sci-fi interfaces keep turning blue, and what their designers imagine screens will do next.",
-                    link: URL(string: "https://99percentinvisible.org/episode/future-screens-are-mostly-blue/")!),
+                    link: URL(string: "https://99percentinvisible.org/episode/future-screens-are-mostly-blue/")!,
+                    artworkURL: URL(string: "https://99percentinvisible.org/wp-content/uploads/2013/11/7801464974_4fbd765dd9_o.jpg")!),
             Episode(id: "artificial-sound", title: "The Sound of the Artificial World", show: .ninetyNinePercentInvisible, seconds: 319, topic: .sound,
                     description: "Sound designer Jim McKee explains how a digital button gets the feel of a physical click.",
-                    link: URL(string: "https://99percentinvisible.org/episode/episode-15-the-sound-of-the-artificial-world/")!)
+                    link: URL(string: "https://99percentinvisible.org/episode/episode-15-the-sound-of-the-artificial-world/")!,
+                    artworkURL: URL(string: "https://99percentinvisible.org/wp-content/uploads/2011/02/3341668133_f0a11049a1_b.jpg")!)
         ]
     }
 

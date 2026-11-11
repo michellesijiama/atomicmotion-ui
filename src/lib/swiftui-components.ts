@@ -33,8 +33,8 @@ export const swiftUIComponents = {
   },
   "organic-ui": {
     sourceFile: "OrganicUI.swift",
-    usage: "Render OrganicUI() as a screen. Its native podcast assistant uses the package's bundled editorial illustrations.",
-    previewDescription: "Ask for a podcast, browse matches, and open an episode.",
+    usage: "Render OrganicUI() as a screen. Tap the dot to start the simulated voice search and use the microphone button to refine the results.",
+    previewDescription: "Watch the dot open into a listening ring, then swipe the episode cards and refine the search to under 20 minutes.",
   },
   "jardin-opening": {
     sourceFile: "JardinOpening.swift",

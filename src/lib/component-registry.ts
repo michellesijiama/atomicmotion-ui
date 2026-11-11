@@ -122,6 +122,7 @@ export const componentRegistry = {
     category: "AI",
     createdAt: "2026-11-09",
     codePath: "components/ai/organic-ui/organic-ui.tsx",
+    stageBackground: "gray",
     previewStatic: true,
     requiredAssets: [
       { path: "public/components/organic-ui/kyoto-river.webp", license: "MIT", credit: "AI-generated concept image inspired by Kyoto’s Kamo River." },
