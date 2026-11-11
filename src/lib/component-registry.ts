@@ -4,9 +4,16 @@ export const REPO_BRANCH = "main";
 
 const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REPO_BRANCH}`;
 
-// Components whose home-gallery card plays a looping video (`/previews/<id>.mp4`)
-// instead of the static poster — heavy 3D scenes we don't mount live in the grid.
-const COMPONENTS_WITH_PREVIEW_VIDEO = new Set(["gradient-gummy-bear", "showreel-sphere"]);
+// Recordings let the gallery show interactions and WebGL scenes without
+// mounting their full demos. The matching PNG is the reduced-motion fallback.
+const COMPONENTS_WITH_PREVIEW_VIDEO = new Set([
+  "organic-ui",
+  "digital-stress-reliever",
+  "sticker-peel",
+  "bead-club",
+  "gradient-gummy-bear",
+  "showreel-sphere",
+]);
 
 /**
  * A file outside the component's own folder that the component loads at
@@ -41,14 +48,12 @@ export type ComponentMeta = {
   codeHref: string;
   previewImage: string;
   /**
-   * Looping video used for the home gallery card instead of a live preview,
-   * for heavy WebGL scenes we don't want mounting live in the gallery.
+   * Looping video used for the home gallery card in place of a live demo.
    */
   previewVideo?: string;
   /**
-   * Render the static poster on the home card instead of a live or video
-   * preview — used for heavy 3D components that should not animate in the
-   * gallery.
+   * Skip mounting the live demo on the home card. Use its video when available,
+   * otherwise use the poster.
    */
   previewStatic?: boolean;
   /** Inset a still or video inside its gallery card without changing its aspect ratio. */

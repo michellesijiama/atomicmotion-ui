@@ -16,6 +16,8 @@ const livePreview = read("src/components/website/live-card-preview.tsx");
 
 const ids = Array.from(registry.matchAll(/id: "([^"]+)"/g)).map((match) => match[1]);
 const uniqueIds = [...new Set(ids)];
+const videoEntries = registry.match(/COMPONENTS_WITH_PREVIEW_VIDEO = new Set\(\[([\s\S]*?)\]\)/)?.[1] ?? "";
+const videoIds = Array.from(videoEntries.matchAll(/"([^"]+)"/g), (match) => match[1]);
 
 // Split the registry on entry boundaries so `previewStatic` is attributed to
 // the entry it actually belongs to.
@@ -67,6 +69,10 @@ const checks = [
     webglIds.every((id) => staticPreviewIds.has(id)),
   ],
   ["all registered components have generated preview files", uniqueIds.every((id) => existsSync(`public/previews/${id}.png`))],
+  [
+    "every registered gallery video belongs to a component and has a video file",
+    videoIds.length > 0 && videoIds.every((id) => uniqueIds.includes(id) && existsSync(`public/previews/${id}.mp4`)),
+  ],
 ];
 
 const failures = checks.filter(([, passed]) => !passed);
