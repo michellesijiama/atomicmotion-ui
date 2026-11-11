@@ -1,9 +1,9 @@
 import type { ComponentType } from "react";
 
+import { OrganicUIPreview } from "@/components/website/organic-ui-preview";
 import { StickerPeelDemo } from "@/components/website/sticker-peel-demo";
 
 import { GeminiLive } from "@components/ai/gemini-live";
-import { OrganicUI } from "@components/ai/organic-ui";
 import { VoiceBloom } from "@components/ai/voice-bloom";
 import { GradientGummyBear } from "@components/3d/gradient-gummy-bear";
 import { ShowreelSphere } from "@components/3d/showreel-sphere";
@@ -26,8 +26,7 @@ import { UIWalkthrough } from "@components/template/ui-walkthrough";
 import { GeometricLogoReveal } from "@components/typography/geometric-logo-reveal";
 import { ScrollScrubbedTypography } from "@components/typography/scroll-scrubbed-typography";
 
-// Only components whose gallery tile needs adapting get a wrapper; the rest
-// are mapped directly and receive `loop` unchanged.
+// Wrappers set up presentation for the website's demos and gallery tiles.
 
 function JardinOpeningPreview({ loop }: { loop?: boolean }) {
   // Counter the gallery stage's zoom so the landscape iPad fits inside the card.
@@ -57,7 +56,7 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
 }
 
 export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
-  "organic-ui": () => <OrganicUI />,
+  "organic-ui": OrganicUIPreview,
   "digital-stress-reliever": DigitalStressReliever,
   "sticker-peel": StickerPeelDemo,
   "bead-club": BeadClub,

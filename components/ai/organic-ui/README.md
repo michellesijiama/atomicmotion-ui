@@ -1,6 +1,6 @@
 # Organic UI
 
-A frosted assistant demo that morphs between a transcript, place details, and sample images from typed prompts.
+A podcast discovery demo that refines swipeable episodes by listening time and topic.
 
 ![Organic UI preview](https://atomicmotion.dev/previews/organic-ui.png)
 
@@ -44,6 +44,9 @@ The wrapper provides a bounded preview area. Resize it or pass `className` to fi
 | Prop | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `className` | `string` | — | Additional classes for the root container. |
+| `podcastAssistant` | `boolean` | — | Show the podcast search assistant. Pass false for the original Kyoto demo. |
+| `makeupAssistant` | `boolean` | — |  |
+| `coffeeAssistant` | `boolean` | — |  |
 
 Named export: `OrganicUI`. Public types: `OrganicUIProps`.
 - **Source access:** Free and open source.
@@ -56,6 +59,10 @@ The component code is one file, but it also loads these files at runtime:
 - [public/components/organic-ui/kyoto-river.webp](../../../public/components/organic-ui/kyoto-river.webp) (MIT). AI-generated concept image inspired by Kyoto’s Kamo River.
 - [public/components/organic-ui/kyoto-gallery.webp](../../../public/components/organic-ui/kyoto-gallery.webp) (MIT). AI-generated concept image of a Japanese art gallery.
 - [public/components/organic-ui/kyoto-night.webp](../../../public/components/organic-ui/kyoto-night.webp) (MIT). AI-generated concept image of a rainy Kyoto lane at dusk.
+- [public/components/organic-ui/podcast-windows.webp](../../../public/components/organic-ui/podcast-windows.webp) (MIT). AI-generated editorial artwork for the Windows startup sounds episode.
+- [public/components/organic-ui/podcast-kitchen.webp](../../../public/components/organic-ui/podcast-kitchen.webp) (MIT). AI-generated editorial artwork for The Frankfurt Kitchen.
+- [public/components/organic-ui/podcast-screens.webp](../../../public/components/organic-ui/podcast-screens.webp) (MIT). AI-generated editorial artwork for Future Screens Are Mostly Blue.
+- [public/components/organic-ui/podcast-artificial-sound.webp](../../../public/components/organic-ui/podcast-artificial-sound.webp) (MIT). AI-generated editorial artwork for The Sound of the Artificial World.
 
 Copy the component and every required asset, preserving the attribution above.
 

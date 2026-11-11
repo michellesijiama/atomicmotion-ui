@@ -118,7 +118,7 @@ export const componentRegistry = {
     index: "025",
     title: "Organic UI",
     description:
-      "A frosted assistant demo that morphs between a transcript, place details, and sample images from typed prompts.",
+      "A podcast discovery demo that refines swipeable episodes by listening time and topic.",
     category: "AI",
     createdAt: "2026-11-09",
     codePath: "components/ai/organic-ui/organic-ui.tsx",
@@ -127,6 +127,10 @@ export const componentRegistry = {
       { path: "public/components/organic-ui/kyoto-river.webp", license: "MIT", credit: "AI-generated concept image inspired by Kyoto’s Kamo River." },
       { path: "public/components/organic-ui/kyoto-gallery.webp", license: "MIT", credit: "AI-generated concept image of a Japanese art gallery." },
       { path: "public/components/organic-ui/kyoto-night.webp", license: "MIT", credit: "AI-generated concept image of a rainy Kyoto lane at dusk." },
+      { path: "public/components/organic-ui/podcast-windows.webp", license: "MIT", credit: "AI-generated editorial artwork for the Windows startup sounds episode." },
+      { path: "public/components/organic-ui/podcast-kitchen.webp", license: "MIT", credit: "AI-generated editorial artwork for The Frankfurt Kitchen." },
+      { path: "public/components/organic-ui/podcast-screens.webp", license: "MIT", credit: "AI-generated editorial artwork for Future Screens Are Mostly Blue." },
+      { path: "public/components/organic-ui/podcast-artificial-sound.webp", license: "MIT", credit: "AI-generated editorial artwork for The Sound of the Artificial World." },
     ],
   }),
   digitalStressReliever: createComponentMeta({
