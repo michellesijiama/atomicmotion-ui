@@ -108,6 +108,7 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   const { entries } = readRegistry();
   const { studioModels } = readComponentData("src/lib/model-registry.ts");
+  const { hasSwiftUI } = readComponentData("src/lib/swiftui-components.ts");
   const homeWidths = [320, 375, 390, 430, 480, 639, 640, 641, 768, 960, 1007, 1008, 1023, 1024, 1280, 1366, 1920, 2560];
   // Limit category/header queries to their controls, rather than repeatedly
   // walking thousands of animated SVG nodes inside the gallery previews.
@@ -161,7 +162,7 @@ try {
       if (viewport.width === 320) {
         await page.getByRole("button", { name: `Details about ${title}`, exact: true }).click();
         await page.waitForTimeout(650);
-        const actions = ["sticker-peel", "soft-menu-reveal"].includes(id) ? ["React", "Swift"] : ["Copy for AI"];
+        const actions = hasSwiftUI(id) ? ["React", "Swift"] : ["Copy for AI"];
         for (const action of actions) {
           await reachable(page.getByRole("button", { name: action, exact: true }), `${id}: ${action} source action`);
         }
