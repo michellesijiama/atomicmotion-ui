@@ -17,7 +17,7 @@ const checks = [...files].map(([path, bytes]) => ({
 }));
 for (const model of studioModels) {
   for (const path of new Set([
-    ...[model.blend, model.gif, model.still, model.image, model.license].map((asset) => `public${asset}`),
+    ...[model.blend, model.gif, model.still, model.image, model.license].filter(Boolean).map((asset) => `public${asset}`),
     `scenes/${model.id}/README.md`,
   ])) checks.push({ url: `${raw}/atomicmotion-ui/main/${path}`, checksum: hash(readFileSync(path)) });
 }

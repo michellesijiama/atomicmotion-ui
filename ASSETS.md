@@ -36,6 +36,8 @@ carry a different license than the code that ships them. Checked by
 
 | `public/studio/little-nap/{little-nap.blend,little-nap.png,little-nap.webp,little-nap-soft-hops.gif,LICENSE.txt}` | Original five whole, round pig tangyuan in a continuous blue lace bowl with clear water, a sliding entrance, brief startled painted expressions, individual floating sways, little nuzzles and subtle volume-preserving shape changes, moving water waves, following ripples, soft reflections, colored-pencil contours and pale fill, fibrous paper, rim-following ink lettering and golden stars. Cycles still and Eevee twelve-second fixed-frontal-camera slide-and-float loop, created with `scenes/little-nap/create_scene.py`. The reference is not embedded. Packed Courier Prime is by The Courier Prime Project Authors. | AtomicMotion / Sijia Ma; The Courier Prime Project Authors (font) | MIT (scene and renders); SIL OFL 1.1 (font) | `scenes/little-nap/README.md`, embedded Blender readme and downloadable `LICENSE.txt` |
 
+| `public/studio/mango-on-silver/{mango-on-silver.blend,mango-on-silver.png,mango-on-silver.webp,LICENSE.txt}` | Blender portrait of a mango crepe cake adapted from the Little Bead Club guava layout on a rose-embossed silver plate. The scene packs a mango color map and the UI's terry and glint maps and uses a procedural chromatic-grain backdrop. | AtomicMotion / Sijia Ma (scene); Little Bead Club reference artist unprovided (cake layout); The Courier Prime Project Authors (font) | MIT (original scene and code); SIL OFL 1.1 (font); separate cake artwork terms | `scenes/mango-on-silver/README.md`, embedded license and downloadable `LICENSE.txt` |
+
 ## Already removed
 
 `public/gummy-bear-xiaohongshu.mp4` (2.1 MB) had no recorded source and was

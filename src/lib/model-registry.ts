@@ -4,7 +4,7 @@ export type StudioModel = {
   description: string;
   image: string;
   imageAlt: string;
-  gif: string;
+  gif?: string;
   blend: string;
   still: string;
   license: string;
@@ -15,6 +15,22 @@ export type StudioModel = {
 };
 
 export const studioModels: StudioModel[] = [
+  {
+    id: "mango-on-silver",
+    title: "Mango on Silver",
+    description:
+      "A mango crepe cake inspired by Little Bead Club stands on a rose-embossed silver plate. Golden yellow, cream and orange beads catch tiny glints against a grainy deep-blue backdrop.",
+    image: "/studio/mango-on-silver/mango-on-silver.webp",
+    imageAlt:
+      "A flat pixel-art slice of golden yellow and orange mango cake stands upright on a scalloped silver plate with embossed roses, against a grainy deep-blue backdrop with soft photographic focus.",
+    blend: "/studio/mango-on-silver/mango-on-silver.blend",
+    still: "/studio/mango-on-silver/mango-on-silver.png",
+    license: "/studio/mango-on-silver/LICENSE.txt",
+    width: 1080,
+    height: 1339,
+    blenderVersion: "5.2.2",
+    renderEngine: "Cycles",
+  },
   {
     id: "little-nap",
     title: "Little Nap",

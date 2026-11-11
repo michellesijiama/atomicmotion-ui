@@ -8,8 +8,8 @@ export function ModelActions({ model }: { model: StudioModel }) {
       <a href={model.blend} download className={actionPrimaryClass}>
         Download Blender file <Download className="size-4" aria-hidden="true" />
       </a>
-      <a href={model.gif} download className={actionGhostClass}>
-        Download GIF <Download className="size-4" aria-hidden="true" />
+      <a href={model.gif ?? model.still} download className={actionGhostClass}>
+        {model.gif ? "Download GIF" : "Download PNG"} <Download className="size-4" aria-hidden="true" />
       </a>
     </div>
   );

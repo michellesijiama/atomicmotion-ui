@@ -13,10 +13,9 @@ export function ModelPreview({
 }) {
   return (
     <picture className={frameClassName}>
-      <source media="(prefers-reduced-motion: reduce)" srcSet={model.image} />
-      {/* GIF is the requested preview format; serve its original animated bytes. */}
+      {model.gif ? <source media="(prefers-reduced-motion: reduce)" srcSet={model.image} /> : null}
       <img
-        src={model.gif}
+        src={model.gif ?? model.image}
         alt={model.imageAlt}
         width={model.width}
         height={model.height}

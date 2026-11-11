@@ -58,7 +58,7 @@ try {
     assert.match(html, /name="twitter:card" content="summary_large_image"/, `${path}: share preview card`);
     assert.equal(html.match(/property="og:url" content="([^"]+)"/)?.[1], canonical, `${path}: matching Open Graph URL`);
   }
-  for (const [source, destination] of [["/still-life", "/3d-studio"], ["/3d-studio/apple-club", "/3d-studio/little-nap"]]) {
+  for (const [source, destination] of [["/still-life", "/3d-studio"], ["/3d-studio/apple-club", "/3d-studio/little-nap"], ["/3d-studio/guava-on-silver", "/3d-studio/mango-on-silver"]]) {
     const response = await request(source);
     assert.equal(response.status, 308, source);
     assert.equal(new URL(response.headers.get("location"), base).pathname, destination);
@@ -99,7 +99,7 @@ try {
     }
   }
   for (const model of studioModels) {
-    for (const path of new Set([model.image, model.gif, model.blend, model.still, model.license])) {
+    for (const path of new Set([model.image, model.gif, model.blend, model.still, model.license].filter(Boolean))) {
       const response = await request(path);
       assert.equal(response.status, 200, path);
       assert.deepEqual(Buffer.from(await response.arrayBuffer()), readFileSync(`public${path}`), `${path}: original downloadable bytes`);

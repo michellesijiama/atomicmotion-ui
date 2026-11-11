@@ -194,7 +194,7 @@ try {
       assert.ok(order.imageBottom <= order.detailsTop, `${model.id}: information follows artwork on mobile`);
       await reachable(page.getByRole("link", { name: "Download Blender file", exact: true }), `${model.id}: Blender download`);
       assert.equal(await page.getByRole("button", { name: "Copy for AI", exact: true }).count(), 0, `${model.id}: no AI action`);
-      await reachable(page.getByRole("link", { name: "Download GIF", exact: true }), `${model.id}: GIF download`);
+      await reachable(page.getByRole("link", { name: model.gif ? "Download GIF" : "Download PNG", exact: true }), `${model.id}: preview download`);
       assert.equal(await page.getByRole("link", { name: "License", exact: true }).count(), 0, `${model.id}: no license action`);
       if (viewport.width === 390) await capture(page, model.id);
       await visit(page, "/3d-studio");
@@ -212,7 +212,7 @@ try {
     assert.ok(columns.imageRight < columns.detailsLeft, `${model.id}: artwork is left of information`);
     assert.ok(columns.imageTop < columns.detailsBottom && columns.detailsTop < columns.imageBottom, `${model.id}: columns sit side by side`);
     await reachable(page.getByRole("link", { name: "Download Blender file", exact: true }), `${model.id}: desktop download`);
-    await reachable(page.getByRole("link", { name: "Download GIF", exact: true }), `${model.id}: desktop GIF download`);
+    await reachable(page.getByRole("link", { name: model.gif ? "Download GIF" : "Download PNG", exact: true }), `${model.id}: desktop preview download`);
     await checkWidth(page, `${model.id}: desktop columns`);
     await capture(page, `${model.id}-desktop-columns`);
   }

@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/3d-studio/guava-on-silver",
+        destination: "/3d-studio/mango-on-silver",
+        permanent: true,
+      },
+      {
         source: "/3d-studio/apple-club",
         destination: "/3d-studio/little-nap",
         permanent: true,
