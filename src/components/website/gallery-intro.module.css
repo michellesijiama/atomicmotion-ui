@@ -1,0 +1,44 @@
+.intro {
+  max-inline-size: 48rem;
+  margin: 0;
+  padding: clamp(3rem, 7vw, 6rem) 0 clamp(2rem, 4vw, 3.5rem);
+  color: var(--jitter-ink);
+  font-size: var(--text-heading);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  text-align: start;
+  text-wrap: balance;
+}
+
+.word {
+  display: inline-block;
+  animation: reveal-word 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.emphasis {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  padding-inline: 0.28em;
+  border-radius: 0.2em;
+  background: var(--jitter-gray-600);
+  color: var(--jitter-white);
+  line-height: 1.2;
+}
+
+.emphasis svg {
+  width: 0.85em;
+  height: 0.85em;
+}
+
+@keyframes reveal-word {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word {
+    animation: none;
+  }
+}

@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default function StudioPage() {
   return (
-    <SitePage section="3d-studio" heading="Explore 3D still lifes and animations.">
+    <SitePage section="3d-studio">
       <StudioModelBrowser models={studioModels} />
     </SitePage>
   );

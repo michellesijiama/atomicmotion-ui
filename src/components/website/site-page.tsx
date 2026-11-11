@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Reveal } from "@/components/website/reveal";
+import { GalleryIntro } from "@/components/website/gallery-intro";
 import { SiteFooter } from "@/components/website/site-footer";
 import { SiteHeader } from "@/components/website/site-header";
 
@@ -10,11 +10,9 @@ import { SiteHeader } from "@/components/website/site-header";
  */
 export function SitePage({
   section,
-  heading,
   children,
 }: {
   section?: "interfaces" | "3d-studio";
-  heading: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -26,14 +24,7 @@ export function SitePage({
           </header>
 
           <section className="pb-20 sm:pb-28 lg:pb-32" aria-label="Introduction">
-            <div className="py-20 sm:py-28 lg:py-32">
-              <Reveal delay={0.1}>
-                <h1 className="mx-auto max-w-3xl text-balance text-center text-[26px] leading-[1.3] tracking-[-0.02em] text-[var(--jitter-ink)]">
-                  {heading}
-                </h1>
-              </Reveal>
-            </div>
-
+            <GalleryIntro />
             {children}
           </section>
         </div>
