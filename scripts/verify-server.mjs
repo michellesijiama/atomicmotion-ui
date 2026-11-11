@@ -41,6 +41,7 @@ try {
   }
   assert.ok(ready, `Server readiness timed out: ${logs}`);
   const { entries, videoIds } = readRegistry();
+  const { swiftUIComponents } = readComponentData("src/lib/swiftui-components.ts");
   const { studioModels } = readComponentData("src/lib/model-registry.ts");
   const paths = ["/", "/3d-studio", ...studioModels.map(({ id }) => `/3d-studio/${id}`), ...entries.map(({ id }) => `/components/${id}`)];
   for (const path of paths) {
@@ -75,15 +76,15 @@ try {
     assert.equal(response.status, 404, path);
     await response.arrayBuffer();
   }
-  for (const [id, filename] of [["soft-menu-reveal", "SoftMenuReveal.swift"], ["sticker-peel", "StickerPeel.swift"], ["bead-club", "BeadClub.swift"]]) {
+  for (const [id, { sourceFile }] of Object.entries(swiftUIComponents)) {
     const source = await request(`/components/${id}/swiftui`);
     assert.equal(source.status, 200, id);
     assert.match(source.headers.get("content-type") ?? "", /^text\/plain/);
-    assert.equal(await source.text(), readFileSync(`swiftui/Sources/AtomicMotionUI/${filename}`, "utf8"));
+    assert.equal(await source.text(), readFileSync(`swiftui/Sources/AtomicMotionUI/${sourceFile}`, "utf8"));
     const react = await request(`/components/${id}/react`);
     const reactPath = entries.find((entry) => entry.id === id).codePath;
     assert.equal(react.status, 200, id);
-    assert.equal(react.headers.get("content-disposition"), `attachment; filename="${id}.tsx"`);
+    assert.equal(react.headers.get("content-disposition"), `attachment; filename="${reactPath.split("/").at(-1)}"`);
     assert.equal(await react.text(), readFileSync(reactPath, "utf8"));
     for (const extension of ["mp4", "webp"]) {
       const preview = await request(`/previews/swiftui/${id}.${extension}`);

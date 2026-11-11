@@ -17,15 +17,15 @@
 }
 
 .emphasis {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25em;
   font-weight: 700;
 }
 
 .emphasis svg {
+  display: inline-block;
   width: 0.85em;
   height: 0.85em;
+  margin-inline-end: 0.25em;
+  vertical-align: -0.075em;
 }
 
 @keyframes reveal-word {

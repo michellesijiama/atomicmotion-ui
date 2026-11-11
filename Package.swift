@@ -9,7 +9,15 @@ let package = Package(
         .target(
             name: "AtomicMotionUI",
             path: "swiftui/Sources/AtomicMotionUI",
-            resources: [.process("Stickers"), .process("Design"), .process("Beads")]
+            resources: [
+                .process("Stickers"),
+                .process("Design"),
+                .process("Beads"),
+                .copy("DoodleCalendar"),
+                .copy("GradientEvent"),
+                .copy("OrganicUI"),
+                .process("JardinOpening")
+            ]
         )
     ]
 )

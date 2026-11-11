@@ -6,19 +6,19 @@ import type { ComponentMeta } from "@/lib/component-registry";
 import { writeClipboardText } from "@/lib/clipboard";
 import { actionPrimaryClass, actionSecondaryClass } from "@/components/website/styles";
 import { SITE_URL } from "@/lib/site-metadata";
-import { swiftUIComponents, type SwiftUIComponentId } from "@/lib/swiftui-components";
+import { SWIFT_PACKAGE_REPO, swiftUIComponents, type SwiftUIComponentId } from "@/lib/swiftui-components";
 
 const COPY_FEEDBACK_MS = 1800;
-const SWIFT_PACKAGE_URL = "https://github.com/michellesijiama/atomicmotion-ui.git";
 type CodePlatform = "React" | "SwiftUI";
 
-/** Sets `state` back to `to` once `COPY_FEEDBACK_MS` after it becomes `from`. */
-function useResetAfter<T>(state: T, from: T, to: T, setState: (value: T) => void) {
+function useCopyFeedback<T extends string>() {
+  const [value, setValue] = useState<T | null>(null);
   useEffect(() => {
-    if (state !== from) return;
-    const timer = setTimeout(() => setState(to), COPY_FEEDBACK_MS);
+    if (!value) return;
+    const timer = setTimeout(() => setValue(null), COPY_FEEDBACK_MS);
     return () => clearTimeout(timer);
-  }, [state, from, to, setState]);
+  }, [value]);
+  return [value, setValue] as const;
 }
 
 export function ComponentActions({
@@ -29,22 +29,21 @@ export function ComponentActions({
   swiftUIId?: SwiftUIComponentId;
 }) {
   const [failedText, setFailedText] = useState("");
-  const [copiedPlatform, setCopiedPlatform] = useState<CodePlatform | null>(null);
-  const [linkCopyState, setLinkCopyState] = useState<"idle" | "copied">("idle");
+  const [copiedPlatform, setCopiedPlatform] = useCopyFeedback<CodePlatform>();
+  const [linkCopyState, setLinkCopyState] = useCopyFeedback<"copied">();
   const platforms: readonly CodePlatform[] = swiftUIId ? ["React", "SwiftUI"] : ["React"];
-
-  useResetAfter(copiedPlatform, "React", null, setCopiedPlatform);
-  useResetAfter(copiedPlatform, "SwiftUI", null, setCopiedPlatform);
-  useResetAfter(linkCopyState, "copied", "idle", setLinkCopyState);
+  const reactRepository = component.codeHref.split("/blob/")[0];
+  // Dual-platform components share the Swift package's repository and its current React sources.
+  const sourceLink = swiftUIId ? component.codeHref.replace(reactRepository, SWIFT_PACKAGE_REPO) : component.codeHref;
 
   async function copyLink() {
-    const copied = await writeClipboardText(component.codeHref);
+    const copied = await writeClipboardText(sourceLink);
 
     if (copied) {
       setLinkCopyState("copied");
       setFailedText("");
     } else {
-      setFailedText(component.codeHref);
+      setFailedText(sourceLink);
     }
   }
 
@@ -52,14 +51,14 @@ export function ComponentActions({
     const prompt = platform === "SwiftUI" && swiftUIId
       ? [
           `Integrate ${component.title} from AtomicMotionUI as a native SwiftUI component for iOS or iPadOS 17+.`,
-          `In Xcode, add the Swift package ${SWIFT_PACKAGE_URL} using the main branch. Add the AtomicMotionUI product to the app target and import AtomicMotionUI.`,
+          `In Xcode, add the Swift package ${SWIFT_PACKAGE_REPO}.git using the main branch. Add the AtomicMotionUI product to the app target and import AtomicMotionUI.`,
           "Use the package so its bundled resources resolve correctly.",
           swiftUIComponents[swiftUIId].usage,
           `Component source: ${SITE_URL}/components/${swiftUIId}/swiftui`,
-          `iPhone simulator preview: ${SITE_URL}/previews/swiftui/${swiftUIId}.mp4\n${swiftUIComponents[swiftUIId].previewDescription}`,
+          `iOS simulator preview: ${SITE_URL}/previews/swiftui/${swiftUIId}.mp4\n${swiftUIComponents[swiftUIId].previewDescription}`,
         ].join("\n\n")
       : swiftUIId
-        ? `${component.aiPrompt}\n\nDirect React source download: ${SITE_URL}/components/${component.id}/react`
+        ? `${component.aiPrompt.replaceAll(reactRepository, SWIFT_PACKAGE_REPO)}\n\nDirect React source download: ${SITE_URL}/components/${component.id}/react`
         : component.aiPrompt;
     const copied = await writeClipboardText(prompt);
 

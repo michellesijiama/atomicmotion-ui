@@ -62,12 +62,11 @@ export function Demo() {
 }
 ```
 
-**Copy link** copies the public source URL and **Copy for AI** provides
-integration instructions for every component.
+The details panel includes the public source link and copyable integration instructions.
 
 ## SwiftUI for iOS
 
-Soft Menu Reveal, Sticker Peel, and Bead Club also have native SwiftUI implementations.
+Soft Menu Reveal, Sticker Peel, Bead Club, Stamp Tracker, Doodle Calendar, Gradient Event Card, Organic UI, and Jardin Opening also have native SwiftUI implementations. Open a component's details on the website to find its React and Swift actions.
 Install **AtomicMotionUI** as a Swift Package for iOS or iPadOS 17 and later.
 See the [SwiftUI setup and examples](swiftui/README.md).
 
