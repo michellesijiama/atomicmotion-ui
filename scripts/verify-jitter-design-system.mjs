@@ -62,7 +62,7 @@ const checks = [
   ["home page removes footer repo copy", !files.page.includes("Public GitHub repo") && !files.page.includes("npx shadcn-style copy-paste architecture")],
   ["home page uses visual grid", files.homeBrowser.includes("grid-cols-1") && files.homeBrowser.includes("sm:grid-cols-2")],
   ["component card links to detail pages", files.componentCard.includes("next/link") && files.componentCard.includes("/components/${component.id}")],
-  ["component card renders animated previews", files.componentCard.includes("componentMap") && files.componentCard.includes("pointer-events-none")],
+  ["component card renders decorative animated previews", files.componentCard.includes("<LiveCardPreview") && files.componentCard.includes("inert")],
   // Scaling used to be a hard-coded `scale-[0.52]` on the card; PreviewStage now
   // measures the card and scales the fixed design canvas to fit.
   ["component card preview is prominent", files.componentCard.includes("aspect-[4/5]") && files.previewStage.includes("DESIGN_WIDTH")],

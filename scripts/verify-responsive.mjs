@@ -122,18 +122,17 @@ try {
     const filterStrip = all.locator("..");
     // These reads are independent. Queue them together so the animated page
     // need not flush a fresh layout/paint for each separate browser round trip.
-    const [, scrollbarWidth, aboutMeasurement, allMeasurement] = await Promise.all([
+    const [, filtersFit, aboutMeasurement, allMeasurement] = await Promise.all([
       checkWidth(page, "home"),
-      filterStrip.evaluate((element) => getComputedStyle(element).scrollbarWidth),
+      filterStrip.evaluate((element) => element.scrollWidth <= element.clientWidth),
       measureReachability(homeAbout),
       measureReachability(all),
     ]);
-    assert.equal(scrollbarWidth, "none", `home ${width}: hidden category scrollbar`);
+    assert.ok(filtersFit, `home ${width}: category buttons fit without horizontal scrolling`);
     await reachable(homeAbout, `home ${width}: About`, { measurement: aboutMeasurement });
     await reachable(all, `home ${width}: All`, { measurement: allMeasurement });
-    if (width === 768) {
-      assert.ok(await filterStrip.evaluate((element) => element.scrollWidth > element.clientWidth), "tablet category strip remains scrollable");
-      await reachable(categories.getByRole("button").last(), "tablet: final category remains reachable", { click: true });
+    if ([768, 1280].includes(width)) {
+      await reachable(categories.getByRole("button").last(), `home ${width}: final category is clickable`, { click: true });
       await all.click();
     }
     if ([390, 1280].includes(width)) await capture(page, `home-${width}`);
@@ -143,9 +142,16 @@ try {
   await navigation.click();
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await navigation.getAttribute("aria-pressed"), "true");
+  const menuCard = page.getByRole("link", { name: "Soft Menu Reveal", exact: true });
+  await menuCard.scrollIntoViewIfNeeded();
+  const menuArtwork = menuCard.locator("xpath=preceding-sibling::*[1]");
+  await menuArtwork.locator("button").first().waitFor({ state: "attached" });
+  assert.equal(await menuArtwork.getAttribute("inert"), "", "the live artwork cannot intercept card interactions");
+  await menuCard.click();
+  await page.waitForURL("**/components/soft-menu-reveal");
 
   const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 430, height: 932 }, { width: 844, height: 390 }];
-  console.log("Home widths and preserved filter selection: OK");
+  console.log("Home widths, preserved filter selection and live card navigation: OK");
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
     for (const { id, title } of entries) {

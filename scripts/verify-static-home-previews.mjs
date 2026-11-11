@@ -12,6 +12,7 @@ function read(path) {
 
 const registry = read("src/lib/component-registry.ts");
 const card = read("src/components/website/component-card.tsx");
+const livePreview = read("src/components/website/live-card-preview.tsx");
 
 const ids = Array.from(registry.matchAll(/id: "([^"]+)"/g)).map((match) => match[1]);
 const uniqueIds = [...new Set(ids)];
@@ -60,7 +61,7 @@ const checks = [
   ["component cards render static preview images", card.includes("component.previewImage") && card.includes("<img")],
   ["component cards keep lazy image loading", card.includes('loading="lazy"') && card.includes('decoding="async"')],
   ["component cards honour the previewStatic opt-out", card.includes("component.previewStatic")],
-  ["component cards still animate light previews live", card.includes("PreviewStage") && card.includes("<Preview loop />")],
+  ["component cards load live previews in view", card.includes("lazy(() => import(") && card.includes("canAnimate && inView") && livePreview.includes("<Preview loop />")],
   [
     `every WebGL component opts out of live previews (${webglIds.join(", ") || "none"})`,
     webglIds.every((id) => staticPreviewIds.has(id)),

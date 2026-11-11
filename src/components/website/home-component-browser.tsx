@@ -1,13 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
-import { ComponentCard } from "@/components/website/component-card";
-import type { ComponentMeta } from "@/lib/component-registry";
+import { ComponentCard, type GalleryComponent } from "@/components/website/component-card";
 
 type HomeComponentBrowserProps = {
-  components: ComponentMeta[];
+  components: GalleryComponent[];
 };
 
 type FilterOption = {
@@ -22,7 +21,7 @@ const activeFilterTransition = {
   mass: 0.9,
 } as const;
 
-function buildFilterOptions(components: ComponentMeta[]): FilterOption[] {
+function buildFilterOptions(components: GalleryComponent[]): FilterOption[] {
   const categories = Array.from(new Set(components.map((component) => component.category)));
   return [
     { label: "All", value: "all" },
@@ -30,7 +29,7 @@ function buildFilterOptions(components: ComponentMeta[]): FilterOption[] {
   ];
 }
 
-function sortByCreatedDate(components: ComponentMeta[]) {
+function sortByCreatedDate(components: GalleryComponent[]) {
   return [...components].sort((a, b) => {
     const byDate = b.createdAt.localeCompare(a.createdAt);
     if (byDate !== 0) return byDate;
@@ -43,6 +42,7 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
   const sortedComponents = React.useMemo(() => sortByCreatedDate(components), [components]);
   const filterOptions = buildFilterOptions(sortedComponents);
   const [activeFilter, setActiveFilter] = React.useState("all");
+  const reducedMotion = useReducedMotion();
   const visibleComponents =
     activeFilter === "all"
       ? sortedComponents
@@ -50,13 +50,8 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
 
   return (
     <section className="pb-10" aria-label="UI components">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.42, ease: [0.45, 0, 0.55, 1] }}
-        className="mx-auto mb-10 max-w-none bg-transparent p-2"
-      >
-        <div className="flex flex-wrap justify-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-nowrap sm:justify-center-safe">
+      <div className="mx-auto mb-10 max-w-none bg-transparent p-2">
+        <div className="flex flex-wrap justify-center gap-2">
           {filterOptions.map((option) => {
             const isActive = activeFilter === option.value;
 
@@ -66,11 +61,11 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
                 type="button"
                 aria-pressed={isActive}
                 onClick={() => setActiveFilter(option.value)}
-                className="relative inline-flex h-11 shrink-0 sm:h-10 items-center justify-center overflow-hidden rounded-full border border-black/15 px-5 text-[15px] leading-none text-[var(--jitter-ink)] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/15"
+                className="relative inline-flex h-11 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-black/15 px-4 text-[15px] leading-none text-[var(--jitter-ink)] focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 {isActive && (
                   <motion.span
-                    layoutId="home-active-filter"
+                    layoutId={reducedMotion ? undefined : "home-active-filter"}
                     className="absolute inset-0 rounded-full bg-[var(--jitter-ink)]"
                     transition={activeFilterTransition}
                   />
@@ -82,13 +77,11 @@ export function HomeComponentBrowser({ components }: HomeComponentBrowserProps) 
             );
           })}
         </div>
-      </motion.div>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {visibleComponents.map((component) => (
-          <div key={component.id}>
-            <ComponentCard component={component} />
-          </div>
+          <ComponentCard key={component.id} component={component} animatePreview={!reducedMotion} />
         ))}
       </div>
     </section>

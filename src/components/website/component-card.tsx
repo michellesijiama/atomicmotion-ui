@@ -1,23 +1,27 @@
+import { lazy, Suspense, useId, useRef } from "react";
+import { useInView } from "framer-motion";
 import Link from "next/link";
 
 import type { ComponentMeta } from "@/lib/component-registry";
-import { componentMap } from "@/lib/component-map";
-import { PreviewStage } from "@/components/website/preview-stage";
+
+const LiveCardPreview = lazy(() => import("@/components/website/live-card-preview"));
+
+export type GalleryComponent = Pick<
+  ComponentMeta,
+  "id" | "title" | "category" | "index" | "createdAt" | "previewImage" | "previewVideo" | "previewStatic" | "previewInset"
+>;
 
 type ComponentCardProps = {
-  component: ComponentMeta;
+  component: GalleryComponent;
+  animatePreview: boolean;
 };
 
-export function ComponentCard({ component }: ComponentCardProps) {
+export function ComponentCard({ component, animatePreview }: ComponentCardProps) {
   const componentHref = `/components/${component.id}`;
-  const Preview = componentMap[component.id];
-  // Light components render their live animation on the gray card (via
-  // PreviewStage, which insets the preview so the `bg-card` gray frames it).
-  // Heavier demos (`previewStatic`) show a static poster instead
-  // — a looping video when available, otherwise the still image — so mounting
-  // many live GL scenes in the gallery doesn't regress load performance.
-  const useStaticPoster = component.previewStatic || !Preview;
-  const cardClassName = "group relative block text-[var(--jitter-ink)]";
+  const titleId = useId();
+  const artworkRef = useRef<HTMLDivElement>(null);
+  const canAnimate = animatePreview && (!component.previewStatic || Boolean(component.previewVideo));
+  const inView = useInView(artworkRef, { amount: 0.15 });
   // `bg-card` is the design-system surface for gallery cards (see --color-card /
   // --jitter-card). Every card renders through this component, so setting it
   // here guarantees a consistent gray across the whole gallery.
@@ -26,11 +30,26 @@ export function ComponentCard({ component }: ComponentCardProps) {
   const mediaClassName = component.previewInset
     ? "size-full scale-[0.63] object-contain"
     : "size-full object-cover";
+  const poster = (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={component.previewImage}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className={mediaClassName}
+    />
+  );
 
   return (
-    <Link href={componentHref} prefetch={component.previewStatic ? false : undefined} className={cardClassName}>
-      <div className={previewClassName}>
-        {useStaticPoster ? (
+    <div className="group relative">
+      <div
+        ref={canAnimate ? artworkRef : undefined}
+        className={previewClassName}
+        aria-hidden="true"
+        inert
+      >
+        {canAnimate && inView ? (
           component.previewVideo ? (
             <video
               src={component.previewVideo}
@@ -39,29 +58,24 @@ export function ComponentCard({ component }: ComponentCardProps) {
               muted
               loop
               playsInline
-              preload="metadata"
-              aria-label={`${component.title} preview`}
+              preload="none"
               className={mediaClassName}
             />
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={component.previewImage}
-              alt={`${component.title} preview`}
-              loading="lazy"
-              decoding="async"
-              className={mediaClassName}
-            />
+            <Suspense fallback={poster}>
+              <LiveCardPreview componentId={component.id} fallback={poster} />
+            </Suspense>
           )
-        ) : (
-          <div className="absolute inset-x-0 bottom-0 top-16">
-            <PreviewStage>
-              <Preview loop />
-            </PreviewStage>
-          </div>
-        )}
-        <div className="pointer-events-none absolute left-4 right-4 top-4 z-20 flex items-start justify-between gap-3">
-          <p className="m-0 min-w-0 flex-1 break-normal text-body leading-tight tracking-[-0.02em] text-[var(--jitter-ink)]">
+        ) : poster}
+      </div>
+      <Link
+        href={componentHref}
+        prefetch={false}
+        aria-labelledby={titleId}
+        className="absolute inset-0 z-20 rounded-[15px] text-[var(--jitter-ink)] focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        <div className="pointer-events-none absolute left-4 right-4 top-4 flex items-start justify-between gap-3">
+          <p id={titleId} className="m-0 min-w-0 flex-1 break-normal text-body leading-tight tracking-[-0.02em] text-[var(--jitter-ink)]">
             {component.title}
           </p>
           <div className="flex shrink-0 flex-nowrap items-end gap-1 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 group-focus-within:opacity-100">
@@ -70,7 +84,7 @@ export function ComponentCard({ component }: ComponentCardProps) {
             </span>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

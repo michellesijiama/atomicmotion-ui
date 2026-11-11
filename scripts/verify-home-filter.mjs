@@ -13,7 +13,7 @@ const files = {
 };
 const rotatingWordIndex = files.home.indexOf("<RotatingWord");
 const componentBrowserIndex = files.home.indexOf(
-  "<HomeComponentBrowser components={componentList} />"
+  "<HomeComponentBrowser components={homeComponents} />"
 );
 
 const checks = [
@@ -25,8 +25,8 @@ const checks = [
   ["filter buttons keep the rico-style rounded border", files.filter.includes("rounded-full border border-black/15")],
   // The active pill uses the ink token, not a hard-coded blue, so it tracks
   // the design system instead of a literal.
-  ["filter has animated active pill", files.filter.includes('layoutId="home-active-filter"') && files.filter.includes("bg-[var(--jitter-ink)]")],
-  ["filter buttons are pill shaped", files.filter.includes("h-10") && files.filter.includes("rounded-full")],
+  ["filter has animated active pill", files.filter.includes('"home-active-filter"') && files.filter.includes("bg-[var(--jitter-ink)]")],
+  ["filter buttons are pill shaped with a 44px target", files.filter.includes("h-11") && files.filter.includes("rounded-full")],
   ["filter drives card visibility by category", files.filter.includes("activeFilter === \"all\"") && files.filter.includes("component.category === activeFilter")],
   ["components declare creation dates", files.registry.includes("createdAt: \"2026-06-25\"") && files.registry.includes("createdAt: \"2026-06-22\"")],
   ["all filter sorts by newest creation date", files.filter.includes("function sortByCreatedDate") && files.filter.includes("b.createdAt.localeCompare(a.createdAt)") && files.filter.includes("const sortedComponents")],
