@@ -1,9 +1,10 @@
 import type { ComponentType } from "react";
 
-import { OrganicUIPreview } from "@/components/website/organic-ui-preview";
+import { OrganicPhoneFrame, OrganicUIPreview } from "@/components/website/organic-ui-preview";
 import { StickerPeelDemo } from "@/components/website/sticker-peel-demo";
 
 import { GeminiLive } from "@components/ai/gemini-live";
+import { DesignResearchAgent } from "@components/ai/design-research-agent/design-research-agent";
 import { VoiceBloom } from "@components/ai/voice-bloom";
 import { GradientGummyBear } from "@components/3d/gradient-gummy-bear";
 import { ShowreelSphere } from "@components/3d/showreel-sphere";
@@ -33,6 +34,10 @@ function JardinOpeningPreview({ loop }: { loop?: boolean }) {
   return <JardinOpening loop={loop} className={loop ? "scale-[0.72]" : undefined} />;
 }
 
+function DesignResearchAgentPreview({ particleDocument }: { particleDocument?: string }) {
+  return <OrganicPhoneFrame lowerCrop><DesignResearchAgent particleDocument={particleDocument} /></OrganicPhoneFrame>;
+}
+
 function UIWalkthroughPreview({ loop }: { loop?: boolean }) {
   return <UIWalkthrough loop={loop} layout={loop ? "split" : "auto"} className={loop ? "mx-auto max-w-[700px]" : undefined} />;
 }
@@ -55,7 +60,8 @@ function DoodleCalendarPreview({ loop }: { loop?: boolean }) {
   return <DoodleCalendar loop={loop ?? false} persist={false} />;
 }
 
-export const componentMap: Record<string, ComponentType<{ loop?: boolean }>> = {
+export const componentMap: Record<string, ComponentType<{ loop?: boolean; particleDocument?: string }>> = {
+  "design-research-agent": DesignResearchAgentPreview,
   "organic-ui": OrganicUIPreview,
   "digital-stress-reliever": DigitalStressReliever,
   "sticker-peel": StickerPeelDemo,

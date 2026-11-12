@@ -1,4 +1,7 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { ComponentStage, StageHeader } from "@/components/website/component-stage";
@@ -40,6 +43,15 @@ export async function generateMetadata({
   });
 }
 
+async function getLocalParticleDocument(id: string) {
+  if (process.env.NODE_ENV !== "development" || id !== "design-research-agent") return;
+  const host = (await headers()).get("host") ?? "";
+  if (!/^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(host)) return;
+  // The private renderer is built outside the public tree and only loaded by the local preview.
+  return readFile(join(process.cwd(), ".artifacts/design-research-agent/tim-renderer.html"), "utf8")
+    .catch(() => undefined);
+}
+
 export default async function ComponentDetailPage({ params }: ComponentDetailPageProps) {
   const { id } = await params;
   const component = getComponentById(id);
@@ -53,6 +65,7 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
   if (!Preview) {
     notFound();
   }
+  const particleDocument = await getLocalParticleDocument(id);
 
   // Fixed header; the preview can scroll when a short viewport needs more room.
   // Same Jitter-style cascade as the home page so entering any component page
@@ -66,7 +79,7 @@ export default async function ComponentDetailPage({ params }: ComponentDetailPag
         className="am-reveal @container grid min-h-0 flex-1 grid-cols-1 overflow-x-hidden overflow-y-auto px-6 pb-6 sm:px-8 lg:px-12"
         style={{ animationDelay: "0.1s" }}
       >
-        <Preview />
+        <Preview particleDocument={particleDocument} />
       </div>
     </ComponentStage>
   );

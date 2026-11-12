@@ -118,6 +118,24 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
+  designResearchAgent: createComponentMeta({
+    id: "design-research-agent",
+    index: "026",
+    title: "Design Research Agent",
+    description:
+      "Ask a voice-reactive agent to find an episode or turn a podcast reference into a design idea. The controls sit in a blue gradient at the bottom of the screen.",
+    category: "AI",
+    createdAt: "2026-11-11",
+    codePath: "components/ai/design-research-agent/design-research-agent.tsx",
+    stageBackground: "gray",
+    previewStatic: true,
+    requiredAssets: [
+      { path: "public/components/organic-ui/podcast-windows.webp", license: "MIT", credit: "Generated fallback artwork for the Windows startup sounds episode." },
+      { path: "public/components/organic-ui/podcast-kitchen.webp", license: "MIT", credit: "Generated fallback artwork for The Frankfurt Kitchen." },
+      { path: "public/components/organic-ui/podcast-screens.webp", license: "MIT", credit: "Generated fallback artwork for Future Screens Are Mostly Blue." },
+      { path: "public/components/organic-ui/podcast-artificial-sound.webp", license: "MIT", credit: "Generated fallback artwork for The Sound of the Artificial World." },
+    ],
+  }),
   organicUI: createComponentMeta({
     id: "organic-ui",
     index: "025",
