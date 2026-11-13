@@ -8,6 +8,9 @@ by the copy-paste integration checks.
   documented redistribution rights. Its original `/videos/pinterest-floral-scroll.mp4`
   was removed. Do not copy this example expecting a working default.
 
+- [Design Research Agent](design-research-agent/) explored a voice-driven podcast
+  workflow using the same episode artwork as Organic UI.
+
 To restore an example, supply its assets and provenance, move it into the
 appropriate `components/<category>/<id>/` folder, register both metadata and the
 renderer, generate its README and preview, and run the repository and browser checks.

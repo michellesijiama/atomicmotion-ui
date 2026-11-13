@@ -121,3 +121,7 @@ Render `GeminiLive()` in a bounded view. It recreates the scripted listening scr
 The native previews use Geist from the [Geist font project](https://github.com/vercel/geist-font) under [SIL OFL 1.1](Sources/AtomicMotionUI/Design/Geist-OFL.txt) and icons from [Lucide](https://lucide.dev/) under the [bundled Lucide license](Sources/AtomicMotionUI/Design/Lucide-LICENSE.txt).
 
 The package also includes [Caveat](Sources/AtomicMotionUI/DoodleCalendar/Caveat-OFL.txt), [Instrument Serif](Sources/AtomicMotionUI/Design/InstrumentSerif-OFL.txt), [Manrope](Sources/AtomicMotionUI/Design/Manrope-OFL.txt), [Plus Jakarta Sans](Sources/AtomicMotionUI/Design/PlusJakartaSans-OFL.txt) and [Poppins](Sources/AtomicMotionUI/Design/Poppins-OFL.txt), each under SIL OFL 1.1.
+
+## Particle Conversation
+
+Render `ParticleConversation()` in a bounded view to play the bundled First Light demo. Pass a local `audioURL` to supply your own music. For live input, use `ParticleConversation(input: .microphone)` and add `NSMicrophoneUsageDescription` to your app's Info.plist. The waveform and native SwiftUI particle field use audio meter readings. Long-press the microphone control to select a local audio file.

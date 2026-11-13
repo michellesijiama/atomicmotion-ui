@@ -1,4 +1,5 @@
 {
+  "particle-conversation": ["public/components/particle-conversation/first-light.mp3"],
   "bead-club": ["public/components/bead-club/TERMS.txt"],
   "emoji-sketch": ["public/emoji/README.md", "public/emoji/*.svg", "licenses/OpenMoji-CC-BY-SA-4.0.txt"],
   "gradient-gummy-bear": ["public/models/gummy-bear.glb", "public/gummy-bear-poster.png"],

@@ -2,10 +2,10 @@
 
 Ask a voice-reactive agent to find an episode or turn a podcast reference into a design idea. The controls sit in a blue gradient at the bottom of the screen.
 
-![Design Research Agent preview](https://atomicmotion.dev/previews/design-research-agent.png)
+![Design Research Agent preview](./homepage-preview.png)
 
 - **Category:** AI
-- **Demo:** https://atomicmotion.dev/components/design-research-agent
+- **Status:** Archived prototype
 - **Dependencies:** lucide-react
 
 ## Setup

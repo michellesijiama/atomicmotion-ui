@@ -1,6 +1,11 @@
 export const SWIFT_PACKAGE_REPO = "https://github.com/michellesijiama/atomicmotion-ui";
 
 export const swiftUIComponents = {
+  "particle-conversation": {
+    sourceFile: "ParticleConversation.swift",
+    usage: "Render ParticleConversation() for the bundled First Light demo. Pass audioURL to play a local file, or use ParticleConversation(input: .microphone) and set NSMicrophoneUsageDescription in your app.",
+    previewDescription: "Play First Light, watch the waveform and blue particles follow the audio, and stop or replay.",
+  },
   "soft-menu-reveal": {
     sourceFile: "SoftMenuReveal.swift",
     usage: "Declare @State private var menuOpen = false and render SoftMenuReveal(isOpen: $menuOpen).",

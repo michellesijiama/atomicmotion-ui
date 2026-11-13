@@ -58,6 +58,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .artifacts/
+/output/
 
 # Swift Package Manager and Xcode local state
 /.build/

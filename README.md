@@ -96,7 +96,7 @@ These scene downloads live in this repository and on the gallery; the
 <!-- component-catalogue:start -->
 | Preview | Component | Category | Source | Setup |
 | --- | --- | --- | --- | --- |
-| <img src="public/previews/design-research-agent.png" width="160" alt="Design Research Agent preview"> | **Design Research Agent** | AI | [Source](components/ai/design-research-agent/design-research-agent.tsx) | [README](components/ai/design-research-agent/README.md) |
+| <img src="public/previews/particle-conversation.png" width="160" alt="Particle Conversation preview"> | **Particle Conversation** | AI | [Source](components/ai/particle-conversation/particle-conversation.tsx) | [README](components/ai/particle-conversation/README.md) |
 | <img src="public/previews/organic-ui.png" width="160" alt="Organic UI preview"> | **Organic UI** | AI | [Source](components/ai/organic-ui/organic-ui.tsx) | [README](components/ai/organic-ui/README.md) |
 | <img src="public/previews/digital-stress-reliever.png" width="160" alt="Digital Stress Reliever preview"> | **Digital Stress Reliever** | Play | [Source](components/play/digital-stress-reliever/digital-stress-reliever.tsx) | [README](components/play/digital-stress-reliever/README.md) |
 | <img src="public/previews/sticker-peel.png" width="160" alt="Sticker Peel preview"> | **Sticker Peel** | Play | [Source](components/play/sticker-peel/sticker-peel.tsx) | [README](components/play/sticker-peel/README.md) |

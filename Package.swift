@@ -18,7 +18,8 @@ let package = Package(
                 .copy("OrganicUI"),
                 .process("JardinOpening"),
                 .copy("GradientGummy"),
-                .copy("BlossomLight")
+                .copy("BlossomLight"),
+                .process("ParticleAudio")
             ]
         )
     ]

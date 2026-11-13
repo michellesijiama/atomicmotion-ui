@@ -7,6 +7,7 @@ const REPO_BLOB_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${REP
 // Recordings let the gallery show interactions and WebGL scenes without
 // mounting their full demos. The matching PNG is the reduced-motion fallback.
 const COMPONENTS_WITH_PREVIEW_VIDEO = new Set([
+  "particle-conversation",
   "organic-ui",
   "digital-stress-reliever",
   "sticker-peel",
@@ -118,22 +119,19 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 }
 
 export const componentRegistry = {
-  designResearchAgent: createComponentMeta({
-    id: "design-research-agent",
-    index: "026",
-    title: "Design Research Agent",
-    description:
-      "Ask a voice-reactive agent to find an episode or turn a podcast reference into a design idea. The controls sit in a blue gradient at the bottom of the screen.",
+  particleConversation: createComponentMeta({
+    id: "particle-conversation",
+    index: "027",
+    title: "Particle Conversation",
+    description: "A blue particle field and a monochrome waveform react to music or a microphone inside a black landscape card.",
     category: "AI",
-    createdAt: "2026-11-11",
-    codePath: "components/ai/design-research-agent/design-research-agent.tsx",
-    stageBackground: "gray",
+    createdAt: "2026-11-12",
+    codePath: "components/ai/particle-conversation/particle-conversation.tsx",
     previewStatic: true,
+    previewInset: true,
     requiredAssets: [
-      { path: "public/components/organic-ui/podcast-windows.webp", license: "MIT", credit: "Generated fallback artwork for the Windows startup sounds episode." },
-      { path: "public/components/organic-ui/podcast-kitchen.webp", license: "MIT", credit: "Generated fallback artwork for The Frankfurt Kitchen." },
-      { path: "public/components/organic-ui/podcast-screens.webp", license: "MIT", credit: "Generated fallback artwork for Future Screens Are Mostly Blue." },
-      { path: "public/components/organic-ui/podcast-artificial-sound.webp", license: "MIT", credit: "Generated fallback artwork for The Sound of the Artificial World." },
+      { path: "public/components/particle-conversation/first-light.mp3", license: "MIT", credit: "Optional original demo track by AtomicMotion." },
+      { path: "public/components/particle-conversation/first-light.svg", license: "MIT", credit: "Optional cover art for First Light by AtomicMotion." },
     ],
   }),
   organicUI: createComponentMeta({
