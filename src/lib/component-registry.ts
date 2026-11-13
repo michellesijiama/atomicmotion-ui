@@ -59,6 +59,8 @@ export type ComponentMeta = {
   previewStatic?: boolean;
   /** Inset a still or video inside its gallery card without changing its aspect ratio. */
   previewInset?: boolean;
+  /** Keep the component in the library while hiding its gallery and detail pages. */
+  hidden?: boolean;
   aiPrompt: string;
   /**
    * Files outside this component's folder that it loads at runtime. Present
@@ -121,6 +123,7 @@ function createComponentMeta(meta: ComponentMetaInput): ComponentMeta {
 export const componentRegistry = {
   particleConversation: createComponentMeta({
     id: "particle-conversation",
+    hidden: true,
     index: "027",
     title: "Particle Conversation",
     description: "A blue particle field and a monochrome waveform react to music or a microphone inside a black landscape card.",
@@ -513,6 +516,7 @@ export const componentRegistry = {
 } satisfies Record<string, ComponentMeta>;
 
 export const componentList = Object.values(componentRegistry);
+export const visibleComponentList = componentList.filter(component => !component.hidden);
 
 export function getComponentById(id: string) {
   return componentList.find((component) => component.id === id);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { galleryDescription } from "@/components/website/gallery-intro";
 import { HomeComponentBrowser } from "@/components/website/home-component-browser";
 import { SitePage } from "@/components/website/site-page";
-import { componentList } from "@/lib/component-registry";
+import { visibleComponentList } from "@/lib/component-registry";
 import { SITE_NAME, pageMetadata, pageTitle } from "@/lib/site-metadata";
 
 export const metadata: Metadata = pageMetadata({
@@ -11,7 +11,7 @@ export const metadata: Metadata = pageMetadata({
   description: galleryDescription,
 });
 
-const homeComponents = componentList.map(({
+const homeComponents = visibleComponentList.map(({
   id, title, category, index, createdAt, previewImage, previewVideo, previewStatic, previewInset,
 }) => ({
   id, title, category, index, createdAt, previewImage, previewVideo, previewStatic, previewInset,

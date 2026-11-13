@@ -41,9 +41,11 @@ try {
   }
   assert.ok(ready, `Server readiness timed out: ${logs}`);
   const { entries, videoIds } = readRegistry();
+  const catalog = readComponentCatalog();
+  const visibleIds = new Set(catalog.filter(component => !component.hidden).map(({ id }) => id));
   const { swiftUIComponents } = readComponentData("src/lib/swiftui-components.ts");
   const { studioModels } = readComponentData("src/lib/model-registry.ts");
-  const paths = ["/", "/3d-studio", ...studioModels.map(({ id }) => `/3d-studio/${id}`), ...entries.map(({ id }) => `/components/${id}`)];
+  const paths = ["/", "/3d-studio", ...studioModels.map(({ id }) => `/3d-studio/${id}`), ...entries.filter(({ id }) => visibleIds.has(id)).map(({ id }) => `/components/${id}`)];
   for (const path of paths) {
     const response = await request(path);
     assert.equal(response.status, 200, path);
@@ -77,6 +79,7 @@ try {
     await response.arrayBuffer();
   }
   for (const [id, { sourceFile }] of Object.entries(swiftUIComponents)) {
+    if (!visibleIds.has(id)) continue;
     const source = await request(`/components/${id}/swiftui`);
     assert.equal(source.status, 200, id);
     assert.match(source.headers.get("content-type") ?? "", /^text\/plain/);
@@ -111,7 +114,15 @@ try {
     assert.equal(response.status, 200, path);
     assert.ok((await response.arrayBuffer()).byteLength > 0, path);
   }
-  const catalog = readComponentCatalog();
+  for (const { id } of catalog.filter(component => component.hidden)) {
+    const home = await request("/");
+    assert.ok(!(await home.text()).includes(`href="/components/${id}"`), `${id}: hidden from the gallery`);
+    for (const suffix of ["", "/react", "/swiftui"]) {
+      const response = await request(`/components/${id}${suffix}`);
+      assert.equal(response.status, 404, `${id}${suffix}: hidden route`);
+      await response.arrayBuffer();
+    }
+  }
   for (const { id, codeHref } of catalog) {
     assert.ok(codeHref.startsWith("https://github.com/michellesijiama/atomicmotion-free/blob/main/"), `${id}: public source link`);
     const checkout = await fetch(`${base}/api/checkout`, {

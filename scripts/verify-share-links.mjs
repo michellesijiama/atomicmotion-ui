@@ -22,7 +22,7 @@ for (const model of studioModels) {
   ])) checks.push({ url: `${raw}/atomicmotion-ui/main/${path}`, checksum: hash(readFileSync(path)) });
 }
 if (process.argv.includes("--site")) {
-  for (const path of ["/", "/3d-studio", ...readComponentCatalog().map(({ id }) => `/components/${id}`), ...studioModels.map(({ id }) => `/3d-studio/${id}`)]) {
+  for (const path of ["/", "/3d-studio", ...readComponentCatalog().filter(component => !component.hidden).map(({ id }) => `/components/${id}`), ...studioModels.map(({ id }) => `/3d-studio/${id}`)]) {
     checks.push({ url: `https://atomicmotion.dev${path}` });
   }
 }

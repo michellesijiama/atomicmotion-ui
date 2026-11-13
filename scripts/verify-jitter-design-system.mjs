@@ -57,7 +57,7 @@ const checks = [
   ["blue status token exists", files.globals.includes("--jitter-blue: #1377e4")],
   ["orange status token exists", files.globals.includes("--jitter-orange: #ff8316")],
   ["layout uses Jitter shell background", files.layout.includes("bg-[var(--jitter-bg)]")],
-  ["home page is a gallery", files.homeBrowser.includes("ComponentCard") && files.page.includes("componentList")],
+  ["home page is a gallery", files.homeBrowser.includes("ComponentCard") && files.page.includes("visibleComponentList")],
   ["home page does not render live preview", !files.page.includes("ComponentPlate")],
   ["gallery intro describes its open-source formats", ["open-source", "Blender scenes and renders", "React components", "SwiftUI code"].every((format) => files.galleryIntro.includes(format))],
   ["home page removes footer repo copy", !files.page.includes("Public GitHub repo") && !files.page.includes("npx shadcn-style copy-paste architecture")],

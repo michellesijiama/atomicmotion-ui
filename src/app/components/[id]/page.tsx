@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ComponentStage, StageHeader } from "@/components/website/component-stage";
 import { SiteHeader } from "@/components/website/site-header";
 import { componentMap } from "@/lib/component-map";
-import { componentList, getComponentById } from "@/lib/component-registry";
+import { visibleComponentList } from "@/lib/component-registry";
 import { SITE_NAME, pageMetadata, pageTitle } from "@/lib/site-metadata";
 import { hasSwiftUI } from "@/lib/swiftui-components";
 
@@ -15,7 +15,7 @@ type ComponentDetailPageProps = {
 };
 
 export function generateStaticParams() {
-  return componentList.map((component) => ({
+  return visibleComponentList.map((component) => ({
     id: component.id,
   }));
 }
@@ -24,7 +24,7 @@ export async function generateMetadata({
   params,
 }: ComponentDetailPageProps): Promise<Metadata> {
   const { id } = await params;
-  const component = getComponentById(id);
+  const component = visibleComponentList.find(entry => entry.id === id);
 
   if (!component) {
     return {
@@ -42,7 +42,7 @@ export async function generateMetadata({
 
 export default async function ComponentDetailPage({ params }: ComponentDetailPageProps) {
   const { id } = await params;
-  const component = getComponentById(id);
+  const component = visibleComponentList.find(entry => entry.id === id);
 
   if (!component) {
     notFound();

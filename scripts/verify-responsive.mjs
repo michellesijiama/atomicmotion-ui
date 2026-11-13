@@ -106,7 +106,10 @@ try {
   });
   const page = await browser.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
-  const { entries } = readRegistry();
+  const { entries: registeredEntries } = readRegistry();
+  const { visibleComponentList } = readComponentData("src/lib/component-registry.ts");
+  const visibleIds = new Set(visibleComponentList.map(({ id }) => id));
+  const entries = registeredEntries.filter(({ id }) => visibleIds.has(id));
   const { studioModels } = readComponentData("src/lib/model-registry.ts");
   const { hasSwiftUI } = readComponentData("src/lib/swiftui-components.ts");
   const homeWidths = [320, 375, 390, 430, 480, 639, 640, 641, 768, 960, 1007, 1008, 1023, 1024, 1280, 1366, 1920, 2560];

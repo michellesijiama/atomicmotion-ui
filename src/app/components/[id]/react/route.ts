@@ -1,18 +1,18 @@
 import { readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { getComponentById } from "@/lib/component-registry";
-import { hasSwiftUI, swiftUIComponents } from "@/lib/swiftui-components";
+import { visibleComponentList } from "@/lib/component-registry";
+import { hasSwiftUI } from "@/lib/swiftui-components";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return Object.keys(swiftUIComponents).map((id) => ({ id }));
+  return visibleComponentList.filter(({ id }) => hasSwiftUI(id)).map(({ id }) => ({ id }));
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const component = hasSwiftUI(id) ? getComponentById(id) : undefined;
+  const component = hasSwiftUI(id) ? visibleComponentList.find(entry => entry.id === id) : undefined;
   if (!component) return new Response("Not found", { status: 404 });
 
   const relativePath = component.codePath.slice("components/".length);
